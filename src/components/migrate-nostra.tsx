@@ -250,12 +250,12 @@ const MigrateNostra = () => {
             </div>
 
             <div className="mt-2 flex items-center justify-between">
-              <span>You will receive</span>
+              <span>xSTRK minted</span>
               <span>{xSTRKAmount.toEtherToFixedDecimals(2)} xSTRK</span>
             </div>
             <div className="mt-2 flex items-center justify-between">
               <span>
-                xSTRK is automatically lent to{" "}
+                xSTRK is automatically sent to{" "}
                 <span className="color-[#FF4240]">Nostra</span>
               </span>
               <span>{nostraLendApy.value?.toFixed(2)}% APY</span>
@@ -273,22 +273,42 @@ const MigrateNostra = () => {
         </div>
 
         {!isMigrationDone && !nstStrkBalance.isZero() && (
-          <button
-            className={cn(
-              fontInter.className,
-              "mx-auto mt-4 flex w-fit items-center gap-2 rounded-lg bg-[#17876D] px-5 py-3 text-sm font-medium text-white transition-all",
-            )}
-            onClick={() => handleMigrateToEndur()}
-          >
-            <Icons.migrate />
-            Transfer
-          </button>
+          <div>
+            <button
+              className={cn(
+                fontInter.className,
+                "mx-auto mt-4 flex w-fit items-center gap-2 rounded-lg bg-[#17876D] px-5 py-3 text-sm font-medium text-white transition-all",
+              )}
+              onClick={() => handleMigrateToEndur()}
+            >
+              <Icons.migrate />
+              Transfer
+            </button>
+            <div className="mt-4 items-center gap-2 rounded-md bg-[#FFC4664D] px-3 py-3.5 text-[#3F6870]">
+              <span className="text-sm">
+                <b>Note: </b>On clicking Transfer, Your nstSTRK is converted to
+                xSTRK and deposited into Nostra (ixSTRK). You will find your
+                assets{" "}
+                <Link
+                  href="https://app.nostra.finance/lend-borrow"
+                  target="_blank"
+                >
+                  <u>here on Nostra.</u>
+                </Link>
+              </span>
+            </div>
+          </div>
         )}
-        {!isMigrationDone && nstStrkBalance.isZero() && (
+        {!isMigrationDone && nstStrkBalance.isZero() && address && (
           <div className="mt-4 items-center gap-2 rounded-md bg-[#FFC4664D] px-3 py-3.5 text-[#3F6870]">
             <p className="font-bold">
               ⚠️ You do not have any Nostra Staked STRK (nstSTRK) to migrate
             </p>
+          </div>
+        )}
+        {!isMigrationDone && nstStrkBalance.isZero() && !address && (
+          <div className="mt-4 items-center gap-2 rounded-md bg-[#FFC4664D] px-3 py-3.5 text-[#3F6870]">
+            <p className="font-bold">⚠️ Wallet not connected</p>
           </div>
         )}
         {isMigrationDone && (
