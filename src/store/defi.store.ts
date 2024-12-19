@@ -81,7 +81,7 @@ const vesuYieldQueryAtom = atomWithQuery(() => ({
       );
       const data: VesuAPIResponse = await response.json();
 
-      const stats = data.data.assets[0].stats;
+      const stats = data.data.assets[1].stats;
       const supplyApy = convertVesuValue(
         stats.supplyApy.value,
         stats.supplyApy.decimals,
