@@ -4,7 +4,7 @@ import { useAccount, useSendTransaction } from "@starknet-react/core";
 import { useAtomValue } from "jotai";
 import { Info } from "lucide-react";
 import { Figtree, Inter } from "next/font/google";
-import { Contract, transaction, uint256 } from "starknet";
+import { Contract, uint256 } from "starknet";
 import Link from "next/link";
 import erc4626Abi from "@/abi/erc4626.abi.json";
 import nostraIXSTRK from "@/abi/ixstrk.abi.json";
@@ -93,7 +93,7 @@ const MigrateNostra = () => {
         nstStrkBalance: nstStrkBalance.toEtherStr(),
       });
     }
-  })
+  });
 
   const handleMigrateToEndur = async () => {
     if (!address) {
@@ -206,7 +206,7 @@ const MigrateNostra = () => {
           nstStrkBalance: nstStrkBalance.toEtherStr(),
           youWillStake: youWillStakeFull.toEtherStr(),
           xSTRKAmount: xSTRKAmount.toEtherStr(),
-          error: error?.name || JSON.stringify(error)
+          error: error?.name || JSON.stringify(error),
         });
       }
 

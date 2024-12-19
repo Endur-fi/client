@@ -15,14 +15,14 @@ export class MyAnalytics {
 
   static track(eventName: string, props: any) {
     try {
-        const distinct_id = JOTAI_STORE.get(userAddressAtom);
-        let _props = props;
-        if (distinct_id) {
-          _props = { ...props, $distinct_id: distinct_id };
-        }
-        mixpanel.track(eventName, _props);
+      const distinct_id = JOTAI_STORE.get(userAddressAtom);
+      let _props = props;
+      if (distinct_id) {
+        _props = { ...props, $distinct_id: distinct_id };
+      }
+      mixpanel.track(eventName, _props);
     } catch (e) {
-        console.warn("Failed to track event", e);
+      console.warn("Failed to track event", e);
     }
   }
 
