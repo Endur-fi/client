@@ -27,7 +27,11 @@ export class MyAnalytics {
   }
 
   static setPerson(address: string) {
-    mixpanel.identify(address);
-    mixpanel.people.set({ $distinct_id: address, address });
+    try {
+      mixpanel.identify(address);
+      mixpanel.people.set({ $distinct_id: address, address });
+    } catch (e) {
+      console.warn("Failed to set person", e);
+    }
   }
 }
