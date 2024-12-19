@@ -72,7 +72,7 @@ const MigrateNostra = () => {
     const amount = youWillStakeFull
       .operate("multipliedBy", MyNumber.fromEther("1", 18).toString())
       .operate("div", exchangeRate.preciseRate.toString());
-    return amount.subtract(MyNumber.fromEther("0.00001", 18));
+    return amount.subtract(MyNumber.fromEther("0.001", 18));
   }, [youWillStake, exchangeRate]);
 
   useEffect(() => {
