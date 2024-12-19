@@ -14,7 +14,7 @@ import { Figtree } from "next/font/google";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import React from "react";
+import React, { useEffect } from "react";
 import { constants, num } from "starknet";
 import {
   connect,
@@ -45,6 +45,7 @@ import { Icons } from "./Icons";
 import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet";
 import { useSidebar } from "./ui/sidebar";
 import MigrateNostra from "./migrate-nostra";
+import { MyAnalytics } from "@/lib/analytics";
 
 const font = Figtree({ subsets: ["latin-ext"] });
 
@@ -103,6 +104,9 @@ export function getConnectors(isMobile: boolean) {
 }
 
 const Navbar = ({ className }: { className?: string }) => {
+  // init analytics
+  MyAnalytics.init();
+
   const { address, connector, chainId } = useAccount();
   const { provider } = useProvider();
   const { connect: connectSnReact } = useConnect();
@@ -117,6 +121,13 @@ const Navbar = ({ className }: { className?: string }) => {
   const [__, setAddress] = useAtom(userAddressAtom);
   const [_, setLastWallet] = useAtom(lastWalletAtom);
   const setProvider = useSetAtom(providerAtom);
+
+  // set tracking person
+  useEffect(() => {
+    if (address) {
+      MyAnalytics.setPerson(address);
+    }
+  }, [address]);
 
   const connectorConfig: ConnectOptionsWithConnectors = React.useMemo(() => {
     return {

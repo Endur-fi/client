@@ -4,7 +4,7 @@ import { useAccount, useSendTransaction } from "@starknet-react/core";
 import { useAtomValue } from "jotai";
 import { Info } from "lucide-react";
 import { Figtree, Inter } from "next/font/google";
-import { Contract, uint256 } from "starknet";
+import { Contract, transaction, uint256 } from "starknet";
 import Link from "next/link";
 import erc4626Abi from "@/abi/erc4626.abi.json";
 import nostraIXSTRK from "@/abi/ixstrk.abi.json";
@@ -34,6 +34,7 @@ import MyNumber from "@/lib/MyNumber";
 import { isTxAccepted } from "@/store/transactions.atom";
 import { snAPYAtom } from "@/store/staking.store";
 import { nostraLendYieldAtom } from "@/store/defi.store";
+import { MyAnalytics } from "@/lib/analytics";
 
 const font = Figtree({ subsets: ["latin-ext"] });
 const fontInter = Inter({ subsets: ["latin-ext"] });
@@ -84,6 +85,16 @@ const MigrateNostra = () => {
     );
   }, [xSTRKAmount]);
 
+  useEffect(() => {
+    if (!nstStrkBalance.isZero()) {
+      // track the user has nstStrk
+      MyAnalytics.track("Has Nostra STRK", {
+        address,
+        nstStrkBalance: nstStrkBalance.toEtherStr(),
+      });
+    }
+  })
+
   const handleMigrateToEndur = async () => {
     if (!address) {
       return toast({
@@ -130,6 +141,12 @@ const MigrateNostra = () => {
       uint256.bnToUint256(xSTRKAmount.toString()),
     ]);
 
+    MyAnalytics.track("Init Nostra migrate", {
+      address,
+      nstStrkBalance: nstStrkBalance.toEtherStr(),
+      youWillStake: youWillStakeFull.toEtherStr(),
+      xSTRKAmount: xSTRKAmount.toEtherStr(),
+    });
     await sendAsync([call1, call2, call3, call4, call5]);
   };
 
@@ -155,6 +172,13 @@ const MigrateNostra = () => {
             </div>
           ),
         });
+        MyAnalytics.track("Init Tx Nostra migrate", {
+          address,
+          nstStrkBalance: nstStrkBalance.toEtherStr(),
+          youWillStake: youWillStakeFull.toEtherStr(),
+          xSTRKAmount: xSTRKAmount.toEtherStr(),
+          transactionHash: data?.transaction_hash,
+        });
       }
 
       if (error?.name?.includes("UserRejectedRequestError")) {
@@ -177,6 +201,13 @@ const MigrateNostra = () => {
             </div>
           ),
         });
+        MyAnalytics.track("Error Nostra migrate", {
+          address,
+          nstStrkBalance: nstStrkBalance.toEtherStr(),
+          youWillStake: youWillStakeFull.toEtherStr(),
+          xSTRKAmount: xSTRKAmount.toEtherStr(),
+          error: error?.name || JSON.stringify(error)
+        });
       }
 
       if (data) {
@@ -198,6 +229,13 @@ const MigrateNostra = () => {
                 </div>
               </div>
             ),
+          });
+          MyAnalytics.track("Completed Nostra migrate", {
+            address,
+            nstStrkBalance: nstStrkBalance.toEtherStr(),
+            youWillStake: youWillStakeFull.toEtherStr(),
+            xSTRKAmount: xSTRKAmount.toEtherStr(),
+            transactionHash: data?.transaction_hash,
           });
         }
       }
@@ -228,8 +266,8 @@ const MigrateNostra = () => {
             >
               retired
             </a>
-            . Easily migrate your nstSTRK to xSTRK, and lend to Nostra again to
-            earn high yield.
+            . Easily migrate your nstSTRK to xSTRK, and lent to get ixSTRK on
+            Nostra to earn high yield .
           </DialogDescription>
         </DialogHeader>
 
