@@ -45,7 +45,8 @@ import { snAPYAtom } from "@/store/staking.store";
 import { isTxAccepted } from "@/store/transactions.atom";
 
 import { getProvider, NETWORK, REWARD_FEES } from "@/constants";
-import { formatNumber, formatNumberWithCommas } from "@/lib/utils";
+import { MyAnalytics } from "@/lib/analytics";
+import { formatNumber, formatNumberWithCommas, eventNames } from "@/lib/utils";
 import { isMerryChristmasAtom } from "@/store/merry.store";
 import { Icons } from "./Icons";
 import { getConnectors } from "./navbar";
@@ -99,6 +100,16 @@ const Unstake = () => {
 
   React.useEffect(() => {
     (async () => {
+      if(data?.transaction_hash){
+        // Track transaction init analytics
+        MyAnalytics.track(
+          eventNames.UNSTAKE_TX_INIT,
+          {
+            address,
+            amount: Number(form.getValues("unstakeAmount"))
+          }
+        )
+      }
       if (isPending) {
         toast({
           itemID: "unstake",
@@ -122,10 +133,26 @@ const Unstake = () => {
       }
 
       if (error?.name?.includes("UserRejectedRequestError")) {
+        // Track transaction rejected analytics
+        MyAnalytics.track(
+          eventNames.UNSTAKE_TX_REJECTED,
+          {
+            address,
+            amount: Number(form.getValues("unstakeAmount"))
+          }
+        )
         dismiss();
       }
 
       if (error?.name && !error?.name?.includes("UserRejectedRequestError")) {
+        // Track transaction rejected analytics
+        MyAnalytics.track(
+          eventNames.UNSTAKE_TX_REJECTED,
+          {
+            address,
+            amount: Number(form.getValues("unstakeAmount"))
+          }
+        )
         toast({
           itemID: "unstake",
           variant: "pending",
@@ -147,6 +174,14 @@ const Unstake = () => {
         const res = await isTxAccepted(data?.transaction_hash);
 
         if (res) {
+          // Track transaction successful analytics
+          MyAnalytics.track(
+            eventNames.UNSTAKE_TX_SUCCESSFUL,
+            {
+              address,
+              amount: Number(form.getValues("unstakeAmount"))
+            }
+          )
           toast({
             itemID: "unstake",
             variant: "complete",
@@ -250,6 +285,15 @@ const Unstake = () => {
         ),
       });
     }
+
+    // Track unstake button click
+    MyAnalytics.track(
+      eventNames.UNSTAKE_CLICK,
+      {
+        address,
+        amount: Number(values.unstakeAmount)
+      }
+    )
 
     const call1 = contract.populate("withdraw", [
       MyNumber.fromEther(values.unstakeAmount, 18),
