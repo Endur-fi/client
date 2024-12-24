@@ -15,7 +15,6 @@ import DefiCard, {
 } from "./defi-card";
 import { Icons } from "./Icons";
 
-
 interface ProtocolConfig {
   tokens: TokenDisplay[];
   protocolIcon: React.ReactNode;
@@ -46,15 +45,12 @@ export const protocolConfigs: Record<string, ProtocolConfig> = {
       type: "lend",
       link: "https://vesu.xyz/lend?form=true&poolId=2345856225134458665876812536882617294246962319062565703131100435311373119841&collateralAddress=0x028d709c875c0ceac3dce7065bec5328186dc89fe254527084d1689910954b0a",
       buttonText: "Lend xSTRK",
-      onClick: ()=>{
-        MyAnalytics.track(
-          eventNames.OPPORTUNITIES,
-          {
-            protocol: "vesu",
-            buttonText: "Lend xSTRK"
-          }
-        )
-      }
+      onClick: () => {
+        MyAnalytics.track(eventNames.OPPORTUNITIES, {
+          protocol: "vesu",
+          buttonText: "Lend xSTRK",
+        });
+      },
     },
   },
   avnu: {
@@ -69,15 +65,12 @@ export const protocolConfigs: Record<string, ProtocolConfig> = {
       type: "swap",
       link: "https://app.avnu.fi/en?mode=simple&tokenFrom=0x28d709c875c0ceac3dce7065bec5328186dc89fe254527084d1689910954b0a&tokenTo=0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d&amount=100",
       buttonText: "Swap Tokens",
-      onClick: ()=>{
-        MyAnalytics.track(
-          eventNames.OPPORTUNITIES,
-          {
-            protocol: "anvu",
-            buttonText: "Swap Tokens"
-          }
-        )
-      }
+      onClick: () => {
+        MyAnalytics.track(eventNames.OPPORTUNITIES, {
+          protocol: "anvu",
+          buttonText: "Swap Tokens",
+        });
+      },
     },
   },
   fibrous: {
@@ -92,16 +85,12 @@ export const protocolConfigs: Record<string, ProtocolConfig> = {
       type: "swap",
       link: "https://app.fibrous.finance/en?network=starknet&mode=swap&source=0x028d709c875c0ceac3dce7065bec5328186dc89fe254527084d1689910954b0a&destination=0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
       buttonText: "Swap Tokens",
-      onClick: ()=>{
-        MyAnalytics.track(
-          eventNames.OPPORTUNITIES,
-          {
-            protocol: "fibrous",
-            buttonText: "Swap Tokens"
-          }
-        )
-      }
-      
+      onClick: () => {
+        MyAnalytics.track(eventNames.OPPORTUNITIES, {
+          protocol: "fibrous",
+          buttonText: "Swap Tokens",
+        });
+      },
     },
   },
   "nostra-pool": {
@@ -117,15 +106,12 @@ export const protocolConfigs: Record<string, ProtocolConfig> = {
       type: "pool",
       link: "https://app.nostra.finance/pools/xSTRK-STRK/deposit",
       buttonText: "Add Liquidity",
-      onClick: ()=>{
-        MyAnalytics.track(
-          eventNames.OPPORTUNITIES,
-          {
-            protocol: "nostra-pool",
-            buttonText: "Add Liquidity"
-          }
-        )
-      }
+      onClick: () => {
+        MyAnalytics.track(eventNames.OPPORTUNITIES, {
+          protocol: "nostra-pool",
+          buttonText: "Add Liquidity",
+        });
+      },
     },
   },
   "nostra-lend": {
@@ -139,15 +125,12 @@ export const protocolConfigs: Record<string, ProtocolConfig> = {
       type: "lend",
       link: "https://app.nostra.finance/lend-borrow/xSTRK/deposit",
       buttonText: "Lend Assets",
-      onClick: ()=>{
-        MyAnalytics.track(
-          eventNames.OPPORTUNITIES,
-          {
-            protocol: "nostra-lend",
-            buttonText: "Lend Assets"
-          }
-        )
-      }
+      onClick: () => {
+        MyAnalytics.track(eventNames.OPPORTUNITIES, {
+          protocol: "nostra-lend",
+          buttonText: "Lend Assets",
+        });
+      },
     },
   },
   ekubo: {
@@ -163,15 +146,12 @@ export const protocolConfigs: Record<string, ProtocolConfig> = {
       type: "pool",
       link: "https://app.ekubo.org/positions/new?quoteCurrency=xSTRK&baseCurrency=STRK",
       buttonText: "Add Liquidity",
-      onClick: ()=>{
-        MyAnalytics.track(
-          eventNames.OPPORTUNITIES,
-          {
-            protocol: "ekubo",
-            buttonText: "Add Liquidity"
-          }
-        )
-      }
+      onClick: () => {
+        MyAnalytics.track(eventNames.OPPORTUNITIES, {
+          protocol: "ekubo",
+          buttonText: "Add Liquidity",
+        });
+      },
     },
   },
   haiko: {
@@ -187,15 +167,12 @@ export const protocolConfigs: Record<string, ProtocolConfig> = {
       type: "pool",
       link: "https://app.haiko.xyz/vaults/positions?type=solver&address=0x73cc79b07a02fe5dcd714903d62f9f3081e15aeb34e3725f44e495ecd88a5a1&marketId=0x60a19777e802ecb59ebc67604b28643dec2dd45ddf7683190b085c2cdd5bdcd&tab=deposit",
       buttonText: "Add Liquidity",
-      onClick: ()=>{
-        MyAnalytics.track(
-          eventNames.OPPORTUNITIES,
-          {
-            protocol: "haiko",
-            buttonText: "Add Liquidity"
-          }
-        )
-      }
+      onClick: () => {
+        MyAnalytics.track(eventNames.OPPORTUNITIES, {
+          protocol: "haiko",
+          buttonText: "Add Liquidity",
+        });
+      },
     },
   },
   opus: {
@@ -211,15 +188,12 @@ export const protocolConfigs: Record<string, ProtocolConfig> = {
       type: "lend",
       link: "https://app.opus.money/",
       buttonText: "Leverage Assets",
-      onClick: ()=>{
-        MyAnalytics.track(
-          eventNames.OPPORTUNITIES,
-          {
-            protocol: "opus",
-            buttonText: "Leverage Assets"
-          }
-        )
-      }
+      onClick: () => {
+        MyAnalytics.track(eventNames.OPPORTUNITIES, {
+          protocol: "opus",
+          buttonText: "Leverage Assets",
+        });
+      },
     },
   },
 };

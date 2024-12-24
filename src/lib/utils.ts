@@ -141,7 +141,7 @@ export function convertFutureTimestamp(unixTimestamp: number): string {
 }
 
 export const eventNames = {
-  STAKE_CLICK : "stake_click",
+  STAKE_CLICK: "stake_click",
   STAKE_TX_INIT: "stake_transaction_init",
   STAKE_TX_SUCCESSFUL: "stake_transaction_successful",
   STAKE_TX_REJECTED: "stake_transaction_rejected",
@@ -150,4 +150,4 @@ export const eventNames = {
   UNSTAKE_TX_SUCCESSFUL: "unstake_transaction_successful",
   UNSTAKE_TX_REJECTED: "unstake_transaction_rejected",
   OPPORTUNITIES: "opportunities",
-}
+};

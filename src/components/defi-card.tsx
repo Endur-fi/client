@@ -20,7 +20,7 @@ export interface ProtocolAction {
   link: string;
   buttonText: string;
   variant?: "primary" | "secondary" | "tertiary";
-  onClick?: ()=>void
+  onClick?: () => void;
 }
 
 interface DefiCardProps {
