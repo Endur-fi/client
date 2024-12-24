@@ -45,6 +45,7 @@ import { snAPYAtom } from "@/store/staking.store";
 import { isTxAccepted } from "@/store/transactions.atom";
 
 import { getProvider, NETWORK, REWARD_FEES } from "@/constants";
+import { MyAnalytics } from "@/lib/analytics";
 import { formatNumber, formatNumberWithCommas } from "@/lib/utils";
 import { isMerryChristmasAtom } from "@/store/merry.store";
 import { Icons } from "./Icons";
@@ -171,8 +172,12 @@ const Unstake = () => {
   }, [data, data?.transaction_hash, error?.name, form, isPending]);
 
   React.useEffect(() => {
-    if (form.getValues("unstakeAmount").toLowerCase().includes("xstrk")) {
+    if (form.getValues("unstakeAmount").toLowerCase() === "xstrk") {
       setIsMerry(true);
+      MyAnalytics.track("Activated Merry Christmas Theme", {
+        address,
+        tab: "unstake",
+      });
     }
   }, [form.getValues("unstakeAmount"), form]);
 
@@ -333,7 +338,14 @@ const Unstake = () => {
                         />
                       </div>
                     </FormControl>
-                    <FormMessage className="absolute -bottom-5 left-1 text-xs" />
+                    {form.getValues("unstakeAmount").toLowerCase() ===
+                    "xstrk" ? (
+                      <p className="absolute -bottom-4 left-0 text-xs font-medium text-green-500 transition-all lg:left-1 lg:-ml-1">
+                        Merry Christmas!
+                      </p>
+                    ) : (
+                      <FormMessage className="absolute -bottom-5 left-0 text-xs lg:left-1" />
+                    )}{" "}
                   </FormItem>
                 )}
               />
