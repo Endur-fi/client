@@ -68,6 +68,7 @@ import {
 import { snAPYAtom } from "@/store/staking.store";
 import { isTxAccepted } from "@/store/transactions.atom";
 
+import { MyAnalytics } from "@/lib/analytics";
 import { Icons } from "./Icons";
 import { getConnectors } from "./navbar";
 import { Button } from "./ui/button";
@@ -231,6 +232,10 @@ const Stake: React.FC = () => {
   React.useEffect(() => {
     if (form.getValues("stakeAmount").toLowerCase() === "xstrk") {
       setIsMerry(true);
+      MyAnalytics.track("Activated Merry Christmas Theme", {
+        address,
+        tab: "stake",
+      });
     }
   }, [form.getValues("stakeAmount"), form]);
 

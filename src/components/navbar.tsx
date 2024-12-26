@@ -402,7 +402,7 @@ const Navbar = ({ className }: { className?: string }) => {
             <div className="group absolute -bottom-[138px] right-12">
               <Icons.bell1Faded className="group-hover:hidden" />
               <Icons.bell1 className="hidden group-hover:block" />
-              <p className="absolute -bottom-[5.5rem] -left-12 hidden w-44 rounded-md border border-[#03624C] bg-white p-2 text-sm text-[#03624C] transition-all group-hover:flex">
+              <p className="absolute -bottom-[4.3rem] -left-12 hidden w-44 rounded-md border border-[#03624C] bg-white p-2 text-sm text-[#03624C] transition-all group-hover:flex">
                 May 2025 be a multi-bagger year for you 😉
               </p>
             </div>

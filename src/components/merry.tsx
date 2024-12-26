@@ -3,11 +3,15 @@ import { useAtomValue } from "jotai";
 import Image from "next/image";
 import React from "react";
 
+import { MyAnalytics } from "@/lib/analytics";
+import { useAccount } from "@starknet-react/core";
 import { protocolConfigs } from "./defi";
 import DefiCard from "./defi-card";
 import { Icons } from "./Icons";
 
 const Merry: React.FC = () => {
+  const { address } = useAccount();
+
   const yields: any = useAtomValue(protocolYieldsAtom);
 
   const sortedProtocols = React.useMemo(() => {
@@ -24,8 +28,6 @@ const Merry: React.FC = () => {
   const renderDefiCard = React.useCallback(
     (protocol: any) => {
       const config = protocolConfigs[protocol];
-
-      console.log(config);
 
       return (
         <DefiCard
@@ -51,7 +53,14 @@ const Merry: React.FC = () => {
         className="-z-10 object-cover"
       />
 
-      <div className="group fixed bottom-0 left-24 hover:z-40">
+      <div
+        className="group fixed bottom-0 left-24 hover:z-40"
+        onMouseEnter={() => {
+          MyAnalytics.track("Hovered on haiko gift box", {
+            address,
+          });
+        }}
+      >
         <Icons.gift1Faded className="group-hover:hidden" />
         <Icons.gift1 className="hidden group-hover:block" />
         <div className="absolute -right-36 -top-[13rem] hidden rounded-md border border-[#03624C] bg-white p-2 text-sm text-[#03624C] transition-all group-hover:flex">
@@ -61,7 +70,14 @@ const Merry: React.FC = () => {
         </div>
       </div>
 
-      <div className="group fixed bottom-0 left-56 hover:z-40">
+      <div
+        className="group fixed bottom-0 left-56 hover:z-40"
+        onMouseEnter={() => {
+          MyAnalytics.track("Hovered on ekubo gift box", {
+            address,
+          });
+        }}
+      >
         <Icons.gift2Faded className="group-hover:hidden" />
         <Icons.gift2 className="hidden group-hover:block" />
         <div className="absolute -right-20 -top-44 hidden rounded-md border border-[#03624C] bg-white p-2 text-sm text-[#03624C] transition-all group-hover:flex">
@@ -71,7 +87,14 @@ const Merry: React.FC = () => {
         </div>
       </div>
 
-      <div className="group fixed bottom-0 right-[286px] z-20 hover:z-40">
+      <div
+        className="group fixed bottom-0 right-[286px] z-20 hover:z-40"
+        onMouseEnter={() => {
+          MyAnalytics.track("Hovered on nostra-pool box", {
+            address,
+          });
+        }}
+      >
         <Icons.gift3Faded className="group-hover:hidden" />
         <Icons.gift3 className="hidden group-hover:block" />
         <div className="absolute -right-24 -top-[14.2rem] hidden rounded-md border border-[#03624C] bg-white p-2 text-sm text-[#03624C] transition-all group-hover:flex">
@@ -81,7 +104,14 @@ const Merry: React.FC = () => {
         </div>
       </div>
 
-      <div className="group fixed bottom-0 right-[185px] z-20 hover:z-40">
+      <div
+        className="group fixed bottom-0 right-[185px] z-20 hover:z-40"
+        onMouseEnter={() => {
+          MyAnalytics.track("Hovered on vesu gift box", {
+            address,
+          });
+        }}
+      >
         <Icons.gift4Faded className="group-hover:hidden" />
         <Icons.gift4 className="hidden group-hover:block" />
         <div className="absolute -right-28 -top-[13rem] hidden rounded-md border border-[#03624C] bg-white p-2 text-sm text-[#03624C] transition-all group-hover:flex">
@@ -91,7 +121,14 @@ const Merry: React.FC = () => {
         </div>
       </div>
 
-      <div className="group fixed bottom-0 right-[104px] z-20 hover:z-40">
+      <div
+        className="group fixed bottom-0 right-[104px] z-20 hover:z-40"
+        onMouseEnter={() => {
+          MyAnalytics.track("Hovered on nostra-lend gift box", {
+            address,
+          });
+        }}
+      >
         <Icons.gift5Faded className="group-hover:hidden" />
         <Icons.gift5 className="hidden group-hover:block" />
         <div className="absolute -right-24 -top-[14.2rem] hidden rounded-md border border-[#03624C] bg-white p-2 text-sm text-[#03624C] transition-all group-hover:flex">
@@ -101,7 +138,14 @@ const Merry: React.FC = () => {
         </div>
       </div>
 
-      <div className="group fixed bottom-0 right-2 z-20 hover:z-40">
+      <div
+        className="group fixed bottom-0 right-2 z-20 hover:z-40"
+        onMouseEnter={() => {
+          MyAnalytics.track("Hovered on opus gift box", {
+            address,
+          });
+        }}
+      >
         <Icons.gift6Faded className="group-hover:hidden" />
         <Icons.gift6 className="hidden group-hover:block" />
         <div className="absolute -top-[13.7rem] right-0 hidden rounded-md border border-[#03624C] bg-white p-2 text-sm text-[#03624C] transition-all group-hover:flex">
