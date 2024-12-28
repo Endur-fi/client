@@ -5,6 +5,8 @@ import React from "react";
 
 import { cn } from "@/lib/utils";
 
+import { CustomIconProps } from "./twitter";
+
 const frameVariants: Variants = {
   visible: { opacity: 1 },
   hidden: { opacity: 1 },
@@ -15,12 +17,10 @@ const lineVariants: Variants = {
   hidden: { pathLength: 0, opacity: 0 },
 };
 
-const ChartColumnDecreasingIcon = ({
+const ChartColumnDecreasingIcon: React.FC<CustomIconProps> = ({
   className,
   triggerAnimation,
-}: {
-  className?: string;
-  triggerAnimation?: boolean;
+  asIcon = false,
 }) => {
   const controls = useAnimation();
 
@@ -55,8 +55,8 @@ const ChartColumnDecreasingIcon = ({
         "flex cursor-pointer select-none items-center justify-center rounded-md",
         className,
       )}
-      // onMouseEnter={handleHoverStart}
-      // onMouseLeave={handleHoverEnd}
+      onMouseEnter={() => asIcon && controls.start("animate")}
+      onMouseLeave={() => asIcon && controls.start("normal")}
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"

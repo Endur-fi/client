@@ -5,12 +5,12 @@ import React from "react";
 
 import { cn } from "@/lib/utils";
 
-const BookTextIcon = ({
+import { CustomIconProps } from "./twitter";
+
+const BookTextIcon: React.FC<CustomIconProps> = ({
   className,
   triggerAnimation,
-}: {
-  className?: string;
-  triggerAnimation?: boolean;
+  asIcon = false,
 }) => {
   const controls = useAnimation();
 
@@ -28,8 +28,8 @@ const BookTextIcon = ({
         "flex cursor-pointer select-none items-center justify-center rounded-md",
         className,
       )}
-      // onMouseEnter={() => controls.start("animate")}
-      // onMouseLeave={() => controls.start("normal")}
+      onMouseEnter={() => asIcon && controls.start("animate")}
+      onMouseLeave={() => asIcon && controls.start("normal")}
     >
       <motion.svg
         animate={controls}
@@ -56,7 +56,7 @@ const BookTextIcon = ({
         viewBox="0 0 24 24"
         fill="none"
         stroke="currentColor"
-        strokeWidth="2"
+        strokeWidth="1.8"
         strokeLinecap="round"
         strokeLinejoin="round"
       >

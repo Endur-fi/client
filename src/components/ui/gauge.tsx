@@ -6,6 +6,8 @@ import React from "react";
 
 import { cn } from "@/lib/utils";
 
+import { CustomIconProps } from "./twitter";
+
 const defaultTransition: Transition = {
   type: "spring",
   stiffness: 160,
@@ -13,12 +15,10 @@ const defaultTransition: Transition = {
   mass: 1,
 };
 
-const GaugeIcon = ({
+const GaugeIcon: React.FC<CustomIconProps> = ({
   className,
   triggerAnimation,
-}: {
-  className?: string;
-  triggerAnimation?: boolean;
+  asIcon = false,
 }) => {
   const controls = useAnimation();
 
@@ -36,8 +36,8 @@ const GaugeIcon = ({
         "flex cursor-pointer select-none items-center justify-center rounded-md",
         className,
       )}
-      // onMouseEnter={() => controls.start("animate")}
-      // onMouseLeave={() => controls.start("normal")}
+      onMouseEnter={() => asIcon && controls.start("animate")}
+      onMouseLeave={() => asIcon && controls.start("normal")}
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"

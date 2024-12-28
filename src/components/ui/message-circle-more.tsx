@@ -6,6 +6,8 @@ import React from "react";
 
 import { cn } from "@/lib/utils";
 
+import { CustomIconProps } from "./twitter";
+
 const dotVariants: Variants = {
   normal: {
     opacity: 1,
@@ -30,12 +32,10 @@ const dotVariants: Variants = {
   }),
 };
 
-const MessageCircleMoreIcon = ({
+const MessageCircleMoreIcon: React.FC<CustomIconProps> = ({
   className,
   triggerAnimation,
-}: {
-  className?: string;
-  triggerAnimation?: boolean;
+  asIcon = false,
 }) => {
   const controls = useAnimation();
 
@@ -53,8 +53,8 @@ const MessageCircleMoreIcon = ({
         "flex cursor-pointer select-none items-center justify-center overflow-hidden rounded-md",
         className,
       )}
-      // onMouseEnter={() => controls.start("animate")}
-      // onMouseLeave={() => controls.start("normal")}
+      onMouseEnter={() => asIcon && controls.start("animate")}
+      onMouseLeave={() => asIcon && controls.start("normal")}
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"

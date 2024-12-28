@@ -5,12 +5,16 @@ import React from "react";
 
 import { cn } from "@/lib/utils";
 
-const TwitterIcon = ({
-  className,
-  triggerAnimation,
-}: {
+export interface CustomIconProps {
   className?: string;
   triggerAnimation?: boolean;
+  asIcon?: boolean;
+}
+
+const TwitterIcon: React.FC<CustomIconProps> = ({
+  className,
+  triggerAnimation,
+  asIcon = false,
 }) => {
   const controls = useAnimation();
 
@@ -28,8 +32,8 @@ const TwitterIcon = ({
         "flex cursor-pointer select-none items-center justify-center rounded-md",
         className,
       )}
-      //   onMouseEnter={() => controls.start("animate")}
-      //   onMouseLeave={() => controls.start("normal")}
+      onMouseEnter={() => asIcon && controls.start("animate")}
+      onMouseLeave={() => asIcon && controls.start("normal")}
     >
       <motion.svg
         width="20"

@@ -9,10 +9,7 @@ import {
   useSwitchChain,
 } from "@starknet-react/core";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
-import { ChartPie, X } from "lucide-react";
-import { Figtree } from "next/font/google";
-import Image from "next/image";
-import Link from "next/link";
+import { X } from "lucide-react";
 import { usePathname, useSearchParams } from "next/navigation";
 import React, { useEffect } from "react";
 import { constants, num } from "starknet";
@@ -32,7 +29,7 @@ import {
 } from "starknetkit/braavosMobile";
 import { WebWalletConnector } from "starknetkit/webwallet";
 
-import { DASHBOARD_URL, getProvider, NETWORK } from "@/constants";
+import { getProvider, NETWORK } from "@/constants";
 import { toast } from "@/hooks/use-toast";
 import { cn, shortAddress } from "@/lib/utils";
 import {
@@ -45,10 +42,8 @@ import { MyAnalytics } from "@/lib/analytics";
 import { isMerryChristmasAtom, tabsAtom } from "@/store/merry.store";
 import { Icons } from "./Icons";
 import MigrateNostra from "./migrate-nostra";
-import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet";
+import MobileNav from "./mobile-nav";
 import { useSidebar } from "./ui/sidebar";
-
-const font = Figtree({ subsets: ["latin-ext"] });
 
 export const CONNECTOR_NAMES = ["Braavos", "Argent X", "Argent (mobile)"];
 
@@ -222,109 +217,7 @@ const Navbar = ({ className }: { className?: string }) => {
         className,
       )}
     >
-      {isMobile && (
-        <Sheet>
-          <div className="flex items-center justify-center gap-2 md:gap-4">
-            <SheetTrigger>
-              <Icons.hamburger className="size-5" />
-            </SheetTrigger>
-            <Image
-              src="/full_logo.svg"
-              width={80}
-              height={60}
-              alt="full_logo"
-            />
-          </div>
-
-          <SheetContent
-            data-sidebar="sidebar"
-            data-mobile="true"
-            className={cn(
-              font.className,
-              "bg-sidebar p-0 text-sidebar-foreground",
-            )}
-            side="left"
-          >
-            <div className="h-full border border-[#AACBC480]">
-              <div className="flex items-center justify-start bg-[#AACBC433] px-6 py-10">
-                <Image
-                  className=""
-                  src="/full_logo.svg"
-                  width={160}
-                  height={60}
-                  alt="full_logo"
-                />
-              </div>
-
-              <div className="h-full space-y-1 bg-[#AACBC433] px-4 pt-5">
-                <Link
-                  href={referrer ? `/?referrer=${referrer}` : "/"}
-                  className={cn(
-                    "group/stake flex cursor-pointer flex-row items-center gap-2 rounded-md px-3 py-2 text-xl font-semibold text-[#03624C] transition-all hover:bg-[#17876D] hover:text-white",
-                    {
-                      "bg-[#17876D] text-white": pathname === "/",
-                    },
-                  )}
-                >
-                  {pathname === "/" ? (
-                    <Icons.stakingLight className="size-5" />
-                  ) : (
-                    <>
-                      <Icons.stakingDark className="size-5 group-hover/stake:hidden" />
-                      <Icons.stakingLight className="hidden size-5 group-hover/stake:flex" />
-                    </>
-                  )}
-                  Liquid Staking
-                </Link>
-
-                <hr className="border-[#AACBC480]" />
-
-                <Link
-                  href={referrer ? `/defi?referrer=${referrer}` : "/defi"}
-                  className={cn(
-                    "group/defi flex cursor-pointer flex-row items-center gap-2 rounded-md px-3 py-2 text-xl font-semibold text-[#03624C] transition-all hover:bg-[#17876D] hover:text-white",
-                    {
-                      "bg-[#17876D] text-white": pathname === "/defi",
-                    },
-                  )}
-                >
-                  {pathname === "/defi" ? (
-                    <Icons.defiLight className="size-5" />
-                  ) : (
-                    <>
-                      <Icons.defiDark className="size-5 group-hover/defi:hidden" />
-                      <Icons.defiLight className="hidden size-5 group-hover/defi:flex" />
-                    </>
-                  )}
-                  xSTRK on DeFi
-                </Link>
-
-                <Link
-                  href={"https://dune.com/endurfi/xstrk-analytics"}
-                  target="_blank"
-                >
-                  <div className="group/defi flex cursor-pointer flex-row items-center gap-2 rounded-md px-3 py-2 text-xl font-semibold text-[#03624C] transition-all hover:bg-[#17876D] hover:text-white">
-                    <ChartPie className="size-5 shrink-0" />
-                    <p className="flex flex-col gap-0">xSTRK Analytics </p>
-                  </div>
-                </Link>
-
-                <hr className="border-[#AACBC480]" />
-
-                <Link
-                  href={DASHBOARD_URL}
-                  target="_blank"
-                  className="group/dash flex cursor-pointer flex-row items-center gap-2 rounded-md px-3 py-2 text-xl font-semibold text-[#03624C] transition-all hover:bg-[#17876D] hover:text-white"
-                >
-                  <Icons.dashboardDark className="size-5 shrink-0 group-hover/dash:hidden" />
-                  <Icons.dashboardLight className="hidden size-5 shrink-0 group-hover/dash:flex" />
-                  Staking Dashboard
-                </Link>
-              </div>
-            </div>
-          </SheetContent>
-        </Sheet>
-      )}
+      {isMobile && <MobileNav />}
 
       <div className="relative flex items-center gap-4">
         {!isMobile && NETWORK === constants.NetworkName.SN_MAIN && (

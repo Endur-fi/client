@@ -8,24 +8,25 @@ import { cn } from "@/lib/utils";
 
 import { CustomIconProps } from "./twitter";
 
-const pathVariants: Variants = {
+const lineVariants: Variants = {
   normal: {
-    pathLength: 1,
+    rotate: 0,
+    y: 0,
     opacity: 1,
-    pathOffset: 0,
   },
-  animate: {
-    opacity: [0, 1],
-    pathLength: [0, 1],
+  animate: (custom: number) => ({
+    rotate: custom === 1 ? 45 : custom === 3 ? -45 : 0,
+    y: custom === 1 ? 6 : custom === 3 ? -6 : 0,
+    opacity: custom === 2 ? 0 : 1,
     transition: {
-      delay: 0.1,
-      duration: 0.4,
-      opacity: { duration: 0.1, delay: 0.1 },
+      type: "spring",
+      stiffness: 260,
+      damping: 20,
     },
-  },
+  }),
 };
 
-const FlameIcon: React.FC<CustomIconProps> = ({
+const MenuIcon: React.FC<CustomIconProps> = ({
   className,
   triggerAnimation,
   asIcon = false,
@@ -43,7 +44,7 @@ const FlameIcon: React.FC<CustomIconProps> = ({
   return (
     <div
       className={cn(
-        "flex shrink-0 cursor-pointer select-none items-center justify-center rounded-md",
+        "flex cursor-pointer select-none items-center justify-center rounded-md",
         className,
       )}
       onMouseEnter={() => asIcon && controls.start("animate")}
@@ -60,16 +61,36 @@ const FlameIcon: React.FC<CustomIconProps> = ({
         strokeLinecap="round"
         strokeLinejoin="round"
       >
-        <motion.path
-          variants={pathVariants}
-          initial="normal"
+        <motion.line
+          x1="4"
+          y1="6"
+          x2="20"
+          y2="6"
+          variants={lineVariants}
           animate={controls}
-          fill="none"
-          d="M8.9 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"
+          custom={1}
+        />
+        <motion.line
+          x1="4"
+          y1="12"
+          x2="20"
+          y2="12"
+          variants={lineVariants}
+          animate={controls}
+          custom={2}
+        />
+        <motion.line
+          x1="4"
+          y1="18"
+          x2="20"
+          y2="18"
+          variants={lineVariants}
+          animate={controls}
+          custom={3}
         />
       </svg>
     </div>
   );
 };
 
-export { FlameIcon };
+export { MenuIcon };

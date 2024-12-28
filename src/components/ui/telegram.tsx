@@ -1,16 +1,16 @@
 "use client";
 
 import { motion, useAnimation } from "motion/react";
-
-import { cn } from "@/lib/utils";
 import React from "react";
 
-const TelegramIcon = ({
+import { cn } from "@/lib/utils";
+
+import { CustomIconProps } from "./twitter";
+
+const TelegramIcon: React.FC<CustomIconProps> = ({
   className,
   triggerAnimation,
-}: {
-  className?: string;
-  triggerAnimation?: boolean;
+  asIcon = false,
 }) => {
   const controls = useAnimation();
 
@@ -28,8 +28,8 @@ const TelegramIcon = ({
         "flex cursor-pointer select-none items-center justify-center rounded-md",
         className,
       )}
-      //   onMouseEnter={() => controls.start("animate")}
-      //   onMouseLeave={() => controls.start("normal")}
+      onMouseEnter={() => asIcon && controls.start("animate")}
+      onMouseLeave={() => asIcon && controls.start("normal")}
     >
       <motion.svg
         xmlns="http://www.w3.org/2000/svg"

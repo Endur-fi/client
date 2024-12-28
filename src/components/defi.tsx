@@ -167,8 +167,7 @@ const Defi: React.FC = () => {
   return (
     <div
       className={cn("mx-auto mt-12 w-full max-w-7xl px-8", {
-        // "lg:pl-28": !open,
-        "pl-28": !isPinned,
+        "lg:pl-28": !isPinned,
       })}
     >
       <h1 className="text-2xl font-semibold tracking-[-1%] text-black">

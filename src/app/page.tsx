@@ -33,7 +33,7 @@ export default function Home() {
   return (
     <div className="relative flex h-full min-h-screen w-full overflow-x-hidden">
       {activeTab !== "withdraw" && isMerry && (
-        <>
+        <div className="hidden lg:block">
           <Merry />
           <div className="z-30">
             <Snowfall
@@ -43,7 +43,7 @@ export default function Home() {
               wind={[-0.5, 1.0]}
             />
           </div>
-        </>
+        </div>
       )}
 
       <React.Suspense fallback={<div className="w-72">Loading sidebar...</div>}>
