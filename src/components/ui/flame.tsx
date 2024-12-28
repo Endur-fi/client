@@ -6,31 +6,24 @@ import React from "react";
 
 import { cn } from "@/lib/utils";
 
-const dotVariants: Variants = {
+const pathVariants: Variants = {
   normal: {
+    pathLength: 1,
     opacity: 1,
+    pathOffset: 0,
   },
-  animate: (custom: number) => ({
-    opacity: [1, 0, 0, 1, 1, 0, 0, 1],
+  animate: {
+    opacity: [0, 1],
+    pathLength: [0, 1],
     transition: {
-      opacity: {
-        times: [
-          0,
-          0.1,
-          0.1 + custom * 0.1,
-          0.1 + custom * 0.1 + 0.1,
-          0.5,
-          0.6,
-          0.6 + custom * 0.1,
-          0.6 + custom * 0.1 + 0.1,
-        ],
-        duration: 1.5,
-      },
+      delay: 0.1,
+      duration: 0.4,
+      opacity: { duration: 0.1, delay: 0.1 },
     },
-  }),
+  },
 };
 
-const MessageCircleMoreIcon = ({
+const FlameIcon = ({
   className,
   triggerAnimation,
 }: {
@@ -50,7 +43,7 @@ const MessageCircleMoreIcon = ({
   return (
     <div
       className={cn(
-        "flex cursor-pointer select-none items-center justify-center overflow-hidden rounded-md",
+        "flex shrink-0 cursor-pointer select-none items-center justify-center rounded-md",
         className,
       )}
       // onMouseEnter={() => controls.start("animate")}
@@ -67,28 +60,16 @@ const MessageCircleMoreIcon = ({
         strokeLinecap="round"
         strokeLinejoin="round"
       >
-        <path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z" />
         <motion.path
-          d="M8 12h.01"
-          variants={dotVariants}
+          variants={pathVariants}
+          initial="normal"
           animate={controls}
-          custom={0}
-        />
-        <motion.path
-          d="M12 12h.01"
-          variants={dotVariants}
-          animate={controls}
-          custom={1}
-        />
-        <motion.path
-          d="M16 12h.01"
-          variants={dotVariants}
-          animate={controls}
-          custom={2}
+          fill="none"
+          d="M8.9 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"
         />
       </svg>
     </div>
   );
 };
 
-export { MessageCircleMoreIcon };
+export { FlameIcon };

@@ -42,11 +42,11 @@ const ChartColumnDecreasingIcon = ({
   };
 
   React.useEffect(() => {
-    handleHoverStart();
-
-    return () => {
-      controls.stop();
-    };
+    if (triggerAnimation) {
+      handleHoverStart();
+    } else {
+      handleHoverEnd();
+    }
   }, [triggerAnimation]);
 
   return (
@@ -55,8 +55,8 @@ const ChartColumnDecreasingIcon = ({
         "flex cursor-pointer select-none items-center justify-center rounded-md",
         className,
       )}
-      onMouseEnter={handleHoverStart}
-      onMouseLeave={handleHoverEnd}
+      // onMouseEnter={handleHoverStart}
+      // onMouseLeave={handleHoverEnd}
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"

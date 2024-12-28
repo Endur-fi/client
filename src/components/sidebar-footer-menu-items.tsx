@@ -3,12 +3,17 @@
 import Link from "next/link";
 import React from "react";
 
-import { Icons } from "./Icons";
 import { BookTextIcon } from "./ui/book-text";
 import { MessageCircleMoreIcon } from "./ui/message-circle-more";
 import { SidebarMenuButton, SidebarMenuItem, useSidebar } from "./ui/sidebar";
+import { TelegramIcon } from "./ui/telegram";
+import { TwitterIcon } from "./ui/twitter";
 
 const SidebarFooterMenuItems = () => {
+  const [triggerTwitterIconAnimation, setTriggerTwitterIconAnimation] =
+    React.useState(false);
+  const [triggerTelegramIconAnimation, setTriggerTelegramIconAnimation] =
+    React.useState(false);
   const [triggerDocsIconAnimation, setTriggerDocsIconAnimation] =
     React.useState(false);
   const [triggerChatIconAnimation, setTriggerChatIconAnimation] =
@@ -22,13 +27,18 @@ const SidebarFooterMenuItems = () => {
         <SidebarMenuButton
           asChild
           className="transition-all hover:bg-[#17876D] hover:text-white"
+          onMouseEnter={() => setTriggerTwitterIconAnimation(true)}
+          onMouseLeave={() => setTriggerTwitterIconAnimation(false)}
         >
           <Link
             href={"https://x.com/endurfi"}
             target="_blank"
             className="flex w-full cursor-pointer flex-row items-center gap-2 text-nowrap rounded-md text-base font-semibold text-[#03624C] transition-all"
           >
-            <Icons.twitter className="size-4" />
+            <TwitterIcon
+              className="size-4"
+              triggerAnimation={triggerTwitterIconAnimation}
+            />
             <span>{open && "Twitter"}</span>
           </Link>
         </SidebarMenuButton>
@@ -38,13 +48,18 @@ const SidebarFooterMenuItems = () => {
         <SidebarMenuButton
           asChild
           className="transition-all hover:bg-[#17876D] hover:text-white"
+          onMouseEnter={() => setTriggerTelegramIconAnimation(true)}
+          onMouseLeave={() => setTriggerTelegramIconAnimation(false)}
         >
           <Link
             href={"https://t.me/+jWY71PfbMMIwMTBl"}
             target="_blank"
             className="flex w-full cursor-pointer flex-row items-center gap-2 text-nowrap rounded-md text-base font-semibold text-[#03624C] transition-all"
           >
-            <Icons.telegram className="size-4" />
+            <TelegramIcon
+              className="size-4"
+              triggerAnimation={triggerTelegramIconAnimation}
+            />
             <span>{open && "Telegram"}</span>
           </Link>
         </SidebarMenuButton>

@@ -15,11 +15,11 @@ const BookTextIcon = ({
   const controls = useAnimation();
 
   React.useEffect(() => {
-    controls.start("animate");
-
-    return () => {
-      controls.stop();
-    };
+    if (triggerAnimation) {
+      controls.start("animate");
+    } else {
+      controls.start("normal");
+    }
   }, [triggerAnimation]);
 
   return (
@@ -28,8 +28,8 @@ const BookTextIcon = ({
         "flex cursor-pointer select-none items-center justify-center rounded-md",
         className,
       )}
-      onMouseEnter={() => controls.start("animate")}
-      onMouseLeave={() => controls.start("normal")}
+      // onMouseEnter={() => controls.start("animate")}
+      // onMouseLeave={() => controls.start("normal")}
     >
       <motion.svg
         animate={controls}

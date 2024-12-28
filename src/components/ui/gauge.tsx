@@ -23,13 +23,12 @@ const GaugeIcon = ({
   const controls = useAnimation();
 
   React.useEffect(() => {
-    controls.start("animate");
-    controls.start("normal");
-
-    return () => {
-      controls.stop();
-    };
-  }, [controls, triggerAnimation]);
+    if (triggerAnimation) {
+      controls.start("animate");
+    } else {
+      controls.start("normal");
+    }
+  }, [triggerAnimation]);
 
   return (
     <div
@@ -37,8 +36,8 @@ const GaugeIcon = ({
         "flex cursor-pointer select-none items-center justify-center rounded-md",
         className,
       )}
-      onMouseEnter={() => controls.start("animate")}
-      onMouseLeave={() => controls.start("normal")}
+      // onMouseEnter={() => controls.start("animate")}
+      // onMouseLeave={() => controls.start("normal")}
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"

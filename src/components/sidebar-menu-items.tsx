@@ -7,12 +7,17 @@ import React from "react";
 import { DASHBOARD_URL } from "@/constants";
 import { cn } from "@/lib/utils";
 
-import { Icons } from "./Icons";
 import { ChartColumnDecreasingIcon } from "./ui/chart-column-decreasing";
+import { FlameIcon } from "./ui/flame";
 import { GaugeIcon } from "./ui/gauge";
+import { HandCoinsIcon } from "./ui/hand-coins";
 import { SidebarMenuButton, SidebarMenuItem, useSidebar } from "./ui/sidebar";
 
 const SidebarMenuItems = () => {
+  const [triggerLSTIconAnimation, setTriggerLSTIconAnimation] =
+    React.useState(false);
+  const [triggerDefiIconAnimation, setTriggerDefiIconAnimation] =
+    React.useState(false);
   const [triggerAnalyticsIconAnimation, setTriggerAnalyticsIconAnimation] =
     React.useState(false);
   const [triggerDashboardIconAnimation, setTriggerDashboardIconAnimation] =
@@ -33,21 +38,22 @@ const SidebarMenuItems = () => {
           className={cn("transition-all hover:bg-[#17876D] hover:text-white", {
             "bg-[#17876D] text-white": pathname === "/",
           })}
+          onMouseEnter={() =>
+            pathname !== "/" && setTriggerLSTIconAnimation(true)
+          }
+          onMouseLeave={() =>
+            pathname !== "/" && setTriggerLSTIconAnimation(false)
+          }
         >
           <Link
             href={referrer ? `/?referrer=${referrer}` : "/"}
-            className={cn(
-              "group/stake flex cursor-pointer flex-row items-center gap-2 text-nowrap rounded-md text-base font-semibold text-[#03624C] transition-all",
-            )}
+            className="flex cursor-pointer flex-row items-center gap-2 text-nowrap rounded-md text-base font-semibold text-[#03624C] transition-all"
           >
-            {pathname === "/" ? (
-              <Icons.stakingLight className="size-4" />
-            ) : (
-              <>
-                <Icons.stakingDark className="size-4 group-hover/stake:hidden" />
-                <Icons.stakingLight className="hidden size-4 group-hover/stake:flex" />
-              </>
-            )}
+            <FlameIcon
+              className="-ml-0.5 size-5"
+              triggerAnimation={triggerLSTIconAnimation}
+            />
+
             <span>{open && "Liquid Staking"}</span>
           </Link>
         </SidebarMenuButton>
@@ -59,6 +65,12 @@ const SidebarMenuItems = () => {
           className={cn("transition-all hover:bg-[#17876D] hover:text-white", {
             "bg-[#17876D] text-white": pathname === "/defi",
           })}
+          onMouseEnter={() =>
+            pathname !== "/defi" && setTriggerDefiIconAnimation(true)
+          }
+          onMouseLeave={() =>
+            pathname !== "/defi" && setTriggerDefiIconAnimation(false)
+          }
         >
           <Link
             href={referrer ? `/defi?referrer=${referrer}` : "/defi"}
@@ -66,14 +78,10 @@ const SidebarMenuItems = () => {
               "group/defi flex cursor-pointer flex-row items-center gap-2 text-nowrap rounded-md text-base font-semibold text-[#03624C] transition-all",
             )}
           >
-            {pathname === "/defi" ? (
-              <Icons.defiLight className="size-4" />
-            ) : (
-              <>
-                <Icons.defiDark className="size-4 group-hover/defi:hidden" />
-                <Icons.defiLight className="hidden size-4 group-hover/defi:flex" />
-              </>
-            )}{" "}
+            <HandCoinsIcon
+              className="-ml-0.5 size-5"
+              triggerAnimation={triggerDefiIconAnimation}
+            />
             {open && "DeFi with xSTRK"}
           </Link>
         </SidebarMenuButton>
