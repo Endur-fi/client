@@ -1,6 +1,6 @@
 "use client";
 
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
@@ -24,16 +24,15 @@ const MobileNav = () => {
   const referrer = searchParams.get("referrer");
 
   return (
-    <>
+    <div>
       <motion.div
-        animate={{
-          borderRadius: open ? "4px" : "2rem",
-        }}
-        key={String(open)}
-        className="relative mt-4 py-2 lg:hidden"
+        // animate={{
+        //   borderRadius: open ? "4px" : "2rem",
+        // }}
+        className="relative lg:hidden"
       >
-        <div className="flex items-center justify-center gap-2 md:gap-4">
-          <div onClick={() => setOpen(!open)}>
+        <div className="flex items-center justify-center md:gap-4">
+          <div onClick={() => setOpen(!open)} className="mr-3">
             <MenuIcon
               triggerAnimation={open}
               className="size-6 text-[#17876D]"
@@ -43,8 +42,8 @@ const MobileNav = () => {
           <Image src="/full_logo.svg" width={80} height={60} alt="full_logo" />
         </div>
 
-        <AnimatePresence>
-          {open && (
+        {open && (
+          <AnimatePresence>
             <motion.div
               initial={{
                 opacity: 0,
@@ -99,10 +98,10 @@ const MobileNav = () => {
                 Staking Dashboard
               </Link>
             </motion.div>
-          )}
-        </AnimatePresence>
+          </AnimatePresence>
+        )}
       </motion.div>
-    </>
+    </div>
   );
 };
 

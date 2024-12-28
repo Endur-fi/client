@@ -80,6 +80,9 @@ importers:
       ethers:
         specifier: ^6.13.4
         version: 6.13.4
+      framer-motion:
+        specifier: ^11.15.0
+        version: 11.15.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       jotai:
         specifier: ^2.10.2
         version: 2.10.2(@types/react@18.3.12)(react@18.3.1)
