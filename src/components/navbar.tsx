@@ -10,7 +10,6 @@ import {
 } from "@starknet-react/core";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { X } from "lucide-react";
-import { usePathname, useSearchParams } from "next/navigation";
 import React, { useEffect } from "react";
 import { constants, num } from "starknet";
 import {
@@ -31,15 +30,15 @@ import { WebWalletConnector } from "starknetkit/webwallet";
 
 import { getProvider, NETWORK } from "@/constants";
 import { toast } from "@/hooks/use-toast";
+import { MyAnalytics } from "@/lib/analytics";
 import { cn, shortAddress } from "@/lib/utils";
 import {
   lastWalletAtom,
   providerAtom,
   userAddressAtom,
 } from "@/store/common.store";
-
-import { MyAnalytics } from "@/lib/analytics";
 import { isMerryChristmasAtom, tabsAtom } from "@/store/merry.store";
+
 import { Icons } from "./Icons";
 import MigrateNostra from "./migrate-nostra";
 import MobileNav from "./mobile-nav";
@@ -110,11 +109,7 @@ const Navbar = ({ className }: { className?: string }) => {
   const { connect: connectSnReact } = useConnect();
   const { disconnectAsync } = useDisconnect();
 
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
   const { isMobile } = useSidebar();
-
-  const referrer = searchParams.get("referrer");
 
   const [__, setAddress] = useAtom(userAddressAtom);
   const [_, setLastWallet] = useAtom(lastWalletAtom);
