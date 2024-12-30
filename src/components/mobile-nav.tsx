@@ -18,6 +18,7 @@ import { MenuIcon } from "./ui/menu";
 const MobileNav = () => {
   const [open, setOpen] = React.useState(false);
   const menuRef = React.useRef<HTMLDivElement>(null);
+  const iconRef = React.useRef<HTMLDivElement | null>(null);
 
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -26,7 +27,12 @@ const MobileNav = () => {
 
   React.useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+      if (
+        menuRef.current &&
+        !menuRef.current.contains(event.target as Node) &&
+        iconRef.current &&
+        !iconRef.current.contains(event.target as Node)
+      ) {
         setOpen(false);
       }
     };
@@ -47,7 +53,7 @@ const MobileNav = () => {
         className="relative lg:hidden"
       >
         <div className="flex items-center justify-center gap-3">
-          <div onClick={() => setOpen(!open)}>
+          <div onClick={() => setOpen(!open)} ref={iconRef}>
             <MenuIcon
               triggerAnimation={open}
               className="size-6 text-[#17876D]"
