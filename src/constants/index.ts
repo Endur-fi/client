@@ -2,6 +2,24 @@ import { constants, RpcProvider } from "starknet";
 
 export const STRK_TOKEN =
   "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d" as const;
+
+export interface Token {
+  symbol: string;
+  balance?: number;
+  icon: string;
+  address: string;
+}
+
+// Example token list
+export const tokens: Token[] = [
+  { symbol: "ETH", icon: "/public/eth-logo.svg", address: "0x...ETH" },
+  { symbol: "STRK", icon: "/public/strk-logo.svg", address: "0x...STRK" },
+  { symbol: "xSTRK", icon: "http://endur.fi/logo.svg", address: "0x...xSTRK" },
+  { symbol: "USDT", icon: "/public/usdt-logo.svg", address: "0x...USDT" },
+  { symbol: "USDC", icon: "/public/usdc-logo.svg", address: "0x...USDC" },
+  { symbol: "DAI", icon: "/public/dai-logo.svg", address: "0x...DAI" },
+];
+
 export const STRK_DECIMALS = 18;
 export const REWARD_FEES = 15;
 
