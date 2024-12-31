@@ -7,10 +7,11 @@ import {
   useBalance,
   useConnect,
   useSendTransaction,
+  useProvider
 } from "@starknet-react/core";
 import { useAtom, useAtomValue } from "jotai";
-import { Info } from "lucide-react";
-import { Figtree } from "next/font/google";
+import { Info } from 'lucide-react';
+import { Figtree } from 'next/font/google';
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import React from "react";
@@ -23,6 +24,7 @@ import {
   StarknetkitConnector,
 } from "starknetkit";
 import * as z from "zod";
+import { formatUnits } from "ethers";
 
 import erc4626Abi from "@/abi/erc4626.abi.json";
 import {
@@ -68,6 +70,7 @@ import { getConnectors } from "./navbar";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { useSidebar } from "./ui/sidebar";
+import { useAvnuPaymaster } from '@/hooks/use-avnu-paymaster';
 
 const font = Figtree({ subsets: ["latin-ext"] });
 
@@ -117,14 +120,22 @@ const Stake: React.FC = () => {
     mode: "onChange",
   });
 
-  const contractSTRK = new Contract(erc4626Abi, STRK_TOKEN);
+  const { provider } = useProvider();
+
+  const contractSTRK = new Contract(
+    erc4626Abi,
+    STRK_TOKEN,
+    provider
+  );
 
   const contract = new Contract(
     erc4626Abi,
     process.env.NEXT_PUBLIC_LST_ADDRESS as string,
+    provider
   );
 
   const { sendAsync, data, isPending, error } = useSendTransaction({});
+  const { executeTransaction, selectedGasToken, loading: paymasterLoading, estimatedGasFees } = useAvnuPaymaster();
 
   React.useEffect(() => {
     (async () => {
@@ -284,6 +295,14 @@ const Stake: React.FC = () => {
   };
 
   const onSubmit = async (values: FormValues) => {
+    if (!contract.address || !STRK_TOKEN) {
+      toast({
+        description: "Contract addresses not properly initialized",
+        variant: "destructive"
+      });
+      return;
+    }
+
     if (Number(values.stakeAmount) > Number(balance?.formatted)) {
       return toast({
         description: (
@@ -311,19 +330,35 @@ const Stake: React.FC = () => {
       MyNumber.fromEther(values.stakeAmount, 18),
     ]);
 
-    if (referrer) {
-      const call2 = contract.populate("deposit_with_referral", [
-        MyNumber.fromEther(values.stakeAmount, 18),
-        address,
-        referrer,
-      ]);
-      await sendAsync([call1, call2]);
-    } else {
-      const call2 = contract.populate("deposit", [
-        MyNumber.fromEther(values.stakeAmount, 18),
-        address,
-      ]);
-      await sendAsync([call1, call2]);
+    try {
+      if (referrer) {
+        const call2 = contract.populate("deposit_with_referral", [
+          MyNumber.fromEther(values.stakeAmount, 18),
+          address,
+          referrer,
+        ]);
+        if (selectedGasToken) {
+          await executeTransaction([call1, call2]);
+        } else {
+          await sendAsync([call1, call2]);
+        }
+      } else {
+        const call2 = contract.populate("deposit", [
+          MyNumber.fromEther(values.stakeAmount, 18),
+          address,
+        ]);
+        if (selectedGasToken) {
+          await executeTransaction([call1, call2]);
+        } else {
+          await sendAsync([call1, call2]);
+        }
+      }
+    } catch (error) {
+      console.error('Transaction failed:', error);
+      toast({
+        description: "Transaction failed. Please try again.",
+        variant: "destructive"
+      });
     }
   };
 
@@ -498,7 +533,7 @@ const Stake: React.FC = () => {
       <div className="my-5 h-px w-full rounded-full bg-[#AACBC480]" />
 
       <div className="space-y-3 px-7">
-        <div className="flex items-center justify-between rounded-md text-base font-bold text-[#03624C] lg:text-lg">
+        <div className="flex items-center justify-between rounded-md text-xs font-bold text-[#03624C] lg:text-[13px]">
           <p className="flex items-center gap-1">
             You will get
             <TooltipProvider delayDuration={0}>
@@ -523,7 +558,7 @@ const Stake: React.FC = () => {
               </Tooltip>
             </TooltipProvider>
           </p>
-          <span className="text-lg lg:text-xl">
+          <span className="text-xs lg:text-[13px]">
             {form.watch("stakeAmount")
               ? formatNumberWithCommas(
                   Number(form.watch("stakeAmount")) / exchangeRate.rate,
@@ -600,6 +635,38 @@ const Stake: React.FC = () => {
             </Link>
           </p>
         </div>
+
+        {selectedGasToken && (
+          <div className="flex items-center justify-between rounded-md text-xs font-medium text-[#939494] lg:text-[13px]">
+            <p className="flex items-center gap-1">
+              Estimated Gas Fee
+              <TooltipProvider delayDuration={0}>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <Info className="size-3 text-[#3F6870] lg:text-[#8D9C9C]" />
+                  </TooltipTrigger>
+                  <TooltipContent
+                    side="right"
+                    className="max-w-60 rounded-md border border-[#03624C] bg-white text-[#03624C]"
+                  >
+                    Estimated gas fee to be paid in your selected token. The actual fee may vary.
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </p>
+            <p>
+              {formatUnits(estimatedGasFees, selectedGasToken.decimals)} {selectedGasToken.priceInUSD}
+              {selectedGasToken.priceInUSD && (
+                <span className="text-[#8D9C9C] ml-1">
+                  (≈${(
+                    Number(formatUnits(estimatedGasFees, selectedGasToken.decimals)) * 
+                    selectedGasToken.priceInUSD
+                  ).toFixed(2)})
+                </span>
+              )}
+            </p>
+          </div>
+        )}
       </div>
 
       <div className="mt-6 px-5">
@@ -617,14 +684,14 @@ const Stake: React.FC = () => {
             type="submit"
             disabled={
               Number(form.getValues("stakeAmount")) <= 0 ||
-              isNaN(Number(form.getValues("stakeAmount")))
-                ? true
-                : false
+              isNaN(Number(form.getValues("stakeAmount"))) ||
+              isPending ||
+              paymasterLoading
             }
             onClick={form.handleSubmit(onSubmit)}
             className="w-full rounded-2xl bg-[#17876D] py-6 text-sm font-semibold text-white hover:bg-[#17876D] disabled:bg-[#03624C4D] disabled:text-[#17876D] disabled:opacity-90"
           >
-            Stake
+            {isPending || paymasterLoading ? "Processing..." : "Stake"}
           </Button>
         )}
       </div>
