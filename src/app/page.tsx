@@ -33,7 +33,7 @@ export default function Home() {
   return (
     <div className="relative flex h-full min-h-screen w-full overflow-x-hidden">
       {activeTab !== "withdraw" && isMerry && (
-        <>
+        <div className="hidden lg:block">
           <Merry />
           <div className="z-30">
             <Snowfall
@@ -43,10 +43,13 @@ export default function Home() {
               wind={[-0.5, 1.0]}
             />
           </div>
-        </>
+        </div>
       )}
 
-      <AppSidebar />
+      <React.Suspense fallback={<div className="w-72">Loading sidebar...</div>}>
+        <AppSidebar />
+      </React.Suspense>
+
       <div className="flex flex-1 flex-col justify-between">
         <div className="flex h-full w-full flex-col items-center overflow-hidden px-7 py-3 lg:py-0">
           <Navbar />

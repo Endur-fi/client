@@ -35,7 +35,7 @@ const Tabs: React.FC<TabsProps> = ({ avgWaitTime: _ }) => {
 
   const isMerry = useAtomValue(isMerryChristmasAtom);
 
-  const { open } = useSidebar();
+  const { isPinned } = useSidebar();
 
   function getMessage() {
     if (activeTab === "unstake") {
@@ -65,10 +65,13 @@ const Tabs: React.FC<TabsProps> = ({ avgWaitTime: _ }) => {
   }
 
   return (
-    <>
+    <div
+      className={cn("z-30 flex h-full flex-col items-center", {
+        "lg:-ml-56": isPinned,
+      })}
+    >
       <div
         className={cn("mt-6 w-full max-w-xl lg:mt-0", {
-          "lg:-ml-32": open,
           "mb-7 xl:mb-0": !isMerry,
           "mb-7 lg:mb-12": isMerry,
           "mb-7 lg:mb-7": isMerry && activeTab === "withdraw",
@@ -97,10 +100,7 @@ const Tabs: React.FC<TabsProps> = ({ avgWaitTime: _ }) => {
 
       <div
         className={cn(
-          "z-30 min-h-[31.5rem] w-full max-w-xl rounded-xl bg-white shadow-xl lg:h-fit lg:pb-5 xl:mt-6",
-          {
-            "lg:-ml-32": open,
-          },
+          "min-h-[31.5rem] w-full max-w-xl rounded-xl bg-white shadow-xl lg:h-fit lg:pb-5 xl:mt-6",
         )}
       >
         <ShadCNTabs
@@ -186,9 +186,8 @@ const Tabs: React.FC<TabsProps> = ({ avgWaitTime: _ }) => {
       {(activeTab === "unstake" || activeTab === "stake") && (
         <div
           className={cn(
-            "z-30 mb-2 mt-5 flex max-w-xl items-center rounded-md bg-[#FFC4664D] py-3 pl-4 pr-3 text-xs text-[#D69733] lg:mb-4 lg:text-sm",
+            "mb-2 mt-5 flex max-w-xl items-center rounded-md bg-[#FFC4664D] py-3 pl-4 pr-3 text-xs text-[#D69733] lg:mb-4 lg:text-sm",
             {
-              "lg:-ml-32": open,
               "bg-[#C0D5CE69] text-[#134c3d9e]": activeTab === "stake",
             },
           )}
@@ -202,10 +201,7 @@ const Tabs: React.FC<TabsProps> = ({ avgWaitTime: _ }) => {
 
       <p
         className={cn(
-          "z-30 mt-4 flex items-center text-xs text-[#707D7D] lg:mb-1 lg:mt-auto lg:text-sm",
-          {
-            "lg:-ml-32": open,
-          },
+          "mt-4 flex items-center text-xs text-[#707D7D] lg:mb-1 lg:mt-auto lg:text-sm",
         )}
       >
         Made with 💚 by{" "}
@@ -225,7 +221,7 @@ const Tabs: React.FC<TabsProps> = ({ avgWaitTime: _ }) => {
           Karnot
         </Link>
       </p>
-    </>
+    </div>
   );
 };
 

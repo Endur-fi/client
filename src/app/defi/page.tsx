@@ -1,7 +1,7 @@
 "use client";
 
 import { NextPage } from "next";
-import React, { Suspense } from "react";
+import React from "react";
 
 import { AppSidebar } from "@/components/app-sidebar";
 import Defi from "@/components/defi";
@@ -20,15 +20,15 @@ const NavigationWrapper = () => {
 const DefiPage: NextPage = () => {
   return (
     <div className="flex w-full overflow-x-hidden">
-      <Suspense fallback={<div className="w-72">Loading sidebar...</div>}>
+      <React.Suspense fallback={<div className="w-72">Loading sidebar...</div>}>
         <AppSidebar />
-      </Suspense>
+      </React.Suspense>
 
       <div className="flex flex-1 flex-col justify-between">
         <div className="flex w-full flex-col items-center overflow-hidden pb-3">
-          <Suspense fallback={<div>Loading DeFi content...</div>}>
+          <React.Suspense fallback={<div>Loading DeFi content...</div>}>
             <NavigationWrapper />
-          </Suspense>
+          </React.Suspense>
         </div>
 
         <div className="lg:hidden">
