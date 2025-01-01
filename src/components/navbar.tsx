@@ -44,11 +44,17 @@ import MigrateNostra from "./migrate-nostra";
 import MobileNav from "./mobile-nav";
 import { useSidebar } from "./ui/sidebar";
 
-export const CONNECTOR_NAMES = ["Braavos", "Argent X", "Argent (mobile)"];
+export const CONNECTOR_NAMES = [
+  "Braavos",
+  "Argent X",
+  "Argent (mobile)",
+  "Keplr",
+];
 
 export function getConnectors(isMobile: boolean) {
   const hostname =
     typeof window !== "undefined" ? window.location.hostname : "";
+
   const mobileConnector = ArgentMobileConnector.init({
     options: {
       dappName: "Endurfi",
@@ -69,6 +75,13 @@ export function getConnectors(isMobile: boolean) {
     options: {
       id: "braavos",
       name: "Braavos",
+    },
+  });
+
+  const keplrConnector = new InjectedConnector({
+    options: {
+      id: "keplr",
+      name: "Keplr",
     },
   });
 
@@ -93,11 +106,12 @@ export function getConnectors(isMobile: boolean) {
     return [
       argentXConnector,
       braavosConnector,
+      keplrConnector,
       mobileConnector,
       webWalletConnector,
     ];
   }
-  return [argentXConnector, braavosConnector];
+  return [argentXConnector, braavosConnector, keplrConnector];
 }
 
 const Navbar = ({ className }: { className?: string }) => {
