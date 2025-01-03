@@ -2,6 +2,7 @@ import Link from "next/link";
 import React from "react";
 
 import { BookTextIcon } from "./ui/book-text";
+import { FilePenLineIcon } from "./ui/file-pen-line";
 import { MessageCircleMoreIcon } from "./ui/message-circle-more";
 import { TelegramIcon } from "./ui/telegram";
 import { TwitterIcon } from "./ui/twitter";
@@ -15,6 +16,9 @@ const Footer = () => {
         </Link>
         <Link href="https://t.me/+jWY71PfbMMIwMTBl" target="_blank">
           <TelegramIcon asIcon className="size-4 text-[#03624C]" />
+        </Link>
+        <Link href="https://t.me/+jWY71PfbMMIwMTBl" target="_blank">
+          <FilePenLineIcon asIcon className="size-4 text-[#03624C]" />
         </Link>
         <Link href="https://docs.endur.fi/" target="_blank">
           <BookTextIcon asIcon className="size-4 text-[#03624C]" />
