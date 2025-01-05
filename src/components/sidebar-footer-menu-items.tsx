@@ -84,7 +84,7 @@ const SidebarFooterMenuItems = () => {
               className="size-4"
               triggerAnimation={triggerBlogIconAnimation}
             />
-            <span>{open && "Blogs"}</span>
+            <span>{open && "Blog"}</span>
           </Link>
         </SidebarMenuButton>
       </SidebarMenuItem>
