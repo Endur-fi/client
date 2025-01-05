@@ -5,19 +5,38 @@ export const STRK_TOKEN =
 
 export interface Token {
   symbol: string;
-  balance?: number;
-  icon: string;
   address: string;
+  logoUrl: string;
+  decimals: number;
+  balance?: number;
 }
 
-// Example token list
-export const tokens: Token[] = [
-  { symbol: "ETH", icon: "/public/eth-logo.svg", address: "0x...ETH" },
-  { symbol: "STRK", icon: "/public/strk-logo.svg", address: "0x...STRK" },
-  { symbol: "xSTRK", icon: "http://endur.fi/logo.svg", address: "0x...xSTRK" },
-  { symbol: "USDT", icon: "/public/usdt-logo.svg", address: "0x...USDT" },
-  { symbol: "USDC", icon: "/public/usdc-logo.svg", address: "0x...USDC" },
-  { symbol: "DAI", icon: "/public/dai-logo.svg", address: "0x...DAI" },
+export const TOKENS: Token[] = [
+  { symbol: 'ETH', address: '0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7', logoUrl: 'https://assets.coingecko.com/coins/images/279/small/ethereum.png', decimals: 18 },
+  { symbol: 'STRK', address: '0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d', logoUrl: 'https://assets.coingecko.com/coins/images/26433/standard/starknet.png', decimals: 18 },
+  { symbol: 'xSTRK', address: '0x0000000000000000000000000000000000000000000000000000000000000001', logoUrl: 'http://endur.fi/logo.svg', decimals: 18 },
+  { symbol: 'USDT', address: '0x068f5c6a61780768455de69077e07e89787839bf8166decfbf92b645209c0fb8', logoUrl: 'https://assets.coingecko.com/coins/images/325/small/Tether.png', decimals: 6 },
+  { symbol: 'USDC', address: '0x053c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8', logoUrl: 'https://assets.coingecko.com/coins/images/6319/small/USD_Coin_icon.png', decimals: 6 },
+  { symbol: 'DAI', address: '0x00da114221cb83fa859dbdb4c44beeaa0bb37c7537ad5ae66fe5e0efd20e6eb3', logoUrl: 'https://assets.coingecko.com/coins/images/9956/small/Badge_Dai.png', decimals: 18 }
+];
+
+export const ERC20_ABI = [
+  {
+    members: [
+      { name: "low", offset: 0, type: "felt" },
+      { name: "high", offset: 1, type: "felt" }
+    ],
+    name: "Uint256",
+    size: 2,
+    type: "struct"
+  },
+  {
+    inputs: [{ name: "account", type: "felt" }],
+    name: "balanceOf",
+    outputs: [{ name: "balance", type: "Uint256" }],
+    stateMutability: "view",
+    type: "function"
+  }
 ];
 
 export const STRK_DECIMALS = 18;

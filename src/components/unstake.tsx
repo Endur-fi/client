@@ -5,9 +5,10 @@ import {
   useAccount,
   useConnect,
   useSendTransaction,
+  useProvider
 } from "@starknet-react/core";
 import { useAtom, useAtomValue } from "jotai";
-import { Info } from "lucide-react";
+import { Info } from 'lucide-react';
 import Link from "next/link";
 import React from "react";
 import { useForm } from "react-hook-form";
@@ -18,6 +19,7 @@ import {
   StarknetkitConnector,
 } from "starknetkit";
 import * as z from "zod";
+import { formatUnits } from "ethers";
 
 import erc4626Abi from "@/abi/erc4626.abi.json";
 import {
@@ -35,24 +37,25 @@ import {
 } from "@/components/ui/tooltip";
 import { toast, useToast } from "@/hooks/use-toast";
 import MyNumber from "@/lib/MyNumber";
+import { cn, formatNumber, formatNumberWithCommas } from "@/lib/utils";
 import {
   exchangeRateAtom,
   totalStakedAtom,
   totalStakedUSDAtom,
   userSTRKBalanceAtom,
 } from "@/store/lst.store";
+import { isMerryChristmasAtom } from "@/store/merry.store";
 import { snAPYAtom } from "@/store/staking.store";
 import { isTxAccepted } from "@/store/transactions.atom";
 
-import { getProvider, NETWORK, REWARD_FEES } from "@/constants";
+import { NETWORK, REWARD_FEES, STRK_TOKEN } from "@/constants";
 import { MyAnalytics } from "@/lib/analytics";
-import { formatNumber, formatNumberWithCommas } from "@/lib/utils";
-import { isMerryChristmasAtom } from "@/store/merry.store";
 import { Icons } from "./Icons";
 import { getConnectors } from "./navbar";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { useSidebar } from "./ui/sidebar";
+import { useAvnuPaymaster } from '@/hooks/use-avnu-paymaster';
 
 const formSchema = z.object({
   unstakeAmount: z.string().refine(
@@ -88,7 +91,7 @@ const Unstake = () => {
     mode: "onChange",
   });
 
-  const provider = getProvider();
+  const { provider } = useProvider();
 
   const contract = new Contract(
     erc4626Abi,
@@ -97,6 +100,7 @@ const Unstake = () => {
   );
 
   const { sendAsync, data, isPending, error } = useSendTransaction({});
+  const { executeTransaction, selectedGasToken, loading: paymasterLoading, estimatedGasFees } = useAvnuPaymaster();
 
   React.useEffect(() => {
     (async () => {
@@ -262,7 +266,19 @@ const Unstake = () => {
       address,
     ]);
 
-    sendAsync([call1]);
+    try {
+      if (selectedGasToken) {
+        await executeTransaction([call1]);
+      } else {
+        await sendAsync([call1]);
+      }
+    } catch (error) {
+      console.error('Transaction failed:', error);
+      toast({
+        description: "Transaction failed. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
   return (
@@ -492,6 +508,38 @@ const Unstake = () => {
             </Link>
           </p>
         </div>
+
+        {selectedGasToken && (
+          <div className="flex items-center justify-between rounded-md text-xs font-medium text-[#939494] lg:text-[13px]">
+            <p className="flex items-center gap-1">
+              Estimated Gas Fee
+              <TooltipProvider delayDuration={0}>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <Info className="size-3 text-[#3F6870] lg:text-[#8D9C9C]" />
+                  </TooltipTrigger>
+                  <TooltipContent
+                    side="right"
+                    className="max-w-60 rounded-md border border-[#03624C] bg-white text-[#03624C]"
+                  >
+                    Estimated gas fee to be paid in your selected token. The actual fee may vary.
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </p>
+            <p>
+              {formatUnits(estimatedGasFees, selectedGasToken.decimals)} {selectedGasToken.priceInUSD}
+              {selectedGasToken.priceInUSD && (
+                <span className="text-[#8D9C9C] ml-1">
+                  (≈${(
+                    Number(formatUnits(estimatedGasFees, selectedGasToken.decimals)) * 
+                    selectedGasToken.priceInUSD
+                  ).toFixed(2)})
+                </span>
+              )}
+            </p>
+          </div>
+        )}
       </div>
 
       <div className="mt-6 px-5">
@@ -510,13 +558,13 @@ const Unstake = () => {
             onClick={form.handleSubmit(onSubmit)}
             disabled={
               Number(form.getValues("unstakeAmount")) <= 0 ||
-              isNaN(Number(form.getValues("unstakeAmount")))
-                ? true
-                : false
+              isNaN(Number(form.getValues("unstakeAmount"))) ||
+              isPending ||
+              paymasterLoading
             }
             className="w-full rounded-2xl bg-[#17876D] py-6 text-sm font-semibold text-white hover:bg-[#17876D] disabled:bg-[#03624C4D] disabled:text-[#17876D] disabled:opacity-90"
           >
-            Unstake
+            {isPending || paymasterLoading ? "Processing..." : "Unstake"}
           </Button>
         )}
       </div>
