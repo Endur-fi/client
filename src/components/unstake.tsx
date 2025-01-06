@@ -6,7 +6,7 @@ import {
   useConnect,
   useSendTransaction,
 } from "@starknet-react/core";
-import { useAtom, useAtomValue } from "jotai";
+import { useAtomValue } from "jotai";
 import { Info } from "lucide-react";
 import Link from "next/link";
 import React from "react";
@@ -45,9 +45,7 @@ import { snAPYAtom } from "@/store/staking.store";
 import { isTxAccepted } from "@/store/transactions.atom";
 
 import { getProvider, NETWORK, REWARD_FEES } from "@/constants";
-import { MyAnalytics } from "@/lib/analytics";
 import { formatNumber, formatNumberWithCommas } from "@/lib/utils";
-import { isMerryChristmasAtom } from "@/store/merry.store";
 import { Icons } from "./Icons";
 import { getConnectors } from "./navbar";
 import { Button } from "./ui/button";
@@ -73,7 +71,7 @@ const Unstake = () => {
   const { isMobile } = useSidebar();
   const { dismiss } = useToast();
 
-  const [isMerry, setIsMerry] = useAtom(isMerryChristmasAtom);
+  // const [isMerry, setIsMerry] = useAtom(isMerryChristmasAtom);
   const currentStaked = useAtomValue(userSTRKBalanceAtom);
   const exRate = useAtomValue(exchangeRateAtom);
   const totalStaked = useAtomValue(totalStakedAtom);
@@ -171,15 +169,15 @@ const Unstake = () => {
     })();
   }, [data, data?.transaction_hash, error?.name, form, isPending]);
 
-  React.useEffect(() => {
-    if (form.getValues("unstakeAmount").toLowerCase() === "xstrk") {
-      setIsMerry(true);
-      MyAnalytics.track("Activated Merry Christmas Theme", {
-        address,
-        tab: "unstake",
-      });
-    }
-  }, [form.getValues("unstakeAmount"), form]);
+  // React.useEffect(() => {
+  //   if (form.getValues("unstakeAmount").toLowerCase() === "xstrk") {
+  //     setIsMerry(true);
+  //     MyAnalytics.track("Activated Merry Christmas Theme", {
+  //       address,
+  //       tab: "unstake",
+  //     });
+  //   }
+  // }, [form.getValues("unstakeAmount"), form]);
 
   const connectorConfig: ConnectOptionsWithConnectors = React.useMemo(() => {
     const hostname =
@@ -267,11 +265,11 @@ const Unstake = () => {
 
   return (
     <div className="relative h-full w-full">
-      {isMerry && (
+      {/* {isMerry && (
         <div className="pointer-events-none absolute -left-[15px] -top-[7.5rem] hidden transition-all duration-500 lg:block">
           <Icons.cloud />
         </div>
-      )}
+      )} */}
 
       <div className="flex items-center justify-between px-3 py-2 lg:px-6">
         <p className="flex flex-col items-center text-xs font-semibold lg:flex-row lg:gap-2">
@@ -338,14 +336,15 @@ const Unstake = () => {
                         />
                       </div>
                     </FormControl>
-                    {form.getValues("unstakeAmount").toLowerCase() ===
+                    <FormMessage className="absolute -bottom-5 left-0 text-xs lg:left-1" />
+                    {/* {form.getValues("unstakeAmount").toLowerCase() ===
                     "xstrk" ? (
                       <p className="absolute -bottom-4 left-0 text-xs font-medium text-green-500 transition-all lg:left-1 lg:-ml-1">
                         Merry Christmas!
                       </p>
                     ) : (
                       <FormMessage className="absolute -bottom-5 left-0 text-xs lg:left-1" />
-                    )}{" "}
+                    )}{" "} */}
                   </FormItem>
                 )}
               />

@@ -73,11 +73,11 @@ const Tabs: React.FC<TabsProps> = ({ avgWaitTime: _ }) => {
       <div
         className={cn("mt-6 w-full max-w-xl lg:mt-0", {
           "mb-7 xl:mb-0": !isMerry,
-          "mb-7 lg:mb-12": isMerry,
-          "mb-7 lg:mb-7": isMerry && activeTab === "withdraw",
+          // "mb-7 lg:mb-12": isMerry,
+          // "mb-7 lg:mb-7": isMerry && activeTab === "withdraw",
         })}
       >
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="mt-7 flex flex-wrap items-center gap-3">
           <div className="flex items-center gap-2">
             <Icons.strkLogo className="size-8" />
             <h1 className="text-xl font-bold text-black">Stake STRK</h1>
@@ -113,7 +113,7 @@ const Tabs: React.FC<TabsProps> = ({ avgWaitTime: _ }) => {
             className={cn(
               "flex w-full items-center justify-start rounded-none border-b bg-transparent px-3 pb-5 pt-5 lg:pt-8",
               {
-                "lg:pt-10": activeTab !== "withdraw" && isMerry,
+                // "lg:pt-10": activeTab !== "withdraw" && isMerry,
               },
             )}
           >

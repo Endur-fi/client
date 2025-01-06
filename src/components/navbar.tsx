@@ -299,7 +299,7 @@ const Navbar = ({ className }: { className?: string }) => {
           )}
         </button>
 
-        {activeTab !== "withdraw" && isMerry && (
+        {/* {activeTab !== "withdraw" && isMerry && (
           <div className="hidden transition-all duration-500 lg:block">
             <div className="group absolute -bottom-[138px] right-12">
               <Icons.bell1Faded className="group-hover:hidden" />
@@ -318,7 +318,7 @@ const Navbar = ({ className }: { className?: string }) => {
               </p>
             </div>
           </div>
-        )}
+        )} */}
       </div>
     </div>
   );
