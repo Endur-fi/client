@@ -1,10 +1,12 @@
+import { atom } from "jotai";
+import { atomWithQuery } from "jotai-tanstack-query";
+import { Contract, RpcProvider, uint256 } from "starknet";
+
 import erc4626Abi from "@/abi/erc4626.abi.json";
 import nostraSTRKAbi from "@/abi/nostra.strk.abi.json";
 import { LST_ADDRRESS, NST_STRK_ADDRESS, STRK_DECIMALS } from "@/constants";
 import MyNumber from "@/lib/MyNumber";
-import { atom } from "jotai";
-import { atomWithQuery } from "jotai-tanstack-query";
-import { Contract, RpcProvider, uint256 } from "starknet";
+
 import {
   currentBlockAtom,
   providerAtom,
@@ -119,7 +121,6 @@ export const userSTRKBalanceQueryAtom = atomWithQuery((get) => {
       get(currentBlockAtom),
       get(userAddressAtom),
       get(userXSTRKBalanceAtom),
-      get(providerAtom),
     ],
     queryFn: async ({ queryKey }: any): Promise<MyNumber> => {
       const { data, error } = get(userXSTRKBalanceQueryAtom);
