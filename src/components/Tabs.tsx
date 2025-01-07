@@ -100,7 +100,7 @@ const Tabs: React.FC<TabsProps> = ({ avgWaitTime: _ }) => {
 
       <div
         className={cn(
-          "min-h-[31.5rem] w-full max-w-xl rounded-xl bg-white shadow-xl lg:h-fit lg:pb-5 xl:mt-6",
+          "mt-6 min-h-[31.5rem] w-full max-w-xl rounded-xl bg-white shadow-xl lg:h-fit lg:pb-5",
         )}
       >
         <ShadCNTabs
