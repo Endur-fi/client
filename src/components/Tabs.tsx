@@ -206,7 +206,7 @@ const Tabs: React.FC<TabsProps> = ({ avgWaitTime: _ }) => {
       >
         Made with 💚 by{" "}
         <Link
-          href="https://strkfarm.xyz"
+          href="https://strkfarm.com"
           target="_blank"
           className="mx-1 cursor-pointer font-semibold hover:underline"
         >
