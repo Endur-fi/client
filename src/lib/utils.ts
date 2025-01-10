@@ -1,8 +1,9 @@
 import { toast } from "@/hooks/use-toast";
 import { BigNumber } from "bignumber.js";
 import { clsx, type ClassValue } from "clsx";
-import { num } from "starknet";
+import { Contract, num, RpcProvider } from "starknet";
 import { twMerge } from "tailwind-merge";
+import OracleAbi from "../abi/oracle.abi.json";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -138,4 +139,19 @@ export function convertFutureTimestamp(unixTimestamp: number): string {
     return `within ~${hours} hour${hours > 1 ? "s" : ""}`;
   }
   return "Anytime soon";
+}
+
+export async function getSTRKPrice() {
+  const provider = new RpcProvider({
+    nodeUrl:
+      process.env.NEXT_PUBLIC_CHAIN_ID == "SN_MAIN"
+        ? process.env.NEXT_PUBLIC_RPC_URL
+        : "https://starknet-mainnet.public.blastapi.io/rpc/v0_7",
+  });
+  if (!provider) return 0;
+  const STRK_ORACLE_CONTRACT =
+    "0x7ca92dce6e5f7f81f6c393c647b5c0c266e7663088351a4bd34ee9f88569de5";
+  const contract = new Contract(OracleAbi, STRK_ORACLE_CONTRACT, provider);
+  const data = await contract.call("get_price", []);
+  return Number(data) / 10 ** 8;
 }

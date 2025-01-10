@@ -1,3 +1,4 @@
+import { getSTRKPrice } from "@/lib/utils";
 import { atom } from "jotai";
 import { atomWithQuery } from "jotai-tanstack-query";
 import { atomWithStorage, createJSONStorage } from "jotai/utils";
@@ -19,9 +20,7 @@ export const strkPriceAtom = atomWithQuery((get) => {
     queryKey: ["strkPrice"],
     queryFn: async ({ queryKey }: any): Promise<number> => {
       try {
-        const data = await fetch("https://app.strkfarm.xyz/api/price/STRK");
-        const { price } = await data.json();
-        return price;
+        return await getSTRKPrice();
       } catch (error) {
         console.error("strkPriceAtom", error);
         return 0;

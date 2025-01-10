@@ -1,0 +1,73 @@
+[
+  {
+    "name": "IPriceOracleSourceImpl",
+    "type": "impl",
+    "interface_name": "zklend::interfaces::IPriceOracleSource"
+  },
+  {
+    "name": "zklend::interfaces::PriceWithUpdateTime",
+    "type": "struct",
+    "members": [
+      {
+        "name": "price",
+        "type": "core::felt252"
+      },
+      {
+        "name": "update_time",
+        "type": "core::felt252"
+      }
+    ]
+  },
+  {
+    "name": "zklend::interfaces::IPriceOracleSource",
+    "type": "interface",
+    "items": [
+      {
+        "name": "get_price",
+        "type": "function",
+        "inputs": [],
+        "outputs": [
+          {
+            "type": "core::felt252"
+          }
+        ],
+        "state_mutability": "view"
+      },
+      {
+        "name": "get_price_with_time",
+        "type": "function",
+        "inputs": [],
+        "outputs": [
+          {
+            "type": "zklend::interfaces::PriceWithUpdateTime"
+          }
+        ],
+        "state_mutability": "view"
+      }
+    ]
+  },
+  {
+    "name": "constructor",
+    "type": "constructor",
+    "inputs": [
+      {
+        "name": "oracle",
+        "type": "core::starknet::contract_address::ContractAddress"
+      },
+      {
+        "name": "pair",
+        "type": "core::felt252"
+      },
+      {
+        "name": "timeout",
+        "type": "core::integer::u64"
+      }
+    ]
+  },
+  {
+    "kind": "enum",
+    "name": "zklend::oracles::pragma_oracle_adapter::PragmaOracleAdapter::Event",
+    "type": "event",
+    "variants": []
+  }
+]

@@ -12,6 +12,7 @@ import {
   SN_STAKING_ADRESS,
   STRK_DECIMALS,
 } from "@/constants";
+import { getSTRKPrice } from "@/lib/utils";
 
 export const revalidate = 120;
 
@@ -74,8 +75,7 @@ export async function GET(_req: Request) {
       new MyNumber(balance.toString(), STRK_DECIMALS).toEtherStr(),
     );
 
-    const data = await fetch("https://app.strkfarm.xyz/api/price/STRK");
-    const { price } = await data.json();
+    const price = await getSTRKPrice();
 
     const tvlInUsd = price * tvlInStrk;
 
