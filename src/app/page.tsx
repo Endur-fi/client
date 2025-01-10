@@ -57,7 +57,7 @@ export default function Home() {
       <div className="flex flex-1 flex-col justify-between">
         <div className="flex h-full w-full flex-col items-center overflow-hidden px-7 py-3 lg:py-0">
           <Navbar />
-          <Tabs avgWaitTime={""} />
+          <Tabs />
         </div>
 
         <div className="lg:hidden">

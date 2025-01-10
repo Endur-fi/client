@@ -26,11 +26,7 @@ import {
 import Unstake from "./unstake";
 import WithdrawLog from "./withdraw-log";
 
-interface TabsProps {
-  avgWaitTime: string;
-}
-
-const Tabs: React.FC<TabsProps> = ({ avgWaitTime: _ }) => {
+const Tabs = () => {
   const [activeTab, setActiveTab] = useAtom(tabsAtom);
 
   const isMerry = useAtomValue(isMerryChristmasAtom);
