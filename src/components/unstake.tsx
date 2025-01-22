@@ -561,9 +561,8 @@ const Unstake = () => {
         (error) => {
           toast({
             itemID: "unstake",
-            variant: "destructive",
             description: (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 text-red-500">
                 <Info className="size-5" />
                 {error.message}
               </div>
