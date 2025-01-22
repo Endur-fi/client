@@ -9,7 +9,7 @@ import {
 import { useAtom, useAtomValue } from "jotai";
 import { Info } from "lucide-react";
 import Link from "next/link";
-import React from "react";
+import React, { useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { Contract } from "starknet";
 import {
@@ -38,16 +38,23 @@ import { getProvider, NETWORK, REWARD_FEES } from "@/constants";
 import { toast, useToast } from "@/hooks/use-toast";
 import MyNumber from "@/lib/MyNumber";
 import { formatNumber } from "@/lib/utils";
-import { amountAtom, dexRatesAtom } from "@/store/dex.store";
+import { executeAvnuSwap, getAvnuQuotes } from "@/services/avnu";
+import {
+  avnuErrorAtom,
+  avnuLoadingAtom,
+  avnuQuoteAtom,
+} from "@/store/avnu.store";
 import {
   exchangeRateAtom,
   totalStakedAtom,
   totalStakedUSDAtom,
   userSTRKBalanceAtom,
   userXSTRKBalanceAtom,
+  withdrawalQueueStateAtom,
 } from "@/store/lst.store";
 import { snAPYAtom } from "@/store/staking.store";
 import { isTxAccepted } from "@/store/transactions.atom";
+import { AccountInterface } from "starknet";
 
 import { Icons } from "./Icons";
 import { getConnectors } from "./navbar";
@@ -55,9 +62,8 @@ import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { useSidebar } from "./ui/sidebar";
 
-// Types
 interface DexRoute {
-  dex: "ekubo" | "avnu";
+  dex: "avnu";
   exchangeRate: number;
   logo: React.ReactNode;
   name: string;
@@ -76,59 +82,206 @@ const formSchema = z.object({
 
 export type FormValues = z.infer<typeof formSchema>;
 
-const DexRouteCard = ({
-  route,
-  unstakeAmount,
+const StyledButton = ({
+  onClick,
+  disabled,
+  children,
 }: {
-  route: DexRoute;
-  unstakeAmount: string;
-}) => {
-  const handleClick = () => {
-    const baseUrl =
-      route.dex === "ekubo"
-        ? "https://app.ekubo.org/"
-        : "https://app.avnu.fi/en/xstrk-strk";
+  onClick?: () => void;
+  disabled?: boolean;
+  children: React.ReactNode;
+}) => (
+  <Button
+    onClick={onClick}
+    disabled={disabled}
+    className="w-full rounded-2xl bg-[#17876D] py-6 text-sm font-semibold text-white hover:bg-[#17876D] disabled:bg-[#03624C4D] disabled:text-[#17876D] disabled:opacity-90"
+  >
+    {children}
+  </Button>
+);
 
-    const params =
-      route.dex === "ekubo"
-        ? `?inputCurrency=xSTRK&amount=${unstakeAmount}&outputCurrency=STRK`
-        : `?inputCurrency=xSTRK&outputCurrency=STRK&amount=${unstakeAmount}`;
+const InfoTooltip = ({
+  content,
+  side = "right",
+}: {
+  content: React.ReactNode;
+  side?: "right" | "left" | "top" | "bottom";
+}) => (
+  <TooltipProvider delayDuration={0}>
+    <Tooltip>
+      <TooltipTrigger>
+        <Info className="size-3 text-[#3F6870] lg:text-[#8D9C9C]" />
+      </TooltipTrigger>
+      <TooltipContent
+        side={side}
+        className="max-w-60 rounded-md border border-[#03624C] bg-white text-[#03624C]"
+      >
+        {content}
+      </TooltipContent>
+    </Tooltip>
+  </TooltipProvider>
+);
 
-    const dexUrl = `${baseUrl}${params}`;
-    window.open(dexUrl, "_blank");
-  };
+const FeeSection = () => (
+  <div className="flex items-center justify-between rounded-md text-xs font-medium text-[#939494] lg:text-[13px]">
+    <p className="flex items-center gap-1">
+      Reward fees
+      <InfoTooltip
+        content={
+          <>
+            This fee applies exclusively to your staking rewards and does NOT
+            affect your staked amount. You might qualify for a future fee
+            rebate.{" "}
+            <Link
+              target="_blank"
+              href="https://blog.endur.fi/endur-reimagining-value-distribution-in-liquid-staking-on-starknet"
+              className="text-blue-600 underline"
+            >
+              Learn more
+            </Link>
+          </>
+        }
+      />
+    </p>
+    <p>
+      <span className="line-through">{REWARD_FEES}%</span>{" "}
+      <Link
+        target="_blank"
+        href="https://blog.endur.fi/endur-reimagining-value-distribution-in-liquid-staking-on-starknet"
+        className="underline"
+      >
+        Fee Rebate
+      </Link>
+    </p>
+  </div>
+);
 
-  const outputAmount = Number(unstakeAmount) * route.exchangeRate;
+const YouWillGetSection = ({
+  amount,
+  tooltipContent,
+}: {
+  amount: string;
+  tooltipContent: React.ReactNode;
+}) => (
+  <div className="flex items-center justify-between rounded-md text-xs font-bold text-[#03624C] lg:text-[13px]">
+    <p className="flex items-center gap-1">
+      You will get
+      <InfoTooltip content={tooltipContent} />
+    </p>
+    <span className="text-xs lg:text-[13px]">{amount} STRK</span>
+  </div>
+);
 
-  return (
-    <button
-      onClick={handleClick}
-      className="flex w-full flex-col gap-1.5 rounded-[15.89px] border border-[#8D9C9C20] bg-[#E9F3F0] px-4 py-2.5 transition-colors hover:bg-[#D0E6E0]"
-    >
-      <div className="flex w-full items-center justify-between">
-        <div className="flex items-center gap-2">
-          {route.logo}
-          <span className="text-base font-semibold text-[#075A5A]">
-            {route.name}
-          </span>
-        </div>
-        <div className="flex flex-col items-end">
-          <span className="text-lg font-bold text-[#03624C] lg:text-xl">
-            {outputAmount.toFixed(2)} STRK
-          </span>
-          <span className="text-xs text-[#8D9C9C]">
-            Rate: 1:{route.exchangeRate.toFixed(4)}
-          </span>
-        </div>
-      </div>
-    </button>
-  );
+const calculateWaitingTime = (queueState: any, unstakeAmount: string) => {
+  if (!queueState || !unstakeAmount) return "-";
+
+  try {
+    const amount = MyNumber.fromEther(unstakeAmount, 18);
+    const pendingQueue = new MyNumber(
+      queueState.unprocessed_withdraw_queue_amount || "0",
+      18,
+    );
+
+    const currentAmount = BigInt(amount.toString());
+    const queueAmount = BigInt(pendingQueue.toString());
+    const totalAmount = currentAmount + queueAmount;
+
+    const THRESHOLD = BigInt(70000) * BigInt(10 ** 18);
+
+    if (totalAmount <= THRESHOLD) {
+      return "1-2 hours";
+    } else if (totalAmount <= THRESHOLD * BigInt(2)) {
+      return "1-2 days";
+    }
+    return "~21 days";
+  } catch (error) {
+    console.error("Error calculating waiting time:", error);
+    return "-";
+  }
 };
+
+interface UnstakeOptionCardProps {
+  isActive: boolean;
+  title: string;
+  logo: React.ReactNode;
+  rate: string | number;
+  waitingTime: string;
+  isLoading?: boolean;
+  isRecommended?: boolean;
+  isBestRate?: boolean;
+  bgColor?: string;
+}
+
+const UnstakeOptionCard = ({
+  isActive,
+  title,
+  logo,
+  rate,
+  waitingTime,
+  isLoading,
+  isRecommended,
+  isBestRate,
+  bgColor = "#E9F3F0",
+}: UnstakeOptionCardProps) => (
+  <TabsTrigger
+    value={title.toLowerCase().includes("endur") ? "endur" : "dex"}
+    className={`flex w-full flex-col gap-1.5 rounded-[15px] border border-[#8D9C9C20] px-4 py-3 ${
+      isActive ? "border-[#17876D]" : ""
+    }`}
+    style={{ backgroundColor: isActive ? "#D0E6E0" : bgColor }}
+  >
+    <div className="flex w-full items-center justify-between">
+      <p className="text-sm font-semibold">
+        {title}
+        {isRecommended && " (Recommended)"}
+      </p>
+      {logo}
+    </div>
+
+    <div className="flex w-full items-center justify-between text-xs text-[#939494] lg:text-[13px]">
+      <div className="flex items-center gap-0.5">
+        Rate
+        {title.toLowerCase().includes("endur") && (
+          <TooltipProvider delayDuration={0}>
+            <Tooltip>
+              <TooltipTrigger>
+                <Info className="size-3 text-[#3F6870] lg:text-[#8D9C9C]" />
+              </TooltipTrigger>
+              <TooltipContent
+                side="right"
+                className="rounded-md border border-[#03624C] bg-white text-[#03624C]"
+              >
+                {typeof rate === "number" && rate === 0
+                  ? "-"
+                  : `1 xSTRK = ${Number(rate).toFixed(4)} STRK`}
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        )}
+      </div>
+      <p className={isBestRate ? "font-semibold text-[#17876D]" : ""}>
+        {isLoading ? "Loading..." : `1=${Number(rate).toFixed(4)}`}
+      </p>
+    </div>
+
+    <div className="flex w-full items-center justify-between text-xs text-[#939494] lg:text-[13px]">
+      <p>Waiting time</p>
+      {title.toLowerCase().includes("dex") ? (
+        <p className="flex items-center gap-1 font-semibold text-[#17876D]">
+          <Icons.zap className="h-4 w-4" />
+          {waitingTime}
+        </p>
+      ) : (
+        <p>{waitingTime}</p>
+      )}
+    </div>
+  </TabsTrigger>
+);
 
 const Unstake = () => {
   const [txnDapp, setTxnDapp] = React.useState<"endur" | "dex">("dex");
 
-  const { address } = useAccount();
+  const { account, address } = useAccount();
   const { connect: connectSnReact } = useConnect();
   const { isMobile } = useSidebar();
   const { dismiss } = useToast();
@@ -140,8 +293,7 @@ const Unstake = () => {
   const totalStakedUSD = useAtomValue(totalStakedUSDAtom);
   const currentXSTRKBalance = useAtomValue(userXSTRKBalanceAtom);
   const apy = useAtomValue(snAPYAtom);
-  const { rates, isLoading: ratesLoading } = useAtomValue(dexRatesAtom);
-  const [, setAmount] = useAtom(amountAtom);
+  const queueState = useAtomValue(withdrawalQueueStateAtom);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -150,12 +302,6 @@ const Unstake = () => {
     },
     mode: "onChange",
   });
-
-  // Update amount atom when form value changes
-  React.useEffect(() => {
-    const amount = form.watch("unstakeAmount");
-    setAmount(amount);
-  }, [form.watch("unstakeAmount"), setAmount]);
 
   const provider = getProvider();
   const contract = new Contract(
@@ -339,6 +485,116 @@ const Unstake = () => {
     sendAsync([call1]);
   };
 
+  const [avnuQuote, setAvnuQuote] = useAtom(avnuQuoteAtom);
+  const [avnuLoading, setAvnuLoading] = useAtom(avnuLoadingAtom);
+  const [avnuError, setAvnuError] = useAtom(avnuErrorAtom);
+
+  React.useEffect(() => {
+    const initializeAvnuQuote = async () => {
+      setAvnuLoading(true);
+      try {
+        const quotes = await getAvnuQuotes("1000", "0x0");
+        setAvnuQuote(quotes[0] || null);
+        setAvnuError(null);
+      } catch (error) {
+        console.error("Error fetching initial Avnu quote:", error);
+        setAvnuError((error as Error).message);
+        setAvnuQuote(null);
+      } finally {
+        setAvnuLoading(false);
+      }
+    };
+
+    initializeAvnuQuote();
+  }, []);
+
+  React.useEffect(() => {
+    if (!form.getValues("unstakeAmount")) return;
+
+    const fetchQuote = async () => {
+      setAvnuLoading(true);
+      try {
+        const quotes = await getAvnuQuotes(
+          form.getValues("unstakeAmount"),
+          address || "0x0",
+        );
+        setAvnuQuote(quotes[0] || null);
+        setAvnuError(null);
+      } catch (error) {
+        setAvnuError((error as Error).message);
+        setAvnuQuote(null);
+      } finally {
+        setAvnuLoading(false);
+      }
+    };
+
+    fetchQuote();
+  }, [address, form.watch("unstakeAmount")]);
+
+  const handleDexSwap = async () => {
+    if (!address || !avnuQuote) return;
+
+    setAvnuLoading(true);
+    try {
+      await executeAvnuSwap(
+        account as AccountInterface,
+        avnuQuote,
+        () => {
+          toast({
+            itemID: "unstake",
+            variant: "complete",
+            duration: 3000,
+            description: (
+              <div className="flex items-center gap-2 border-none">
+                <Icons.toastSuccess />
+                <div className="flex flex-col items-start gap-2 text-sm font-medium text-[#3F6870]">
+                  <span className="text-[18px] font-semibold text-[#075A5A]">
+                    Success 🎉
+                  </span>
+                  Unstaked {form.getValues("unstakeAmount")} STRK via Avnu
+                </div>
+              </div>
+            ),
+          });
+          form.reset();
+        },
+        (error) => {
+          toast({
+            itemID: "unstake",
+            variant: "destructive",
+            description: (
+              <div className="flex items-center gap-2">
+                <Info className="size-5" />
+                {error.message}
+              </div>
+            ),
+          });
+        },
+      );
+    } finally {
+      setAvnuLoading(false);
+    }
+  };
+
+  const dexRate = useMemo(() => {
+    if (!avnuQuote) return 0;
+    return Number(avnuQuote.buyAmount) / Number(avnuQuote.sellAmount);
+  }, [avnuQuote]);
+
+  const waitingTime = useMemo(() => {
+    return "~21 days";
+  }, [queueState.value, form.watch("unstakeAmount")]);
+
+  const getBetterRate = () => {
+    const endurRate = exRate.rate;
+    const dexRate = avnuQuote
+      ? Number(avnuQuote.buyAmount) / Number(avnuQuote.sellAmount)
+      : 0;
+
+    if (endurRate === 0 || dexRate === 0) return "none";
+    return endurRate > dexRate ? "endur" : "dex";
+  };
+
   return (
     <div className="relative h-full w-full">
       {/* {isMerry && (
@@ -483,208 +739,124 @@ const Unstake = () => {
         className="w-full max-w-none pt-1"
         onValueChange={(value) => setTxnDapp(value as "endur" | "dex")}
       >
-        <TabsList className="flex h-full w-full flex-col items-center justify-between gap-3 bg-transparent px-6 md:flex-row">
-          <TabsTrigger
-            value="endur"
-            className="flex w-full flex-col gap-1.5 rounded-[15.89px] border border-[#8D9C9C20] px-4 py-2.5 data-[state=active]:border-[#17876D]"
-          >
-            <div className="flex w-full items-center justify-between font-semibold">
-              <p>Use Endur</p>
-              <Icons.endurLogo className="size-6" />
-            </div>
+        <TabsList className="flex h-full w-full flex-col items-center justify-between gap-2 bg-transparent px-5 md:flex-row">
+          <UnstakeOptionCard
+            isActive={txnDapp === "endur"}
+            title="Use Endur"
+            logo={<Icons.endurLogo className="size-6" />}
+            rate={exRate.rate}
+            waitingTime={waitingTime}
+            isBestRate={getBetterRate() === "endur"}
+            bgColor="transparent"
+          />
 
-            <div className="flex w-full items-center justify-between text-sm font-semibold text-[#17876D]">
-              <div className="flex items-center gap-0.5">
-                Rate
-                <TooltipProvider delayDuration={0}>
-                  <Tooltip>
-                    <TooltipTrigger>
-                      <Info className="size-3 text-[#3F6870] lg:text-[#8D9C9C]" />
-                    </TooltipTrigger>
-                    <TooltipContent
-                      side="right"
-                      className="rounded-md border border-[#03624C] bg-white text-[#03624C]"
-                    >
-                      {exRate.rate === 0
-                        ? "-"
-                        : `1 xSTRK = ${exRate.rate.toFixed(4)} STRK`}
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-              <p>{exRate.rate === 0 ? "-" : `1=${exRate.rate.toFixed(4)}`}</p>
-            </div>
-
-            <div className="flex w-full items-center justify-between text-sm font-thin text-[#939494]">
-              <p>Waiting time:</p>
-              <p>~4h</p> {/* TODO: fetch avg wait time from backend */}
-            </div>
-          </TabsTrigger>
-
-          <TabsTrigger
-            value="dex"
-            className="flex w-full flex-col gap-1.5 rounded-[15.89px] border border-[#8D9C9C20] bg-[#E9F3F0] px-4 py-2.5 data-[state=active]:border-[#17876D] data-[state=active]:bg-[#D0E6E0]"
-          >
-            <div className="flex w-full items-center justify-between font-semibold">
-              <p>Use DEX (Recommended)</p>
-              <div className="flex items-center">
-                <Icons.ekuboLogo className="size-6 rounded-full" />
-                <Icons.avnuLogo className="-ml-3 size-[26px] rounded-full border border-[#8D9C9C20]" />
-              </div>
-            </div>
-
-            <div className="flex w-full items-center justify-between text-sm font-thin text-[#939494]">
-              <p>Best Rate:</p>
-              <p>
-                {ratesLoading
-                  ? "Loading..."
-                  : rates?.[0]?.rate
-                    ? `1:${rates[0].rate.toFixed(4)}`
-                    : "-"}
-              </p>
-            </div>
-
-            <div className="flex w-full items-center justify-between text-sm font-semibold text-[#17876D]">
-              <p>Waiting time:</p>
-              <p className="flex items-center gap-1">
-                <Icons.zap className="h-4 w-4" />
-                Instant
-              </p>
-            </div>
-          </TabsTrigger>
+          <UnstakeOptionCard
+            isActive={txnDapp === "dex"}
+            title="Use DEX"
+            logo={
+              <Icons.avnuLogo className="size-6 rounded-full border border-[#8D9C9C20]" />
+            }
+            rate={dexRate}
+            waitingTime="Instant"
+            isLoading={avnuLoading}
+            isRecommended
+            isBestRate={getBetterRate() === "dex"}
+          />
         </TabsList>
       </Tabs>
 
       {txnDapp === "endur" ? (
         <>
-          <div className="mb-5 mt-[14px] h-px w-full rounded-full bg-[#AACBC480]" />
+          <div className="my-5 h-px w-full rounded-full bg-[#AACBC480]" />
           <div className="space-y-3 px-7">
-            <div className="flex items-center justify-between rounded-md text-base font-bold text-[#03624C] lg:text-lg">
-              <p className="flex items-center gap-1">
-                You will get
-                <TooltipProvider delayDuration={0}>
-                  <Tooltip>
-                    <TooltipTrigger>
-                      <Info className="size-3 text-[#3F6870] lg:text-[#8D9C9C]" />
-                    </TooltipTrigger>
-                    <TooltipContent
-                      side="right"
-                      className="max-w-56 rounded-md border border-[#03624C] bg-white text-[#03624C]"
-                    >
-                      You will receive the equivalent amount of STRK for the
-                      xSTRK you are unstaking. The amount of STRK you receive
-                      will be based on the current exchange rate of xSTRK to
-                      STRK.
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </p>
-              <span className="text-lg lg:text-xl">{youWillGet} STRK</span>
-            </div>
-
-            <div className="flex items-center justify-between rounded-md text-xs font-medium text-[#939494] lg:text-[13px]">
-              <p className="flex items-center gap-1">
-                Reward fees
-                <TooltipProvider delayDuration={0}>
-                  <Tooltip>
-                    <TooltipTrigger>
-                      <Info className="size-3 text-[#3F6870] lg:text-[#8D9C9C]" />
-                    </TooltipTrigger>
-                    <TooltipContent
-                      side="right"
-                      className="max-w-60 rounded-md border border-[#03624C] bg-white text-[#03624C]"
-                    >
-                      This fee applies exclusively to your staking rewards and
-                      does NOT affect your staked amount. You might qualify for
-                      a future fee rebate.{" "}
-                      <Link
-                        target="_blank"
-                        href="https://blog.endur.fi/endur-reimagining-value-distribution-in-liquid-staking-on-starknet"
-                        className="text-blue-600 underline"
-                      >
-                        Learn more
-                      </Link>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </p>
-              <p>
-                <span className="line-through">{REWARD_FEES}%</span>{" "}
-                <Link
-                  target="_blank"
-                  href="https://blog.endur.fi/endur-reimagining-value-distribution-in-liquid-staking-on-starknet"
-                  className="underline"
-                >
-                  Fee Rebate
-                </Link>
-              </p>
-            </div>
+            <YouWillGetSection
+              amount={formatNumber(youWillGet, 2)}
+              tooltipContent="You will receive the equivalent amount of STRK for the xSTRK you are unstaking. The amount of STRK you receive will be based on the current exchange rate of xSTRK to STRK."
+            />
+            <FeeSection />
           </div>
 
           <div className="mt-6 px-5">
-            {!address && (
-              <Button
-                onClick={() => connectWallet()}
-                className="w-full rounded-2xl bg-[#17876D] py-6 text-sm font-semibold text-white hover:bg-[#17876D] disabled:bg-[#03624C4D] disabled:text-[#17876D] disabled:opacity-90"
-              >
+            {!address ? (
+              <StyledButton onClick={() => connectWallet()}>
                 Connect Wallet
-              </Button>
-            )}
-
-            {address && (
-              <Button
-                type="submit"
+              </StyledButton>
+            ) : (
+              <StyledButton
                 onClick={form.handleSubmit(onSubmit)}
                 disabled={
                   Number(form.getValues("unstakeAmount")) <= 0 ||
                   isNaN(Number(form.getValues("unstakeAmount")))
                 }
-                className="w-full rounded-2xl bg-[#17876D] py-6 text-sm font-semibold text-white hover:bg-[#17876D] disabled:bg-[#03624C4D] disabled:text-[#17876D] disabled:opacity-90"
               >
-                Unstake
-              </Button>
+                Unstake via Endur
+              </StyledButton>
             )}
           </div>
         </>
       ) : (
         <>
-          <div className="mb-5 mt-[14px] h-px w-full rounded-full bg-[#AACBC480]" />
-          <div className="px-7">
-            <div className="space-y-2">
-              {form.getValues("unstakeAmount") && rates?.length > 0 ? (
-                rates.map((route) => (
-                  <DexRouteCard
-                    key={route.dex}
-                    route={{
-                      dex: route.dex,
-                      exchangeRate: route.rate,
-                      name: route.dex === "ekubo" ? "Ekubo" : "AVNU",
-                      logo:
-                        route.dex === "ekubo" ? (
-                          <Icons.ekuboLogo className="size-6 rounded-full" />
-                        ) : (
-                          <Icons.avnuLogo className="size-[26px] rounded-full border border-[#8D9C9C20]" />
-                        ),
-                      link:
-                        route.dex === "ekubo"
-                          ? "https://app.ekubo.org/swap"
-                          : "https://app.avnu.fi",
-                    }}
-                    unstakeAmount={form.getValues("unstakeAmount")}
-                  />
-                ))
-              ) : ratesLoading && form.getValues("unstakeAmount") ? (
-                <div className="rounded-[15.89px] border border-[#8D9C9C20] px-4 py-2.5 text-center text-sm text-[#8D9C9C]">
-                  Loading available routes...
-                </div>
-              ) : (
-                <div className="rounded-[15.89px] border border-[#8D9C9C20] px-4 py-2.5 text-center text-sm text-[#8D9C9C]">
-                  {form.getValues("unstakeAmount")
-                    ? "No routes available"
-                    : "Enter an amount to see available routes"}
-                </div>
+          <div className="my-5 h-px w-full rounded-full bg-[#AACBC480]" />
+          <div className="space-y-3 px-7">
+            <YouWillGetSection
+              amount={formatNumber(
+                Number(form.getValues("unstakeAmount") || 0) *
+                  (avnuQuote ? dexRate : 0),
+                2,
               )}
+              tooltipContent="Instant unstaking via Avnu DEX. The amount you receive will be based on current market rates."
+            />
+            <div className="flex items-center justify-between rounded-md text-xs font-medium text-[#939494] lg:text-[13px]">
+              <p className="flex items-center gap-1">
+                Unstake DEX fee
+                <InfoTooltip content="Avnu and Endur service fee for using DEX unstake" />
+              </p>
+              <p>0.05%</p>
             </div>
+            {/* <div className="flex items-center justify-between rounded-md text-xs font-medium text-[#939494] lg:text-[13px]">
+              <p className="flex items-center gap-1">
+                Waiting time
+                <InfoTooltip content="Time until your unstaking request is processed" />
+              </p>
+              <p className="flex items-center gap-1">
+                {txnDapp === "dex" ? (
+                <span className="flex items-center gap-1 font-semibold text-[#17876D]">
+                  <Icons.zap className="h-4 w-4" />
+                  Instant
+                </span>
+                ) : (
+                  waitingTime
+                )}
+              </p>
+            </div> */}
+          </div>
+          <div className="mt-6 px-5">
+            {!address ? (
+              <StyledButton onClick={() => connectWallet()}>
+                Connect Wallet
+              </StyledButton>
+            ) : (
+              <StyledButton
+                onClick={handleDexSwap}
+                disabled={
+                  Number(form.getValues("unstakeAmount")) <= 0 ||
+                  isNaN(Number(form.getValues("unstakeAmount"))) ||
+                  avnuLoading ||
+                  !avnuQuote
+                }
+              >
+                {avnuLoading ? (
+                  <span className="flex items-center gap-2">
+                    {/* <Icons.loader className="size-4 animate-spin" /> */}
+                    {form.getValues("unstakeAmount")
+                      ? "Fetching quote..."
+                      : "Processing..."}
+                  </span>
+                ) : (
+                  "Unstake Instantly"
+                )}
+              </StyledButton>
+            )}
           </div>
         </>
       )}

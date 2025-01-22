@@ -5,6 +5,8 @@ export const STRK_TOKEN =
 export const STRK_DECIMALS = 18;
 export const REWARD_FEES = 15;
 
+export const RECEPIEINT_FEE_ADDRESS = "0x0066c76374A9AdB11D4d283aC400331ec6A691C61029168bD70CeA5d97dFc971";
+
 export const LST_ADDRRESS = process.env
   .NEXT_PUBLIC_LST_ADDRESS as `0x${string}`;
 
