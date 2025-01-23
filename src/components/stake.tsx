@@ -138,6 +138,7 @@ const Stake: React.FC = () => {
         MyAnalytics.track(eventNames.STAKE_TX_INIT, {
           address,
           amount: Number(form.getValues("stakeAmount")),
+          txHash: data?.transaction_hash,
         });
       }
       if (isPending) {
@@ -167,6 +168,7 @@ const Stake: React.FC = () => {
         MyAnalytics.track(eventNames.STAKE_TX_REJECTED, {
           address,
           amount: Number(form.getValues("stakeAmount")),
+          type: error.name,
         });
         dismiss();
       }
@@ -176,6 +178,7 @@ const Stake: React.FC = () => {
         MyAnalytics.track(eventNames.STAKE_TX_REJECTED, {
           address,
           amount: Number(form.getValues("stakeAmount")),
+          type: error.name,
         });
         toast({
           itemID: "stake",

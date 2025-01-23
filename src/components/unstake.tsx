@@ -48,11 +48,14 @@ import {
 import { snAPYAtom } from "@/store/staking.store";
 import { isTxAccepted } from "@/store/transactions.atom";
 import { getAvnuQuotes, executeAvnuSwap } from "@/services/avnu";
-import { avnuQuoteAtom, avnuLoadingAtom, avnuErrorAtom } from "@/store/avnu.store";
+import {
+  avnuQuoteAtom,
+  avnuLoadingAtom,
+  avnuErrorAtom,
+} from "@/store/avnu.store";
 import { AccountInterface } from "starknet";
 import { MyAnalytics } from "@/lib/analytics";
-import { formatNumber, formatNumberWithCommas, eventNames } from "@/lib/utils";
-import { isMerryChristmasAtom } from "@/store/merry.store";
+import { formatNumber, eventNames } from "@/lib/utils";
 import { Icons } from "./Icons";
 import { getConnectors } from "./navbar";
 import { Button } from "./ui/button";
@@ -126,8 +129,9 @@ const FeeSection = () => (
       <InfoTooltip
         content={
           <>
-            This fee applies exclusively to your staking rewards and does NOT affect
-            your staked amount. You might qualify for a future fee rebate.{" "}
+            This fee applies exclusively to your staking rewards and does NOT
+            affect your staked amount. You might qualify for a future fee
+            rebate.{" "}
             <Link
               target="_blank"
               href="https://blog.endur.fi/endur-reimagining-value-distribution-in-liquid-staking-on-starknet"
@@ -170,22 +174,25 @@ const YouWillGetSection = ({
 
 const calculateWaitingTime = (queueState: any, unstakeAmount: string) => {
   if (!queueState || !unstakeAmount) return "-";
-  
+
   try {
     const amount = MyNumber.fromEther(unstakeAmount, 18);
-    const pendingQueue = new MyNumber(queueState.unprocessed_withdraw_queue_amount || '0', 18);
-    
+    const pendingQueue = new MyNumber(
+      queueState.unprocessed_withdraw_queue_amount || "0",
+      18,
+    );
+
     const currentAmount = BigInt(amount.toString());
     const queueAmount = BigInt(pendingQueue.toString());
     const totalAmount = currentAmount + queueAmount;
 
     const THRESHOLD = BigInt(70000) * BigInt(10 ** 18);
-    
+
     if (totalAmount <= THRESHOLD) {
       return "1-2 hours";
     } else if (totalAmount <= THRESHOLD * BigInt(2)) {
       return "1-2 days";
-    } 
+    }
     return "~21 days";
   } catch (error) {
     console.error("Error calculating waiting time:", error);
@@ -214,7 +221,7 @@ const UnstakeOptionCard = ({
   isLoading,
   isRecommended,
   isBestRate,
-  bgColor = "#E9F3F0"
+  bgColor = "#E9F3F0",
 }: UnstakeOptionCardProps) => (
   <TabsTrigger
     value={title.toLowerCase().includes("endur") ? "endur" : "dex"}
@@ -244,7 +251,7 @@ const UnstakeOptionCard = ({
                 side="right"
                 className="rounded-md border border-[#03624C] bg-white text-[#03624C]"
               >
-                {typeof rate === 'number' && rate === 0
+                {typeof rate === "number" && rate === 0
                   ? "-"
                   : `1 xSTRK = ${Number(rate).toFixed(4)} STRK`}
               </TooltipContent>
@@ -252,7 +259,7 @@ const UnstakeOptionCard = ({
           </TooltipProvider>
         )}
       </div>
-      <p className={isBestRate ? 'font-semibold text-[#17876D]' : ''}>
+      <p className={isBestRate ? "font-semibold text-[#17876D]" : ""}>
         {isLoading ? "Loading..." : `1=${Number(rate).toFixed(4)}`}
       </p>
     </div>
@@ -312,6 +319,7 @@ const Unstake = () => {
         MyAnalytics.track(eventNames.UNSTAKE_TX_INIT, {
           address,
           amount: Number(form.getValues("unstakeAmount")),
+          txHash: data.transaction_hash,
         });
       }
       if (isPending) {
@@ -341,6 +349,7 @@ const Unstake = () => {
         MyAnalytics.track(eventNames.UNSTAKE_TX_REJECTED, {
           address,
           amount: Number(form.getValues("unstakeAmount")),
+          type: error.name,
         });
         dismiss();
       }
@@ -350,6 +359,7 @@ const Unstake = () => {
         MyAnalytics.track(eventNames.UNSTAKE_TX_REJECTED, {
           address,
           amount: Number(form.getValues("unstakeAmount")),
+          type: error.name,
         });
         toast({
           itemID: "unstake",
@@ -376,6 +386,7 @@ const Unstake = () => {
           MyAnalytics.track(eventNames.UNSTAKE_TX_SUCCESSFUL, {
             address,
             amount: Number(form.getValues("unstakeAmount")),
+            txHash: data.transaction_hash,
           });
           toast({
             itemID: "unstake",
@@ -495,8 +506,9 @@ const Unstake = () => {
     MyAnalytics.track(eventNames.UNSTAKE_CLICK, {
       address,
       amount: Number(values.unstakeAmount),
+      mode: "ViaEndur",
     });
-    
+
     const call1 = contract.populate("redeem", [
       MyNumber.fromEther(values.unstakeAmount, 18),
       address,
@@ -531,13 +543,13 @@ const Unstake = () => {
 
   React.useEffect(() => {
     if (!form.getValues("unstakeAmount")) return;
-    
+
     const fetchQuote = async () => {
       setAvnuLoading(true);
       try {
         const quotes = await getAvnuQuotes(
-          form.getValues("unstakeAmount"), 
-          address || "0x0"
+          form.getValues("unstakeAmount"),
+          address || "0x0",
         );
         setAvnuQuote(quotes[0] || null);
         setAvnuError(null);
@@ -554,6 +566,12 @@ const Unstake = () => {
 
   const handleDexSwap = async () => {
     if (!address || !avnuQuote) return;
+
+    MyAnalytics.track(eventNames.UNSTAKE_CLICK, {
+      address,
+      amount: Number(form.getValues("unstakeAmount")),
+      mode: "Instant",
+    });
 
     setAvnuLoading(true);
     try {
@@ -590,7 +608,7 @@ const Unstake = () => {
               </div>
             ),
           });
-        }
+        },
       );
     } finally {
       setAvnuLoading(false);
@@ -606,16 +624,18 @@ const Unstake = () => {
     return "~21 days";
     return calculateWaitingTime(
       queueState.value,
-      form.getValues("unstakeAmount")
+      form.getValues("unstakeAmount"),
     );
   }, [queueState.value, form.watch("unstakeAmount")]);
 
   const getBetterRate = () => {
     const endurRate = exRate.rate;
-    const dexRate = avnuQuote ? Number(avnuQuote.buyAmount) / Number(avnuQuote.sellAmount) : 0;
-    
-    if (endurRate === 0 || dexRate === 0) return 'none';
-    return endurRate > dexRate ? 'endur' : 'dex';
+    const dexRate = avnuQuote
+      ? Number(avnuQuote.buyAmount) / Number(avnuQuote.sellAmount)
+      : 0;
+
+    if (endurRate === 0 || dexRate === 0) return "none";
+    return endurRate > dexRate ? "endur" : "dex";
   };
 
   return (
@@ -769,19 +789,21 @@ const Unstake = () => {
             logo={<Icons.endurLogo className="size-6" />}
             rate={exRate.rate}
             waitingTime={waitingTime}
-            isBestRate={getBetterRate() === 'endur'}
+            isBestRate={getBetterRate() === "endur"}
             bgColor="transparent"
           />
-          
+
           <UnstakeOptionCard
             isActive={txnDapp === "dex"}
             title="Use DEX"
-            logo={<Icons.avnuLogo className="size-6 rounded-full border border-[#8D9C9C20]" />}
+            logo={
+              <Icons.avnuLogo className="size-6 rounded-full border border-[#8D9C9C20]" />
+            }
             rate={dexRate}
             waitingTime="Instant"
             isLoading={avnuLoading}
             isRecommended
-            isBestRate={getBetterRate() === 'dex'}
+            isBestRate={getBetterRate() === "dex"}
           />
         </TabsList>
       </Tabs>
@@ -821,8 +843,9 @@ const Unstake = () => {
           <div className="space-y-3 px-7">
             <YouWillGetSection
               amount={formatNumber(
-                (Number(form.getValues("unstakeAmount") || 0) * (avnuQuote ? dexRate : 0)),
-                2
+                Number(form.getValues("unstakeAmount") || 0) *
+                  (avnuQuote ? dexRate : 0),
+                2,
               )}
               tooltipContent="Instant unstaking via Avnu DEX. The amount you receive will be based on current market rates."
             />
@@ -868,7 +891,9 @@ const Unstake = () => {
                 {avnuLoading ? (
                   <span className="flex items-center gap-2">
                     {/* <Icons.loader className="size-4 animate-spin" /> */}
-                    {form.getValues("unstakeAmount") ? "Fetching quote..." : "Processing..."}
+                    {form.getValues("unstakeAmount")
+                      ? "Fetching quote..."
+                      : "Processing..."}
                   </span>
                 ) : (
                   "Unstake Instantly"
