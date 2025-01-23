@@ -26,16 +26,12 @@ import {
 import Unstake from "./unstake";
 import WithdrawLog from "./withdraw-log";
 
-interface TabsProps {
-  avgWaitTime: string;
-}
-
-const Tabs: React.FC<TabsProps> = ({ avgWaitTime: _ }) => {
+const Tabs = () => {
   const [activeTab, setActiveTab] = useAtom(tabsAtom);
 
   const isMerry = useAtomValue(isMerryChristmasAtom);
 
-  const { open } = useSidebar();
+  const { isPinned } = useSidebar();
 
   function getMessage() {
     if (activeTab === "unstake") {
@@ -65,16 +61,19 @@ const Tabs: React.FC<TabsProps> = ({ avgWaitTime: _ }) => {
   }
 
   return (
-    <>
+    <div
+      className={cn("z-30 flex h-full flex-col items-center", {
+        "lg:-ml-56": isPinned,
+      })}
+    >
       <div
         className={cn("mt-6 w-full max-w-xl lg:mt-0", {
-          "lg:-ml-32": open,
           "mb-7 xl:mb-0": !isMerry,
-          "mb-7 lg:mb-12": isMerry,
-          "mb-7 lg:mb-7": isMerry && activeTab === "withdraw",
+          // "mb-7 lg:mb-12": isMerry,
+          // "mb-7 lg:mb-7": isMerry && activeTab === "withdraw",
         })}
       >
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="mt-7 flex flex-wrap items-center gap-3">
           <div className="flex items-center gap-2">
             <Icons.strkLogo className="size-8" />
             <h1 className="text-xl font-bold text-black">Stake STRK</h1>
@@ -97,10 +96,7 @@ const Tabs: React.FC<TabsProps> = ({ avgWaitTime: _ }) => {
 
       <div
         className={cn(
-          "z-30 min-h-[31.5rem] w-full max-w-xl rounded-xl bg-white shadow-xl lg:h-fit lg:pb-5 xl:mt-6",
-          {
-            "lg:-ml-32": open,
-          },
+          "mt-6 min-h-[31.5rem] w-full max-w-xl rounded-xl bg-white shadow-xl lg:h-fit lg:pb-5",
         )}
       >
         <ShadCNTabs
@@ -113,7 +109,7 @@ const Tabs: React.FC<TabsProps> = ({ avgWaitTime: _ }) => {
             className={cn(
               "flex w-full items-center justify-start rounded-none border-b bg-transparent px-3 pb-5 pt-5 lg:pt-8",
               {
-                "lg:pt-10": activeTab !== "withdraw" && isMerry,
+                // "lg:pt-10": activeTab !== "withdraw" && isMerry,
               },
             )}
           >
@@ -186,9 +182,8 @@ const Tabs: React.FC<TabsProps> = ({ avgWaitTime: _ }) => {
       {(activeTab === "unstake" || activeTab === "stake") && (
         <div
           className={cn(
-            "z-30 mb-2 mt-5 flex max-w-xl items-center rounded-md bg-[#FFC4664D] py-3 pl-4 pr-3 text-xs text-[#D69733] lg:mb-4 lg:text-sm",
+            "mb-2 mt-5 flex max-w-xl items-center rounded-md bg-[#FFC4664D] py-3 pl-4 pr-3 text-xs text-[#D69733] lg:mb-4 lg:text-sm",
             {
-              "lg:-ml-32": open,
               "bg-[#C0D5CE69] text-[#134c3d9e]": activeTab === "stake",
             },
           )}
@@ -202,15 +197,12 @@ const Tabs: React.FC<TabsProps> = ({ avgWaitTime: _ }) => {
 
       <p
         className={cn(
-          "z-30 mt-4 flex items-center text-xs text-[#707D7D] lg:mb-1 lg:mt-auto lg:text-sm",
-          {
-            "lg:-ml-32": open,
-          },
+          "mt-4 flex items-center text-xs text-[#707D7D] lg:mb-1 lg:mt-auto lg:text-sm",
         )}
       >
         Made with 💚 by{" "}
         <Link
-          href="https://strkfarm.xyz"
+          href="https://strkfarm.com"
           target="_blank"
           className="mx-1 cursor-pointer font-semibold hover:underline"
         >
@@ -225,7 +217,7 @@ const Tabs: React.FC<TabsProps> = ({ avgWaitTime: _ }) => {
           Karnot
         </Link>
       </p>
-    </>
+    </div>
   );
 };
 

@@ -199,7 +199,7 @@ export const protocolConfigs: Record<string, ProtocolConfig> = {
 };
 
 const Defi: React.FC = () => {
-  const { open } = useSidebar();
+  const { isPinned } = useSidebar();
   const yields: any = useAtomValue(protocolYieldsAtom);
 
   const sortedProtocols = useMemo(() => {
@@ -215,8 +215,8 @@ const Defi: React.FC = () => {
 
   return (
     <div
-      className={cn("mx-auto mt-12 w-full max-w-7xl px-4 sm:px-14", {
-        "lg:pl-28": !open,
+      className={cn("mx-auto mt-12 w-full max-w-7xl px-8", {
+        "lg:pl-28": !isPinned,
       })}
     >
       <h1 className="text-2xl font-semibold tracking-[-1%] text-black">

@@ -1,10 +1,13 @@
-import erc4626Abi from "@/abi/erc4626.abi.json";
-import nostraSTRKAbi from "@/abi/nostra.strk.abi.json";
-import { LST_ADDRRESS, NST_STRK_ADDRESS, STRK_DECIMALS } from "@/constants";
-import MyNumber from "@/lib/MyNumber";
 import { atom } from "jotai";
 import { atomWithQuery } from "jotai-tanstack-query";
 import { Contract, RpcProvider, uint256 } from "starknet";
+
+import erc4626Abi from "@/abi/erc4626.abi.json";
+import nostraSTRKAbi from "@/abi/nostra.strk.abi.json";
+import { LST_ADDRRESS, NST_STRK_ADDRESS, STRK_DECIMALS, WITHDRAWAL_QUEUE_ADDRESS } from "@/constants";
+import MyNumber from "@/lib/MyNumber";
+import WqAbi from "@/abi/wq.abi.json";
+
 import {
   currentBlockAtom,
   providerAtom,
@@ -119,7 +122,6 @@ export const userSTRKBalanceQueryAtom = atomWithQuery((get) => {
       get(currentBlockAtom),
       get(userAddressAtom),
       get(userXSTRKBalanceAtom),
-      get(providerAtom),
     ],
     queryFn: async ({ queryKey }: any): Promise<MyNumber> => {
       const { data, error } = get(userXSTRKBalanceQueryAtom);
@@ -270,5 +272,38 @@ export const totalStakedUSDAtom = atom((get) => {
   return {
     value: Number(totalStaked.value.toEtherToFixedDecimals(4)) * price || 0,
     isLoading,
+  };
+});
+
+export const withdrawalQueueStateQueryAtom = atomWithQuery((get) => {
+  return {
+    queryKey: ["withdrawalQueueState", get(currentBlockAtom)],
+    queryFn: async () => {
+      const provider = get(providerAtom);
+      if (!provider) return null;
+
+      try {
+        const contract = new Contract(
+          WqAbi,
+          WITHDRAWAL_QUEUE_ADDRESS,
+          provider
+        );
+        
+        const state = await contract.call("get_queue_state");
+        return state;
+      } catch (error) {
+        console.error("Error fetching withdrawal queue state:", error);
+        return null;
+      }
+    },
+  };
+});
+
+export const withdrawalQueueStateAtom = atom((get) => {
+  const { data, error } = get(withdrawalQueueStateQueryAtom);
+  return {
+    value: data,
+    error,
+    isLoading: !data && !error,
   };
 });

@@ -68,7 +68,6 @@ import {
 import { snAPYAtom } from "@/store/staking.store";
 import { isTxAccepted } from "@/store/transactions.atom";
 
-import { MyAnalytics } from "@/lib/analytics";
 import { Icons } from "./Icons";
 import { getConnectors } from "./navbar";
 import { Button } from "./ui/button";
@@ -229,25 +228,25 @@ const Stake: React.FC = () => {
     })();
   }, [data, data?.transaction_hash, error?.name, form, isPending]);
 
-  React.useEffect(() => {
-    if (form.getValues("stakeAmount").toLowerCase() === "xstrk") {
-      setIsMerry(true);
-      MyAnalytics.track("Activated Merry Christmas Theme", {
-        address,
-        tab: "stake",
-      });
-    }
-  }, [form.getValues("stakeAmount"), form]);
+  // React.useEffect(() => {
+  //   if (form.getValues("stakeAmount").toLowerCase() === "xstrk") {
+  //     setIsMerry(true);
+  //     MyAnalytics.track("Activated Merry Christmas Theme", {
+  //       address,
+  //       tab: "stake",
+  //     });
+  //   }
+  // }, [form.getValues("stakeAmount"), form]);
 
-  React.useEffect(() => {
-    if (!address) return;
+  // React.useEffect(() => {
+  //   if (!address) return;
 
-    if (focusStakeInput) {
-      handleQuickStakePrice(100);
-      form.setFocus("stakeAmount");
-      setFocusStakeInput(false);
-    }
-  }, [address, focusStakeInput]);
+  //   if (focusStakeInput) {
+  //     handleQuickStakePrice(100);
+  //     form.setFocus("stakeAmount");
+  //     setFocusStakeInput(false);
+  //   }
+  // }, [address, focusStakeInput]);
 
   const connectorConfig: ConnectOptionsWithConnectors = React.useMemo(() => {
     const hostname =
@@ -362,11 +361,11 @@ const Stake: React.FC = () => {
 
   return (
     <div className="relative h-full w-full">
-      {isMerry && (
+      {/* {isMerry && (
         <div className="pointer-events-none absolute -left-[15px] -top-[7.5rem] hidden transition-all duration-500 lg:block">
           <Icons.cloud />
         </div>
-      )}
+      )} */}
 
       <Dialog open={showShareModal} onOpenChange={setShowShareModal}>
         <DialogContent className={cn(font.className, "p-16 sm:max-w-xl")}>
@@ -468,13 +467,14 @@ const Stake: React.FC = () => {
                         />
                       </div>
                     </FormControl>
-                    {form.getValues("stakeAmount").toLowerCase() === "xstrk" ? (
+                    <FormMessage className="absolute -bottom-5 left-0 text-xs lg:left-1" />
+                    {/* {form.getValues("stakeAmount").toLowerCase() === "xstrk" ? (
                       <p className="absolute -bottom-4 left-0 text-xs font-medium text-green-500 transition-all lg:left-1 lg:-ml-1">
                         Merry Christmas!
                       </p>
                     ) : (
                       <FormMessage className="absolute -bottom-5 left-0 text-xs lg:left-1" />
-                    )}
+                    )} */}
                   </FormItem>
                 )}
               />
@@ -531,7 +531,7 @@ const Stake: React.FC = () => {
       <div className="my-5 h-px w-full rounded-full bg-[#AACBC480]" />
 
       <div className="space-y-3 px-7">
-        <div className="flex items-center justify-between rounded-md text-base font-bold text-[#03624C] lg:text-lg">
+        <div className="flex items-center justify-between rounded-md text-xs font-bold text-[#03624C] lg:text-[13px]">
           <p className="flex items-center gap-1">
             You will get
             <TooltipProvider delayDuration={0}>
@@ -556,7 +556,7 @@ const Stake: React.FC = () => {
               </Tooltip>
             </TooltipProvider>
           </p>
-          <span className="text-lg lg:text-xl">
+          <span className="text-xs lg:text-[13px]">
             {form.watch("stakeAmount")
               ? formatNumberWithCommas(
                   Number(form.watch("stakeAmount")) / exchangeRate.rate,
