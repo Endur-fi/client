@@ -141,6 +141,18 @@ export function convertFutureTimestamp(unixTimestamp: number): string {
   return "Anytime soon";
 }
 
+export const eventNames = {
+  STAKE_CLICK: "stake_click",
+  STAKE_TX_INIT: "stake_transaction_init",
+  STAKE_TX_SUCCESSFUL: "stake_transaction_successful",
+  STAKE_TX_REJECTED: "stake_transaction_rejected",
+  UNSTAKE_CLICK: "unstake_click",
+  UNSTAKE_TX_INIT: "unstake_transaction_init",
+  UNSTAKE_TX_SUCCESSFUL: "unstake_transaction_successful",
+  UNSTAKE_TX_REJECTED: "unstake_transaction_rejected",
+  OPPORTUNITIES: "opportunities",
+};
+
 export async function getSTRKPrice() {
   const provider = new RpcProvider({
     nodeUrl:
