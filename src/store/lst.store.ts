@@ -4,6 +4,7 @@ import { Contract, RpcProvider, uint256 } from "starknet";
 
 import erc4626Abi from "@/abi/erc4626.abi.json";
 import nostraSTRKAbi from "@/abi/nostra.strk.abi.json";
+import WqAbi from "@/abi/wq.abi.json";
 import {
   LST_ADDRRESS,
   NST_STRK_ADDRESS,
@@ -11,7 +12,6 @@ import {
   WITHDRAWAL_QUEUE_ADDRESS,
 } from "@/constants";
 import MyNumber from "@/lib/MyNumber";
-import WqAbi from "@/abi/wq.abi.json";
 
 import {
   currentBlockAtom,

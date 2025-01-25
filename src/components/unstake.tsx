@@ -36,7 +36,15 @@ import {
 } from "@/components/ui/tooltip";
 import { getProvider, NETWORK, REWARD_FEES } from "@/constants";
 import { toast, useToast } from "@/hooks/use-toast";
+import { MyAnalytics } from "@/lib/analytics";
 import MyNumber from "@/lib/MyNumber";
+import { eventNames, formatNumber } from "@/lib/utils";
+import { executeAvnuSwap, getAvnuQuotes } from "@/services/avnu";
+import {
+  avnuErrorAtom,
+  avnuLoadingAtom,
+  avnuQuoteAtom,
+} from "@/store/avnu.store";
 import {
   exchangeRateAtom,
   totalStakedAtom,
@@ -47,15 +55,7 @@ import {
 } from "@/store/lst.store";
 import { snAPYAtom } from "@/store/staking.store";
 import { isTxAccepted } from "@/store/transactions.atom";
-import { getAvnuQuotes, executeAvnuSwap } from "@/services/avnu";
-import {
-  avnuQuoteAtom,
-  avnuLoadingAtom,
-  avnuErrorAtom,
-} from "@/store/avnu.store";
 import { AccountInterface } from "starknet";
-import { MyAnalytics } from "@/lib/analytics";
-import { formatNumber, eventNames } from "@/lib/utils";
 import { Icons } from "./Icons";
 import { getConnectors } from "./navbar";
 import { Button } from "./ui/button";
@@ -600,9 +600,8 @@ const Unstake = () => {
         (error) => {
           toast({
             itemID: "unstake",
-            variant: "destructive",
             description: (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 text-red-500">
                 <Info className="size-5" />
                 {error.message}
               </div>
@@ -622,10 +621,6 @@ const Unstake = () => {
 
   const waitingTime = useMemo(() => {
     return "~21 days";
-    return calculateWaitingTime(
-      queueState.value,
-      form.getValues("unstakeAmount"),
-    );
   }, [queueState.value, form.watch("unstakeAmount")]);
 
   const getBetterRate = () => {
