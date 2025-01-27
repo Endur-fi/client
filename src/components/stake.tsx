@@ -9,14 +9,14 @@ import {
   useSendTransaction,
 } from "@starknet-react/core";
 import { useAtom, useAtomValue } from "jotai";
-import { Info, ChevronDown } from 'lucide-react';
-import { Figtree } from 'next/font/google';
+import { Info, ChevronDown } from "lucide-react";
+import { Figtree } from "next/font/google";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import React from "react";
 import { useForm } from "react-hook-form";
 import { TwitterShareButton } from "react-share";
-import { Contract } from "starknet";
+import { Call, Contract } from "starknet";
 import {
   connect,
   ConnectOptionsWithConnectors,
@@ -39,7 +39,6 @@ import {
   FormControl,
   FormField,
   FormItem,
-  FormMessage,
 } from "@/components/ui/form";
 import {
   Tooltip,
@@ -47,7 +46,15 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { getEndpoint, NETWORK, REWARD_FEES, STRK_TOKEN, VESU_vXSTRK_ADDRESS, NOSTRA_iXSTRK_ADDRESS, LST_ADDRRESS } from "@/constants";
+import {
+  getEndpoint,
+  NETWORK,
+  REWARD_FEES,
+  STRK_TOKEN,
+  VESU_vXSTRK_ADDRESS,
+  NOSTRA_iXSTRK_ADDRESS,
+  LST_ADDRRESS,
+} from "@/constants";
 import { toast, useToast } from "@/hooks/use-toast";
 import MyNumber from "@/lib/MyNumber";
 import { cn, formatNumber, formatNumberWithCommas } from "@/lib/utils";
@@ -101,7 +108,7 @@ const PLATFORMS = {
   NOSTRA: "nostra-lend",
 } as const;
 
-type ValidPlatform = typeof PLATFORMS[keyof typeof PLATFORMS];
+type ValidPlatform = (typeof PLATFORMS)[keyof typeof PLATFORMS];
 
 const Stake: React.FC = () => {
   const [showShareModal, setShowShareModal] = React.useState(false);
@@ -320,8 +327,12 @@ const Stake: React.FC = () => {
 
   const onSubmit = async (values: FormValues) => {
     const stakeAmount = Number(values.stakeAmount);
-    
-    if (isNaN(stakeAmount) || !Number.isFinite(stakeAmount) || stakeAmount <= 0) {
+
+    if (
+      isNaN(stakeAmount) ||
+      !Number.isFinite(stakeAmount) ||
+      stakeAmount <= 0
+    ) {
       return toast({
         description: (
           <div className="flex items-center gap-2">
@@ -358,10 +369,7 @@ const Stake: React.FC = () => {
     const previewCall = await contract?.preview_deposit(strkAmount.toString());
     const xstrkAmount = previewCall?.toString() || "0";
 
-    const call1 = contractSTRK.populate("approve", [
-      LST_ADDRRESS,
-      strkAmount,
-    ]);
+    const call1 = contractSTRK.populate("approve", [LST_ADDRRESS, strkAmount]);
 
     const call2 = referrer
       ? contract?.populate("deposit_with_referral", [
@@ -369,19 +377,20 @@ const Stake: React.FC = () => {
           address,
           referrer,
         ])
-      : contract?.populate("deposit", [
-          strkAmount,
-          address,
-        ]);
+      : contract?.populate("deposit", [strkAmount, address]);
 
-    const calls = [call1, call2];
+    const calls: Call[] = [call1];
+    if (call2) {
+      calls.push(call2);
+    }
 
     if (selectedPlatform !== "none") {
       const lstContract = new Contract(erc4626Abi, LST_ADDRRESS);
-      
-      const lendingAddress = selectedPlatform === "vesu" 
-        ? VESU_vXSTRK_ADDRESS 
-        : NOSTRA_iXSTRK_ADDRESS;
+
+      const lendingAddress =
+        selectedPlatform === "vesu"
+          ? VESU_vXSTRK_ADDRESS
+          : NOSTRA_iXSTRK_ADDRESS;
 
       const approveCall = lstContract.populate("approve", [
         lendingAddress,
@@ -411,13 +420,13 @@ const Stake: React.FC = () => {
   const getCalculatedXSTRK = () => {
     const amount = form.watch("stakeAmount");
     if (!amount || isNaN(Number(amount)) || Number(amount) <= 0) return "0";
-    
+
     try {
       return formatNumberWithCommas(
         MyNumber.fromEther(amount, 18)
           .operate("multipliedBy", MyNumber.fromEther("1", 18).toString())
           .operate("div", exchangeRate.preciseRate.toString())
-          .toEtherStr()
+          .toEtherStr(),
       );
     } catch (error) {
       return "0";
@@ -480,9 +489,8 @@ const Stake: React.FC = () => {
                   className="max-w-56 rounded-md border border-[#03624C] bg-white text-[#03624C]"
                 >
                   {selectedPlatform === "none"
-            ? "Estimated current compounded annualised yield on staking in terms of STRK."
-            : `Estimated yield including both staking and lending on ${selectedPlatform === "vesu" ? "Vesu" : "Nostra"}.`
-          }
+                    ? "Estimated current compounded annualised yield on staking in terms of STRK."
+                    : `Estimated yield including both staking and lending on ${selectedPlatform === "vesu" ? "Vesu" : "Nostra"}.`}
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
@@ -490,7 +498,7 @@ const Stake: React.FC = () => {
           <span className="flex items-center gap-1">
             ~{(apy.value * 100).toFixed(2)}%
             {selectedPlatform !== "none" && (
-              <span className="text-[#17876D] font-semibold">
+              <span className="font-semibold text-[#17876D]">
                 + {getPlatformYield(selectedPlatform).toFixed(2)}%
               </span>
             )}
@@ -528,7 +536,9 @@ const Stake: React.FC = () => {
             <div className="flex items-center gap-2">
               <p className="text-xs text-[#06302B]">Enter Amount (STRK)</p>
               {form.formState.errors.stakeAmount && (
-                <p className="text-xs text-destructive">{form.formState.errors.stakeAmount.message}</p>
+                <p className="text-xs text-destructive">
+                  {form.formState.errors.stakeAmount.message}
+                </p>
               )}
             </div>
             <form onSubmit={form.handleSubmit(onSubmit)} className="w-full">
@@ -607,8 +617,8 @@ const Stake: React.FC = () => {
       </div>
 
       <div className="px-7">
-        <Collapsible 
-          open={isLendingOpen} 
+        <Collapsible
+          open={isLendingOpen}
           onOpenChange={(open) => {
             setIsLendingOpen(open);
             if (!open) {
@@ -632,10 +642,14 @@ const Stake: React.FC = () => {
                   className="max-w-72 rounded-md border border-[#03624C] bg-white p-3 text-[#03624C]"
                 >
                   <p className="mb-2">
-                    You can earn additional yield by lending your xSTRK on DeFi platforms. Your base staking rewards will continue to accumulate.
+                    You can earn additional yield by lending your xSTRK on DeFi
+                    platforms. Your base staking rewards will continue to
+                    accumulate.
                   </p>
                   <p className="text-xs text-[#8D9C9C]">
-                    Note: These are third-party protocols not affiliated with Endur. Please DYOR and understand the risks before using any DeFi platform.
+                    Note: These are third-party protocols not affiliated with
+                    Endur. Please DYOR and understand the risks before using any
+                    DeFi platform.
                   </p>
                 </TooltipContent>
               </Tooltip>
@@ -644,18 +658,31 @@ const Stake: React.FC = () => {
           <CollapsibleContent className="mt-2">
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
               {sortedPlatforms.map((platform) => {
-                const platformKey = platform === "vesu" ? "vesu" : "nostra-lend" as const;
+                const platformKey =
+                  platform === "vesu" ? "vesu" : ("nostra-lend" as const);
                 const yieldData = yields[platformKey];
                 return (
                   <PlatformCard
                     key={platform}
                     name={platform === "vesu" ? "Vesu" : "Nostra"}
-                    icon={platform === "vesu" ? <Icons.vesuLogo className="h-6 w-6 rounded-full" /> : <Icons.nostraLogo className="h-6 w-6" />}
+                    icon={
+                      platform === "vesu" ? (
+                        <Icons.vesuLogo className="h-6 w-6 rounded-full" />
+                      ) : (
+                        <Icons.nostraLogo className="h-6 w-6" />
+                      )
+                    }
                     apy={yieldData?.value ?? 0}
                     baseApy={apy.value}
                     xstrkLent={yieldData?.totalSupplied ?? 0}
                     isSelected={selectedPlatform === platform}
-                    onClick={() => setSelectedPlatform(selectedPlatform === platform ? "none" : platform as Platform)}
+                    onClick={() =>
+                      setSelectedPlatform(
+                        selectedPlatform === platform
+                          ? "none"
+                          : (platform as Platform),
+                      )
+                    }
                   />
                 );
               })}
@@ -666,9 +693,9 @@ const Stake: React.FC = () => {
 
       <div className="my-5 h-px w-full rounded-full bg-[#AACBC480]" />
 
-      <div className="space-y-3 px-7 mt-5">
+      <div className="mt-5 space-y-3 px-7">
         <div className="flex items-center justify-between rounded-md text-xs font-bold text-[#03624C] lg:text-[13px]">
-        <p className="flex items-center gap-1">
+          <p className="flex items-center gap-1">
             {selectedPlatform === "none" ? "You will get" : "You will lend"}
             <TooltipProvider delayDuration={0}>
               <Tooltip>
@@ -681,8 +708,8 @@ const Stake: React.FC = () => {
                 >
                   {selectedPlatform === "none" ? (
                     <>
-                      <strong>xSTRK</strong> is the liquid staking token (LST) of
-                      Endur, representing your staked STRK.{" "}
+                      <strong>xSTRK</strong> is the liquid staking token (LST)
+                      of Endur, representing your staked STRK.{" "}
                     </>
                   ) : (
                     <>
@@ -796,7 +823,9 @@ const Stake: React.FC = () => {
             onClick={form.handleSubmit(onSubmit)}
             className="w-full rounded-2xl bg-[#17876D] py-6 text-sm font-semibold text-white hover:bg-[#17876D] disabled:bg-[#03624C4D] disabled:text-[#17876D] disabled:opacity-90"
           >
-            {selectedPlatform === "none" ? "Stake STRK" : `Stake & Lend on ${selectedPlatform === "vesu" ? "Vesu" : "Nostra"}`}
+            {selectedPlatform === "none"
+              ? "Stake STRK"
+              : `Stake & Lend on ${selectedPlatform === "vesu" ? "Vesu" : "Nostra"}`}
           </Button>
         )}
       </div>
@@ -805,4 +834,3 @@ const Stake: React.FC = () => {
 };
 
 export default Stake;
-

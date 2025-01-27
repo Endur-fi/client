@@ -63,8 +63,9 @@ interface MongoDBResponse {
       xSTRK: {
         supply: string;
         price: string;
-      }
-    }
+        lendApr: string;
+      };
+    };
   }>;
 }
 
@@ -213,27 +214,53 @@ const nostraLendYieldQueryAtom = atomWithQuery(() => ({
     try {
       const [lendingResponse, mongoResponse] = await Promise.all([
         fetch("https://api.nostra.finance/openblock/supply_incentives"),
-        fetch('https://us-east-2.aws.data.mongodb-api.com/app/data-yqlpb/endpoint/data/v1/action/find', {
-          method: 'POST',
-          headers: {
-            'content-type': 'application/json',
-          },
-          body: JSON.stringify({
-            dataSource: "nostra-production",
-            database: "lend-and-borrow-analytics-prod-b-nostra-db",
-            collection: "supplyAndBorrow",
-            filter: {
-              timestamp: {
-                $gte: Math.floor(Date.now() / 1000) - 86400 // 24 hours ago
-              }
+        fetch(
+          "https://us-east-2.aws.data.mongodb-api.com/app/data-yqlpb/endpoint/data/v1/action/find",
+          {
+            method: "POST",
+            headers: {
+              "content-type": "application/json",
             },
-            sort: { timestamp: 1 }
-          })
-        })
+            body: JSON.stringify({
+              dataSource: "nostra-production",
+              database: "lend-and-borrow-analytics-prod-b-nostra-db",
+              collection: "supplyAndBorrow",
+              filter: {
+                timestamp: {
+                  $gte: Math.floor(Date.now() / 1000) - 86400, // 24 hours ago
+                },
+              },
+              sort: { timestamp: 1 },
+            }),
+          },
+        ),
       ]);
 
       const lendingData: NostraLendingResponse = await lendingResponse.json();
-      const mongoData: MongoDBResponse = await mongoResponse.json();
+      let mongoData: MongoDBResponse = await mongoResponse.json();
+
+      if (
+        lendingData.Nostra?.xSTRK?.length > 0 &&
+        !mongoData.documents?.length
+      ) {
+        // if nostra apy fails, will set 0s for nostra base yield
+        // since xSTRK borrowing is low, this should be ok in most cases
+        // helps avoid failing in nostra apy from disrupting the entire page
+        mongoData = {
+          documents: [
+            {
+              timestamp: Math.floor(Date.now() / 1000),
+              assets: {
+                xSTRK: {
+                  supply: "0",
+                  price: "0",
+                  lendApr: "0",
+                },
+              },
+            },
+          ],
+        };
+      }
 
       if (!lendingData.Nostra?.xSTRK?.length || !mongoData.documents?.length) {
         return {
@@ -248,8 +275,11 @@ const nostraLendYieldQueryAtom = atomWithQuery(() => ({
       const latestDoc = mongoData.documents[mongoData.documents.length - 1];
       const xSTRKData = latestDoc.assets.xSTRK;
 
-      const latestLendingData = lendingData.Nostra.xSTRK[lendingData.Nostra.xSTRK.length - 1];
-      const apr = latestLendingData.strk_grant_apr_ts * 100;
+      const latestLendingData =
+        lendingData.Nostra.xSTRK[lendingData.Nostra.xSTRK.length - 1];
+      const apr =
+        latestLendingData.strk_grant_apr_ts * 100 +
+        Math.floor(Number(xSTRKData.lendApr) * 10000) / 100;
       const totalSupplied = parseFloat(xSTRKData.supply);
 
       return {
