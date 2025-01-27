@@ -57,7 +57,13 @@ import {
 } from "@/constants";
 import { toast, useToast } from "@/hooks/use-toast";
 import MyNumber from "@/lib/MyNumber";
-import { cn, formatNumber, formatNumberWithCommas } from "@/lib/utils";
+import {
+  cn,
+  formatNumber,
+  formatNumberWithCommas,
+  eventNames,
+} from "@/lib/utils";
+import { MyAnalytics } from "@/lib/analytics";
 import {
   exchangeRateAtom,
   getLSTContract,
@@ -170,6 +176,14 @@ const Stake: React.FC = () => {
 
   React.useEffect(() => {
     (async () => {
+      if (data?.transaction_hash) {
+        // Track transaction init analytics
+        MyAnalytics.track(eventNames.STAKE_TX_INIT, {
+          address,
+          amount: Number(form.getValues("stakeAmount")),
+          txHash: data?.transaction_hash,
+        });
+      }
       if (isPending) {
         toast({
           itemID: "stake",
@@ -193,10 +207,22 @@ const Stake: React.FC = () => {
       }
 
       if (error?.name?.includes("UserRejectedRequestError")) {
+        // Track transaction rejected analytics
+        MyAnalytics.track(eventNames.STAKE_TX_REJECTED, {
+          address,
+          amount: Number(form.getValues("stakeAmount")),
+          type: error.name,
+        });
         dismiss();
       }
 
       if (error?.name && !error?.name?.includes("UserRejectedRequestError")) {
+        // Track transaction rejected analytics
+        MyAnalytics.track(eventNames.STAKE_TX_REJECTED, {
+          address,
+          amount: Number(form.getValues("stakeAmount")),
+          type: error.name,
+        });
         toast({
           itemID: "stake",
           variant: "pending",
@@ -218,6 +244,11 @@ const Stake: React.FC = () => {
         const res = await isTxAccepted(data?.transaction_hash);
 
         if (res) {
+          // Track transaction successful analytics
+          MyAnalytics.track(eventNames.STAKE_TX_SUCCESSFUL, {
+            address,
+            amount: Number(form.getValues("stakeAmount")),
+          });
           toast({
             itemID: "stake",
             variant: "complete",
@@ -364,6 +395,11 @@ const Stake: React.FC = () => {
         ),
       });
     }
+    // track stake button click
+    MyAnalytics.track(eventNames.STAKE_CLICK, {
+      address,
+      amount: Number(values.stakeAmount),
+    });
 
     const strkAmount = MyNumber.fromEther(values.stakeAmount, 18);
     const previewCall = await contract?.preview_deposit(strkAmount.toString());
