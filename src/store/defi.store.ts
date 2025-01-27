@@ -13,6 +13,10 @@ interface VesuAPIResponse {
           value: string;
           decimals: number;
         };
+        totalSupplied: {
+          value: string;
+          decimals: number;
+        };
       };
     }>;
   };
@@ -52,8 +56,22 @@ interface NostraLendingResponse {
   };
 }
 
+interface MongoDBResponse {
+  documents: Array<{
+    timestamp: number;
+    assets: {
+      xSTRK: {
+        supply: string;
+        price: string;
+        lendApr: string;
+      };
+    };
+  }>;
+}
+
 interface ProtocolYield {
   value: number | null;
+  totalSupplied?: number | null;
   isLoading: boolean;
   error?: string;
 }
@@ -90,15 +108,21 @@ const vesuYieldQueryAtom = atomWithQuery(() => ({
         stats.defiSpringSupplyApr.value,
         stats.defiSpringSupplyApr.decimals,
       );
+      const totalSupplied = convertVesuValue(
+        stats.totalSupplied.value,
+        stats.totalSupplied.decimals,
+      );
 
       return {
         value: (supplyApy + defiSpringApr) * 100,
+        totalSupplied,
         isLoading: false,
       };
     } catch (error) {
       console.error("vesuYieldQueryAtom error:", error);
       return {
         value: null,
+        totalSupplied: null,
         isLoading: false,
         error: "Failed to fetch Vesu yield",
       };
@@ -188,31 +212,86 @@ const nostraLendYieldQueryAtom = atomWithQuery(() => ({
   queryKey: ["nostraLendYield"],
   queryFn: async (): Promise<ProtocolYield> => {
     try {
-      const response = await fetch(
-        "https://api.nostra.finance/openblock/supply_incentives",
-      );
-      const data: NostraLendingResponse = await response.json();
+      const [lendingResponse, mongoResponse] = await Promise.all([
+        fetch("https://api.nostra.finance/openblock/supply_incentives"),
+        fetch(
+          "https://us-east-2.aws.data.mongodb-api.com/app/data-yqlpb/endpoint/data/v1/action/find",
+          {
+            method: "POST",
+            headers: {
+              "content-type": "application/json",
+            },
+            body: JSON.stringify({
+              dataSource: "nostra-production",
+              database: "lend-and-borrow-analytics-prod-b-nostra-db",
+              collection: "supplyAndBorrow",
+              filter: {
+                timestamp: {
+                  $gte: Math.floor(Date.now() / 1000) - 86400, // 24 hours ago
+                },
+              },
+              sort: { timestamp: 1 },
+            }),
+          },
+        ),
+      ]);
 
-      if (!data.Nostra?.xSTRK?.length) {
-        return {
-          value: null,
-          isLoading: false,
-          error: "xSTRK lending data not found",
+      const lendingData: NostraLendingResponse = await lendingResponse.json();
+      let mongoData: MongoDBResponse = await mongoResponse.json();
+
+      if (
+        lendingData.Nostra?.xSTRK?.length > 0 &&
+        !mongoData.documents?.length
+      ) {
+        // if nostra apy fails, will set 0s for nostra base yield
+        // since xSTRK borrowing is low, this should be ok in most cases
+        // helps avoid failing in nostra apy from disrupting the entire page
+        mongoData = {
+          documents: [
+            {
+              timestamp: Math.floor(Date.now() / 1000),
+              assets: {
+                xSTRK: {
+                  supply: "0",
+                  price: "0",
+                  lendApr: "0",
+                },
+              },
+            },
+          ],
         };
       }
 
-      // Get the latest APR
-      const latestData = data.Nostra.xSTRK[data.Nostra.xSTRK.length - 1];
-      const apr = latestData.strk_grant_apr_ts * 100;
+      if (!lendingData.Nostra?.xSTRK?.length || !mongoData.documents?.length) {
+        return {
+          value: null,
+          totalSupplied: null,
+          isLoading: false,
+          error: "Data not found",
+        };
+      }
+
+      // Get latest MongoDB document
+      const latestDoc = mongoData.documents[mongoData.documents.length - 1];
+      const xSTRKData = latestDoc.assets.xSTRK;
+
+      const latestLendingData =
+        lendingData.Nostra.xSTRK[lendingData.Nostra.xSTRK.length - 1];
+      const apr =
+        latestLendingData.strk_grant_apr_ts * 100 +
+        Math.floor(Number(xSTRKData.lendApr) * 10000) / 100;
+      const totalSupplied = parseFloat(xSTRKData.supply);
 
       return {
         value: apr,
+        totalSupplied,
         isLoading: false,
       };
     } catch (error) {
       console.error("nostraLendYieldQueryAtom error:", error);
       return {
         value: null,
+        totalSupplied: null,
         isLoading: false,
         error: "Failed to fetch Nostra lending yield",
       };
@@ -274,6 +353,7 @@ export const vesuYieldAtom = atom((get) => {
   const { data, error } = get(vesuYieldQueryAtom);
   return {
     value: error || !data ? null : data.value,
+    totalSupplied: error || !data ? null : data.totalSupplied,
     error,
     isLoading: !data && !error,
   };
@@ -301,6 +381,7 @@ export const nostraLendYieldAtom = atom((get) => {
   const { data, error } = get(nostraLendYieldQueryAtom);
   return {
     value: error || !data ? null : data.value,
+    totalSupplied: error || !data ? null : data.totalSupplied,
     error,
     isLoading: !data && !error,
   };

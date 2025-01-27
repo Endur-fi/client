@@ -25,7 +25,6 @@ import {
   FormControl,
   FormField,
   FormItem,
-  FormMessage,
 } from "@/components/ui/form";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -690,7 +689,14 @@ const Unstake = () => {
 
       <div className="flex h-[88px] w-full items-center px-7 pb-3 pt-5 md:h-[84px] lg:h-fit lg:gap-2">
         <div className="flex flex-1 flex-col items-start">
-          <p className="text-xs text-[#06302B]">Enter Amount (xSTRK)</p>
+          <div className="flex items-center gap-2">
+            <p className="text-xs text-[#06302B]">Enter Amount (xSTRK)</p>
+            {form.formState.errors.unstakeAmount && (
+              <p className="text-xs text-destructive">
+                {form.formState.errors.unstakeAmount.message}
+              </p>
+            )}
+          </div>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="w-full">
               <FormField
@@ -707,7 +713,6 @@ const Unstake = () => {
                         />
                       </div>
                     </FormControl>
-                    <FormMessage className="absolute -bottom-5 left-0 text-xs lg:left-1" />
                     {/* {form.getValues("unstakeAmount").toLowerCase() ===
                     "xstrk" ? (
                       <p className="absolute -bottom-4 left-0 text-xs font-medium text-green-500 transition-all lg:left-1 lg:-ml-1">
