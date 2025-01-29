@@ -101,7 +101,7 @@ export function PlatformCard({
               isSelected && "text-gray-500",
             )}
           >
-            xSTRK Lent
+            Supplied
           </div>
         </div>
       </div>
