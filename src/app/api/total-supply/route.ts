@@ -16,19 +16,13 @@ export async function GET(_req: Request) {
 
   try {
     const lstContract = getLSTContract(provider as RpcProvider);
-    const totalStaked = await lstContract.call("total_assets");
     const totalSupply = await lstContract.call("total_supply");
 
-    const tvlInStrk = Number(
-      new MyNumber(totalStaked.toString(), STRK_DECIMALS).toEtherStr(),
+    const totalSupplyNum = Number(
+      new MyNumber(totalSupply.toString(), STRK_DECIMALS).toEtherToFixedDecimals(6),
     );
 
-    const rate =
-      Number(totalStaked.toString()) / Number(totalSupply.toString());
-
-    const tvlInXStrk = tvlInStrk / rate;
-
-    const response = new Response(tvlInXStrk.toString());
+    const response = new Response(totalSupplyNum);
 
     return response;
   } catch (error) {
