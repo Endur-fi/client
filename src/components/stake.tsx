@@ -492,7 +492,7 @@ const Stake: React.FC = () => {
           <div className="mt-2 flex items-center justify-center">
             <TwitterShareButton
               url={getEndpoint()}
-              title={`Just staked my STRK on Endur.fi, earning ${(apy.value * 100).toFixed(2)}% APY! 🚀 \n\nLaying the foundation for decentralising Starknet — be part of the journey at @endurfi!\n\n`}
+              title={`Just staked my STRK on Endur.fi, earning ${((apy.value * 100 + (selectedPlatform !== "none" ? getPlatformYield(selectedPlatform) : 0))).toFixed(2)}% APY! 🚀 \n\n${selectedPlatform !== "none" ? `My xSTRK is now earning an additional ${getPlatformYield(selectedPlatform).toFixed(2)}% yield on ${selectedPlatform === "vesu" ? "Vesu" : "Nostra"}! 📈\n\n` : ""}Laying the foundation for decentralising Starknet — be part of the journey at @endurfi!\n\n`}
               related={["endurfi", "strkfarm", "karnotxyz"]}
               style={{
                 display: "flex",
