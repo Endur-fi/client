@@ -25,7 +25,6 @@ import {
   FormControl,
   FormField,
   FormItem,
-  FormMessage,
 } from "@/components/ui/form";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -36,8 +35,9 @@ import {
 } from "@/components/ui/tooltip";
 import { getProvider, NETWORK, REWARD_FEES } from "@/constants";
 import { toast, useToast } from "@/hooks/use-toast";
+import { MyAnalytics } from "@/lib/analytics";
 import MyNumber from "@/lib/MyNumber";
-import { formatNumber } from "@/lib/utils";
+import { eventNames, formatNumber } from "@/lib/utils";
 import { executeAvnuSwap, getAvnuQuotes } from "@/services/avnu";
 import {
   avnuErrorAtom,
@@ -55,7 +55,6 @@ import {
 import { snAPYAtom } from "@/store/staking.store";
 import { isTxAccepted } from "@/store/transactions.atom";
 import { AccountInterface } from "starknet";
-
 import { Icons } from "./Icons";
 import { getConnectors } from "./navbar";
 import { Button } from "./ui/button";
@@ -314,6 +313,14 @@ const Unstake = () => {
 
   React.useEffect(() => {
     (async () => {
+      if (data?.transaction_hash) {
+        // Track transaction init analytics
+        MyAnalytics.track(eventNames.UNSTAKE_TX_INIT, {
+          address,
+          amount: Number(form.getValues("unstakeAmount")),
+          txHash: data.transaction_hash,
+        });
+      }
       if (isPending) {
         toast({
           itemID: "unstake",
@@ -337,10 +344,22 @@ const Unstake = () => {
       }
 
       if (error?.name?.includes("UserRejectedRequestError")) {
+        // Track transaction rejected analytics
+        MyAnalytics.track(eventNames.UNSTAKE_TX_REJECTED, {
+          address,
+          amount: Number(form.getValues("unstakeAmount")),
+          type: error.name,
+        });
         dismiss();
       }
 
       if (error?.name && !error?.name?.includes("UserRejectedRequestError")) {
+        // Track transaction rejected analytics
+        MyAnalytics.track(eventNames.UNSTAKE_TX_REJECTED, {
+          address,
+          amount: Number(form.getValues("unstakeAmount")),
+          type: error.name,
+        });
         toast({
           itemID: "unstake",
           variant: "pending",
@@ -362,6 +381,12 @@ const Unstake = () => {
         const res = await isTxAccepted(data?.transaction_hash);
 
         if (res) {
+          // Track transaction successful analytics
+          MyAnalytics.track(eventNames.UNSTAKE_TX_SUCCESSFUL, {
+            address,
+            amount: Number(form.getValues("unstakeAmount")),
+            txHash: data.transaction_hash,
+          });
           toast({
             itemID: "unstake",
             variant: "complete",
@@ -476,6 +501,13 @@ const Unstake = () => {
       });
     }
 
+    // Track unstake button click
+    MyAnalytics.track(eventNames.UNSTAKE_CLICK, {
+      address,
+      amount: Number(values.unstakeAmount),
+      mode: "ViaEndur",
+    });
+
     const call1 = contract.populate("redeem", [
       MyNumber.fromEther(values.unstakeAmount, 18),
       address,
@@ -533,6 +565,12 @@ const Unstake = () => {
 
   const handleDexSwap = async () => {
     if (!address || !avnuQuote) return;
+
+    MyAnalytics.track(eventNames.UNSTAKE_CLICK, {
+      address,
+      amount: Number(form.getValues("unstakeAmount")),
+      mode: "Instant",
+    });
 
     setAvnuLoading(true);
     try {
@@ -651,7 +689,14 @@ const Unstake = () => {
 
       <div className="flex h-[88px] w-full items-center px-7 pb-3 pt-5 md:h-[84px] lg:h-fit lg:gap-2">
         <div className="flex flex-1 flex-col items-start">
-          <p className="text-xs text-[#06302B]">Enter Amount (xSTRK)</p>
+          <div className="flex items-center gap-2">
+            <p className="text-xs text-[#06302B]">Enter Amount (xSTRK)</p>
+            {form.formState.errors.unstakeAmount && (
+              <p className="text-xs text-destructive">
+                {form.formState.errors.unstakeAmount.message}
+              </p>
+            )}
+          </div>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="w-full">
               <FormField
@@ -668,7 +713,6 @@ const Unstake = () => {
                         />
                       </div>
                     </FormControl>
-                    <FormMessage className="absolute -bottom-5 left-0 text-xs lg:left-1" />
                     {/* {form.getValues("unstakeAmount").toLowerCase() ===
                     "xstrk" ? (
                       <p className="absolute -bottom-4 left-0 text-xs font-medium text-green-500 transition-all lg:left-1 lg:-ml-1">

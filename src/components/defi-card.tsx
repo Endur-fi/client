@@ -20,6 +20,7 @@ export interface ProtocolAction {
   link: string;
   buttonText: string;
   variant?: "primary" | "secondary" | "tertiary";
+  onClick?: () => void;
 }
 
 interface DefiCardProps {
@@ -101,6 +102,7 @@ const ActionButtons: React.FC<{ action: ProtocolAction | undefined }> = ({
       target="_blank"
       rel="noopener noreferrer"
       className="block w-full"
+      onClick={action.onClick}
     >
       <Button
         className={cn(
