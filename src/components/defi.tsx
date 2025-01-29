@@ -215,7 +215,7 @@ const Defi: React.FC = () => {
 
   return (
     <div
-      className={cn("mx-auto mt-12 w-full max-w-7xl px-8", {
+      className={cn("mt-12 w-full", {
         "lg:pl-28": !isPinned,
       })}
     >

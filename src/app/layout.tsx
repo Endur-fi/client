@@ -1,18 +1,17 @@
 import { Analytics } from "@vercel/analytics/react";
 import type { Metadata } from "next";
-import { Figtree } from "next/font/google";
+import Image from "next/image";
 import React from "react";
 
 import Providers from "@/components/providers";
-import { SidebarProvider } from "@/components/ui/sidebar";
 import { Toaster } from "@/components/ui/toaster";
-import { cn } from "@/lib/utils";
+
+import { AppSidebar } from "@/components/app-sidebar";
+import Footer from "@/components/footer";
+import MaxWidthWrapper from "@/components/max-width-wrapper";
+import Navbar from "@/components/navbar";
 
 import "./globals.css";
-
-const font = Figtree({
-  subsets: ["latin-ext"],
-});
 
 export const metadata: Metadata = {
   title: "Endur | Liquid Staked STRK",
@@ -67,11 +66,35 @@ export default function RootLayout({
     <html lang="en">
       <body className="bg-[#F1F7F6]">
         <Analytics />
+
         <Providers>
-          <SidebarProvider className={cn(font.className, "w-full")}>
-            {children}
-            <Toaster />
-          </SidebarProvider>
+          <div className="relative flex h-full min-h-screen w-full overflow-x-hidden">
+            <Image
+              src="/subtle_tree_bg.svg"
+              alt="subtle_tree_bg"
+              fill
+              className="-z-10 object-cover"
+            />
+
+            <React.Suspense
+              fallback={<div className="w-72">Loading sidebar...</div>}
+            >
+              <AppSidebar />
+            </React.Suspense>
+
+            <div className="flex flex-1 flex-col justify-between">
+              <MaxWidthWrapper className="flex h-full w-full flex-col items-center overflow-hidden px-7 py-3 lg:py-0">
+                <Navbar />
+                {children}
+              </MaxWidthWrapper>
+
+              <div className="lg:hidden">
+                <Footer />
+              </div>
+            </div>
+          </div>
+
+          <Toaster />
         </Providers>
       </body>
     </html>

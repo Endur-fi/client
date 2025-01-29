@@ -7,11 +7,19 @@ import {
   jsonRpcProvider,
   StarknetConfig,
 } from "@starknet-react/core";
+import { Figtree } from "next/font/google";
 import React from "react";
 import { constants, RpcProviderOptions } from "starknet";
 
+import { SidebarProvider } from "@/components/ui/sidebar";
 import { NETWORK } from "@/constants";
+import { cn } from "@/lib/utils";
+
 import { getConnectors } from "./navbar";
+
+const font = Figtree({
+  subsets: ["latin-ext"],
+});
 
 interface ProvidersProps {
   children: React.ReactNode;
@@ -42,7 +50,9 @@ const Providers: React.FC<ProvidersProps> = ({ children }) => {
       provider={provider}
       connectors={getConnectors(isMobile) as Connector[]}
     >
-      {children}
+      <SidebarProvider className={cn(font.className, "w-full")}>
+        {children}
+      </SidebarProvider>
     </StarknetConfig>
   );
 };
