@@ -19,10 +19,13 @@ export async function GET(_req: Request) {
     const totalSupply = await lstContract.call("total_supply");
 
     const totalSupplyNum = Number(
-      new MyNumber(totalSupply.toString(), STRK_DECIMALS).toEtherToFixedDecimals(6),
+      new MyNumber(
+        totalSupply.toString(),
+        STRK_DECIMALS,
+      ).toEtherToFixedDecimals(6),
     );
 
-    const response = new Response(totalSupplyNum);
+    const response = new Response(totalSupplyNum.toString());
 
     return response;
   } catch (error) {

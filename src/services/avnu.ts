@@ -1,16 +1,19 @@
 import { LST_ADDRRESS, RECEPIEINT_FEE_ADDRESS, STRK_TOKEN } from "@/constants";
 import { Quote, QuoteRequest, fetchQuotes, executeSwap } from "@avnu/avnu-sdk";
 import { AccountInterface } from "starknet";
-import QuickLRU from 'quick-lru';
+import QuickLRU from "quick-lru";
 
 const quoteCache = new QuickLRU<string, Quote[]>({
   maxSize: 1000,
-  maxAge: 5000 
+  maxAge: 5000,
 });
 
-export async function getAvnuQuotes(amount: string, takerAddress: string): Promise<Quote[]> {
+export async function getAvnuQuotes(
+  amount: string,
+  takerAddress: string,
+): Promise<Quote[]> {
   const cacheKey = `${amount}-${takerAddress}`;
-  
+
   const cachedQuotes = quoteCache.get(cacheKey);
   if (cachedQuotes) {
     return cachedQuotes;
@@ -25,7 +28,7 @@ export async function getAvnuQuotes(amount: string, takerAddress: string): Promi
       size: 1,
       integratorFees: BigInt(3),
       integratorFeeRecipient: RECEPIEINT_FEE_ADDRESS,
-      integratorName: "Endur"
+      integratorName: "Endur",
     };
 
     const quotes = await fetchQuotes(params);
@@ -41,7 +44,7 @@ export async function executeAvnuSwap(
   account: AccountInterface,
   quote: Quote,
   onSuccess?: () => void,
-  onError?: (error: Error) => void
+  onError?: (error: Error) => void,
 ) {
   try {
     const response = await executeSwap(account, quote);
@@ -52,4 +55,4 @@ export async function executeAvnuSwap(
     onError?.(error as Error);
     throw error;
   }
-} 
+}
