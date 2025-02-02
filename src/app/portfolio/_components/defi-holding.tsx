@@ -12,6 +12,9 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
+import { userHaikoBalanceAtom, uservXSTRKBalanceAtom } from "@/store/lst.store";
+import { userxSTRKNostraBalance } from "@/store/nostra.store";
+import { useAtomValue } from "jotai";
 
 const chartConfig = {
   holdings: {
@@ -25,22 +28,34 @@ const chartConfig = {
     label: "Ekubo",
     color: "hsl(var(--chart-2))",
   },
-  strkfarm: {
-    label: "Strkfarm",
+  vesu: {
+    label: "Vesu",
     color: "hsl(var(--chart-3))",
   },
-  fibrous: {
-    label: "Fibrous",
+  haiko: {
+    label: "Haiko",
     color: "hsl(var(--chart-4))",
   },
 } satisfies ChartConfig;
 
 const DefiHoldings: React.FC = () => {
+  const nostraBal = useAtomValue(userxSTRKNostraBalance);
+  const vxStrkBalance = useAtomValue(uservXSTRKBalanceAtom);
+  const userHaikoBalance = useAtomValue(userHaikoBalanceAtom);
+
   const chartData = [
-    { dapp: "nostra", holdings: 275, fill: "#FF4240" },
-    { dapp: "ekubo", holdings: 200, fill: "#3F1883" },
-    { dapp: "strkfarm", holdings: 187, fill: "#9F91F6" },
-    { dapp: "fibrous", holdings: 173, fill: "#73FCFD" },
+    { dapp: "nostra", holdings: nostraBal.value, fill: "#FF4240" },
+    { dapp: "ekubo", holdings: 4, fill: "#3F1883" },
+    {
+      dapp: "vesu",
+      holdings: Number(vxStrkBalance.value.toEtherToFixedDecimals(2)),
+      fill: "#9F91F6",
+    },
+    {
+      dapp: "haiko",
+      holdings: Number(Number(userHaikoBalance.value).toFixed(0)),
+      fill: "#73FCFD",
+    },
   ];
 
   return (
