@@ -13,13 +13,6 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart";
 
-const chartData = [
-  { dapp: "nostra", holdings: 275, fill: "#FF4240" },
-  { dapp: "ekubo", holdings: 200, fill: "#3F1883" },
-  { dapp: "strkfarm", holdings: 187, fill: "#9F91F6" },
-  { dapp: "fibrous", holdings: 173, fill: "#73FCFD" },
-];
-
 const chartConfig = {
   holdings: {
     label: "Holdings",
@@ -43,6 +36,13 @@ const chartConfig = {
 } satisfies ChartConfig;
 
 const DefiHoldings: React.FC = () => {
+  const chartData = [
+    { dapp: "nostra", holdings: 275, fill: "#FF4240" },
+    { dapp: "ekubo", holdings: 200, fill: "#3F1883" },
+    { dapp: "strkfarm", holdings: 187, fill: "#9F91F6" },
+    { dapp: "fibrous", holdings: 173, fill: "#73FCFD" },
+  ];
+
   return (
     <Card className="flex h-full w-full shrink-0 flex-col rounded-xl border border-[#AACBC4]/30 bg-[#E3EFEC]/70 font-poppins lg:w-fit">
       <CardHeader className="items-center pb-0">

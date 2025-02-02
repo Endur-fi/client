@@ -36,10 +36,8 @@ const Stats: React.FC = () => {
       setStakedUSD(
         Number(currentStaked.value.toEtherToFixedDecimals(8)) * price,
       );
-
-      console.log(nostraBal.value.toString(), "lpTokenBalance");
     })();
-  }, [currentStaked, nostraBal.value]);
+  }, [currentStaked]);
 
   React.useEffect(() => {
     setTotalSTRK(
