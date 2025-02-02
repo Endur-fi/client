@@ -15,7 +15,11 @@ const protocolOptions: Option[] = [
   { value: "nostra", label: "Nostra" },
 ];
 
-const DataFilters: React.FC = () => {
+interface DataFiltersProps {
+  data: any;
+}
+
+const DataFilters: React.FC<DataFiltersProps> = ({ data }) => {
   const [selectedTypeOptions, setSelectedTypeOptions] = React.useState<
     Option[]
   >([]);
@@ -86,6 +90,7 @@ const DataFilters: React.FC = () => {
           setSelectedOptions={setSelectedTypeOptions}
           filteredOptions={filteredTypeOptions}
           setFilteredOptions={setFilteredTypeOptions}
+          data={data}
         />
 
         <MultiSelect
@@ -95,6 +100,7 @@ const DataFilters: React.FC = () => {
           setSelectedOptions={setSelectedProtocolOptions}
           filteredOptions={filteredProtocolOptions}
           setFilteredOptions={setFilteredProtocolOptions}
+          data={data}
         />
       </div>
     </div>

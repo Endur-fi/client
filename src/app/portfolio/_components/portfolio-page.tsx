@@ -124,7 +124,7 @@ const PortfolioPage: React.FC<PortfolioPageProps> = ({
         <DefiHoldings />
       </div>
 
-      <DataFilters />
+      <DataFilters data={data} />
 
       <div className="mt-5">
         <DataTable columns={columns} data={data} />
