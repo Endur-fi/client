@@ -14,7 +14,6 @@ import {
 } from "@/store/portfolio.store";
 
 import { Chart } from "./chart";
-import DataFilters from "./data-filters";
 import DefiHoldings from "./defi-holding";
 import Stats from "./stats";
 import { columns, SizeColumn } from "./table/columns";
@@ -124,7 +123,7 @@ const PortfolioPage: React.FC<PortfolioPageProps> = ({
         <DefiHoldings />
       </div>
 
-      <DataFilters data={data} />
+      {/* <DataFilters data={data} /> */}
 
       <div className="mt-5">
         <DataTable columns={columns} data={data} />

@@ -24,6 +24,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
+import DataFilters from "../data-filters";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -77,6 +78,10 @@ export function DataTable<TData, TValue>({
 
   return (
     <div>
+      <div className="mb-4 w-full">
+        <DataFilters table={table} />
+      </div>
+
       {searchKey && (
         <div className="flex items-center py-4">
           <Input

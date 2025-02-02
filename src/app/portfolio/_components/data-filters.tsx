@@ -16,10 +16,10 @@ const protocolOptions: Option[] = [
 ];
 
 interface DataFiltersProps {
-  data: any;
+  table: any;
 }
 
-const DataFilters: React.FC<DataFiltersProps> = ({ data }) => {
+const DataFilters: React.FC<DataFiltersProps> = ({ table }) => {
   const [selectedTypeOptions, setSelectedTypeOptions] = React.useState<
     Option[]
   >([]);
@@ -90,7 +90,7 @@ const DataFilters: React.FC<DataFiltersProps> = ({ data }) => {
           setSelectedOptions={setSelectedTypeOptions}
           filteredOptions={filteredTypeOptions}
           setFilteredOptions={setFilteredTypeOptions}
-          data={data}
+          table={table}
         />
 
         <MultiSelect
@@ -100,7 +100,7 @@ const DataFilters: React.FC<DataFiltersProps> = ({ data }) => {
           setSelectedOptions={setSelectedProtocolOptions}
           filteredOptions={filteredProtocolOptions}
           setFilteredOptions={setFilteredProtocolOptions}
-          data={data}
+          table={table}
         />
       </div>
     </div>

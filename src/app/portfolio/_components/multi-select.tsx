@@ -23,7 +23,7 @@ interface MultiSelectProps {
   setSelectedOptions: React.Dispatch<React.SetStateAction<Option[]>>;
   filteredOptions: Option[];
   setFilteredOptions: React.Dispatch<React.SetStateAction<Option[]>>;
-  data: any;
+  table: any;
 }
 
 const MultiSelect: React.FC<MultiSelectProps> = ({
@@ -33,15 +33,17 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
   setSelectedOptions,
   filteredOptions,
   setFilteredOptions,
-  data,
+  table,
 }) => {
   // const [searchTerm, setSearchTerm] = React.useState("");
 
   const handleOptionSelect = (option: Option) => {
-    console.log(option, "option");
+    console.log(table, "table");
     setSelectedOptions([...selectedOptions, option]);
 
-    data.filter((data: any) => data.dapp === option.label);
+    if (!option.label) return;
+
+    table.getColumn("dapp")?.setFilterValue(option.label);
 
     setFilteredOptions(filteredOptions.filter((o) => o !== option));
   };
