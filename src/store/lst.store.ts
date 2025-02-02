@@ -13,7 +13,6 @@ import {
 } from "@/constants";
 import MyNumber from "@/lib/MyNumber";
 
-import axios from "axios";
 import {
   currentBlockAtom,
   providerAtom,
@@ -56,104 +55,8 @@ const userXSTRKBalanceQueryAtom = atomWithQuery((get) => {
   };
 });
 
-const uservXSTRKBalanceQueryAtom = atomWithQuery((get) => {
-  return {
-    // current block atom only to trigger a change when the block changes
-    queryKey: [
-      "uservXSTRKBalance",
-      get(currentBlockAtom),
-      get(userAddressAtom),
-      get(providerAtom),
-    ],
-    queryFn: async ({ queryKey }: any): Promise<MyNumber> => {
-      const [, , userAddress] = queryKey;
-      const provider = get(providerAtom);
-
-      if (!provider || !userAddress) {
-        return MyNumber.fromZero();
-      }
-
-      try {
-        const contract = new Contract(
-          erc4626Abi,
-          "0x037ff012710c5175004687bc4d9e4c6e86d6ce5ca6fb6afee72ea02b1208fdb7",
-          provider,
-        );
-        const balance = await contract.call("balance_of", [userAddress]);
-        console.log(balance, "balance");
-        return new MyNumber(balance.toString(), STRK_DECIMALS);
-      } catch (error) {
-        console.error("userXSTRKBalanceAtom [3]", error);
-        return MyNumber.fromZero();
-      }
-    },
-  };
-});
-
-const userHaikoBalanceQueryAtom = atomWithQuery((get) => {
-  return {
-    // current block atom only to trigger a change when the block changes
-    queryKey: [
-      "userHaikoBalance",
-      get(currentBlockAtom),
-      get(userAddressAtom),
-      get(providerAtom),
-    ],
-    queryFn: async ({ queryKey }: any) => {
-      const [, , userAddress] = queryKey;
-      const provider = get(providerAtom);
-
-      if (!provider || !userAddress) {
-        return MyNumber.fromZero();
-      }
-
-      let sum = 0;
-
-      try {
-        const res = await axios.get(
-          `https://app.haiko.xyz/api/v1/positions?network=mainnet&isActive=true&user=${userAddress}`,
-        );
-
-        if (res?.data) {
-          res.data?.map((position: any) => {
-            if (position.market.baseSymbol === "xSTRK") {
-              sum += position.baseAmount + position.baseFees;
-            } else if (position.market.quoteSymbol === "xSTRK") {
-              sum += position.quoteAmount + position.quoteFees;
-            }
-          });
-
-          return sum;
-        }
-      } catch (error) {
-        console.error("userHaikoBalanceAtom [3]", error);
-        return 0;
-      }
-    },
-  };
-});
-
 export const userXSTRKBalanceAtom = atom((get) => {
   const { data, error } = get(userXSTRKBalanceQueryAtom);
-  return {
-    value: error || !data ? MyNumber.fromZero() : data,
-    error,
-    isLoading: !data && !error,
-  };
-});
-
-export const userHaikoBalanceAtom = atom((get) => {
-  const { data, error } = get(userHaikoBalanceQueryAtom);
-
-  return {
-    value: error || !data ? MyNumber.fromZero() : data,
-    error,
-    isLoading: !data && !error,
-  };
-});
-
-export const uservXSTRKBalanceAtom = atom((get) => {
-  const { data, error } = get(uservXSTRKBalanceQueryAtom);
   return {
     value: error || !data ? MyNumber.fromZero() : data,
     error,

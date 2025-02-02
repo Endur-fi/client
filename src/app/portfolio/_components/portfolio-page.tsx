@@ -12,7 +12,21 @@ import Stats from "./stats";
 import { columns, SizeColumn } from "./table/columns";
 import { DataTable } from "./table/data-table";
 
-const PortfolioPage = () => {
+export interface PortfolioPageProps {
+  blockBefore1Day: number;
+  blockBefore7Day: number;
+  blockBefore30Day: number;
+  blockBefore90Day: number;
+  blockBefore180Day: number;
+}
+
+const PortfolioPage: React.FC<PortfolioPageProps> = ({
+  blockBefore1Day,
+  blockBefore7Day,
+  blockBefore30Day,
+  blockBefore90Day,
+  blockBefore180Day,
+}) => {
   const { isPinned } = useSidebar();
 
   const data: SizeColumn[] = [
@@ -75,7 +89,13 @@ const PortfolioPage = () => {
       <div className="flex w-full flex-col items-start justify-start gap-5 lg:flex-row">
         <div className="flex w-full flex-col items-start gap-5">
           <Stats />
-          <Chart />
+          <Chart
+            blockBefore1Day={blockBefore1Day}
+            blockBefore7Day={blockBefore7Day}
+            blockBefore30Day={blockBefore30Day}
+            blockBefore90Day={blockBefore90Day}
+            blockBefore180Day={blockBefore180Day}
+          />
         </div>
 
         <DefiHoldings />

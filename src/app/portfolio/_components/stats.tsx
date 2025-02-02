@@ -5,14 +5,11 @@ import React from "react";
 
 import { formatNumber, getSTRKPrice } from "@/lib/utils";
 import { userEkuboxSTRKPositions } from "@/store/ekubo.store";
-import {
-  userHaikoBalanceAtom,
-  userSTRKBalanceAtom,
-  uservXSTRKBalanceAtom,
-  userXSTRKBalanceAtom,
-} from "@/store/lst.store";
+import { userHaikoBalanceAtom } from "@/store/haiko.store";
+import { userSTRKBalanceAtom, userXSTRKBalanceAtom } from "@/store/lst.store";
 import { userxSTRKNostraBalance } from "@/store/nostra.store";
 import { snAPYAtom } from "@/store/staking.store";
+import { uservXSTRKBalanceAtom } from "@/store/vesu.store";
 
 const Stats: React.FC = () => {
   const [stakedUSD, setStakedUSD] = React.useState(0);

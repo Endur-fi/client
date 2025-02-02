@@ -105,13 +105,12 @@ const userEkuboxSTRKPositionsQueryAtom = atomWithQuery((get) => {
                     "responsee",
                   );
 
-                  const res = await ekuboClassHashContract.call(
+                  // need to do proper conversion of params below
+                  const res = await ekuboClassHashContract?.call(
                     "liquidity_delta_to_amount_delta",
                     [
-                      sqrtRatio,
+                      sqrtRatio.toString(),
                       liquidityDeltaSum,
-                      true,
-                      //   new MyNumber("6385123148896956783376", STRK_DECIMALS),
                       sqrtRatioLower,
                       sqrtRatioUpper,
                     ],

@@ -15,6 +15,9 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { chartFilter } from "@/store/portfolio.store";
+import { useAtom } from "jotai";
+import { PortfolioPageProps } from "./portfolio-page";
 
 const chartData = [
   { date: "2024-04-01", strk: 222, usdt: 600 },
@@ -121,8 +124,14 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-export function Chart() {
-  const [timeRange, setTimeRange] = React.useState("7d");
+export function Chart({
+  blockBefore1Day,
+  blockBefore7Day,
+  blockBefore30Day,
+  blockBefore90Day,
+  blockBefore180Day,
+}: PortfolioPageProps) {
+  const [timeRange, setTimeRange] = useAtom(chartFilter);
 
   const filteredData = chartData.filter((item) => {
     const date = new Date(item.date);
