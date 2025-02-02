@@ -1,5 +1,6 @@
 "use client";
 
+import { useAtom } from "jotai";
 import * as React from "react";
 import { CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts";
 
@@ -16,8 +17,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { chartFilter } from "@/store/portfolio.store";
-import { useAtom } from "jotai";
-import { PortfolioPageProps } from "./portfolio-page";
 
 const chartData = [
   { date: "2024-04-01", strk: 222, usdt: 600 },
@@ -124,15 +123,8 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-export function Chart({
-  blockBefore1Day,
-  blockBefore7Day,
-  blockBefore30Day,
-  blockBefore90Day,
-  blockBefore180Day,
-}: PortfolioPageProps) {
+export function Chart() {
   const [timeRange, setTimeRange] = useAtom(chartFilter);
-
   const filteredData = chartData.filter((item) => {
     const date = new Date(item.date);
     const referenceDate = new Date("2024-06-30");

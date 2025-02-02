@@ -1,5 +1,6 @@
 "use client";
 
+import { useAtomValue } from "jotai";
 import React from "react";
 import { Pie, PieChart } from "recharts";
 
@@ -12,9 +13,9 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
-import { userHaikoBalanceAtom, uservXSTRKBalanceAtom } from "@/store/lst.store";
+import { userHaikoBalanceAtom } from "@/store/haiko.store";
 import { userxSTRKNostraBalance } from "@/store/nostra.store";
-import { useAtomValue } from "jotai";
+import { uservXSTRKBalanceAtom } from "@/store/vesu.store";
 
 const chartConfig = {
   holdings: {
