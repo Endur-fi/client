@@ -68,6 +68,14 @@ module.exports = {
           ring: "hsl(var(--sidebar-ring))",
         },
       },
+      fontFamily: {
+        dmSans: ["DM Sans", "serif"],
+        poppins: ["Poppins", "serif"],
+        figTree: ["Figtree", "serif"],
+        firaCode: ["Fira Code", "serif"],
+        inter: ["Inter", "serif"],
+        jetbrainsMono: ["JetBrains Mono", "serif"],
+      },
     },
   },
   // eslint-disable-next-line @typescript-eslint/no-require-imports
