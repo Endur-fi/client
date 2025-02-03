@@ -29,12 +29,14 @@ const uservXSTRKBalanceQueryAtom = atomWithQuery((get) => {
       }
 
       try {
+        const VESU_xSTRK = "0x037ff012710c5175004687bc4d9e4c6e86d6ce5ca6fb6afee72ea02b1208fdb7";
         const contract = new Contract(
           erc4626Abi,
-          "0x037ff012710c5175004687bc4d9e4c6e86d6ce5ca6fb6afee72ea02b1208fdb7",
+          VESU_xSTRK,
           provider,
         );
-        const balance = await contract.call("balance_of", [userAddress]);
+        const shares = await contract.call("balance_of", [userAddress]);
+        const balance = await contract.call("convert_to_assets", [shares]);
         console.log(balance, "balance");
         return new MyNumber(balance.toString(), STRK_DECIMALS);
       } catch (error) {

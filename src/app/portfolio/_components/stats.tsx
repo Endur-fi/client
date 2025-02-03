@@ -40,9 +40,14 @@ const Stats: React.FC = () => {
     setTotalSTRK(
       Number(userHaikoBalance.value.toString()) +
         Number(vxStrkBalance.value.toEtherToFixedDecimals(2)) +
-        nostraBal.value,
+        nostraBal.value + Number(ekuboPosi.data.xSTRKAmount.toEtherToFixedDecimals(2)),
     );
-  }, [nostraBal.value, userHaikoBalance.value, vxStrkBalance.value]);
+  }, [
+    nostraBal.value, 
+    userHaikoBalance.value, 
+    vxStrkBalance.value,
+    ekuboPosi.data
+  ]);
 
   console.log(totalSTRK, "totalSTRK");
 

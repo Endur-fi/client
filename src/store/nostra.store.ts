@@ -255,10 +255,10 @@ const userLPTokenBalanceQueryAtom = atomWithQuery((get) => {
 
         console.log(lpTokenBalance, "lpTokenBalance");
 
-        return new MyNumber(lpTokenBalance.toString(), STRK_DECIMALS);
+        return MyNumber.fromEther(lpTokenBalance.toFixed(8), STRK_DECIMALS);
       } catch (error) {
         console.error("userLPTokenBalance [3]", error);
-        return 0;
+        return MyNumber.fromZero();
       }
     },
   };
@@ -340,9 +340,11 @@ export const userxSTRKNostraBalance = atom((get) => {
   console.log(lpTokenBal.value.toString(), "lpTokenBal");
 
   const totalBalance =
+    Number(nxSTRKBal.value.toEtherToFixedDecimals(2)) +
     Number(nxSTRKcBal.value.toEtherToFixedDecimals(2)) +
+    Number(ixSTRKBal.value.toEtherToFixedDecimals(2)) +
     Number(ixSTRKcBal.value.toEtherToFixedDecimals(2)) +
-    Number(dxSTRKBal.value.toEtherToFixedDecimals(2)) +
+    // Number(dxSTRKBal.value.toEtherToFixedDecimals(2)) +
     Number(lpTokenBal.value.toEtherToFixedDecimals(2));
 
   return {

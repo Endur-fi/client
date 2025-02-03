@@ -312,7 +312,7 @@ const ChartLegendContent = React.forwardRef<
                 {itemConfig?.label}
               </div>
 
-              {item.payload?.value && <p>{item.payload?.value} STRK</p>}
+              {item.payload?.value && <p>{item.payload?.value.toFixed(2)} xSTRK</p>}
             </div>
           );
         })}

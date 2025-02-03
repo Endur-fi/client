@@ -5,6 +5,7 @@ import { atomWithQuery } from "jotai-tanstack-query";
 import { Contract } from "starknet";
 
 import ekuboAbi from "@/abi/ekubo.abi.json";
+import ekuboPositionAbi from "@/abi/ekubo.position.abi.json";
 import ekuboClassHashAbi from "@/abi/ekubo.class.hash.abi.json";
 import { STRK_DECIMALS } from "@/constants";
 import MyNumber from "@/lib/MyNumber";
@@ -17,10 +18,11 @@ import {
 
 const XSTRK_ADDRESS =
   "0x28d709c875c0ceac3dce7065bec5328186dc89fe254527084d1689910954b0a";
-const EKUBO_ADDRESS =
+const EKUBO_CORE_ADDRESS =
   "0x00000005dd3d2f4429af886cd1a3b08289dbcea99a294197e9eb43b0e0325b4b";
+const EKUBO_POSITION_ADDRESS = '0x02e0af29598b407c8716b17f6d2795eca1b471413fa03fb145a5e33722184067'
 const EKUBO_CLASS_HASH_ADDRESS =
-  "0x037d63129281c4c42cba74218c809ffc9e6f87ca74e0bdabb757a7f236ca59c3";
+  "0x04a72e9e166f6c0e9d800af4dc40f6b6fb4404b735d3f528d9250808b2481995";
 
 Decimal.set({ precision: 78 });
 
@@ -37,20 +39,23 @@ const userEkuboxSTRKPositionsQueryAtom = atomWithQuery((get) => {
       const provider = get(providerAtom);
       const userAddress = get(userAddressAtom);
 
-      if (!provider || !userAddress) return [];
+      let xSTRKAmount = MyNumber.fromZero();
+      let STRKAmount = MyNumber.fromZero();
+
+      if (!provider || !userAddress) return {
+        xSTRKAmount: MyNumber.fromZero(),
+        STRKAmount: MyNumber.fromZero(),
+      }
 
       try {
         const res = await axios.get(
-          //   `https://mainnet-api.ekubo.org/positions/${userAddress}`,
-          `https://mainnet-api.ekubo.org/positions/0x067138f4b11ac7757e39ee65814d7a714841586e2aa714ce4ececf38874af245`,
+            `https://mainnet-api.ekubo.org/positions/${userAddress}`,
+          // `https://mainnet-api.ekubo.org/positions/0x067138f4b11ac7757e39ee65814d7a714841586e2aa714ce4ececf38874af245`,
         );
 
-        const contract = new Contract(ekuboAbi, EKUBO_ADDRESS, provider);
-        const ekuboClassHashContract = new Contract(
-          ekuboClassHashAbi,
-          EKUBO_CLASS_HASH_ADDRESS,
-          provider,
-        );
+        console.log('ekubo res', res);
+
+        const positionContract = new Contract(ekuboPositionAbi, EKUBO_POSITION_ADDRESS, provider);
 
         if (res?.data) {
           const filteredData = res?.data?.data?.filter(
@@ -59,76 +64,44 @@ const userEkuboxSTRKPositionsQueryAtom = atomWithQuery((get) => {
               position.pool_key.token1 === XSTRK_ADDRESS,
           );
 
-          const liquidityDeltaSum = MyNumber.fromZero();
-
           if (filteredData) {
-            filteredData?.map(async (position: any) => {
-              const history: any = await getHistory(position?.id);
+            for (let i=0; i<filteredData.length; i++) {
+              const position = filteredData[i];
+              if (!position.id) continue;
 
-              if (history) {
-                history.forEach((event: any) => {
-                  liquidityDeltaSum.operate("plus", event?.liquidity_delta);
-                });
-              }
-
-              const result: any = await contract.call("get_pool_price", [
+              console.log(position, "position");
+              const result: any = await positionContract.call("get_token_info", [
+                position?.id,
                 position.pool_key,
+                {
+                  lower: { mag: Math.abs(position?.bounds?.lower), sign: position?.bounds?.lower < 0 ? 1 : 0 },
+                  upper: { mag: Math.abs(position?.bounds?.upper), sign: position?.bounds?.upper < 0 ? 1 : 0 },
+                }
               ]);
 
-              if (result?.sqrt_ratio) {
-                const sqrtRatio = new MyNumber(
-                  result.sqrt_ratio.toString(),
-                  STRK_DECIMALS,
-                );
+              console.log(result, "position responsee2");
 
-                const sqrtRatioLower = new Decimal("1.000001")
-                  .sqrt()
-                  .pow(position?.bounds?.lower)
-                  .mul(new Decimal(2).pow(128));
-
-                const sqrtRatioUpper = new Decimal("1.000001")
-                  .sqrt()
-                  .pow(position?.bounds?.upper)
-                  .mul(new Decimal(2).pow(128));
-
-                if (
-                  sqrtRatio &&
-                  liquidityDeltaSum &&
-                  sqrtRatioLower &&
-                  sqrtRatioUpper
-                ) {
-                  console.log(
-                    sqrtRatio.toString(),
-                    liquidityDeltaSum.toString(),
-                    sqrtRatioLower.toString(),
-                    sqrtRatioUpper.toString(),
-                    "responsee",
-                  );
-
-                  // need to do proper conversion of params below
-                  const res = await ekuboClassHashContract?.call(
-                    "liquidity_delta_to_amount_delta",
-                    [
-                      sqrtRatio.toString(),
-                      liquidityDeltaSum,
-                      sqrtRatioLower,
-                      sqrtRatioUpper,
-                    ],
-                  );
-
-                  console.log(res, "responsee");
-
-                  if (res) return new MyNumber(res.toString(), STRK_DECIMALS);
-
-                  return MyNumber.fromZero();
-                }
+              if (XSTRK_ADDRESS == position.pool_key.token0) {
+                xSTRKAmount = xSTRKAmount.operate('plus', new MyNumber(result.amount0.toString(), STRK_DECIMALS).toEtherToFixedDecimals(6));
+                xSTRKAmount = xSTRKAmount.operate('plus', new MyNumber(result.fees0.toString(), STRK_DECIMALS).toEtherToFixedDecimals(6));
+                STRKAmount = STRKAmount.operate('plus', new MyNumber(result.amount1.toString(), STRK_DECIMALS).toEtherToFixedDecimals(6));
+                STRKAmount = STRKAmount.operate('plus', new MyNumber(result.fees1.toString(), STRK_DECIMALS).toEtherToFixedDecimals(6));
+              } else {
+                xSTRKAmount = xSTRKAmount.operate('plus', new MyNumber(result.amount1.toString(), STRK_DECIMALS).toEtherToFixedDecimals(6));
+                xSTRKAmount = xSTRKAmount.operate('plus', new MyNumber(result.fees1.toString(), STRK_DECIMALS).toEtherToFixedDecimals(6));
+                STRKAmount = STRKAmount.operate('plus', new MyNumber(result.amount0.toString(), STRK_DECIMALS).toEtherToFixedDecimals(6));
+                STRKAmount = STRKAmount.operate('plus', new MyNumber(result.fees0.toString(), STRK_DECIMALS).toEtherToFixedDecimals(6));
               }
-            });
+            };
           }
         }
       } catch (error) {
         console.error("userEkuboxSTRKPositionsQueryAtom [3]", error);
-        return [];
+      }
+
+      return {
+        xSTRKAmount,
+        STRKAmount,
       }
     },
   };
@@ -138,7 +111,7 @@ export const userEkuboxSTRKPositions = atom((get) => {
   const { data, error } = get(userEkuboxSTRKPositionsQueryAtom);
 
   return {
-    data: error || !data ? [] : data,
+    data: error || !data ? { xSTRKAmount: MyNumber.fromZero(), STRKAmount: MyNumber.fromZero() } : data,
     error,
     isLoading: !data && !error,
   };

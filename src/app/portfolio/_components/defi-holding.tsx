@@ -16,6 +16,7 @@ import {
 import { userHaikoBalanceAtom } from "@/store/haiko.store";
 import { userxSTRKNostraBalance } from "@/store/nostra.store";
 import { uservXSTRKBalanceAtom } from "@/store/vesu.store";
+import { userEkuboxSTRKPositions } from "@/store/ekubo.store";
 
 const chartConfig = {
   holdings: {
@@ -43,10 +44,11 @@ const DefiHoldings: React.FC = () => {
   const nostraBal = useAtomValue(userxSTRKNostraBalance);
   const vxStrkBalance = useAtomValue(uservXSTRKBalanceAtom);
   const userHaikoBalance = useAtomValue(userHaikoBalanceAtom);
+  const ekuboPosi = useAtomValue(userEkuboxSTRKPositions);
 
   const chartData = [
     { dapp: "nostra", holdings: nostraBal.value, fill: "#FF4240" },
-    { dapp: "ekubo", holdings: 4, fill: "#3F1883" },
+    { dapp: "ekubo", holdings: Number(ekuboPosi.data.xSTRKAmount.toEtherStr() || 0), fill: "#3F1883" },
     {
       dapp: "vesu",
       holdings: Number(vxStrkBalance.value.toEtherToFixedDecimals(2)),
