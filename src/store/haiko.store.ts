@@ -2,8 +2,6 @@ import axios from "axios";
 import { atom } from "jotai";
 import { atomWithQuery } from "jotai-tanstack-query";
 
-import MyNumber from "@/lib/MyNumber";
-
 import { currentBlockAtom, userAddressAtom } from "./common.store";
 
 const userHaikoBalanceQueryAtom = atomWithQuery((get) => {
@@ -12,7 +10,7 @@ const userHaikoBalanceQueryAtom = atomWithQuery((get) => {
     queryFn: async ({ queryKey }: any) => {
       const [, , userAddress] = queryKey;
 
-      if (!userAddress) return MyNumber.fromZero();
+      if (!userAddress) return 0;
 
       let sum = 0;
 
@@ -44,7 +42,7 @@ export const userHaikoBalanceAtom = atom((get) => {
   const { data, error } = get(userHaikoBalanceQueryAtom);
 
   return {
-    value: error || !data ? MyNumber.fromZero() : data,
+    value: error || !data ? 0 : data,
     error,
     isLoading: !data && !error,
   };

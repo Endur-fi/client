@@ -20,8 +20,6 @@ const Stats: React.FC = () => {
   const nostraBal = useAtomValue(userxSTRKNostraBalance);
   const ekuboPosi = useAtomValue(userEkuboxSTRKPositions);
 
-  console.log(ekuboPosi, "ekuboPosi");
-
   const currentStaked = useAtomValue(userSTRKBalanceAtom);
   const apy = useAtomValue(snAPYAtom);
   const currentXSTRKBalance = useAtomValue(userXSTRKBalanceAtom);
@@ -38,15 +36,16 @@ const Stats: React.FC = () => {
 
   React.useEffect(() => {
     setTotalSTRK(
-      Number(userHaikoBalance.value.toString()) +
+      parseInt(userHaikoBalance.value.toString(), 2) +
         Number(vxStrkBalance.value.toEtherToFixedDecimals(2)) +
-        nostraBal.value + Number(ekuboPosi.data.xSTRKAmount.toEtherToFixedDecimals(2)),
+        nostraBal.value +
+        Number(ekuboPosi.data.xSTRKAmount.toEtherToFixedDecimals(2)),
     );
   }, [
-    nostraBal.value, 
-    userHaikoBalance.value, 
+    nostraBal.value,
+    userHaikoBalance.value,
     vxStrkBalance.value,
-    ekuboPosi.data
+    ekuboPosi.data,
   ]);
 
   console.log(totalSTRK, "totalSTRK");
