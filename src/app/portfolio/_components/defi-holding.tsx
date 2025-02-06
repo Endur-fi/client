@@ -41,10 +41,10 @@ const chartConfig = {
 } satisfies ChartConfig;
 
 const DefiHoldings: React.FC = () => {
-  const nostraBal = useAtomValue(userxSTRKNostraBalance);
-  const vxStrkBalance = useAtomValue(uservXSTRKBalanceAtom);
-  const userHaikoBalance = useAtomValue(userHaikoBalanceAtom);
-  const ekuboPosi = useAtomValue(userEkuboxSTRKPositions);
+  const nostraBal = useAtomValue(userxSTRKNostraBalance(undefined));
+  const vxStrkBalance = useAtomValue(uservXSTRKBalanceAtom(undefined));
+  const userHaikoBalance = useAtomValue(userHaikoBalanceAtom(undefined));
+  const ekuboPosi = useAtomValue(userEkuboxSTRKPositions(undefined));
 
   const chartData = [
     { dapp: "nostra", holdings: nostraBal.value, fill: "#FF4240" },

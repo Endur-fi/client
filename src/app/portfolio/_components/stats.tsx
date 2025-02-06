@@ -15,10 +15,10 @@ const Stats: React.FC = () => {
   const [stakedUSD, setStakedUSD] = React.useState(0);
   const [totalSTRK, setTotalSTRK] = React.useState(0);
 
-  const vxStrkBalance = useAtomValue(uservXSTRKBalanceAtom);
-  const userHaikoBalance = useAtomValue(userHaikoBalanceAtom);
-  const nostraBal = useAtomValue(userxSTRKNostraBalance);
-  const ekuboPosi = useAtomValue(userEkuboxSTRKPositions);
+  const vxStrkBalance = useAtomValue(uservXSTRKBalanceAtom(undefined));
+  const userHaikoBalance = useAtomValue(userHaikoBalanceAtom(undefined));
+  const nostraBal = useAtomValue(userxSTRKNostraBalance(undefined));
+  const ekuboPosi = useAtomValue(userEkuboxSTRKPositions(undefined));
 
   const currentStaked = useAtomValue(userSTRKBalanceAtom);
   const apy = useAtomValue(snAPYAtom);
