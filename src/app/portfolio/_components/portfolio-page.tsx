@@ -4,10 +4,17 @@ import axios from "axios";
 import { useAtomValue } from "jotai";
 import React from "react";
 
+import {
+  getEkuboxSTRKBalance,
+  getHaikoxSTRKBalance,
+  getNostraxSTRKBalance,
+  getVxSTRKBalance,
+} from "@/actions";
 import { useSidebar } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
 import { chartFilter } from "@/store/portfolio.store";
 
+import { useAccount } from "@starknet-react/core";
 import { Chart } from "./chart";
 import DefiHoldings from "./defi-holding";
 import Stats from "./stats";
@@ -164,26 +171,39 @@ const PortfolioPage: React.FC = () => {
   const [chartData, setChartData] = React.useState(chartDataDemo);
 
   const timeRange = useAtomValue(chartFilter);
+  const { address } = useAccount();
 
   const { isPinned } = useSidebar();
 
   React.useEffect(() => {
     const fetchData = async () => {
+      if (!address) return;
+
       try {
         const res = await axios.get(`/api/blocks/${timeRange.slice(0, -1)}`);
 
         if (res?.data) {
-          res.data.blocks.forEach((el: any) => {
-            // const balance = atom((get) => {
-            //   const { data, error } = get(uservXSTRKBalanceQueryAtom(el.block));
-            //   return {
-            //     value: error || !data ? MyNumber.fromZero() : data,
-            //     error,
-            //     isLoading: !data && !error,
-            //   };
-            // });
-            // const {} = uservXSTRKBalanceQueryAtom(el.block);
-            // console.log(balance, "balancebalancebalancebalancebalancebalance");
+          res.data.blocks.forEach(async (el: any) => {
+            let totalBalance = 0;
+
+            const vxSTRKBal = await getVxSTRKBalance(el.block, address);
+
+            const haikoxSTRKBal = await getHaikoxSTRKBalance(el.block, address);
+
+            const nostraxSTRKBal = await getNostraxSTRKBalance(
+              el.block,
+              address,
+            );
+
+            const ekuboxSTRKBal = await getEkuboxSTRKBalance(el.block, address);
+
+            totalBalance =
+              parseFloat(vxSTRKBal.toFixed(2)) +
+              parseFloat(haikoxSTRKBal.toFixed(2)) +
+              parseFloat(nostraxSTRKBal.toFixed(2)) +
+              parseFloat(ekuboxSTRKBal.toFixed(2));
+
+            console.log(totalBalance, "totalBalancetotalBalance");
           });
         }
       } catch (error) {
@@ -192,7 +212,7 @@ const PortfolioPage: React.FC = () => {
     };
 
     fetchData();
-  }, [timeRange]);
+  }, [address, timeRange]);
 
   // const vxStrkBalance = useAtomValue(uservXSTRKBalanceAtom(blockBefore7Day));
   // const userHaikoBalance = useAtomValue(userHaikoBalanceAtom(blockBefore7Day));

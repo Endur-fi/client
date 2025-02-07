@@ -33,9 +33,8 @@ const userHaikoBalanceQueryAtom = atomFamily((_blockNumber?: number) =>
                 sum += position.quoteAmount + position.quoteFees;
               }
             });
-
-            return sum;
           }
+          return sum;
         } catch (error) {
           console.error("userHaikoBalanceAtom [3]", error);
           return 0;
