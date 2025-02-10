@@ -90,3 +90,7 @@ export function convertTimeString(timeString: string): string {
   const days = Math.ceil(hours / 24);
   return `${days}-${days + 1} days`;
 }
+
+export const convertToPlainObject = (data: any) => {
+  return JSON.parse(JSON.stringify(data));
+};
