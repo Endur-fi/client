@@ -1,7 +1,7 @@
-import { atom } from "jotai";
-import { atomWithQuery } from "jotai-tanstack-query";
+import { Atom, atom, WritableAtom } from "jotai";
+import { atomWithQuery, AtomWithQueryResult } from "jotai-tanstack-query";
 import { atomFamily } from "jotai/utils";
-import { Contract } from "starknet";
+import { Contract, RpcProvider } from "starknet";
 
 import erc4626Abi from "@/abi/erc4626.abi.json";
 import nostraLpAbi from "@/abi/nostra.lp.abi.json";
@@ -9,10 +9,11 @@ import { STRK_DECIMALS } from "@/constants";
 import MyNumber from "@/lib/MyNumber";
 
 import {
-  currentBlockAtom,
   providerAtom,
   userAddressAtom,
 } from "./common.store";
+import { DAppHoldings, DAppHoldingsAtom, DAppHoldingsFn, getHoldingAtom } from "./defi.store";
+import { AtomFamily } from "jotai/vanilla/utils/atomFamily";
 
 export const N_XSTRK_CONTRACT_ADDRESS =
   "0x06878fd475d5cea090934d690ecbe4ad78503124e4f80380a2e45eb417aafb9c";
@@ -27,274 +28,142 @@ export const D_XSTRK_CONTRACT_ADDRESS =
 export const LP_TOKEN_CONTRACT_ADDRESS =
   "0x00205fd8586f6be6c16f4aa65cc1034ecff96d96481878e55f629cd0cb83e05f";
 
-const usernxSTRKBalanceQueryAtom = atomFamily((blockNumber?: number) =>
-  atomWithQuery((get) => {
+async function getNostraHoldingsByToken(
+  address: string,
+  provider: RpcProvider,
+  nostraToken: string,
+  blockNumber?: number,
+) {
+  const contract = new Contract(
+    erc4626Abi,
+    nostraToken,
+    provider,
+  );
+
+  const balance = await contract.call("balance_of", [address], {
+    blockIdentifier: blockNumber ?? "latest",
+  });
+  return new MyNumber(balance.toString(), STRK_DECIMALS);
+}
+
+function getNostraHoldings(
+  nostraToken: string,
+): DAppHoldingsFn {
+  return async (
+    address: string,
+    provider: RpcProvider,
+    blockNumber?: number,
+  ) => {
+    const xSTRKAmount = await getNostraHoldingsByToken(address, provider, nostraToken, blockNumber);
     return {
-      // current block atom only to trigger a change when the block changes
-      queryKey: [
-        "usernxSTRKBalance",
-        get(currentBlockAtom),
-        get(userAddressAtom),
-        get(providerAtom),
-      ],
+      xSTRKAmount,
+      STRKAmount: MyNumber.fromZero(),
+    }
+  }
+}
 
-      queryFn: async ({ queryKey }: any) => {
-        const [, , userAddress] = queryKey;
-        const provider = get(providerAtom);
+const usernxSTRKBalanceQueryAtom = getHoldingAtom(
+  'usernxSTRKBalance',
+  getNostraHoldings(N_XSTRK_CONTRACT_ADDRESS)
+)
 
-        if (!provider || !userAddress) {
-          return MyNumber.fromZero();
-        }
+const usernxSTRKcBalanceQueryAtom = getHoldingAtom(
+  'usernxSTRKcBalance',
+  getNostraHoldings(N_XSTRK_C_CONTRACT_ADDRESS)
+)
 
-        try {
-          const contract = new Contract(
-            erc4626Abi,
-            N_XSTRK_CONTRACT_ADDRESS,
-            provider,
-          );
+const userixSTRKBalanceQueryAtom = getHoldingAtom(
+  'userixSTRKBalance',
+  getNostraHoldings(i_XSTRK_CONTRACT_ADDRESS)
+)
 
-          const balance = await contract.call("balance_of", [userAddress], {
-            blockIdentifier: blockNumber ?? "latest",
-          });
-          return new MyNumber(balance.toString(), STRK_DECIMALS);
-        } catch (error) {
-          console.error("usernxSTRKBalance [3]", error);
-          return 0;
-        }
-      },
-    };
-  }),
-);
+const userixSTRKcBalanceQueryAtom = getHoldingAtom(
+  'userixSTRKcBalance',
+  getNostraHoldings(i_XSTRK_C_CONTRACT_ADDRESS)
+)
 
-const usernxSTRKcBalanceQueryAtom = atomFamily((blockNumber?: number) =>
-  atomWithQuery((get) => {
-    return {
-      // current block atom only to trigger a change when the block changes
-      queryKey: [
-        "usernxSTRKcBalance",
-        get(currentBlockAtom),
-        get(userAddressAtom),
-        get(providerAtom),
-      ],
+const userdxSTRKBalanceQueryAtom = getHoldingAtom(
+  'userdxSTRKBalance',
+  getNostraHoldings(D_XSTRK_CONTRACT_ADDRESS)
+)
 
-      queryFn: async ({ queryKey }: any) => {
-        const [, , userAddress] = queryKey;
-        const provider = get(providerAtom);
+export const getNostraDexHoldings: DAppHoldingsFn = async (
+  address: string,
+  provider: RpcProvider,
+  blockNumber?: number,
+) => {
+  const contract = new Contract(
+    nostraLpAbi,
+    LP_TOKEN_CONTRACT_ADDRESS,
+    provider,
+  );
 
-        if (!provider || !userAddress) {
-          return MyNumber.fromZero();
-        }
+  const balance = await contract.call("balance_of", [address], {
+    blockIdentifier: blockNumber ?? "latest",
+  });
+  const totalSupply = await contract.call("total_supply");
+  const getReserves: any = await contract.call("get_reserves");
 
-        try {
-          const contract = new Contract(
-            erc4626Abi,
-            N_XSTRK_C_CONTRACT_ADDRESS,
-            provider,
-          );
+  const balanceStr = new MyNumber(
+    balance.toString(),
+    STRK_DECIMALS,
+  ).toEtherStr();
 
-          const balance = await contract.call("balance_of", [userAddress], {
-            blockIdentifier: blockNumber ?? "latest",
-          });
-          return new MyNumber(balance.toString(), STRK_DECIMALS);
-        } catch (error) {
-          console.error("usernxSTRKcBalance [3]", error);
-          return 0;
-        }
-      },
-    };
-  }),
-);
+  const totalSupplyStr = new MyNumber(
+    totalSupply.toString(),
+    STRK_DECIMALS,
+  ).toEtherStr();
 
-const userixSTRKBalanceQueryAtom = atomFamily((blockNumber?: number) =>
-  atomWithQuery((get) => {
-    return {
-      // current block atom only to trigger a change when the block changes
-      queryKey: [
-        "userixSTRKBalance",
-        get(currentBlockAtom),
-        get(userAddressAtom),
-        get(providerAtom),
-      ],
+  const getReserves0Str = new MyNumber(
+    getReserves[0].toString(),
+    STRK_DECIMALS,
+  ).toEtherStr();
 
-      queryFn: async ({ queryKey }: any) => {
-        const [, , userAddress] = queryKey;
-        const provider = get(providerAtom);
+  const getReserves1Str = new MyNumber(
+    getReserves[1].toString(),
+    STRK_DECIMALS,
+  ).toEtherStr();
 
-        if (!provider || !userAddress) {
-          return MyNumber.fromZero();
-        }
+  console.log(balanceStr, "balance_lptoken");
+  console.log(totalSupplyStr, "totalSupply");
+  console.log(getReserves0Str, "getReserves[0]");
+  console.log(getReserves1Str, "getReserves[1]");
 
-        try {
-          const contract = new Contract(
-            erc4626Abi,
-            i_XSTRK_CONTRACT_ADDRESS,
-            provider,
-          );
+  const xSTRKTokenBal =
+    (Number(balanceStr) / Number(totalSupplyStr)) *
+    Number(getReserves0Str);
+  
+  const STRKTokenBal = 
+    (Number(balanceStr) / Number(totalSupplyStr)) *
+    Number(getReserves1Str);
 
-          const balance = await contract.call("balance_of", [userAddress], {
-            blockIdentifier: blockNumber ?? "latest",
-          });
-          return new MyNumber(balance.toString(), STRK_DECIMALS);
-        } catch (error) {
-          console.error("userixSTRKBalance [3]", error);
-          return 0;
-        }
-      },
-    };
-  }),
-);
+  console.log(xSTRKTokenBal, "xSTRKTokenBal");
+  console.log(STRKTokenBal, "STRKTokenBal");
 
-const userixSTRKcBalanceQueryAtom = atomFamily((blockNumber?: number) =>
-  atomWithQuery((get) => {
-    return {
-      // current block atom only to trigger a change when the block changes
-      queryKey: [
-        "userixSTRKcBalance",
-        get(currentBlockAtom),
-        get(userAddressAtom),
-        get(providerAtom),
-      ],
+  return {
+    xSTRKAmount: MyNumber.fromEther(xSTRKTokenBal.toFixed(8), STRK_DECIMALS),
+    STRKAmount: MyNumber.fromEther(STRKTokenBal.toFixed(8), STRK_DECIMALS),
+  };
+}
 
-      queryFn: async ({ queryKey }: any) => {
-        const [, , userAddress] = queryKey;
-        const provider = get(providerAtom);
+const userLPTokenBalanceQueryAtom = getHoldingAtom(
+  'userLPTokenBalance',
+  getNostraDexHoldings,
+)
 
-        if (!provider || !userAddress) {
-          return MyNumber.fromZero();
-        }
-
-        try {
-          const contract = new Contract(
-            erc4626Abi,
-            i_XSTRK_C_CONTRACT_ADDRESS,
-            provider,
-          );
-
-          const balance = await contract.call("balance_of", [userAddress], {
-            blockIdentifier: blockNumber ?? "latest",
-          });
-          return new MyNumber(balance.toString(), STRK_DECIMALS);
-        } catch (error) {
-          console.error("userixSTRKcBalance [3]", error);
-          return 0;
-        }
-      },
-    };
-  }),
-);
-
-const userdxSTRKBalanceQueryAtom = atomFamily((blockNumber?: number) =>
-  atomWithQuery((get) => {
-    return {
-      // current block atom only to trigger a change when the block changes
-      queryKey: [
-        "userdxSTRKBalance",
-        get(currentBlockAtom),
-        get(userAddressAtom),
-        get(providerAtom),
-      ],
-
-      queryFn: async ({ queryKey }: any) => {
-        const [, , userAddress] = queryKey;
-        const provider = get(providerAtom);
-
-        if (!provider || !userAddress) {
-          return MyNumber.fromZero();
-        }
-
-        try {
-          const contract = new Contract(
-            erc4626Abi,
-            D_XSTRK_CONTRACT_ADDRESS,
-            provider,
-          );
-
-          const balance = await contract.call("balance_of", [userAddress], {
-            blockIdentifier: blockNumber ?? "latest",
-          });
-          return new MyNumber(balance.toString(), STRK_DECIMALS);
-        } catch (error) {
-          console.error("userdxSTRKBalance [3]", error);
-          return 0;
-        }
-      },
-    };
-  }),
-);
-
-const userLPTokenBalanceQueryAtom = atomFamily((blockNumber?: number) =>
-  atomWithQuery((get) => {
-    return {
-      // current block atom only to trigger a change when the block changes
-      queryKey: [
-        "userLPTokenBalance",
-        get(currentBlockAtom),
-        get(userAddressAtom),
-        get(providerAtom),
-      ],
-
-      queryFn: async ({ queryKey }: any) => {
-        const [, , userAddress] = queryKey;
-        const provider = get(providerAtom);
-
-        if (!provider || !userAddress) {
-          return MyNumber.fromZero();
-        }
-
-        try {
-          const contract = new Contract(
-            nostraLpAbi,
-            LP_TOKEN_CONTRACT_ADDRESS,
-            provider,
-          );
-
-          const balance = await contract.call("balance_of", [userAddress], {
-            blockIdentifier: blockNumber ?? "latest",
-          });
-          const totalSupply = await contract.call("total_supply");
-          const getReserves: any = await contract.call("get_reserves");
-
-          const balanceStr = new MyNumber(
-            balance.toString(),
-            STRK_DECIMALS,
-          ).toEtherStr();
-
-          const totalSupplyStr = new MyNumber(
-            totalSupply.toString(),
-            STRK_DECIMALS,
-          ).toEtherStr();
-
-          const getReserves0Str = new MyNumber(
-            getReserves[0].toString(),
-            STRK_DECIMALS,
-          ).toEtherStr();
-
-          console.log(balanceStr, "balance_lptoken");
-          console.log(totalSupplyStr, "totalSupply");
-          console.log(getReserves0Str, "getReserves[0]");
-
-          const lpTokenBalance =
-            (Number(balanceStr) / Number(totalSupplyStr)) *
-            Number(getReserves0Str);
-
-          console.log(lpTokenBalance, "lpTokenBalance");
-
-          return MyNumber.fromEther(lpTokenBalance.toFixed(8), STRK_DECIMALS);
-        } catch (error) {
-          console.error("userLPTokenBalance [3]", error);
-          return MyNumber.fromZero();
-        }
-      },
-    };
-  }),
-);
+//
+// Wrapper atoms on above query atoms
+//
 
 export const usernxSTRKBalance = atomFamily((blockNumber?: number) =>
   atom((get) => {
     const { data, error } = get(usernxSTRKBalanceQueryAtom(blockNumber));
 
     return {
-      value: error || !data ? MyNumber.fromZero() : data,
+      value: error || !data ? {
+        xSTRKAmount: MyNumber.fromZero(),
+        STRKAmount: MyNumber.fromZero(),
+      } : data,
       error,
       isLoading: !data && !error,
     };
@@ -306,19 +175,26 @@ export const usernxSTRKcBalance = atomFamily((blockNumber?: number) =>
     const { data, error } = get(usernxSTRKcBalanceQueryAtom(blockNumber));
 
     return {
-      value: error || !data ? MyNumber.fromZero() : data,
+      value: error || !data ? {
+        xSTRKAmount: MyNumber.fromZero(),
+        STRKAmount: MyNumber.fromZero(),
+      } : data,
       error,
       isLoading: !data && !error,
     };
   }),
 );
 
+
 export const userixSTRKBalance = atomFamily((blockNumber?: number) =>
   atom((get) => {
     const { data, error } = get(userixSTRKBalanceQueryAtom(blockNumber));
 
     return {
-      value: error || !data ? MyNumber.fromZero() : data,
+      value: error || !data ? {
+        xSTRKAmount: MyNumber.fromZero(),
+        STRKAmount: MyNumber.fromZero(),
+      } : data,
       error,
       isLoading: !data && !error,
     };
@@ -330,7 +206,10 @@ export const userixSTRKcBalance = atomFamily((blockNumber?: number) =>
     const { data, error } = get(userixSTRKcBalanceQueryAtom(blockNumber));
 
     return {
-      value: error || !data ? MyNumber.fromZero() : data,
+      value: error || !data ? {
+        xSTRKAmount: MyNumber.fromZero(),
+        STRKAmount: MyNumber.fromZero(),
+      } : data,
       error,
       isLoading: !data && !error,
     };
@@ -342,7 +221,10 @@ export const userdxSTRKBalance = atomFamily((blockNumber?: number) =>
     const { data, error } = get(userdxSTRKBalanceQueryAtom(blockNumber));
 
     return {
-      value: error || !data ? MyNumber.fromZero() : data,
+      value: error || !data ? {
+        xSTRKAmount: MyNumber.fromZero(),
+        STRKAmount: MyNumber.fromZero(),
+      } : data,
       error,
       isLoading: !data && !error,
     };
@@ -354,39 +236,53 @@ export const userLPTokenBalance = atomFamily((blockNumber?: number) =>
     const { data, error } = get(userLPTokenBalanceQueryAtom(blockNumber));
 
     return {
-      value: error || !data ? MyNumber.fromZero() : data,
+      value: error || !data ?  {
+        xSTRKAmount: MyNumber.fromEther("0", 18),
+        STRKAmount: MyNumber.fromEther("0", 18),
+      } : data,
       error,
       isLoading: !data && !error,
     };
   }),
 );
 
-export const userxSTRKNostraBalance = atomFamily((blockNumber?: number) =>
+export const userxSTRKNostraBalance: DAppHoldingsAtom = atomFamily((blockNumber?: number) =>
   atom((get) => {
-    const nxSTRKBal = get(usernxSTRKBalance(blockNumber));
-    const nxSTRKcBal = get(usernxSTRKcBalance(blockNumber));
-    const ixSTRKBal = get(userixSTRKBalance(blockNumber));
-    const ixSTRKcBal = get(userixSTRKcBalance(blockNumber));
-    const dxSTRKBal = get(userdxSTRKBalance(blockNumber));
-    const lpTokenBal = get(userLPTokenBalance(blockNumber));
-
-    console.log(nxSTRKBal.value.toString(), "nxSTRKBal");
-    console.log(nxSTRKcBal.value.toString(), "nxSTRKcBal");
-    console.log(ixSTRKBal.value.toString(), "ixSTRKBal");
-    console.log(ixSTRKcBal.value.toString(), "ixSTRKcBal");
-    console.log(dxSTRKBal.value.toString(), "dxSTRKBal");
-    console.log(lpTokenBal.value.toString(), "lpTokenBal");
-
-    const totalBalance =
-      Number(nxSTRKBal.value.toEtherToFixedDecimals(2)) +
-      Number(nxSTRKcBal.value.toEtherToFixedDecimals(2)) +
-      Number(ixSTRKBal.value.toEtherToFixedDecimals(2)) +
-      Number(ixSTRKcBal.value.toEtherToFixedDecimals(2)) +
-      // Number(dxSTRKBal.value.toEtherToFixedDecimals(2)) +
-      Number(lpTokenBal.value.toEtherToFixedDecimals(2));
-
+    let isLoading = false;
+    let error: any = null;
+    let data = {
+      xSTRKAmount: MyNumber.fromEther("0", 18),
+      STRKAmount: MyNumber.fromEther("0", 18),
+    }
+    
+    const atoms = [
+      usernxSTRKBalance(blockNumber),
+      usernxSTRKcBalance(blockNumber),
+      userixSTRKBalance(blockNumber),
+      userixSTRKcBalance(blockNumber),
+      // userdxSTRKBalance(blockNumber),
+      userLPTokenBalance(blockNumber),
+    ];
+   
+    for (const atom of atoms) {
+      const output = get(atom);
+      console.log('userxSTRKNostraBalance', output);
+      if (output.isLoading) {
+        isLoading = true;
+      }
+      if (output.error) {
+        error = output.error;
+      }
+      if (output.value) {
+        data.xSTRKAmount = data.xSTRKAmount.operate("plus", output.value.xSTRKAmount.toString());
+        data.STRKAmount = data.STRKAmount.operate("plus", output.value.STRKAmount.toString());
+      }
+    }
+    console.log('userxSTRKNostraBalance2', data);
     return {
-      value: totalBalance,
+      data,
+      error,
+      isLoading,
     };
   }),
 );

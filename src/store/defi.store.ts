@@ -1,5 +1,10 @@
-import { atom } from "jotai";
+import MyNumber from "@/lib/MyNumber";
+import { Atom, atom } from "jotai";
 import { atomWithQuery } from "jotai-tanstack-query";
+import { AtomFamily } from "jotai/vanilla/utils/atomFamily";
+import { providerAtom, userAddressAtom } from "./common.store";
+import { RpcProvider } from "starknet";
+import { atomFamily } from "jotai/utils";
 
 interface VesuAPIResponse {
   data: {
@@ -415,3 +420,68 @@ export const protocolYieldsAtom = atom((get) => ({
   "nostra-lend": get(nostraLendYieldAtom),
   haiko: get(haikoYieldAtom),
 }));
+
+// Takes input as blocknumber | undefined, returns a Query Atom
+export interface DAppHoldings {
+  xSTRKAmount: MyNumber;
+  STRKAmount: MyNumber;
+}
+export type DAppHoldingsAtom = AtomFamily<number | undefined, Atom<{
+  data: DAppHoldings;
+  error: Error | null;
+  isLoading: boolean;
+}>>;
+
+export type DAppHoldingsFn = (
+  address: string, 
+  provider: RpcProvider,
+  blockNumber?: number
+) => Promise<DAppHoldings>;
+
+/**
+ * @description Returns an AtomFamily of DAppHoldings
+ * @dev This function is used to create an AtomFamily of DAppHoldings in a 
+ * generic way for different dApps
+ * @param uniqueKey Unique key used for cache for each dApp atom
+ * @param queryFn Logic to fetch DAppHoldings
+ * @returns AtomFamily of DAppHoldings
+ */
+export function getHoldingAtom(
+  uniqueKey: string, 
+  queryFn: DAppHoldingsFn
+) {
+  return atomFamily((blockNumber?: number) => {
+    return atomWithQuery((get) => {
+      return {
+        queryKey: [
+          uniqueKey,
+          blockNumber,
+          get(userAddressAtom),
+          get(providerAtom),
+        ],
+        queryFn: async ({ queryKey }: any): Promise<DAppHoldings> => {
+          const provider = get(providerAtom);
+          const userAddress = get(userAddressAtom);
+
+          if (!provider || !userAddress)
+            return {
+              xSTRKAmount: MyNumber.fromZero(),
+              STRKAmount: MyNumber.fromZero(),
+            };
+            
+          try {
+            return await queryFn(queryKey[2], queryKey[3], blockNumber);
+          } catch(err) {
+            console.error("getHoldingAtom error:", err);
+            return {
+              xSTRKAmount: MyNumber.fromZero(),
+              STRKAmount: MyNumber.fromZero(),
+            };
+          }
+        },
+        staleTime: Infinity, // Prevents automatic refetching
+        cacheTime: 60000, // Keeps old block data for 60s
+      };
+    });
+  });
+}

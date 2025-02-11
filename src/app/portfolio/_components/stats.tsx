@@ -37,15 +37,15 @@ const Stats: React.FC = () => {
   React.useEffect(() => {
     setTotalSTRK(
       parseInt(userHaikoBalance.value.toString(), 2) +
-        Number(vxStrkBalance.value.toEtherToFixedDecimals(2)) +
-        nostraBal.value +
+        Number(vxStrkBalance.data.xSTRKAmount.toEtherToFixedDecimals(2)) +
+        Number(nostraBal.data.xSTRKAmount.toEtherToFixedDecimals(2)) +
         Number(ekuboPosi.data.xSTRKAmount.toEtherToFixedDecimals(2)),
     );
   }, [
-    nostraBal.value,
-    userHaikoBalance.value,
-    vxStrkBalance.value,
-    ekuboPosi.data,
+    nostraBal,
+    userHaikoBalance,
+    vxStrkBalance,
+    ekuboPosi,
   ]);
 
   console.log(totalSTRK, "totalSTRK");

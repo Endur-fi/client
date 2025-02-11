@@ -3,7 +3,7 @@ import { Decimal } from "decimal.js-light";
 import { atom } from "jotai";
 import { atomWithQuery } from "jotai-tanstack-query";
 import { atomFamily } from "jotai/utils";
-import { Contract } from "starknet";
+import { Contract, RpcProvider } from "starknet";
 
 import ekuboPositionAbi from "@/abi/ekubo.position.abi.json";
 import { STRK_DECIMALS } from "@/constants";
@@ -14,6 +14,7 @@ import {
   providerAtom,
   userAddressAtom,
 } from "./common.store";
+import { DAppHoldingsAtom, DAppHoldingsFn, getHoldingAtom } from "./defi.store";
 
 export const XSTRK_ADDRESS =
   "0x28d709c875c0ceac3dce7065bec5328186dc89fe254527084d1689910954b0a";
@@ -26,155 +27,138 @@ const _EKUBO_CLASS_HASH_ADDRESS =
 
 Decimal.set({ precision: 78 });
 
-const userEkuboxSTRKPositionsQueryAtom = atomFamily((blockNumber?: number) =>
-  atomWithQuery((get) => {
-    return {
-      // current block atom only to trigger a change when the block changes
-      queryKey: [
-        "userEkuboxSTRKPositionsQueryAtom",
-        get(currentBlockAtom),
-        get(userAddressAtom),
-        get(providerAtom),
-      ],
-      queryFn: async ({ _queryKey }: any) => {
-        const provider = get(providerAtom);
-        const userAddress = get(userAddressAtom);
+export const getEkuboHoldings: DAppHoldingsFn = async (
+  address: string,
+  provider: RpcProvider,
+  blockNumber?: number,
+) => {
+  let xSTRKAmount = MyNumber.fromZero();
+  let STRKAmount = MyNumber.fromZero();
 
-        let xSTRKAmount = MyNumber.fromZero();
-        let STRKAmount = MyNumber.fromZero();
+  const res = await axios.get(
+    `https://mainnet-api.ekubo.org/positions/${address}`,
+    // `https://mainnet-api.ekubo.org/positions/0x067138f4b11ac7757e39ee65814d7a714841586e2aa714ce4ececf38874af245`,
+  );
 
-        if (!provider || !userAddress)
-          return {
-            xSTRKAmount: MyNumber.fromZero(),
-            STRKAmount: MyNumber.fromZero(),
-          };
+  console.log("ekubo res", res);
 
-        try {
-          const res = await axios.get(
-            `https://mainnet-api.ekubo.org/positions/${userAddress}`,
-            // `https://mainnet-api.ekubo.org/positions/0x067138f4b11ac7757e39ee65814d7a714841586e2aa714ce4ececf38874af245`,
+  const positionContract = new Contract(
+    ekuboPositionAbi,
+    EKUBO_POSITION_ADDRESS,
+    provider,
+  );
+
+  if (res?.data) {
+    const filteredData = res?.data?.data?.filter(
+      (position: any) =>
+        position.pool_key.token0 === XSTRK_ADDRESS ||
+        position.pool_key.token1 === XSTRK_ADDRESS,
+    );
+
+    if (filteredData) {
+      for (let i = 0; i < filteredData.length; i++) {
+        const position = filteredData[i];
+        if (!position.id) continue;
+
+        console.log(position, "position");
+        const result: any = await positionContract.call(
+          "get_token_info",
+          [
+            position?.id,
+            position.pool_key,
+            {
+              lower: {
+                mag: Math.abs(position?.bounds?.lower),
+                sign: position?.bounds?.lower < 0 ? 1 : 0,
+              },
+              upper: {
+                mag: Math.abs(position?.bounds?.upper),
+                sign: position?.bounds?.upper < 0 ? 1 : 0,
+              },
+            },
+          ],
+          {
+            blockIdentifier: blockNumber ?? "latest",
+          },
+        );
+
+        console.log(result, address, provider, blockNumber, "position responsee2");
+
+        if (XSTRK_ADDRESS === position.pool_key.token0) {
+          xSTRKAmount = xSTRKAmount.operate(
+            "plus",
+            new MyNumber(
+              result.amount0.toString(),
+              STRK_DECIMALS,
+            ).toEtherToFixedDecimals(6),
           );
-
-          console.log("ekubo res", res);
-
-          const positionContract = new Contract(
-            ekuboPositionAbi,
-            EKUBO_POSITION_ADDRESS,
-            provider,
+          xSTRKAmount = xSTRKAmount.operate(
+            "plus",
+            new MyNumber(
+              result.fees0.toString(),
+              STRK_DECIMALS,
+            ).toEtherToFixedDecimals(6),
           );
-
-          if (res?.data) {
-            const filteredData = res?.data?.data?.filter(
-              (position: any) =>
-                position.pool_key.token0 === XSTRK_ADDRESS ||
-                position.pool_key.token1 === XSTRK_ADDRESS,
-            );
-
-            if (filteredData) {
-              for (let i = 0; i < filteredData.length; i++) {
-                const position = filteredData[i];
-                if (!position.id) continue;
-
-                console.log(position, "position");
-                const result: any = await positionContract.call(
-                  "get_token_info",
-                  [
-                    position?.id,
-                    position.pool_key,
-                    {
-                      lower: {
-                        mag: Math.abs(position?.bounds?.lower),
-                        sign: position?.bounds?.lower < 0 ? 1 : 0,
-                      },
-                      upper: {
-                        mag: Math.abs(position?.bounds?.upper),
-                        sign: position?.bounds?.upper < 0 ? 1 : 0,
-                      },
-                    },
-                  ],
-                  {
-                    blockIdentifier: blockNumber ?? "latest",
-                  },
-                );
-
-                console.log(result, "position responsee2");
-
-                if (XSTRK_ADDRESS === position.pool_key.token0) {
-                  xSTRKAmount = xSTRKAmount.operate(
-                    "plus",
-                    new MyNumber(
-                      result.amount0.toString(),
-                      STRK_DECIMALS,
-                    ).toEtherToFixedDecimals(6),
-                  );
-                  xSTRKAmount = xSTRKAmount.operate(
-                    "plus",
-                    new MyNumber(
-                      result.fees0.toString(),
-                      STRK_DECIMALS,
-                    ).toEtherToFixedDecimals(6),
-                  );
-                  STRKAmount = STRKAmount.operate(
-                    "plus",
-                    new MyNumber(
-                      result.amount1.toString(),
-                      STRK_DECIMALS,
-                    ).toEtherToFixedDecimals(6),
-                  );
-                  STRKAmount = STRKAmount.operate(
-                    "plus",
-                    new MyNumber(
-                      result.fees1.toString(),
-                      STRK_DECIMALS,
-                    ).toEtherToFixedDecimals(6),
-                  );
-                } else {
-                  xSTRKAmount = xSTRKAmount.operate(
-                    "plus",
-                    new MyNumber(
-                      result.amount1.toString(),
-                      STRK_DECIMALS,
-                    ).toEtherToFixedDecimals(6),
-                  );
-                  xSTRKAmount = xSTRKAmount.operate(
-                    "plus",
-                    new MyNumber(
-                      result.fees1.toString(),
-                      STRK_DECIMALS,
-                    ).toEtherToFixedDecimals(6),
-                  );
-                  STRKAmount = STRKAmount.operate(
-                    "plus",
-                    new MyNumber(
-                      result.amount0.toString(),
-                      STRK_DECIMALS,
-                    ).toEtherToFixedDecimals(6),
-                  );
-                  STRKAmount = STRKAmount.operate(
-                    "plus",
-                    new MyNumber(
-                      result.fees0.toString(),
-                      STRK_DECIMALS,
-                    ).toEtherToFixedDecimals(6),
-                  );
-                }
-              }
-            }
-          }
-        } catch (error) {
-          console.error("userEkuboxSTRKPositionsQueryAtom [3]", error);
+          STRKAmount = STRKAmount.operate(
+            "plus",
+            new MyNumber(
+              result.amount1.toString(),
+              STRK_DECIMALS,
+            ).toEtherToFixedDecimals(6),
+          );
+          STRKAmount = STRKAmount.operate(
+            "plus",
+            new MyNumber(
+              result.fees1.toString(),
+              STRK_DECIMALS,
+            ).toEtherToFixedDecimals(6),
+          );
+        } else {
+          xSTRKAmount = xSTRKAmount.operate(
+            "plus",
+            new MyNumber(
+              result.amount1.toString(),
+              STRK_DECIMALS,
+            ).toEtherToFixedDecimals(6),
+          );
+          xSTRKAmount = xSTRKAmount.operate(
+            "plus",
+            new MyNumber(
+              result.fees1.toString(),
+              STRK_DECIMALS,
+            ).toEtherToFixedDecimals(6),
+          );
+          STRKAmount = STRKAmount.operate(
+            "plus",
+            new MyNumber(
+              result.amount0.toString(),
+              STRK_DECIMALS,
+            ).toEtherToFixedDecimals(6),
+          );
+          STRKAmount = STRKAmount.operate(
+            "plus",
+            new MyNumber(
+              result.fees0.toString(),
+              STRK_DECIMALS,
+            ).toEtherToFixedDecimals(6),
+          );
         }
+      }
+    }
+  }
 
-        return {
-          xSTRKAmount,
-          STRKAmount,
-        };
-      },
-    };
-  }),
-);
+  return {
+    xSTRKAmount,
+    STRKAmount,
+  }
+}
 
-export const userEkuboxSTRKPositions = atomFamily((blockNumber?: number) =>
+const userEkuboxSTRKPositionsQueryAtom = getHoldingAtom(
+  'userEkuboxSTRKPositionsQueryAtom',
+  getEkuboHoldings
+)
+
+export const userEkuboxSTRKPositions: DAppHoldingsAtom = atomFamily((blockNumber?: number) =>
   atom((get) => {
     const { data, error } = get(userEkuboxSTRKPositionsQueryAtom(blockNumber));
 

@@ -13,58 +13,48 @@ import {
   timePeriodAtom,
   userAddressAtom,
 } from "./common.store";
+import { DAppHoldingsAtom, DAppHoldingsFn, getHoldingAtom } from "./defi.store";
 
 const VESU_XSTRK_ADDRESS =
   "0x037ff012710c5175004687bc4d9e4c6e86d6ce5ca6fb6afee72ea02b1208fdb7";
 
-export const uservXSTRKBalanceQueryAtom = atomFamily((blockNumber?: number) =>
-  atomWithQuery((get) => {
-    return {
-      queryKey: [
-        "uservXSTRKBalance",
-        get(currentBlockAtom),
-        get(userAddressAtom),
-        get(providerAtom),
-        get(timePeriodAtom),
-      ],
-      queryFn: async ({ queryKey }: any): Promise<MyNumber> => {
-        const [, , userAddress, , timePeriod] = queryKey;
-        const provider = get(providerAtom);
+export const getVesuHoldings: DAppHoldingsFn = async (
+  address: string,
+  provider: any,
+  blockNumber?: number,
+) => {
+  const VESU_xSTRK = VESU_XSTRK_ADDRESS;
+  const contract = new Contract(erc4626Abi, VESU_xSTRK, provider);
+  const shares = await contract.call("balance_of", [address], {
+    blockIdentifier: blockNumber ?? "latest",
+  });
 
-        if (!provider || !userAddress) {
-          return MyNumber.fromZero();
-        }
+  const balance = await contract.call("convert_to_assets", [shares], {
+    blockIdentifier: blockNumber ?? "latest",
+  });
 
-        try {
-          const VESU_xSTRK = VESU_XSTRK_ADDRESS;
+  console.log(balance, "balance");
+  return {
+    xSTRKAmount: new MyNumber(balance.toString(), STRK_DECIMALS),
+    STRKAmount: MyNumber.fromZero(),
+  }
+}
 
-          const contract = new Contract(erc4626Abi, VESU_xSTRK, provider);
+export const uservXSTRKBalanceQueryAtom = getHoldingAtom(
+  'uservXSTRKBalance',
+  getVesuHoldings,
+)
 
-          const shares = await contract.call("balance_of", [userAddress], {
-            blockIdentifier: blockNumber ?? "latest",
-          });
-
-          const balance = await contract.call("convert_to_assets", [shares], {
-            blockIdentifier: blockNumber ?? "latest",
-          });
-
-          console.log(balance, "balance");
-          return new MyNumber(balance.toString(), STRK_DECIMALS);
-        } catch (error) {
-          console.error("userXSTRKBalanceAtom [3]", error);
-          return MyNumber.fromZero();
-        }
-      },
-    };
-  }),
-);
-
-export const uservXSTRKBalanceAtom = atomFamily((blockNumber?: number) =>
+export const uservXSTRKBalanceAtom: DAppHoldingsAtom = atomFamily((blockNumber?: number) =>
   atom((get) => {
     const { data, error } = get(uservXSTRKBalanceQueryAtom(blockNumber));
 
     return {
-      value: error || !data ? MyNumber.fromZero() : data,
+      data:
+      error || !data ? {
+        xSTRKAmount: MyNumber.fromZero(),
+        STRKAmount: MyNumber.fromZero(),
+      } : data,
       error,
       isLoading: !data && !error,
     };

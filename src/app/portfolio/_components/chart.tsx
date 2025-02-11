@@ -31,10 +31,13 @@ const chartConfig = {
 export function Chart({
   chartData,
 }: {
+  // ? ADD_NEW_PROTOCOL: Update this
   chartData: {
     date: string;
-    strk: number;
-    usdt: number;
+    nostra: number;
+    ekubo: number;
+    vesu: number;
+    wallet: number;
   }[];
 }) {
   const [timeRange, setTimeRange] = useAtom(chartFilter);
@@ -203,21 +206,36 @@ export function Chart({
               stroke="#17876D"
               stackId="b"
             /> */}
-
+            {/* // ? ADD_NEW_PROTOCOL: Update this */}
             <Line
-              dataKey="strk"
+              dataKey="nostra"
               type="monotone"
               stroke="#EC796B"
               strokeWidth={2}
               dot={false}
             />
             <Line
-              dataKey="usdt"
+              dataKey="vesu"
               type="monotone"
               stroke="#17876D"
               strokeWidth={2}
               dot={false}
             />
+             <Line
+              dataKey="ekubo"
+              type="monotone"
+              stroke="#17876D"
+              strokeWidth={2}
+              dot={false}
+            />
+             <Line
+              dataKey="wallet"
+              type="monotone"
+              stroke="#17876D"
+              strokeWidth={2}
+              dot={false}
+            />
+            
           </LineChart>
           {/* </AreaChart> */}
         </ChartContainer>

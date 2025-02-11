@@ -19,6 +19,9 @@ import {
   strkPriceAtom,
   userAddressAtom,
 } from "./common.store";
+import { atomFamily } from "jotai/utils";
+import { get } from "http";
+import { DAppHoldings, DAppHoldingsAtom, DAppHoldingsFn, getHoldingAtom } from "./defi.store";
 
 export function getLSTContract(provider: RpcProvider) {
   return new Contract(erc4626Abi, LST_ADDRRESS, provider);
@@ -27,6 +30,41 @@ export function getLSTContract(provider: RpcProvider) {
 export function getNstSTRKContract(provider: RpcProvider) {
   return new Contract(nostraSTRKAbi, NST_STRK_ADDRESS, provider);
 }
+
+const getXSTRKHoldings: DAppHoldingsFn = async (
+  address: string,
+  provider: RpcProvider,
+  blockNumber?: number,
+) => {
+  const lstContract = getLSTContract(provider);
+  const balance = await lstContract.call("balance_of", [address], {
+    blockIdentifier: blockNumber ?? "latest",
+  });
+  return {
+    xSTRKAmount: new MyNumber(balance.toString(), STRK_DECIMALS),
+    STRKAmount: MyNumber.fromZero(),
+  };
+}
+
+const userXSTRKBalanceByBlockQueryAtom = getHoldingAtom(
+  'userXSTRKBalance',
+  getXSTRKHoldings,
+)
+
+export const userXSTRKBalanceByBlockAtom: DAppHoldingsAtom = atomFamily((blockNumber?: number) => {
+  return atom((get) => {
+    const { data, error } = get(userXSTRKBalanceByBlockQueryAtom(blockNumber));
+
+    return {
+      data: error || !data ? {
+        xSTRKAmount: MyNumber.fromZero(),
+        STRKAmount: MyNumber.fromZero(),
+      } : data,
+      error,
+      isLoading: !data && !error,
+    };
+  });
+});
 
 const userXSTRKBalanceQueryAtom = atomWithQuery((get) => {
   return {
@@ -38,19 +76,9 @@ const userXSTRKBalanceQueryAtom = atomWithQuery((get) => {
       get(providerAtom),
     ],
     queryFn: async ({ queryKey }: any): Promise<MyNumber> => {
-      const [, , userAddress] = queryKey;
-      const provider = get(providerAtom);
-      if (!provider || !userAddress) {
-        return MyNumber.fromZero();
-      }
-      try {
-        const lstContract = getLSTContract(provider);
-        const balance = await lstContract.call("balance_of", [userAddress]);
-        return new MyNumber(balance.toString(), STRK_DECIMALS);
-      } catch (error) {
-        console.error("userXSTRKBalanceAtom [3]", error);
-        return MyNumber.fromZero();
-      }
+      const currentBlock = queryKey[1];
+      const res = get(userXSTRKBalanceByBlockQueryAtom(currentBlock));
+      return res.data?.xSTRKAmount || MyNumber.fromZero();
     },
   };
 });
@@ -129,7 +157,6 @@ export const userSTRKBalanceQueryAtom = atomWithQuery((get) => {
       get(userXSTRKBalanceAtom),
     ],
     queryFn: async ({ queryKey }: any): Promise<MyNumber> => {
-      const { data, error } = get(userXSTRKBalanceQueryAtom);
       const provider = get(providerAtom);
       const userAddress = get(userAddressAtom);
       const xSTRKBalance = get(userXSTRKBalanceAtom);
@@ -178,39 +205,60 @@ export const userSTRKBalanceAtom = atom((get) => {
   };
 });
 
-export const totalStakedQueryAtom = atomWithQuery((get) => {
+export const totalStakedQueryAtom = atomFamily((blockNumber?: number) => {
+  return atomWithQuery((get) => {
+    return {
+      queryKey: ["totalStaked", blockNumber, get(providerAtom)],
+      queryFn: async ({ queryKey }: any): Promise<MyNumber> => {
+        const provider = get(providerAtom);
+        if (!provider) {
+          return MyNumber.fromZero();
+        }
+
+        try {
+          const lstContract = getLSTContract(provider);
+          const balance = await lstContract.call("total_assets", [], {
+            blockIdentifier: blockNumber ?? "latest",
+          })
+          return new MyNumber(balance.toString(), STRK_DECIMALS);
+        } catch (error) {
+          console.error("totalStakedAtom [3]", error);
+          return MyNumber.fromZero();
+        }
+      },
+      staleTime: Infinity, // Prevents automatic refetching
+      cacheTime: 60000, // Keeps old block data for 60s
+    };
+  });
+});
+
+export const totalStakedCurrentBlockQueryAtom = atomWithQuery((get) => {
   return {
     queryKey: ["totalStaked", get(currentBlockAtom), get(providerAtom)],
-    queryFn: async ({ queryKey }: any): Promise<MyNumber> => {
-      const provider = get(providerAtom);
-      if (!provider) {
-        return MyNumber.fromZero();
-      }
-
-      try {
-        const lstContract = getLSTContract(provider);
-        const balance = await lstContract.call("total_assets");
-        return new MyNumber(balance.toString(), STRK_DECIMALS);
-      } catch (error) {
-        console.error("totalStakedAtom [3]", error);
-        return MyNumber.fromZero();
-      }
-    },
-  };
+    queryFn: async ({ queryKey }: any) => {
+      const currentBlock = await get(currentBlockAtom);
+      const { data, error } = get(totalStakedQueryAtom(currentBlock));
+      return {
+        value: error || !data ? MyNumber.fromZero() : data,
+        error,
+        isLoading: !data && !error,
+      };
+    }
+  }
 });
 
 export const totalStakedAtom = atom((get) => {
-  const { data, error } = get(totalStakedQueryAtom);
+  const { data, error, isLoading } = get(totalStakedCurrentBlockQueryAtom);
   return {
-    value: error || !data ? MyNumber.fromZero() : data,
+    value: error || data?.error || !data?.value ? MyNumber.fromZero() : data.value,
     error,
-    isLoading: !data && !error,
+    isLoading: isLoading
   };
 });
 
-export const totalSupplyQueryAtom = atomWithQuery((get) => {
-  return {
-    queryKey: ["totalSupply", get(currentBlockAtom), get(providerAtom)],
+export const totalSupplyQueryAtom = atomFamily((blockNumber?: number) => {
+  return atomWithQuery((get) => ({
+    queryKey: ["totalSupply", blockNumber, get(providerAtom)],
     queryFn: async ({ queryKey }: any): Promise<MyNumber> => {
       const provider = get(providerAtom);
       if (!provider) {
@@ -219,29 +267,41 @@ export const totalSupplyQueryAtom = atomWithQuery((get) => {
 
       try {
         const lstContract = getLSTContract(provider);
-        const balance = await lstContract.call("total_supply");
+        const balance = await lstContract.call("total_supply", [], {
+          blockIdentifier: blockNumber ?? "latest",
+        });
         return new MyNumber(balance.toString(), STRK_DECIMALS);
       } catch (error) {
         console.error("totalSupplyAtom [3]", error);
         return MyNumber.fromZero();
       }
     },
-  };
+  }));
 });
 
-export const totalSupplyAtom = atom((get) => {
-  const { data, error } = get(totalSupplyQueryAtom);
+export const totalSupplyCurrentBlockAtom = atomWithQuery((get) => {
   return {
-    value: error || !data ? MyNumber.fromZero() : data,
-    error,
-    isLoading: !data && !error,
-  };
+    queryKey: ["totalSupply", get(currentBlockAtom), get(providerAtom)],
+    queryFn: async ({ queryKey }: any) => {
+      const currentBlock = await get(currentBlockAtom);
+      const { data, error } = get(totalSupplyQueryAtom(currentBlock));
+      return {
+        value: error || !data ? MyNumber.fromZero() : data,
+        error,
+        isLoading: !data && !error,
+      };
+    }
+  }
 });
 
 export const exchangeRateAtom = atom((get) => {
-  const totalStaked = get(totalStakedAtom);
-  const totalSupply = get(totalSupplyAtom);
-  if (totalSupply.value.isZero()) {
+  const totalStaked = get(totalStakedCurrentBlockQueryAtom);
+  const totalSupply = get(totalSupplyCurrentBlockAtom);
+  if (
+    totalStaked.isLoading || totalSupply.isLoading || 
+    totalStaked.error || totalSupply.error || 
+    !totalStaked.data || !totalSupply.data
+  ) {
     // return ex rate as zero
     // Note: Technically it should be one, but
     // here we assume that if its zero, something wrong
@@ -252,16 +312,48 @@ export const exchangeRateAtom = atom((get) => {
       isLoading: totalStaked.isLoading || totalSupply.isLoading,
     };
   }
-  console.log("exchangeRateAtom", totalStaked.value, totalSupply.value);
+  console.log("exchangeRateAtom", totalStaked.data.value, totalSupply.data.value);
   return {
     rate:
-      Number(totalStaked.value.toEtherStr()) /
-      Number(totalSupply.value.toEtherStr()),
-    preciseRate: totalStaked.value
+      Number(totalStaked.data.value.toEtherStr()) /
+      Number(totalSupply.data.value.toEtherStr()),
+    preciseRate: totalStaked.data.value
       .operate("multipliedBy", MyNumber.fromEther("1", 18).toString())
-      .operate("div", totalSupply.value.toString()),
+      .operate("div", totalSupply.data.value.toString() || '1'),
     isLoading: totalStaked.isLoading || totalSupply.isLoading,
   };
+});
+
+export const exchangeRateByBlockAtom = atomFamily((blockNumber?: number) => {
+  return atom((get) => {
+    const totalStaked = get(totalStakedQueryAtom(blockNumber));
+    const totalSupply = get(totalSupplyQueryAtom(blockNumber));
+    if (
+      totalStaked.isLoading || totalSupply.isLoading ||
+      totalStaked.error || totalSupply.error ||
+      !totalStaked.data || !totalSupply.data
+    ) {
+      // return ex rate as zero
+      // Note: Technically it should be one, but
+      // here we assume that if its zero, something wrong
+      // in our requests and return 0 to avoid any user side confusion
+      return {
+        rate: 0,
+        preciseRate: MyNumber.fromZero(),
+        isLoading: totalStaked.isLoading || totalSupply.isLoading,
+      };
+    }
+    console.log("exchangeRateByBlockAtom", totalStaked.data, totalSupply.data);
+    return {
+      rate:
+        Number(totalStaked.data.toEtherStr()) /
+        Number(totalSupply.data.toEtherStr()),
+      preciseRate: totalStaked.data
+        .operate("multipliedBy", MyNumber.fromEther("1", 18).toString())
+        .operate("div", totalSupply.data.toString() || '1'),
+      isLoading: totalStaked.isLoading || totalSupply.isLoading,
+    };
+  })
 });
 
 export const totalStakedUSDAtom = atom((get) => {

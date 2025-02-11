@@ -47,7 +47,7 @@ const DefiHoldings: React.FC = () => {
   const ekuboPosi = useAtomValue(userEkuboxSTRKPositions(undefined));
 
   const chartData = [
-    { dapp: "nostra", holdings: nostraBal.value, fill: "#FF4240" },
+    { dapp: "nostra", holdings: Number(nostraBal.data.xSTRKAmount.toEtherToFixedDecimals(2)), fill: "#FF4240" },
     {
       dapp: "ekubo",
       holdings: Number(ekuboPosi.data.xSTRKAmount.toEtherStr() || 0),
@@ -55,7 +55,7 @@ const DefiHoldings: React.FC = () => {
     },
     {
       dapp: "vesu",
-      holdings: Number(vxStrkBalance.value.toEtherToFixedDecimals(2)),
+      holdings: Number(vxStrkBalance.data.xSTRKAmount.toEtherToFixedDecimals(2)),
       fill: "#9F91F6",
     },
     {
