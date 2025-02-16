@@ -13,6 +13,7 @@ import {
 } from '@avnu/gasless-sdk';
 import { AccountInterface, AccountInvocationItem, Call, EstimateFee, TransactionType } from 'starknet';
 import { toast } from '@/hooks/use-toast';
+import { TOKENS } from '@/constants';
 
 const AVNU_BASE_URL = process.env.NEXT_PUBLIC_AVNU_API_URL || 'https://sepolia.api.avnu.fi';
 
@@ -27,6 +28,7 @@ export function useAvnuPaymaster() {
   const [error, setError] = useState<string | null>(null);
   const [isApiAvailable, setIsApiAvailable] = useState(true);
   const [currentEstimatedFees, setCurrentEstimatedFees] = useState<bigint>(BigInt(0));
+  const [toastShown, setToastShown] = useState(false);
 
   const options: GaslessOptions = {
     baseUrl: AVNU_BASE_URL,
@@ -49,12 +51,13 @@ export function useAvnuPaymaster() {
 
     const initializePaymaster = async () => {
       const isAvailable = await checkApiAvailability();
-      if (!isAvailable) {
+      if (!isAvailable && !toastShown) {
         toast({
           title: "Paymaster Service Unavailable",
           description: "Using regular transaction method",
           variant: "destructive"
         });
+        setToastShown(true);
         return;
       }
 
@@ -67,8 +70,21 @@ export function useAvnuPaymaster() {
 
         setCompatibility(compatibilityResult);
         setRewards(rewardsResult);
-        setGasTokenPrices(pricesResult);
-        setSelectedGasToken(pricesResult[0]);
+
+        // Map gasTokenPrices to include the symbol property
+        const updatedGasTokenPrices = pricesResult.map(token => ({
+          ...token,
+          symbol: TOKENS.find(t => t.address === token.tokenAddress)?.symbol || 'UNKNOWN',
+          priceInUSD: token.priceInUSD || 0,
+        }));
+
+        setGasTokenPrices(updatedGasTokenPrices);
+        console.log("Gas Token Prices:", updatedGasTokenPrices);
+
+        // Set the default gas token to STRK if available, otherwise ETH
+        const defaultGasToken = updatedGasTokenPrices.find(t => t.symbol === 'STRK') || updatedGasTokenPrices[0];
+        setSelectedGasToken(defaultGasToken);
+        console.log("Selected Gas Token (Default):", defaultGasToken);
       } catch (err) {
         console.error('Failed to initialize paymaster:', err);
         setError('Failed to initialize paymaster services');
@@ -77,71 +93,68 @@ export function useAvnuPaymaster() {
     };
 
     initializePaymaster();
-  }, [address, checkApiAvailability, options]);
+  }, [address, checkApiAvailability, options, toastShown]);
 
-
-const estimateGasFees = useCallback(async (calls: Call[]): Promise<bigint> => {
-  if (!account || !provider || !selectedGasToken) return BigInt(0);
-  
-  try {
-    // Format calls for estimation with all required properties
-    const invocations: AccountInvocationItem[] = calls.map(call => ({
-      type: TransactionType.INVOKE,
-      calldata: call.calldata,
-      contractAddress: call.contractAddress,
-      entrypoint: call.entrypoint,
-      nonce: 0,
-      maxFee: 0,
-      version: 1,
-    }));
+  const estimateGasFees = useCallback(async (calls: Call[]): Promise<bigint> => {
+    if (!account || !provider || !selectedGasToken) return BigInt(0);
     
-    // Get real fee estimation from the network with block identifier
-    const estimationResult = await provider.getEstimateFeeBulk(invocations, {
-      blockIdentifier: 'pending'
-    });
+    try {
+      const invocations: AccountInvocationItem[] = calls.map(call => ({
+        type: TransactionType.INVOKE,
+        calldata: call.calldata,
+        contractAddress: call.contractAddress,
+        entrypoint: call.entrypoint,
+        nonce: 0,
+        maxFee: 0,
+        version: 1,
+      }));
+      
+      const estimationResult = await provider.getEstimateFeeBulk(invocations, {
+        blockIdentifier: 'pending'
+      });
 
-    if (!estimationResult?.length) {
-      throw new Error('Failed to estimate fees');
+      if (!estimationResult?.length) {
+        throw new Error('Failed to estimate fees');
+      }
+
+      const overallFee = estimationResult.reduce((acc, fee) => {
+        const feeBigInt = BigInt(fee.overall_fee || 0);
+        return acc + feeBigInt;
+      }, BigInt(0));
+      
+      if (overallFee <= BigInt(0)) {
+        throw new Error('Invalid fee estimation');
+      }
+
+      if (!compatibility) {
+        setCurrentEstimatedFees(overallFee);
+        return overallFee;
+      }
+
+      const gasFeesWithMargin = (overallFee * BigInt(110)) / BigInt(100);
+
+      const gasFeesInToken = getGasFeesInGasToken(
+        gasFeesWithMargin,
+        selectedGasToken,
+        BigInt(estimationResult[0]?.gas_price || 0),
+        BigInt(estimationResult[0]?.data_gas_price || 0),
+        compatibility.gasConsumedOverhead,
+        compatibility.dataGasConsumedOverhead
+      );
+
+      if (gasFeesInToken <= BigInt(0)) {
+        throw new Error('Invalid gas token conversion');
+      }
+
+      setCurrentEstimatedFees(gasFeesInToken);
+      return gasFeesInToken;
+    } catch (error) {
+      console.error('Error estimating gas fees:', error);
+      const fallbackFee = BigInt('1000000000000000'); 
+      setCurrentEstimatedFees(fallbackFee);
+      return fallbackFee;
     }
-
-    const overallFee = estimationResult.reduce((acc, fee) => {
-      const feeBigInt = BigInt(fee.overall_fee || 0);
-      return acc + feeBigInt;
-    }, BigInt(0));
-    
-    if (overallFee <= BigInt(0)) {
-      throw new Error('Invalid fee estimation');
-    }
-
-    if (!compatibility) {
-      setCurrentEstimatedFees(overallFee);
-      return overallFee;
-    }
-
-    const gasFeesWithMargin = (overallFee * BigInt(110)) / BigInt(100);
-
-    const gasFeesInToken = getGasFeesInGasToken(
-      gasFeesWithMargin,
-      selectedGasToken,
-      BigInt(estimationResult[0]?.gas_price || 0),
-      BigInt(estimationResult[0]?.data_gas_price || 0),
-      compatibility.gasConsumedOverhead,
-      compatibility.dataGasConsumedOverhead
-    );
-
-    if (gasFeesInToken <= BigInt(0)) {
-      throw new Error('Invalid gas token conversion');
-    }
-
-    setCurrentEstimatedFees(gasFeesInToken);
-    return gasFeesInToken;
-  } catch (error) {
-    console.error('Error estimating gas fees:', error);
-    const fallbackFee = BigInt('1000000000000000'); 
-    setCurrentEstimatedFees(fallbackFee);
-    return fallbackFee;
-  }
-}, [account, provider, selectedGasToken, compatibility]);
+  }, [account, provider, selectedGasToken, compatibility]);
 
   const executeTransaction = useCallback(async (calls: Call[]) => {
     if (!account || !selectedGasToken) {

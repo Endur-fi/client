@@ -1,8 +1,6 @@
 "use client"
 
 import { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { useAccount, useProvider } from "@starknet-react/core";
 import { Contract } from "starknet";
 import { Fuel } from 'lucide-react';
@@ -11,22 +9,21 @@ import { cn } from "@/lib/utils";
 import { formatUnits } from "ethers";
 import { useAvnuPaymaster } from '@/hooks/use-avnu-paymaster';
 import { ERC20_ABI, Token, TOKENS } from '@/constants';
-
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 const TokenSelector = ({ isMobile }: { isMobile?: boolean }) => {
   const [selectedToken, setSelectedToken] = useState<Token | null>(null);
   const [tokens, setTokens] = useState<Token[]>([]);
-  const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const { address } = useAccount();
   const { provider } = useProvider();
-  const { gasTokenPrices, setSelectedGasToken } = useAvnuPaymaster();
+  const { gasTokenPrices, setSelectedGasToken, selectedGasToken } = useAvnuPaymaster();
 
   async function getTokenBalance(tokenAddress: string, accountAddress: string): Promise<bigint> {
     try {
       const contract = new Contract(ERC20_ABI, tokenAddress, provider);
       const response = await contract.balanceOf(accountAddress);
-      const balance = typeof response === 'string' ? response : response.balance?.low?.toString() || '0';
+      const balance = typeof response === "string" ? response : response.balance?.low?.toString() || "0";
       return BigInt(balance);
     } catch (error) {
       console.error(`Error fetching balance for token ${tokenAddress}:`, error);
@@ -36,16 +33,18 @@ const TokenSelector = ({ isMobile }: { isMobile?: boolean }) => {
 
   function getDefaultToken(availableTokens: Token[]): Token | null {
     // Check for xSTRK with positive balance
-    const xSTRK = availableTokens.find(t => t.symbol === 'xSTRK' && t.balance && t.balance > 0);
+    const xSTRK = availableTokens.find((t) => t.symbol === "xSTRK" && t.balance && t.balance > 0);
     if (xSTRK) return xSTRK;
 
-    // Check other tokens in priority order
-    const priorityOrder = ['ETH', 'STRK', 'USDT', 'USDC', 'DAI'];
-    for (const symbol of priorityOrder) {
-      const priorityToken = availableTokens.find(t => t.symbol === symbol && t.balance && t.balance > 0);
-      if (priorityToken) return priorityToken;
-    }
+    // Check for STRK with positive balance
+    const STRK = availableTokens.find((t) => t.symbol === "STRK" && t.balance && t.balance > 0);
+    if (STRK) return STRK;
 
+    // Check for ETH with positive balance
+    const ETH = availableTokens.find((t) => t.symbol === "ETH" && t.balance && t.balance > 0);
+    if (ETH) return ETH;
+
+    // Fallback to the first available token
     return availableTokens[0] || null;
   }
 
@@ -62,17 +61,20 @@ const TokenSelector = ({ isMobile }: { isMobile?: boolean }) => {
             const balance = await getTokenBalance(token.address, address);
             return {
               ...token,
-              balance: Number(formatUnits(balance, token.decimals))
+              balance: Number(formatUnits(balance, token.decimals)),
             };
           })
         );
 
         const sortedTokens = tokensWithBalances.sort((a, b) => (b.balance || 0) - (a.balance || 0));
         setTokens(sortedTokens);
+        console.log("Tokens with Balances:", sortedTokens);
+
         const defaultToken = getDefaultToken(sortedTokens);
         setSelectedToken(defaultToken);
+        console.log("Selected Token (Default):", defaultToken);
       } catch (error) {
-        console.error('Error loading balances:', error);
+        console.error("Error loading balances:", error);
       } finally {
         setLoading(false);
       }
@@ -86,12 +88,14 @@ const TokenSelector = ({ isMobile }: { isMobile?: boolean }) => {
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <button className={cn(
-          "flex h-10 items-center justify-center gap-2 rounded-lg border border-[#ECECED80] bg-[#AACBC433] px-3 text-sm font-bold",
-          { "h-[34px]": isMobile }
-        )}>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button
+          className={cn(
+            "flex h-10 items-center justify-center gap-2 rounded-lg border border-[#ECECED80] bg-[#AACBC433] px-3 text-sm font-bold",
+            { "h-[34px]": isMobile }
+          )}
+        >
           {selectedToken ? (
             <>
               <div className="flex items-center gap-2">
@@ -112,67 +116,58 @@ const TokenSelector = ({ isMobile }: { isMobile?: boolean }) => {
             <span>Select Token</span>
           )}
         </button>
-      </DialogTrigger>
+      </DropdownMenuTrigger>
 
-      <DialogContent className="max-w-sm p-0 overflow-hidden bg-gradient-to-b from-[#AACBC433] to-white">
-        <DialogHeader className="p-6 pb-4">
-          <DialogTitle className="text-xl leading-tight font-normal">
-            Pay network fees with a token of your choice
-          </DialogTitle>
-          <p className="text-lg font-bold">Wallet Default</p>
-        </DialogHeader>
-
-        <ScrollArea className="max-h-[300px] overflow-y-auto">
-          <div className="divide-y divide-[#AACBC480]">
-            {loading ? (
-              <p className="p-4">Loading tokens...</p>
-            ) : (
-              tokens.map((token) => (
-                <button
-                  key={token.address}
-                  className={cn(
-                    "flex items-center w-full px-6 py-4 transition focus:outline-none",
-                    token.balance && token.balance > 0
-                      ? "hover:bg-[#AACBC433] focus:bg-[#AACBC433]"
-                      : "opacity-50 cursor-not-allowed"
-                  )}
-                  onClick={() => {
-                    if (token.balance && token.balance > 0) {
-                      const gasToken = gasTokenPrices.find(t => t.tokenAddress === token.address);
-                      console.error({ gasTokenPrices })
-                      if (gasToken) {
-                        setSelectedGasToken(gasToken);
-                        setSelectedToken(token);
-                        setOpen(false);
-                      }
+      <DropdownMenuContent className="max-w-sm p-0 overflow-hidden bg-gradient-to-b from-[#AACBC433] to-white">
+        <div className="divide-y divide-[#AACBC480]">
+          {loading ? (
+            <p className="p-4">Loading tokens...</p>
+          ) : (
+            tokens.map((token) => (
+              <DropdownMenuItem
+                key={token.address}
+                className={cn(
+                  "flex items-center w-full px-6 py-4 transition focus:outline-none",
+                  token.balance && token.balance > 0
+                    ? "hover:bg-[#AACBC433] focus:bg-[#AACBC433]"
+                    : "opacity-50 cursor-not-allowed"
+                )}
+                onClick={() => {
+                  if (token.balance && token.balance > 0) {
+                    const gasToken = gasTokenPrices.find((t) => t.tokenAddress === token.address);
+                    if (gasToken) {
+                      setSelectedGasToken(gasToken);
+                      setSelectedToken(token);
+                      console.log("Selected Gas Token:", gasToken);
+                      console.log("Selected Token:", token);
                     }
-                  }}
-                  disabled={!token.balance || token.balance === 0}
-                >
-                  <div className="flex items-center flex-1 gap-3">
-                    <div className="flex items-center justify-center w-8 h-8 rounded-full bg-[#AACBC433]">
-                      <Image
-                        src={token.logoUrl}
-                        alt={`${token.symbol} icon`}
-                        width={24}
-                        height={24}
-                        className="w-6 h-6"
-                      />
-                    </div>
-                    <span className="text-base font-medium text-[#03624C]">
-                      {token.symbol}
-                    </span>
+                  }
+                }}
+                disabled={!token.balance || token.balance === 0}
+              >
+                <div className="flex items-center flex-1 gap-3">
+                  <div className="flex items-center justify-center w-8 h-8 rounded-full bg-[#AACBC433]">
+                    <Image
+                      src={token.logoUrl}
+                      alt={`${token.symbol} icon`}
+                      width={24}
+                      height={24}
+                      className="w-6 h-6"
+                    />
                   </div>
-                  <span className="text-base tabular-nums">
-                    {token.balance?.toFixed(4) ?? '0.0000'}
+                  <span className="text-base font-medium text-[#03624C]">
+                    {token.symbol}
                   </span>
-                </button>
-              ))
-            )}
-          </div>
-        </ScrollArea>
-      </DialogContent>
-    </Dialog>
+                </div>
+                <span className="text-base tabular-nums">
+                  {token.balance?.toFixed(4) ?? "0.0000"}
+                </span>
+              </DropdownMenuItem>
+            ))
+          )}
+        </div>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 };
 
