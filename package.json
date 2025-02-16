@@ -13,6 +13,7 @@
   "dependencies": {
     "@apollo/client": "^3.11.10",
     "@avnu/avnu-sdk": "^3.0.0",
+    "@avnu/gasless-sdk": "^0.1.7",
     "@duneanalytics/client-sdk": "^0.2.4",
     "@hookform/resolvers": "^3.9.1",
     "@prisma/client": "5.22.0",
