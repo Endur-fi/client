@@ -40,7 +40,6 @@ import {
 import { isMerryChristmasAtom, tabsAtom } from "@/store/merry.store";
 
 import { Icons } from "./Icons";
-import MigrateNostra from "./migrate-nostra";
 import MobileNav from "./mobile-nav";
 import { useSidebar } from "./ui/sidebar";
 import TokenSelector from "./paymaster-modal";
@@ -225,11 +224,11 @@ const Navbar = ({ className }: { className?: string }) => {
     >
       {isMobile && <MobileNav />}
 
-      <div className="flex items-center gap-4">
-        {!isMobile && NETWORK == constants.NetworkName.SN_MAIN && (
+      <div className="relative flex items-center gap-4">
+        {/* {!isMobile && NETWORK === constants.NetworkName.SN_MAIN && (
           <MigrateNostra />
-        )}
-        {address && <TokenSelector isMobile={isMobile} />}
+        )} */}
+
         <button
           className={cn(
             "flex h-10 items-center justify-center gap-2 rounded-lg border border-[#ECECED80] bg-[#AACBC433] text-sm font-bold text-[#03624C] focus-visible:outline-[#03624C]",
@@ -295,6 +294,27 @@ const Navbar = ({ className }: { className?: string }) => {
             </>
           )}
         </button>
+
+        {/* {activeTab !== "withdraw" && isMerry && (
+          <div className="hidden transition-all duration-500 lg:block">
+            <div className="group absolute -bottom-[138px] right-12">
+              <Icons.bell1Faded className="group-hover:hidden" />
+              <Icons.bell1 className="hidden group-hover:block" />
+              <p className="absolute -bottom-[4.3rem] -left-12 hidden w-44 rounded-md border border-[#03624C] bg-white p-2 text-sm text-[#03624C] transition-all group-hover:flex">
+                May 2025 be a multi-bagger year for you 😉
+              </p>
+            </div>
+
+            <div className="group absolute -bottom-[65px] right-6">
+              <Icons.bell2Faded className="group-hover:hidden" />
+              <Icons.bell2 className="hidden group-hover:block" />
+              <p className="absolute -bottom-[5.5rem] -left-24 hidden w-44 rounded-md border border-[#03624C] bg-white p-2 text-sm text-[#03624C] transition-all group-hover:flex">
+                We love you for being on Starknet and choosing Endur to stake
+                with.
+              </p>
+            </div>
+          </div>
+        )} */}
       </div>
     </div>
   );

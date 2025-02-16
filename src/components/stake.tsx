@@ -1,6 +1,6 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 
+import { useState, useMemo } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   useAccount,
@@ -10,14 +10,14 @@ import {
   useProvider
 } from "@starknet-react/core";
 import { useAtom, useAtomValue } from "jotai";
-import { Info } from 'lucide-react';
-import { Figtree } from 'next/font/google';
+import { Info, ChevronDown } from "lucide-react";
+import { Figtree } from "next/font/google";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import React from "react";
 import { useForm } from "react-hook-form";
 import { TwitterShareButton } from "react-share";
-import { Contract } from "starknet";
+import { Call, Contract } from "starknet";
 import {
   connect,
   ConnectOptionsWithConnectors,
@@ -27,6 +27,8 @@ import * as z from "zod";
 import { formatUnits } from "ethers";
 
 import erc4626Abi from "@/abi/erc4626.abi.json";
+import vxstrkAbi from "@/abi/vxstrk.abi.json";
+import ixstrkAbi from "@/abi/ixstrk.abi.json";
 import {
   Dialog,
   DialogContent,
@@ -34,25 +36,34 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormMessage,
-} from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { getEndpoint, NETWORK, REWARD_FEES, STRK_TOKEN } from "@/constants";
+import {
+  getEndpoint,
+  NETWORK,
+  REWARD_FEES,
+  STRK_TOKEN,
+  VESU_vXSTRK_ADDRESS,
+  NOSTRA_iXSTRK_ADDRESS,
+  LST_ADDRRESS,
+} from "@/constants";
 import { toast, useToast } from "@/hooks/use-toast";
 import MyNumber from "@/lib/MyNumber";
-import { cn, formatNumber, formatNumberWithCommas } from "@/lib/utils";
+import {
+  cn,
+  formatNumber,
+  formatNumberWithCommas,
+  eventNames,
+} from "@/lib/utils";
+import { MyAnalytics } from "@/lib/analytics";
 import {
   exchangeRateAtom,
+  getLSTContract,
   totalStakedAtom,
   totalStakedUSDAtom,
   userSTRKBalanceAtom,
@@ -63,31 +74,51 @@ import {
 } from "@/store/merry.store";
 import { snAPYAtom } from "@/store/staking.store";
 import { isTxAccepted } from "@/store/transactions.atom";
+import { protocolYieldsAtom } from "@/store/defi.store";
 
-import { MyAnalytics } from "@/lib/analytics";
 import { Icons } from "./Icons";
 import { getConnectors } from "./navbar";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { useSidebar } from "./ui/sidebar";
+import { PlatformCard } from "./platform-card";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import { providerAtom } from "@/store/common.store";
 import { useAvnuPaymaster } from '@/hooks/use-avnu-paymaster';
+
 
 const font = Figtree({ subsets: ["latin-ext"] });
 
 const formSchema = z.object({
   stakeAmount: z.string().refine(
     (v) => {
+      if (!v) return false;
       const n = Number(v);
-      return !isNaN(n) && v?.length > 0 && n > 0;
+      return !isNaN(n) && n > 0 && n < Number.MAX_SAFE_INTEGER;
     },
-    { message: "Invalid input" },
+    { message: "Please enter a valid amount" },
   ),
 });
 
 export type FormValues = z.infer<typeof formSchema>;
 
+type Platform = "none" | "vesu" | "nostra-lend";
+
+const PLATFORMS = {
+  VESU: "vesu",
+  NOSTRA: "nostra-lend",
+} as const;
+
+type ValidPlatform = (typeof PLATFORMS)[keyof typeof PLATFORMS];
+
 const Stake: React.FC = () => {
   const [showShareModal, setShowShareModal] = React.useState(false);
+  const [selectedPlatform, setSelectedPlatform] = useState<Platform>("none");
+  const [isLendingOpen, setIsLendingOpen] = useState(false);
 
   const searchParams = useSearchParams();
 
@@ -109,6 +140,8 @@ const Stake: React.FC = () => {
   const exchangeRate = useAtomValue(exchangeRateAtom);
   const totalStakedUSD = useAtomValue(totalStakedUSDAtom);
   const apy = useAtomValue(snAPYAtom);
+  const yields = useAtomValue(protocolYieldsAtom);
+  const rpcProvider = useAtomValue(providerAtom);
 
   const referrer = searchParams.get("referrer");
 
@@ -128,17 +161,36 @@ const Stake: React.FC = () => {
     provider
   );
 
-  const contract = new Contract(
-    erc4626Abi,
-    process.env.NEXT_PUBLIC_LST_ADDRESS as string,
-    provider
-  );
+  const contract = rpcProvider ? getLSTContract(rpcProvider) : null;
 
   const { sendAsync, data, isPending, error } = useSendTransaction({});
   const { executeTransaction, selectedGasToken, loading: paymasterLoading, estimatedGasFees } = useAvnuPaymaster();
 
+
+  const getPlatformYield = (platform: Platform) => {
+    if (platform === "none") return 0;
+    const key = platform === "vesu" ? "vesu" : "nostra-lend";
+    return yields[key]?.value ?? 0;
+  };
+
+  const sortedPlatforms = useMemo(() => {
+    return Object.values(PLATFORMS).sort((a, b) => {
+      const totalSuppliedA = yields[a]?.totalSupplied || 0;
+      const totalSuppliedB = yields[b]?.totalSupplied || 0;
+      return totalSuppliedB - totalSuppliedA;
+    });
+  }, [yields]);
+
   React.useEffect(() => {
     (async () => {
+      if (data?.transaction_hash) {
+        // Track transaction init analytics
+        MyAnalytics.track(eventNames.STAKE_TX_INIT, {
+          address,
+          amount: Number(form.getValues("stakeAmount")),
+          txHash: data?.transaction_hash,
+        });
+      }
       if (isPending) {
         toast({
           itemID: "stake",
@@ -162,10 +214,22 @@ const Stake: React.FC = () => {
       }
 
       if (error?.name?.includes("UserRejectedRequestError")) {
+        // Track transaction rejected analytics
+        MyAnalytics.track(eventNames.STAKE_TX_REJECTED, {
+          address,
+          amount: Number(form.getValues("stakeAmount")),
+          type: error.name,
+        });
         dismiss();
       }
 
       if (error?.name && !error?.name?.includes("UserRejectedRequestError")) {
+        // Track transaction rejected analytics
+        MyAnalytics.track(eventNames.STAKE_TX_REJECTED, {
+          address,
+          amount: Number(form.getValues("stakeAmount")),
+          type: error.name,
+        });
         toast({
           itemID: "stake",
           variant: "pending",
@@ -187,6 +251,11 @@ const Stake: React.FC = () => {
         const res = await isTxAccepted(data?.transaction_hash);
 
         if (res) {
+          // Track transaction successful analytics
+          MyAnalytics.track(eventNames.STAKE_TX_SUCCESSFUL, {
+            address,
+            amount: Number(form.getValues("stakeAmount")),
+          });
           toast({
             itemID: "stake",
             variant: "complete",
@@ -212,25 +281,25 @@ const Stake: React.FC = () => {
     })();
   }, [data, data?.transaction_hash, error?.name, form, isPending]);
 
-  React.useEffect(() => {
-    if (form.getValues("stakeAmount").toLowerCase() === "xstrk") {
-      setIsMerry(true);
-      MyAnalytics.track("Activated Merry Christmas Theme", {
-        address,
-        tab: "stake",
-      });
-    }
-  }, [form.getValues("stakeAmount"), form]);
+  // React.useEffect(() => {
+  //   if (form.getValues("stakeAmount").toLowerCase() === "xstrk") {
+  //     setIsMerry(true);
+  //     MyAnalytics.track("Activated Merry Christmas Theme", {
+  //       address,
+  //       tab: "stake",
+  //     });
+  //   }
+  // }, [form.getValues("stakeAmount"), form]);
 
-  React.useEffect(() => {
-    if (!address) return;
+  // React.useEffect(() => {
+  //   if (!address) return;
 
-    if (focusStakeInput) {
-      handleQuickStakePrice(100);
-      form.setFocus("stakeAmount");
-      setFocusStakeInput(false);
-    }
-  }, [address, focusStakeInput]);
+  //   if (focusStakeInput) {
+  //     handleQuickStakePrice(100);
+  //     form.setFocus("stakeAmount");
+  //     setFocusStakeInput(false);
+  //   }
+  // }, [address, focusStakeInput]);
 
   const connectorConfig: ConnectOptionsWithConnectors = React.useMemo(() => {
     const hostname =
@@ -295,15 +364,24 @@ const Stake: React.FC = () => {
   };
 
   const onSubmit = async (values: FormValues) => {
-    if (!contract.address || !STRK_TOKEN) {
-      toast({
-        description: "Contract addresses not properly initialized",
-        variant: "destructive"
+    const stakeAmount = Number(values.stakeAmount);
+
+    if (
+      isNaN(stakeAmount) ||
+      !Number.isFinite(stakeAmount) ||
+      stakeAmount <= 0
+    ) {
+      return toast({
+        description: (
+          <div className="flex items-center gap-2">
+            <Info className="size-5" />
+            Invalid stake amount
+          </div>
+        ),
       });
-      return;
     }
 
-    if (Number(values.stakeAmount) > Number(balance?.formatted)) {
+    if (stakeAmount > Number(balance?.formatted)) {
       return toast({
         description: (
           <div className="flex items-center gap-2">
@@ -324,51 +402,87 @@ const Stake: React.FC = () => {
         ),
       });
     }
+    // track stake button click
+    MyAnalytics.track(eventNames.STAKE_CLICK, {
+      address,
+      amount: Number(values.stakeAmount),
+    });
 
-    const call1 = contractSTRK.populate("approve", [
-      contract.address,
-      MyNumber.fromEther(values.stakeAmount, 18),
-    ]);
+    const strkAmount = MyNumber.fromEther(values.stakeAmount, 18);
+    const previewCall = await contract?.preview_deposit(strkAmount.toString());
+    const xstrkAmount = previewCall?.toString() || "0";
 
-    try {
-      if (referrer) {
-        const call2 = contract.populate("deposit_with_referral", [
-          MyNumber.fromEther(values.stakeAmount, 18),
+    const call1 = contractSTRK.populate("approve", [LST_ADDRRESS, strkAmount]);
+
+    const call2 = referrer
+      ? contract?.populate("deposit_with_referral", [
+          strkAmount,
           address,
           referrer,
-        ]);
-        if (selectedGasToken) {
-          await executeTransaction([call1, call2]);
-        } else {
-          await sendAsync([call1, call2]);
-        }
-      } else {
-        const call2 = contract.populate("deposit", [
-          MyNumber.fromEther(values.stakeAmount, 18),
+        ])
+      : contract?.populate("deposit", [strkAmount, address]);
+
+    const calls: Call[] = [call1];
+    if (call2) {
+      calls.push(call2);
+    }
+
+    if (selectedPlatform !== "none") {
+      const lstContract = new Contract(erc4626Abi, LST_ADDRRESS);
+
+      const lendingAddress =
+        selectedPlatform === "vesu"
+          ? VESU_vXSTRK_ADDRESS
+          : NOSTRA_iXSTRK_ADDRESS;
+
+      const approveCall = lstContract.populate("approve", [
+        lendingAddress,
+        xstrkAmount,
+      ]);
+
+      if (selectedPlatform === "vesu") {
+        const vesuContract = new Contract(vxstrkAbi, VESU_vXSTRK_ADDRESS);
+        const lendingCall = vesuContract.populate("deposit", [
+          xstrkAmount,
           address,
         ]);
-        if (selectedGasToken) {
-          await executeTransaction([call1, call2]);
-        } else {
-          await sendAsync([call1, call2]);
-        }
+        calls.push(approveCall, lendingCall);
+      } else {
+        const nostraContract = new Contract(ixstrkAbi, NOSTRA_iXSTRK_ADDRESS);
+        const lendingCall = nostraContract.populate("mint", [
+          address,
+          xstrkAmount,
+        ]);
+        calls.push(approveCall, lendingCall);
       }
+    }
+
+    await sendAsync(calls);
+  };
+
+  const getCalculatedXSTRK = () => {
+    const amount = form.watch("stakeAmount");
+    if (!amount || isNaN(Number(amount)) || Number(amount) <= 0) return "0";
+
+    try {
+      return formatNumberWithCommas(
+        MyNumber.fromEther(amount, 18)
+          .operate("multipliedBy", MyNumber.fromEther("1", 18).toString())
+          .operate("div", exchangeRate.preciseRate.toString())
+          .toEtherStr(),
+      );
     } catch (error) {
-      console.error('Transaction failed:', error);
-      toast({
-        description: "Transaction failed. Please try again.",
-        variant: "destructive"
-      });
+      return "0";
     }
   };
 
   return (
     <div className="relative h-full w-full">
-      {isMerry && (
+      {/* {isMerry && (
         <div className="pointer-events-none absolute -left-[15px] -top-[7.5rem] hidden transition-all duration-500 lg:block">
           <Icons.cloud />
         </div>
-      )}
+      )} */}
 
       <Dialog open={showShareModal} onOpenChange={setShowShareModal}>
         <DialogContent className={cn(font.className, "p-16 sm:max-w-xl")}>
@@ -385,7 +499,7 @@ const Stake: React.FC = () => {
           <div className="mt-2 flex items-center justify-center">
             <TwitterShareButton
               url={getEndpoint()}
-              title={`Just staked my STRK on Endur.fi, earning ${(apy.value * 100).toFixed(2)}% APY! 🚀 \n\nLaying the foundation for decentralising Starknet — be part of the journey at @endurfi!\n\n`}
+              title={`Just staked my STRK on Endur.fi, earning ${(apy.value * 100 + (selectedPlatform !== "none" ? getPlatformYield(selectedPlatform) : 0)).toFixed(2)}% APY! 🚀 \n\n${selectedPlatform !== "none" ? `My xSTRK is now earning an additional ${getPlatformYield(selectedPlatform).toFixed(2)}% yield on ${selectedPlatform === "vesu" ? "Vesu" : "Nostra"}! 📈\n\n` : ""}Laying the foundation for decentralising Starknet — be part of the journey at @endurfi!\n\n`}
               related={["endurfi", "strkfarm", "karnotxyz"]}
               style={{
                 display: "flex",
@@ -417,13 +531,21 @@ const Stake: React.FC = () => {
                   side="right"
                   className="max-w-56 rounded-md border border-[#03624C] bg-white text-[#03624C]"
                 >
-                  Estimated current compounded annualised yield on staking in
-                  terms of STRK.
+                  {selectedPlatform === "none"
+                    ? "Estimated current compounded annualised yield on staking in terms of STRK."
+                    : `Estimated yield including both staking and lending on ${selectedPlatform === "vesu" ? "Vesu" : "Nostra"}.`}
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
           </span>
-          ~{(apy.value * 100).toFixed(2)}%
+          <span className="flex items-center gap-1">
+            ~{(apy.value * 100).toFixed(2)}%
+            {selectedPlatform !== "none" && (
+              <span className="font-semibold text-[#17876D]">
+                + {getPlatformYield(selectedPlatform).toFixed(2)}%
+              </span>
+            )}
+          </span>
         </p>
 
         <div className="flex flex-col items-end text-xs font-bold text-[#3F6870] lg:flex-row lg:items-center lg:gap-2 lg:text-[#8D9C9C]">
@@ -453,8 +575,15 @@ const Stake: React.FC = () => {
 
       <div className="flex w-full items-center px-7 pb-1.5 pt-5 lg:gap-2">
         <div className="flex flex-1 flex-col items-start">
-          <p className="text-xs text-[#06302B]">Enter Amount (STRK)</p>
           <Form {...form}>
+            <div className="flex items-center gap-2">
+              <p className="text-xs text-[#06302B]">Enter Amount (STRK)</p>
+              {form.formState.errors.stakeAmount && (
+                <p className="text-xs text-destructive">
+                  {form.formState.errors.stakeAmount.message}
+                </p>
+              )}
+            </div>
             <form onSubmit={form.handleSubmit(onSubmit)} className="w-full">
               <FormField
                 control={form.control}
@@ -470,13 +599,13 @@ const Stake: React.FC = () => {
                         />
                       </div>
                     </FormControl>
-                    {form.getValues("stakeAmount").toLowerCase() === "xstrk" ? (
+                    {/* {form.getValues("stakeAmount").toLowerCase() === "xstrk" ? (
                       <p className="absolute -bottom-4 left-0 text-xs font-medium text-green-500 transition-all lg:left-1 lg:-ml-1">
                         Merry Christmas!
                       </p>
                     ) : (
                       <FormMessage className="absolute -bottom-5 left-0 text-xs lg:left-1" />
-                    )}
+                    )} */}
                   </FormItem>
                 )}
               />
@@ -530,12 +659,87 @@ const Stake: React.FC = () => {
         </div>
       </div>
 
+      <div className="px-7">
+        <Collapsible
+          open={isLendingOpen}
+          onOpenChange={(open) => {
+            setIsLendingOpen(open);
+            if (!open) {
+              setSelectedPlatform("none");
+            }
+          }}
+        >
+          <div className="flex items-center gap-2">
+            <CollapsibleTrigger className="flex items-center gap-1 text-sm font-medium text-[#17876D] hover:opacity-80">
+              <h3 className="font-semibold">Stake & Earn</h3>
+              <span className="text-[#8D9C9C]">(optional)</span>
+              <ChevronDown className="size-3 text-[#8D9C9C] transition-transform duration-200 data-[state=open]:rotate-180" />
+            </CollapsibleTrigger>
+            <TooltipProvider delayDuration={0}>
+              <Tooltip>
+                <TooltipTrigger>
+                  <Info className="size-3 text-[#3F6870] lg:text-[#8D9C9C]" />
+                </TooltipTrigger>
+                <TooltipContent
+                  side="right"
+                  className="max-w-72 rounded-md border border-[#03624C] bg-white p-3 text-[#03624C]"
+                >
+                  <p className="mb-2">
+                    You can earn additional yield by lending your xSTRK on DeFi
+                    platforms. Your base staking rewards will continue to
+                    accumulate.
+                  </p>
+                  <p className="text-xs text-[#8D9C9C]">
+                    Note: These are third-party protocols not affiliated with
+                    Endur. Please DYOR and understand the risks before using any
+                    DeFi platform.
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+          <CollapsibleContent className="mt-2">
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+              {sortedPlatforms.map((platform) => {
+                const platformKey =
+                  platform === "vesu" ? "vesu" : ("nostra-lend" as const);
+                const yieldData = yields[platformKey];
+                return (
+                  <PlatformCard
+                    key={platform}
+                    name={platform === "vesu" ? "Vesu" : "Nostra"}
+                    icon={
+                      platform === "vesu" ? (
+                        <Icons.vesuLogo className="h-6 w-6 rounded-full" />
+                      ) : (
+                        <Icons.nostraLogo className="h-6 w-6" />
+                      )
+                    }
+                    apy={yieldData?.value ?? 0}
+                    baseApy={apy.value}
+                    xstrkLent={yieldData?.totalSupplied ?? 0}
+                    isSelected={selectedPlatform === platform}
+                    onClick={() =>
+                      setSelectedPlatform(
+                        selectedPlatform === platform
+                          ? "none"
+                          : (platform as Platform),
+                      )
+                    }
+                  />
+                );
+              })}
+            </div>
+          </CollapsibleContent>
+        </Collapsible>
+      </div>
+
       <div className="my-5 h-px w-full rounded-full bg-[#AACBC480]" />
 
-      <div className="space-y-3 px-7">
+      <div className="mt-5 space-y-3 px-7">
         <div className="flex items-center justify-between rounded-md text-xs font-bold text-[#03624C] lg:text-[13px]">
           <p className="flex items-center gap-1">
-            You will get
+            {selectedPlatform === "none" ? "You will get" : "You will lend"}
             <TooltipProvider delayDuration={0}>
               <Tooltip>
                 <TooltipTrigger>
@@ -545,8 +749,16 @@ const Stake: React.FC = () => {
                   side="right"
                   className="max-w-60 rounded-md border border-[#03624C] bg-white text-[#03624C]"
                 >
-                  <strong>xSTRK</strong> is the liquid staking token (LST) of
-                  Endur, representing your staked STRK.{" "}
+                  {selectedPlatform === "none" ? (
+                    <>
+                      <strong>xSTRK</strong> is the liquid staking token (LST)
+                      of Endur, representing your staked STRK.{" "}
+                    </>
+                  ) : (
+                    <>
+                      {`This is the amount of xSTRK you're lending on ${selectedPlatform}. `}
+                    </>
+                  )}
                   <Link
                     target="_blank"
                     href="https://docs.endur.fi/docs"
@@ -559,12 +771,7 @@ const Stake: React.FC = () => {
             </TooltipProvider>
           </p>
           <span className="text-xs lg:text-[13px]">
-            {form.watch("stakeAmount")
-              ? formatNumberWithCommas(
-                  Number(form.watch("stakeAmount")) / exchangeRate.rate,
-                )
-              : 0}{" "}
-            xSTRK
+            {getCalculatedXSTRK()} xSTRK
           </span>
         </div>
 
@@ -683,15 +890,17 @@ const Stake: React.FC = () => {
           <Button
             type="submit"
             disabled={
-              Number(form.getValues("stakeAmount")) <= 0 ||
+              !form.getValues("stakeAmount") ||
               isNaN(Number(form.getValues("stakeAmount"))) ||
-              isPending ||
-              paymasterLoading
+              Number(form.getValues("stakeAmount")) <= 0 ||
+              !!form.formState.errors.stakeAmount
             }
             onClick={form.handleSubmit(onSubmit)}
             className="w-full rounded-2xl bg-[#17876D] py-6 text-sm font-semibold text-white hover:bg-[#17876D] disabled:bg-[#03624C4D] disabled:text-[#17876D] disabled:opacity-90"
           >
-            {isPending || paymasterLoading ? "Processing..." : "Stake"}
+            {selectedPlatform === "none"
+              ? "Stake STRK"
+              : `Stake & Lend on ${selectedPlatform === "vesu" ? "Vesu" : "Nostra"}`}
           </Button>
         )}
       </div>

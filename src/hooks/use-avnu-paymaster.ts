@@ -55,7 +55,7 @@ export function useAvnuPaymaster() {
         toast({
           title: "Paymaster Service Unavailable",
           description: "Using regular transaction method",
-          variant: "destructive"
+          variant: "destructive",
         });
         setToastShown(true);
         return;
@@ -65,29 +65,33 @@ export function useAvnuPaymaster() {
         const [compatibilityResult, rewardsResult, pricesResult] = await Promise.all([
           fetchAccountCompatibility(address, options),
           fetchAccountsRewards(address, options),
-          fetchGasTokenPrices(options)
+          fetchGasTokenPrices(options),
         ]);
 
         setCompatibility(compatibilityResult);
         setRewards(rewardsResult);
 
         // Map gasTokenPrices to include the symbol property
-        const updatedGasTokenPrices = pricesResult.map(token => ({
-          ...token,
-          symbol: TOKENS.find(t => t.address === token.tokenAddress)?.symbol || 'UNKNOWN',
-          priceInUSD: token.priceInUSD || 0,
-        }));
+        const updatedGasTokenPrices = pricesResult.map((token) => {
+          const tokenInfo = TOKENS.find((t) => t.address === token.tokenAddress);
+          return {
+            ...token,
+            symbol: tokenInfo?.symbol || "UNKNOWN",
+            priceInUSD: token.priceInUSD || 0,
+          };
+        });
 
         setGasTokenPrices(updatedGasTokenPrices);
         console.log("Gas Token Prices:", updatedGasTokenPrices);
 
         // Set the default gas token to STRK if available, otherwise ETH
-        const defaultGasToken = updatedGasTokenPrices.find(t => t.symbol === 'STRK') || updatedGasTokenPrices[0];
+        const defaultGasToken =
+          updatedGasTokenPrices.find((t) => t.symbol === "STRK") || updatedGasTokenPrices[0];
         setSelectedGasToken(defaultGasToken);
         console.log("Selected Gas Token (Default):", defaultGasToken);
       } catch (err) {
-        console.error('Failed to initialize paymaster:', err);
-        setError('Failed to initialize paymaster services');
+        console.error("Failed to initialize paymaster:", err);
+        setError("Failed to initialize paymaster services");
         setIsApiAvailable(false);
       }
     };

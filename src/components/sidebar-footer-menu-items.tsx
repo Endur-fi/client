@@ -4,6 +4,7 @@ import Link from "next/link";
 import React from "react";
 
 import { BookTextIcon } from "./ui/book-text";
+import { FilePenLineIcon } from "./ui/file-pen-line";
 import { MessageCircleMoreIcon } from "./ui/message-circle-more";
 import { SidebarMenuButton, SidebarMenuItem, useSidebar } from "./ui/sidebar";
 import { TelegramIcon } from "./ui/telegram";
@@ -13,6 +14,8 @@ const SidebarFooterMenuItems = () => {
   const [triggerTwitterIconAnimation, setTriggerTwitterIconAnimation] =
     React.useState(false);
   const [triggerTelegramIconAnimation, setTriggerTelegramIconAnimation] =
+    React.useState(false);
+  const [triggerBlogIconAnimation, setTriggerBlogIconAnimation] =
     React.useState(false);
   const [triggerDocsIconAnimation, setTriggerDocsIconAnimation] =
     React.useState(false);
@@ -61,6 +64,27 @@ const SidebarFooterMenuItems = () => {
               triggerAnimation={triggerTelegramIconAnimation}
             />
             <span>{open && "Telegram"}</span>
+          </Link>
+        </SidebarMenuButton>
+      </SidebarMenuItem>
+
+      <SidebarMenuItem>
+        <SidebarMenuButton
+          asChild
+          className="transition-all hover:bg-[#17876D] hover:text-white"
+          onMouseEnter={() => setTriggerBlogIconAnimation(true)}
+          onMouseLeave={() => setTriggerBlogIconAnimation(false)}
+        >
+          <Link
+            href={"https://blog.endur.fi/"}
+            target="_blank"
+            className="flex w-full cursor-pointer flex-row items-center gap-2 text-nowrap rounded-md text-base font-semibold text-[#03624C] transition-all"
+          >
+            <FilePenLineIcon
+              className="size-4"
+              triggerAnimation={triggerBlogIconAnimation}
+            />
+            <span>{open && "Blog"}</span>
           </Link>
         </SidebarMenuButton>
       </SidebarMenuItem>

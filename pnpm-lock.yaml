@@ -11,9 +11,9 @@ importers:
       '@apollo/client':
         specifier: ^3.11.10
         version: 3.11.10(@types/react@18.3.12)(graphql@16.9.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
-      '@avnu/gasless-sdk':
-        specifier: ^0.1.7
-        version: 0.1.7(ethers@6.13.4)(qs@6.13.1)(starknet@6.11.0)
+      '@avnu/avnu-sdk':
+        specifier: ^3.0.0
+        version: 3.0.0(ethers@6.13.4)(moment@2.30.1)(qs@6.13.1)(starknet@6.11.0)
       '@duneanalytics/client-sdk':
         specifier: ^0.2.4
         version: 0.2.4
@@ -107,6 +107,9 @@ importers:
       next:
         specifier: 14.2.14
         version: 14.2.14(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      quick-lru:
+        specifier: ^7.0.0
+        version: 7.0.0
       react:
         specifier: ^18
         version: 18.3.1
@@ -208,12 +211,13 @@ packages:
       subscriptions-transport-ws:
         optional: true
 
-  '@avnu/gasless-sdk@0.1.7':
-    resolution: {integrity: sha512-9gNXl1eoRg3pE6BgIPQrbwJdBvLcV8Xb5f+wVULDT3p9Ln/RHw/vKpG6dAu38lwPSZ+BNYCf3kYuzltjiLu7bQ==}
-    engines: {node: '>=16'}
+  '@avnu/avnu-sdk@3.0.0':
+    resolution: {integrity: sha512-BqqazrXDKn5RE1anyl9Ba+Kd/4VaKNsdKTl0ryTfXhMIYp+R4dXMaLD40emfXd+25kxM00xPKiZOiGHl2ntG5g==}
+    engines: {node: '>=18'}
     peerDependencies:
-      ethers: ^6.13.4
-      qs: ^6.13.1
+      ethers: ^6.13.0
+      moment: ^2.30.1
+      qs: ^6.13.0
       starknet: ^6.11.0
 
   '@duneanalytics/client-sdk@0.2.4':
@@ -2518,6 +2522,9 @@ packages:
   mlly@1.7.3:
     resolution: {integrity: sha512-xUsx5n/mN0uQf4V548PKQ+YShA4/IW0KI1dZhrNrPCLG+xizETbHTkOa1f8/xut9JRPp8kQuMnz0oqwkTiLo/A==}
 
+  moment@2.30.1:
+    resolution: {integrity: sha512-uEmtNhbDOrWPFS+hdjFCBfy9f2YoyzRpwcl+DqpC6taX21FzsTLQVbMV/W7PzNSX6x/bhC1zA3c2UQ5NzH6how==}
+
   motion-dom@11.14.3:
     resolution: {integrity: sha512-lW+D2wBy5vxLJi6aCP0xyxTxlTfiu+b+zcpVbGVFUxotwThqhdpPRSmX8xztAgtZMPMeU0WGVn/k1w4I+TbPqA==}
 
@@ -2899,6 +2906,10 @@ packages:
 
   quick-format-unescaped@4.0.4:
     resolution: {integrity: sha512-tYC1Q1hgyRuHgloV/YXs2w15unPVh8qfu/qCTfhTYamaw7fyhumKa2yGpdSo87vY32rIclj+4fWYQXUMs9EHvg==}
+
+  quick-lru@7.0.0:
+    resolution: {integrity: sha512-MX8gB7cVYTrYcFfAnfLlhRd0+Toyl8yX8uBx1MrX7K0jegiz9TumwOK27ldXrgDlHRdVi+MqU9Ssw6dr4BNreg==}
+    engines: {node: '>=18'}
 
   radix3@1.1.2:
     resolution: {integrity: sha512-b484I/7b8rDEdSDKckSSBA8knMpcdsXudlE/LNL639wFoHKwLbEkQFZHWEYwDC0wa0FKUcCY+GAF73Z7wxNVFA==}
@@ -3606,9 +3617,10 @@ snapshots:
     transitivePeerDependencies:
       - '@types/react'
 
-  '@avnu/gasless-sdk@0.1.7(ethers@6.13.4)(qs@6.13.1)(starknet@6.11.0)':
+  '@avnu/avnu-sdk@3.0.0(ethers@6.13.4)(moment@2.30.1)(qs@6.13.1)(starknet@6.11.0)':
     dependencies:
       ethers: 6.13.4
+      moment: 2.30.1
       qs: 6.13.1
       starknet: 6.11.0
 
@@ -6275,6 +6287,8 @@ snapshots:
       pkg-types: 1.2.1
       ufo: 1.5.4
 
+  moment@2.30.1: {}
+
   motion-dom@11.14.3: {}
 
   motion-utils@11.14.3: {}
@@ -6595,6 +6609,8 @@ snapshots:
   queue-microtask@1.2.3: {}
 
   quick-format-unescaped@4.0.4: {}
+
+  quick-lru@7.0.0: {}
 
   radix3@1.1.2: {}
 
