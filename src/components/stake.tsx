@@ -7,6 +7,7 @@ import {
   useBalance,
   useConnect,
   useSendTransaction,
+  useProvider
 } from "@starknet-react/core";
 import { useAtom, useAtomValue } from "jotai";
 import { Info, ChevronDown } from "lucide-react";
@@ -23,6 +24,7 @@ import {
   StarknetkitConnector,
 } from "starknetkit";
 import * as z from "zod";
+import { formatUnits } from "ethers";
 
 import erc4626Abi from "@/abi/erc4626.abi.json";
 import vxstrkAbi from "@/abi/vxstrk.abi.json";
@@ -86,6 +88,8 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { providerAtom } from "@/store/common.store";
+import { useAvnuPaymaster } from '@/hooks/use-avnu-paymaster';
+
 
 const font = Figtree({ subsets: ["latin-ext"] });
 
@@ -149,11 +153,19 @@ const Stake: React.FC = () => {
     mode: "onChange",
   });
 
-  const contractSTRK = new Contract(erc4626Abi, STRK_TOKEN);
+  const { provider } = useProvider();
+
+  const contractSTRK = new Contract(
+    erc4626Abi,
+    STRK_TOKEN,
+    provider
+  );
 
   const contract = rpcProvider ? getLSTContract(rpcProvider) : null;
 
   const { sendAsync, data, isPending, error } = useSendTransaction({});
+  const { executeTransaction, selectedGasToken, loading: paymasterLoading, estimatedGasFees } = useAvnuPaymaster();
+
 
   const getPlatformYield = (platform: Platform) => {
     if (platform === "none") return 0;
@@ -830,6 +842,38 @@ const Stake: React.FC = () => {
             </Link>
           </p>
         </div>
+
+        {selectedGasToken && (
+          <div className="flex items-center justify-between rounded-md text-xs font-medium text-[#939494] lg:text-[13px]">
+            <p className="flex items-center gap-1">
+              Estimated Gas Fee
+              <TooltipProvider delayDuration={0}>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <Info className="size-3 text-[#3F6870] lg:text-[#8D9C9C]" />
+                  </TooltipTrigger>
+                  <TooltipContent
+                    side="right"
+                    className="max-w-60 rounded-md border border-[#03624C] bg-white text-[#03624C]"
+                  >
+                    Estimated gas fee to be paid in your selected token. The actual fee may vary.
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </p>
+            <p>
+              {formatUnits(estimatedGasFees, selectedGasToken.decimals)} {selectedGasToken.priceInUSD}
+              {selectedGasToken.priceInUSD && (
+                <span className="text-[#8D9C9C] ml-1">
+                  (≈${(
+                    Number(formatUnits(estimatedGasFees, selectedGasToken.decimals)) * 
+                    selectedGasToken.priceInUSD
+                  ).toFixed(2)})
+                </span>
+              )}
+            </p>
+          </div>
+        )}
       </div>
 
       <div className="mt-6 px-5">

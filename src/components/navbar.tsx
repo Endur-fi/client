@@ -19,13 +19,13 @@ import {
   StarknetkitConnector,
 } from "starknetkit";
 import {
+  isInBraavosMobileAppBrowser,
+  BraavosMobileConnector,
+} from "starknetkit/braavosMobile";
+import {
   ArgentMobileConnector,
   isInArgentMobileAppBrowser,
 } from "starknetkit/argentMobile";
-import {
-  BraavosMobileConnector,
-  isInBraavosMobileAppBrowser,
-} from "starknetkit/braavosMobile";
 import { WebWalletConnector } from "starknetkit/webwallet";
 
 import { getProvider, NETWORK } from "@/constants";
@@ -42,6 +42,7 @@ import { isMerryChristmasAtom, tabsAtom } from "@/store/merry.store";
 import { Icons } from "./Icons";
 import MobileNav from "./mobile-nav";
 import { useSidebar } from "./ui/sidebar";
+import TokenSelector from "./paymaster-modal";
 
 export const CONNECTOR_NAMES = [
   "Braavos",
@@ -57,7 +58,7 @@ export function getConnectors(isMobile: boolean) {
   const mobileConnector = ArgentMobileConnector.init({
     options: {
       dappName: "Endurfi",
-      url: hostname,
+      url: typeof window !== "undefined" ? window.location.hostname : "",
       chainId: constants.NetworkName.SN_MAIN,
     },
     inAppBrowserOptions: {},
@@ -127,8 +128,6 @@ const Navbar = ({ className }: { className?: string }) => {
   const [__, setAddress] = useAtom(userAddressAtom);
   const [_, setLastWallet] = useAtom(lastWalletAtom);
   const setProvider = useSetAtom(providerAtom);
-  const activeTab = useAtomValue(tabsAtom);
-  const isMerry = useAtomValue(isMerryChristmasAtom);
 
   // set tracking person
   useEffect(() => {
@@ -138,8 +137,6 @@ const Navbar = ({ className }: { className?: string }) => {
   }, [address]);
 
   const connectorConfig: ConnectOptionsWithConnectors = React.useMemo(() => {
-    const hostname =
-      typeof window !== "undefined" ? window.location.hostname : "";
     return {
       modalMode: "canAsk",
       modalTheme: "light",
@@ -147,7 +144,7 @@ const Navbar = ({ className }: { className?: string }) => {
       argentMobileOptions: {
         dappName: "Endur.fi",
         chainId: NETWORK,
-        url: hostname,
+        url: window.location.hostname,
       },
       dappName: "Endur.fi",
       connectors: getConnectors(isMobile) as StarknetkitConnector[],
@@ -234,7 +231,7 @@ const Navbar = ({ className }: { className?: string }) => {
 
         <button
           className={cn(
-            "flex h-8 items-center justify-center gap-2 rounded-lg border border-[#ECECED80] bg-[#AACBC433] text-xs font-bold text-[#03624C] focus-visible:outline-[#03624C] md:h-10 md:text-sm",
+            "flex h-10 items-center justify-center gap-2 rounded-lg border border-[#ECECED80] bg-[#AACBC433] text-sm font-bold text-[#03624C] focus-visible:outline-[#03624C]",
             {
               "h-[34px]": isMobile,
             },
@@ -244,7 +241,7 @@ const Navbar = ({ className }: { className?: string }) => {
           {!address && (
             <p
               className={cn(
-                "relative flex w-[8rem] select-none items-center justify-center gap-1 bg-transparent text-xs md:w-[9.5rem] md:text-sm",
+                "relative flex w-[9.5rem] select-none items-center justify-center gap-1 bg-transparent text-sm",
               )}
             >
               Connect Wallet
@@ -254,7 +251,7 @@ const Navbar = ({ className }: { className?: string }) => {
           {address && (
             <>
               {!isMobile ? (
-                <div className="flex w-[8rem] items-center justify-center gap-2 md:w-[9.5rem]">
+                <div className="flex w-[9.5rem] items-center justify-center gap-2">
                   <div
                     onClick={() => {
                       navigator.clipboard.writeText(address);
@@ -262,10 +259,10 @@ const Navbar = ({ className }: { className?: string }) => {
                         description: "Address copied to clipboard",
                       });
                     }}
-                    className="flex h-8 items-center justify-center gap-2 rounded-md md:h-9"
+                    className="flex h-9 items-center justify-center gap-2 rounded-md"
                   >
                     <Icons.gradient />
-                    <p className="flex items-center gap-1 text-xs md:text-sm">
+                    <p className="flex items-center gap-1 text-sm">
                       {address && shortAddress(address, 4, 4)}
                     </p>
                   </div>
@@ -276,7 +273,7 @@ const Navbar = ({ className }: { className?: string }) => {
                   />
                 </div>
               ) : (
-                <div className="flex w-[8rem] items-center justify-center gap-2 md:w-[9.5rem]">
+                <div className="flex w-[9.5rem] items-center justify-center gap-2">
                   <div
                     onClick={() => {
                       navigator.clipboard.writeText(address);
@@ -290,7 +287,7 @@ const Navbar = ({ className }: { className?: string }) => {
 
                   <X
                     onClick={() => (disconnect(), disconnectAsync())}
-                    className="size-3 text-[#3F6870] md:size-4"
+                    className="size-4 text-[#3F6870]"
                   />
                 </div>
               )}
