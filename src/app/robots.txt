@@ -4,4 +4,3 @@ Sitemap: https://app.endur.fi/sitemap.xml
 Sitemap: https://blog.endur.fi/sitemap.xml
 Sitemap: https://dashboard.endur.fi/sitemap.xml
 Sitemap: https://docs.endur.fi/docs/sitemap.xml
-Sitemap: https://analytics.endur.fi/sitemap.xml
