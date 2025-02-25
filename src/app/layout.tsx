@@ -17,7 +17,7 @@ const font = Figtree({
 export const metadata: Metadata = {
   title: "Endur.fi | Starknet Liquid Staking (xSTRK) | Earn STRK Rewards",
   description:
-    "Stake STRK with Endur and receive xSTRK - the liquid staking token on Starknet. Earn rewards while accessing DeFi with instant liquidity, zero fees, and faster unstaking",
+    "Stake STRK with Endur and receive xSTRK - the liquid staking token on Starknet. Earn rewards while accessing DeFi with instant liquidity, higher rewards and faster unstaking",
   keywords: [
     "liquid staking starknet",
     "liquid staking",
@@ -31,7 +31,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Starknet Liquid Staking (xSTRK) | Earn STRK Rewards | Endur.fi",
     description:
-      "Stake STRK with Endur and receive xSTRK - the liquid staking token on Starknet. Earn rewards while accessing DeFi with instant liquidity, zero fees, and faster unstaking",
+      "Stake STRK with Endur and receive xSTRK - the liquid staking token on Starknet. Earn rewards while accessing DeFi with instant liquidity, higher rewards and faster unstaking",
     images: [
       {
         url: "https://app.endur.fi/og.png",
@@ -46,7 +46,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Starknet Liquid Staking (xSTRK) | Earn STRK Rewards | Endur.fi",
     description:
-      "Stake STRK with Endur and receive xSTRK - the liquid staking token on Starknet. Earn rewards while accessing DeFi with instant liquidity, zero fees, and faster unstaking",
+      "Stake STRK with Endur and receive xSTRK - the liquid staking token on Starknet. Earn rewards while accessing DeFi with instant liquidity, higher rewards and faster unstaking",
     site: "@endurfi",
     creator: "@endurfi",
     images: [
