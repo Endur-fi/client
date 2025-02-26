@@ -1,9 +1,15 @@
-import { type RpcProvider } from "starknet";
+import { Contract, type RpcProvider } from "starknet";
 
-import { getProvider, STRK_DECIMALS } from "@/constants";
+import ERC_4626_ABI from "@/abi/erc4626.abi.json";
+import NOSTRA_STRK_ABI from "@/abi/nostra.strk.abi.json";
+import {
+  getProvider,
+  LST_ADDRRESS,
+  NST_STRK_ADDRESS,
+  STRK_DECIMALS,
+} from "@/constants";
 import MyNumber from "@/lib/MyNumber";
 import { tryCatch } from "@/lib/utils";
-import { getLSTContract } from "@/store/lst.store";
 
 class LSTService {
   private provider: RpcProvider;
@@ -17,8 +23,16 @@ class LSTService {
     }
   }
 
+  getLSTContract(provider: RpcProvider) {
+    return new Contract(ERC_4626_ABI, LST_ADDRRESS, provider);
+  }
+
+  getNstSTRKContract(provider: RpcProvider) {
+    return new Contract(NOSTRA_STRK_ABI, NST_STRK_ADDRESS, provider);
+  }
+
   async getTotalSupply() {
-    const lstContract = getLSTContract(this.provider);
+    const lstContract = this.getLSTContract(this.provider);
 
     const { data: balance, error } = await tryCatch(
       lstContract.call("total_supply"),
@@ -35,7 +49,7 @@ class LSTService {
   }
 
   async getTotalStaked() {
-    const lstContract = getLSTContract(this.provider);
+    const lstContract = this.getLSTContract(this.provider);
 
     const { data: balance, error } = await tryCatch(
       lstContract.call("total_assets"),

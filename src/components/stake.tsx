@@ -1,6 +1,5 @@
 "use client";
 
-import { useState, useMemo } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   useAccount,
@@ -9,11 +8,11 @@ import {
   useSendTransaction,
 } from "@starknet-react/core";
 import { useAtom, useAtomValue } from "jotai";
-import { Info, ChevronDown } from "lucide-react";
+import { ChevronDown, Info } from "lucide-react";
 import { Figtree } from "next/font/google";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import React from "react";
+import React, { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { TwitterShareButton } from "react-share";
 import { Call, Contract } from "starknet";
@@ -25,8 +24,8 @@ import {
 import * as z from "zod";
 
 import erc4626Abi from "@/abi/erc4626.abi.json";
-import vxstrkAbi from "@/abi/vxstrk.abi.json";
 import ixstrkAbi from "@/abi/ixstrk.abi.json";
+import vxstrkAbi from "@/abi/vxstrk.abi.json";
 import {
   Dialog,
   DialogContent,
@@ -43,25 +42,25 @@ import {
 } from "@/components/ui/tooltip";
 import {
   getEndpoint,
+  LST_ADDRRESS,
   NETWORK,
+  NOSTRA_iXSTRK_ADDRESS,
   REWARD_FEES,
   STRK_TOKEN,
   VESU_vXSTRK_ADDRESS,
-  NOSTRA_iXSTRK_ADDRESS,
-  LST_ADDRRESS,
 } from "@/constants";
 import { toast, useToast } from "@/hooks/use-toast";
+import { MyAnalytics } from "@/lib/analytics";
 import MyNumber from "@/lib/MyNumber";
 import {
   cn,
+  eventNames,
   formatNumber,
   formatNumberWithCommas,
-  eventNames,
 } from "@/lib/utils";
-import { MyAnalytics } from "@/lib/analytics";
+import { protocolYieldsAtom } from "@/store/defi.store";
 import {
   exchangeRateAtom,
-  getLSTContract,
   totalStakedAtom,
   totalStakedUSDAtom,
   userSTRKBalanceAtom,
@@ -72,20 +71,20 @@ import {
 } from "@/store/merry.store";
 import { snAPYAtom } from "@/store/staking.store";
 import { isTxAccepted } from "@/store/transactions.atom";
-import { protocolYieldsAtom } from "@/store/defi.store";
 
-import { Icons } from "./Icons";
-import { getConnectors } from "./navbar";
-import { Button } from "./ui/button";
-import { Input } from "./ui/input";
-import { useSidebar } from "./ui/sidebar";
-import { PlatformCard } from "./platform-card";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import LSTService from "@/services/lst";
 import { providerAtom } from "@/store/common.store";
+import { Icons } from "./Icons";
+import { getConnectors } from "./navbar";
+import { PlatformCard } from "./platform-card";
+import { Button } from "./ui/button";
+import { Input } from "./ui/input";
+import { useSidebar } from "./ui/sidebar";
 
 const font = Figtree({ subsets: ["latin-ext"] });
 
@@ -151,7 +150,9 @@ const Stake: React.FC = () => {
 
   const contractSTRK = new Contract(erc4626Abi, STRK_TOKEN);
 
-  const contract = rpcProvider ? getLSTContract(rpcProvider) : null;
+  const lstService = new LSTService();
+
+  const contract = rpcProvider ? lstService.getLSTContract(rpcProvider) : null;
 
   const { sendAsync, data, isPending, error } = useSendTransaction({});
 

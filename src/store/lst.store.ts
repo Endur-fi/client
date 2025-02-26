@@ -1,16 +1,9 @@
 import { atom } from "jotai";
 import { atomWithQuery } from "jotai-tanstack-query";
-import { Contract, RpcProvider, uint256 } from "starknet";
+import { Contract, uint256 } from "starknet";
 
-import erc4626Abi from "@/abi/erc4626.abi.json";
-import nostraSTRKAbi from "@/abi/nostra.strk.abi.json";
 import WqAbi from "@/abi/wq.abi.json";
-import {
-  LST_ADDRRESS,
-  NST_STRK_ADDRESS,
-  STRK_DECIMALS,
-  WITHDRAWAL_QUEUE_ADDRESS,
-} from "@/constants";
+import { STRK_DECIMALS, WITHDRAWAL_QUEUE_ADDRESS } from "@/constants";
 import MyNumber from "@/lib/MyNumber";
 import LSTService from "@/services/lst";
 
@@ -21,13 +14,7 @@ import {
   userAddressAtom,
 } from "./common.store";
 
-export function getLSTContract(provider: RpcProvider) {
-  return new Contract(erc4626Abi, LST_ADDRRESS, provider);
-}
-
-export function getNstSTRKContract(provider: RpcProvider) {
-  return new Contract(nostraSTRKAbi, NST_STRK_ADDRESS, provider);
-}
+const lstService = new LSTService();
 
 const userXSTRKBalanceQueryAtom = atomWithQuery((get) => {
   return {
@@ -45,7 +32,7 @@ const userXSTRKBalanceQueryAtom = atomWithQuery((get) => {
         return MyNumber.fromZero();
       }
       try {
-        const lstContract = getLSTContract(provider);
+        const lstContract = lstService.getLSTContract(provider);
         const balance = await lstContract.call("balance_of", [userAddress]);
         return new MyNumber(balance.toString(), STRK_DECIMALS);
       } catch (error) {
@@ -83,7 +70,7 @@ export const userNstSTRKBalanceQueryAtom = atomWithQuery((get) => {
       }
 
       try {
-        const nstContract = getNstSTRKContract(provider);
+        const nstContract = lstService.getNstSTRKContract(provider);
         const balance = await nstContract.call("balanceOf", [userAddress]);
         return new MyNumber(balance.toString(), STRK_DECIMALS);
       } catch (error) {
@@ -111,7 +98,7 @@ export const nstStrkWithdrawalFeeQueryAtom = atomWithQuery((get) => {
       }
 
       try {
-        const nstContract = getNstSTRKContract(provider);
+        const nstContract = lstService.getNstSTRKContract(provider);
         const balance = await nstContract.call("withdrawal_fee");
         return new MyNumber(balance.toString(), STRK_DECIMALS);
       } catch (error) {
@@ -140,7 +127,7 @@ export const userSTRKBalanceQueryAtom = atomWithQuery((get) => {
       }
 
       try {
-        const lstContract = getLSTContract(provider);
+        const lstContract = lstService.getLSTContract(provider);
         const balance = await lstContract.call("convert_to_assets", [
           uint256.bnToUint256(xSTRKBalance.value.toString()),
         ]);
@@ -181,8 +168,6 @@ export const userSTRKBalanceAtom = atom((get) => {
 });
 
 export const totalStakedQueryAtom = atomWithQuery((get) => {
-  const lstService = new LSTService();
-
   return {
     queryKey: ["totalStaked", get(currentBlockAtom), get(providerAtom)],
     queryFn: lstService.getTotalStaked,
@@ -199,8 +184,6 @@ export const totalStakedAtom = atom((get) => {
 });
 
 export const totalSupplyQueryAtom = atomWithQuery((get) => {
-  const lstService = new LSTService();
-
   return {
     queryKey: ["totalSupply", get(currentBlockAtom), get(providerAtom)],
     queryFn: lstService.getTotalSupply,
