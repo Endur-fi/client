@@ -3,7 +3,7 @@ import { Atom, atom } from "jotai";
 import { atomWithQuery } from "jotai-tanstack-query";
 import { AtomFamily } from "jotai/vanilla/utils/atomFamily";
 import { providerAtom, userAddressAtom } from "./common.store";
-import { RpcProvider } from "starknet";
+import { BlockIdentifier, RpcProvider } from "starknet";
 import { atomFamily } from "jotai/utils";
 
 interface VesuAPIResponse {
@@ -354,70 +354,93 @@ const haikoYieldQueryAtom = atomWithQuery(() => ({
   refetchInterval: 60000,
 }));
 
-export const vesuYieldAtom = atom((get) => {
+export const vesuYieldAtom = atom<ProtocolStats>((get) => {
   const { data, error } = get(vesuYieldQueryAtom);
   return {
     value: error || !data ? null : data.value,
-    totalSupplied: error || !data ? null : data.totalSupplied,
+    totalSupplied: error || !data ? null : data.totalSupplied || null,
     error,
     isLoading: !data && !error,
   };
 });
 
-export const ekuboYieldAtom = atom((get) => {
+export const ekuboYieldAtom = atom<ProtocolStats>((get) => {
   const response = get(ekuboYieldQueryAtom);
   return {
     value: !response.data ? null : response.data.value,
+    totalSupplied: 0,
     error: response.error,
     isLoading: response.isLoading || false,
   };
 });
 
-export const nostraLPYieldAtom = atom((get) => {
+export const nostraLPYieldAtom = atom<ProtocolStats>((get) => {
   const { data, error } = get(nostraLPYieldQueryAtom);
   return {
     value: error || !data ? null : data.value,
+    totalSupplied: 0,
     error,
     isLoading: !data && !error,
   };
 });
 
-export const nostraLendYieldAtom = atom((get) => {
+export const nostraLendYieldAtom = atom<ProtocolStats>((get) => {
   const { data, error } = get(nostraLendYieldQueryAtom);
   return {
     value: error || !data ? null : data.value,
-    totalSupplied: error || !data ? null : data.totalSupplied,
+    totalSupplied: error || !data ? null : data.totalSupplied || null,
     error,
     isLoading: !data && !error,
   };
 });
 
-export const strkFarmYieldAtom = atom((get) => {
+export const strkFarmYieldAtom = atom<ProtocolStats>((get) => {
   const { data, error } = get(strkFarmYieldQueryAtom);
   return {
     value: error || !data ? null : data.value,
+    totalSupplied: 0,
     error,
     isLoading: !data && !error,
   };
 });
 
-export const haikoYieldAtom = atom((get) => {
+export const haikoYieldAtom = atom<ProtocolStats>((get) => {
   const response = get(haikoYieldQueryAtom);
   return {
     value: !response.data ? null : response.data.value,
+    totalSupplied: 0,
     error: response.error,
     isLoading: response.isLoading || false,
   };
 });
 
-export const protocolYieldsAtom = atom((get) => ({
+export type SupportedDApp =
+  | "strkfarm"
+  | "vesu"
+  | "avnu"
+  | "fibrous"
+  | "ekubo"
+  | "nostraDex"
+  | "nostraLending"
+  | "haiko"
+  | "opus"
+  | "endur";
+
+export interface ProtocolStats {
+  value: number | null;
+  totalSupplied: number | null;
+  error: Error | null;
+  isLoading: boolean;
+}
+
+export const protocolYieldsAtom = atom<
+  Partial<Record<SupportedDApp, ProtocolStats>>
+>((get) => ({
   strkfarm: get(strkFarmYieldAtom),
   vesu: get(vesuYieldAtom),
-  avnu: { value: null, isLoading: false },
-  fibrous: { value: null, isLoading: false },
   ekubo: get(ekuboYieldAtom),
-  "nostra-pool": get(nostraLPYieldAtom),
-  "nostra-lend": get(nostraLendYieldAtom),
+  nostraDex: get(nostraLPYieldAtom),
+  nostraLending: get(nostraLendYieldAtom),
   haiko: get(haikoYieldAtom),
 }));
 
@@ -426,31 +449,36 @@ export interface DAppHoldings {
   xSTRKAmount: MyNumber;
   STRKAmount: MyNumber;
 }
-export type DAppHoldingsAtom = AtomFamily<number | undefined, Atom<{
-  data: DAppHoldings;
-  error: Error | null;
-  isLoading: boolean;
-}>>;
+export type DAppHoldingsAtom = AtomFamily<
+  number | undefined,
+  Atom<{
+    data: DAppHoldings;
+    error: Error | null;
+    isLoading: boolean;
+  }>
+>;
 
 export type DAppHoldingsFn = (
-  address: string, 
+  address: string,
   provider: RpcProvider,
-  blockNumber?: number
+  blockNumber?: BlockIdentifier,
 ) => Promise<DAppHoldings>;
 
+export const tempProvider = atom(
+  new RpcProvider({
+    nodeUrl: "https://sn-mainnet.public.blastapi.io",
+  }),
+);
 /**
  * @description Returns an AtomFamily of DAppHoldings
- * @dev This function is used to create an AtomFamily of DAppHoldings in a 
+ * @dev This function is used to create an AtomFamily of DAppHoldings in a
  * generic way for different dApps
  * @param uniqueKey Unique key used for cache for each dApp atom
  * @param queryFn Logic to fetch DAppHoldings
  * @returns AtomFamily of DAppHoldings
  */
-export function getHoldingAtom(
-  uniqueKey: string, 
-  queryFn: DAppHoldingsFn
-) {
-  return atomFamily((blockNumber?: number) => {
+export function getHoldingAtom(uniqueKey: string, queryFn: DAppHoldingsFn) {
+  return atomFamily((blockNumber?: BlockIdentifier) => {
     return atomWithQuery((get) => {
       return {
         queryKey: [
@@ -468,10 +496,10 @@ export function getHoldingAtom(
               xSTRKAmount: MyNumber.fromZero(),
               STRKAmount: MyNumber.fromZero(),
             };
-            
+
           try {
             return await queryFn(queryKey[2], queryKey[3], blockNumber);
-          } catch(err) {
+          } catch (err) {
             console.error("getHoldingAtom error:", err);
             return {
               xSTRKAmount: MyNumber.fromZero(),

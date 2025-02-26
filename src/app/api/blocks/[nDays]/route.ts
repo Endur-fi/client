@@ -1,7 +1,38 @@
 import { getProvider } from "@/constants";
+import {
+  getExchangeRateGivenAssets,
+  getTotalAssetsByBlock,
+  getTotalSupplyByBlock,
+} from "@/store/lst.store";
 import { NextResponse } from "next/server";
 
 export const revalidate = 60 * 60 * 6; // 6 hours
+
+/**
+ * Retrieves the xSTRK exchange rate for a given block.
+ *
+ * @param block - The block number.
+ * @returns The exchange rate.
+ * @throws If the maximum number of tries is reached and an error is still thrown.
+ */
+const getExchangeRate = async (block: number) => {
+  const MAX_TRIES = 5;
+  let tries = 0;
+  while (tries < MAX_TRIES) {
+    try {
+      const totalSupply = await getTotalSupplyByBlock(block);
+      const totalAssets = await getTotalAssetsByBlock(block);
+      const ex = getExchangeRateGivenAssets(totalAssets, totalSupply);
+      return ex;
+    } catch (err) {
+      tries++;
+      if (tries === MAX_TRIES) {
+        throw err;
+      }
+      await new Promise((resolve) => setTimeout(resolve, 1000 * tries));
+    }
+  }
+};
 
 export async function GET(_req: Request, context: any) {
   const { params } = context;
@@ -64,16 +95,25 @@ export async function GET(_req: Request, context: any) {
   }
 
   const blocks = await Promise.all(promises);
+  const allBlocks = [
+    {
+      block: currentBlock.block_number,
+      timestamp: currentBlock.timestamp,
+      date: new Date(currentBlock.timestamp * 1000).toISOString(),
+    },
+    ...blocks,
+  ];
+  const blocksWithExchangeRates = await Promise.all(
+    allBlocks.map(async (block) => {
+      return {
+        ...block,
+        exchangeRate: await getExchangeRate(block.block),
+      };
+    }),
+  );
 
   return NextResponse.json({
-    blocks: [
-      {
-        block: currentBlock.block_number,
-        timestamp: currentBlock.timestamp,
-        date: new Date(currentBlock.timestamp * 1000).toISOString(),
-      },
-      ...blocks,
-    ],
+    blocks: blocksWithExchangeRates,
   });
 }
 

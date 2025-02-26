@@ -1,18 +1,11 @@
 import { atom } from "jotai";
-import { atomWithQuery } from "jotai-tanstack-query";
 import { atomFamily } from "jotai/utils";
-import { Contract } from "starknet";
+import { BlockIdentifier, Contract } from "starknet";
 
 import erc4626Abi from "@/abi/erc4626.abi.json";
 import { STRK_DECIMALS } from "@/constants";
 import MyNumber from "@/lib/MyNumber";
 
-import {
-  currentBlockAtom,
-  providerAtom,
-  timePeriodAtom,
-  userAddressAtom,
-} from "./common.store";
 import { DAppHoldingsAtom, DAppHoldingsFn, getHoldingAtom } from "./defi.store";
 
 const VESU_XSTRK_ADDRESS =
@@ -21,42 +14,45 @@ const VESU_XSTRK_ADDRESS =
 export const getVesuHoldings: DAppHoldingsFn = async (
   address: string,
   provider: any,
-  blockNumber?: number,
+  blockNumber?: BlockIdentifier,
 ) => {
   const VESU_xSTRK = VESU_XSTRK_ADDRESS;
   const contract = new Contract(erc4626Abi, VESU_xSTRK, provider);
   const shares = await contract.call("balance_of", [address], {
-    blockIdentifier: blockNumber ?? "latest",
+    blockIdentifier: blockNumber ?? "pending",
   });
 
   const balance = await contract.call("convert_to_assets", [shares], {
-    blockIdentifier: blockNumber ?? "latest",
+    blockIdentifier: blockNumber ?? "pending",
   });
 
-  console.log(balance, "balance");
   return {
     xSTRKAmount: new MyNumber(balance.toString(), STRK_DECIMALS),
     STRKAmount: MyNumber.fromZero(),
-  }
-}
+  };
+};
 
 export const uservXSTRKBalanceQueryAtom = getHoldingAtom(
-  'uservXSTRKBalance',
+  "uservXSTRKBalance",
   getVesuHoldings,
-)
-
-export const uservXSTRKBalanceAtom: DAppHoldingsAtom = atomFamily((blockNumber?: number) =>
-  atom((get) => {
-    const { data, error } = get(uservXSTRKBalanceQueryAtom(blockNumber));
-
-    return {
-      data:
-      error || !data ? {
-        xSTRKAmount: MyNumber.fromZero(),
-        STRKAmount: MyNumber.fromZero(),
-      } : data,
-      error,
-      isLoading: !data && !error,
-    };
-  }),
 );
+
+export const uservXSTRKBalanceAtom: DAppHoldingsAtom = atomFamily(
+  (blockNumber?: number) =>
+    atom((get) => {
+      const { data, error } = get(uservXSTRKBalanceQueryAtom(blockNumber));
+      return {
+        data:
+          error || !data
+            ? {
+                xSTRKAmount: MyNumber.fromZero(),
+                STRKAmount: MyNumber.fromZero(),
+              }
+            : data,
+        error,
+        isLoading: !data && !error,
+      };
+    }),
+);
+
+// todo Add collateral

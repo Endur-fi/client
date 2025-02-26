@@ -1,7 +1,7 @@
 "use client";
 
 import { useAtomValue } from "jotai";
-import React from "react";
+import React, { useMemo } from "react";
 import { Pie, PieChart } from "recharts";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -18,25 +18,49 @@ import { userHaikoBalanceAtom } from "@/store/haiko.store";
 import { userxSTRKNostraBalance } from "@/store/nostra.store";
 import { uservXSTRKBalanceAtom } from "@/store/vesu.store";
 
-const chartConfig = {
-  holdings: {
-    label: "Holdings",
+export const chartConfig = {
+  // holdings: {
+  //   label: "Holdings",
+  // },
+  nostraLending: {
+    label: "Nostra (Lending)",
+    color: "rgba(230, 139, 138, 1)",
+    fillColor: "rgba(230, 139, 138, 0.8)",
   },
-  nostra: {
-    label: "Nostra",
-    color: "hsl(var(--chart-1))",
+  nostraDex: {
+    label: "Nostra (DEX)",
+    color: "rgba(255, 169, 64, 1)",
+    fillColor: "rgba(255, 169, 64, 0.8)",
   },
   ekubo: {
     label: "Ekubo",
-    color: "hsl(var(--chart-2))",
+    color: "rgba(160, 64, 189, 1)",
+    fillColor: "rgba(160, 64, 189, 0.8)",
   },
   vesu: {
     label: "Vesu",
-    color: "hsl(var(--chart-3))",
+    color: "rgba(212, 207, 72, 1)",
+    fillColor: "rgba(212, 207, 72, 0.8)",
   },
   haiko: {
-    label: "Haiko",
-    color: "hsl(var(--chart-4))",
+    label: "Haiko (Soon)",
+    color: "#19799c", // rgba(25, 121, 156, 1)
+    fillColor: "rgba(25, 121, 156, 0.8)",
+  },
+  opus: {
+    label: "Opus (Soon)",
+    color: "rgba(106, 138, 81, 1)", // rgba(106, 138, 81, 1)
+    fillColor: "rgba(106, 138, 81, 0.8)",
+  },
+  strkfarm: {
+    label: "STRKFarm (Soon)",
+    color: "rgba(88, 45, 196, 1)",
+    fillColor: "rgba(88, 45, 196, 0.8)",
+  },
+  endur: {
+    label: "Wallet",
+    color: "rgba(81, 176, 140, 1)",
+    fillColor: "rgba(81, 176, 140, 0.8)",
   },
 } satisfies ChartConfig;
 
@@ -46,24 +70,47 @@ const DefiHoldings: React.FC = () => {
   const userHaikoBalance = useAtomValue(userHaikoBalanceAtom(undefined));
   const ekuboPosi = useAtomValue(userEkuboxSTRKPositions(undefined));
 
-  const chartData = [
-    { dapp: "nostra", holdings: Number(nostraBal.data.xSTRKAmount.toEtherToFixedDecimals(2)), fill: "#FF4240" },
-    {
-      dapp: "ekubo",
-      holdings: Number(ekuboPosi.data.xSTRKAmount.toEtherStr() || 0),
-      fill: "#3F1883",
-    },
-    {
-      dapp: "vesu",
-      holdings: Number(vxStrkBalance.data.xSTRKAmount.toEtherToFixedDecimals(2)),
-      fill: "#9F91F6",
-    },
-    {
-      dapp: "haiko",
-      holdings: parseInt(userHaikoBalance.value.toString(), 2),
-      fill: "#73FCFD",
-    },
-  ];
+  const chartData = useMemo(() => {
+    return [
+      {
+        dapp: "nostraLending",
+        holdings: Number(nostraBal.data.xSTRKAmount.toEtherToFixedDecimals(2)),
+        fill: chartConfig.nostraLending.color,
+      },
+      {
+        dapp: "nostraDex",
+        holdings: Number(nostraBal.data.STRKAmount.toEtherToFixedDecimals(2)),
+        fill: chartConfig.nostraDex.color,
+      },
+      {
+        dapp: "ekubo",
+        holdings: Number(ekuboPosi.data.xSTRKAmount.toEtherStr() || 0),
+        fill: chartConfig.ekubo.color,
+      },
+      {
+        dapp: "vesu",
+        holdings: Number(
+          vxStrkBalance.data.xSTRKAmount.toEtherToFixedDecimals(2),
+        ),
+        fill: chartConfig.vesu.color,
+      },
+      {
+        dapp: "haiko",
+        holdings: parseInt(userHaikoBalance.value.toString(), 2),
+        fill: chartConfig.haiko.color,
+      },
+      {
+        dapp: "opus",
+        holdings: 0,
+        fill: chartConfig.opus.color,
+      },
+      {
+        dapp: "strkfarm",
+        holdings: 0,
+        fill: chartConfig.strkfarm.color,
+      },
+    ].sort((a, b) => b.holdings - a.holdings);
+  }, [nostraBal, vxStrkBalance, userHaikoBalance, ekuboPosi]);
 
   return (
     <Card className="flex h-full w-full shrink-0 flex-col rounded-xl border border-[#AACBC4]/30 bg-[#E3EFEC]/70 font-poppins lg:w-fit">

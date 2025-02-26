@@ -34,12 +34,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-} from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
 import {
   Tooltip,
   TooltipContent,
@@ -107,11 +102,11 @@ const formSchema = z.object({
 
 export type FormValues = z.infer<typeof formSchema>;
 
-type Platform = "none" | "vesu" | "nostra-lend";
+type Platform = "none" | "vesu" | "nostraLending";
 
 const PLATFORMS = {
   VESU: "vesu",
-  NOSTRA: "nostra-lend",
+  NOSTRA: "nostraLending",
 } as const;
 
 type ValidPlatform = (typeof PLATFORMS)[keyof typeof PLATFORMS];
@@ -162,7 +157,7 @@ const Stake: React.FC = () => {
 
   const getPlatformYield = (platform: Platform) => {
     if (platform === "none") return 0;
-    const key = platform === "vesu" ? "vesu" : "nostra-lend";
+    const key = platform === "vesu" ? "vesu" : "nostraLending";
     return yields[key]?.value ?? 0;
   };
 
@@ -492,7 +487,7 @@ const Stake: React.FC = () => {
           <div className="mt-2 flex items-center justify-center">
             <TwitterShareButton
               url={getEndpoint()}
-              title={`Just staked my STRK on Endur.fi, earning ${((apy.value * 100 + (selectedPlatform !== "none" ? getPlatformYield(selectedPlatform) : 0))).toFixed(2)}% APY! 🚀 \n\n${selectedPlatform !== "none" ? `My xSTRK is now earning an additional ${getPlatformYield(selectedPlatform).toFixed(2)}% yield on ${selectedPlatform === "vesu" ? "Vesu" : "Nostra"}! 📈\n\n` : ""}Laying the foundation for decentralising Starknet — be part of the journey at @endurfi!\n\n`}
+              title={`Just staked my STRK on Endur.fi, earning ${(apy.value * 100 + (selectedPlatform !== "none" ? getPlatformYield(selectedPlatform) : 0)).toFixed(2)}% APY! 🚀 \n\n${selectedPlatform !== "none" ? `My xSTRK is now earning an additional ${getPlatformYield(selectedPlatform).toFixed(2)}% yield on ${selectedPlatform === "vesu" ? "Vesu" : "Nostra"}! 📈\n\n` : ""}Laying the foundation for decentralising Starknet — be part of the journey at @endurfi!\n\n`}
               related={["endurfi", "strkfarm", "karnotxyz"]}
               style={{
                 display: "flex",
@@ -695,7 +690,7 @@ const Stake: React.FC = () => {
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
               {sortedPlatforms.map((platform) => {
                 const platformKey =
-                  platform === "vesu" ? "vesu" : ("nostra-lend" as const);
+                  platform === "vesu" ? "vesu" : ("nostraLending" as const);
                 const yieldData = yields[platformKey];
                 return (
                   <PlatformCard

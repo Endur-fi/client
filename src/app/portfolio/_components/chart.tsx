@@ -2,12 +2,11 @@
 
 import { useAtom } from "jotai";
 import * as React from "react";
-import { CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts";
+import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
-  ChartConfig,
   ChartContainer,
   ChartLegend,
   ChartLegendContent,
@@ -16,35 +15,35 @@ import {
 } from "@/components/ui/chart";
 import { cn } from "@/lib/utils";
 import { chartFilter } from "@/store/portfolio.store";
+import { chartConfig } from "./defi-holding";
+import { HoldingInfo } from "./portfolio-page";
 
-const chartConfig = {
-  strk: {
-    label: "STRK",
-    color: "hsl(var(--chart-1))",
-  },
-  usdt: {
-    label: "USDT",
-    color: "hsl(var(--chart-2))",
-  },
-} satisfies ChartConfig;
+function getLast7Days() {
+  const result = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    result.push(d.toISOString());
+  }
+  return result;
+}
 
-export function Chart({
-  chartData,
-}: {
-  // ? ADD_NEW_PROTOCOL: Update this
-  chartData: {
-    date: string;
-    nostra: number;
-    ekubo: number;
-    vesu: number;
-    wallet: number;
-  }[];
-}) {
+function getDummyData() {
+  const dummyValues = [50, 95, 53, 72, 45, 88, 60];
+  return getLast7Days().map((date, index) => {
+    return {
+      date,
+      endur: dummyValues[index],
+    };
+  });
+}
+
+export function Chart({ chartData }: { chartData: HoldingInfo[] }) {
   const [timeRange, setTimeRange] = useAtom(chartFilter);
 
   const filteredData = chartData.filter((item) => {
     const date = new Date(item.date);
-    const referenceDate = new Date("2024-06-30");
+    const referenceDate = new Date("2024-11-25");
     let daysToSubtract = 90;
 
     if (timeRange === "30d") {
@@ -58,16 +57,88 @@ export function Chart({
     return date >= startDate;
   });
 
+  const { areaChartData, protocolOrder } = React.useMemo(() => {
+    if (filteredData.length === 0) {
+      return {
+        areaChartData: getDummyData().map((i) => ({ ...i, cummulative: i })),
+        protocolOrder: ["endur"],
+      };
+    }
+    // sort protocol key with highest value as on latest date
+    const protocolKeys = Object.keys(
+      filteredData[filteredData.length - 1],
+    ).filter((key) => key !== "date");
+    const protocolValues = protocolKeys.map((key) => {
+      return {
+        key,
+        value: Number(
+          filteredData[filteredData.length - 1][
+            key as keyof (typeof filteredData)[0]
+          ],
+        ),
+      };
+    });
+    protocolValues.sort((a, b) => b.value - a.value);
+
+    // taking protocol ordered by highest value,
+    // sum the values to lower value protocols
+    // to create a stacked area chart
+    const areaData = filteredData.map((item) => {
+      const data: (typeof filteredData)[0] = {
+        date: item.date,
+        nostraLending: 0,
+        nostraDex: 0,
+        ekubo: 0,
+        vesu: 0,
+        endur: 0,
+      };
+      let sum = 0;
+      for (const protocol of protocolValues) {
+        sum += Number(item[protocol.key as keyof typeof item]);
+        const key: Exclude<keyof typeof data, "date"> = protocol.key as Exclude<
+          keyof typeof data,
+          "date"
+        >;
+        data[key] = sum;
+      }
+      return {
+        ...item,
+        cummulative: data,
+      };
+    });
+    return {
+      areaChartData: areaData,
+      protocolOrder: protocolValues.map((p) => p.key),
+    };
+  }, [filteredData]);
+
+  function formatDate(value: string) {
+    return new Date(value).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+    });
+  }
+
+  const [offset, setOffset] = React.useState(150);
+
+  React.useEffect(() => {
+    const interval = setInterval(() => {
+      const newOffset = offset - 1;
+      setOffset(newOffset <= 5 ? 150 : newOffset);
+    }, 10);
+
+    return () => clearInterval(interval); // Cleanup on unmount
+  }, [offset]);
+
   return (
     <Card className="w-full shadow-none">
       <CardHeader className="flex items-center gap-2 space-y-0 py-5 pb-2 sm:flex-row">
-        {/* <div className="grid flex-1 gap-1 text-center sm:text-left">
-          <CardTitle>Area Chart - Interactive</CardTitle>
-          <CardDescription>
+        <div className="grid flex-1 gap-1 text-center sm:text-left">
+          <CardTitle>Your xSTRK holdings over time</CardTitle>
+          {/* <CardDescription>
             Showing total visitors for the last 3 months
-          </CardDescription>
-        </div> */}
-
+          </CardDescription> */}
+        </div>
         <div className="ml-auto flex w-fit rounded-md border shadow-sm">
           <Button
             className={cn(
@@ -134,9 +205,9 @@ export function Chart({
           className="aspect-auto h-[250px] w-full"
         >
           {/* <AreaChart data={filteredData}> */}
-          <LineChart
+          <AreaChart
             accessibilityLayer
-            data={filteredData}
+            data={areaChartData}
             margin={{
               left: 12,
               right: 12,
@@ -144,19 +215,8 @@ export function Chart({
           >
             <ChartLegend
               content={<ChartLegendContent />}
-              className="absolute bottom-[17.5rem] left-8 flex flex-row items-center gap-4 rounded-lg border px-4 py-2"
+              className="relative ml-10 flex flex-row items-center gap-4 rounded-lg border px-4 py-2"
             />
-
-            {/* <defs>
-              <linearGradient id="fillDesktop" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#17876D" stopOpacity={0.8} />
-                <stop offset="95%" stopColor="#17876D" stopOpacity={0.1} />
-              </linearGradient>
-              <linearGradient id="fillMobile" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#EC796B" stopOpacity={0.8} />
-                <stop offset="95%" stopColor="#EC796B" stopOpacity={0.1} />
-              </linearGradient>
-            </defs> */}
 
             <CartesianGrid vertical={false} />
 
@@ -164,79 +224,66 @@ export function Chart({
 
             <XAxis
               dataKey="date"
-              tickLine={false}
-              axisLine={true}
-              tickMargin={8}
-              minTickGap={32}
+              // tickLine={false}
+              // axisLine={true}
+              // tickMargin={8}
+              // minTickGap={32}
               tickFormatter={(value) => {
-                const date = new Date(value);
-                return date.toLocaleDateString("en-US", {
-                  month: "short",
-                  day: "numeric",
-                });
+                return formatDate(value);
               }}
             />
+
+            <defs>
+              <linearGradient id="loading" x1="0" y1="0" x2="0" y2="1">
+                <stop
+                  offset={`${offset - 50}%`}
+                  stopColor={chartConfig["endur"].color}
+                  stopOpacity={0.5}
+                />
+                <stop
+                  offset={`${offset}%`}
+                  stopColor={chartConfig["endur"].fillColor}
+                  stopOpacity={0.25}
+                />
+              </linearGradient>
+            </defs>
 
             <ChartTooltip
               cursor={true}
               content={
                 <ChartTooltipContent
                   labelFormatter={(value) => {
-                    return new Date(value).toLocaleDateString("en-US", {
-                      month: "short",
-                      day: "numeric",
-                    });
+                    return formatDate(value);
                   }}
+                  chartData={
+                    filteredData.length == 0 ? getDummyData() : filteredData
+                  }
                   indicator="dot"
                 />
               }
             />
 
-            {/* <Area
-              dataKey="strk"
-              type="natural"
-              fill="url(#fillMobile)"
-              stroke="#EC796B"
-              stackId="a"
-            />
-            <Area
-              dataKey="usdt"
-              type="natural"
-              fill="url(#fillDesktop)"
-              stroke="#17876D"
-              stackId="b"
-            /> */}
-            {/* // ? ADD_NEW_PROTOCOL: Update this */}
-            <Line
-              dataKey="nostra"
-              type="monotone"
-              stroke="#EC796B"
-              strokeWidth={2}
-              dot={false}
-            />
-            <Line
-              dataKey="vesu"
-              type="monotone"
-              stroke="#17876D"
-              strokeWidth={2}
-              dot={false}
-            />
-             <Line
-              dataKey="ekubo"
-              type="monotone"
-              stroke="#17876D"
-              strokeWidth={2}
-              dot={false}
-            />
-             <Line
-              dataKey="wallet"
-              type="monotone"
-              stroke="#17876D"
-              strokeWidth={2}
-              dot={false}
-            />
-            
-          </LineChart>
+            {protocolOrder.reverse().map((protocol, index) => (
+              <Area
+                dataKey={(data) =>
+                  data.cummulative[protocol as keyof typeof data.cummulative]
+                }
+                name={protocol}
+                type="monotone"
+                fill={
+                  filteredData.length == 0
+                    ? "url(#loading)"
+                    : chartConfig[protocol as keyof typeof chartConfig]
+                        .fillColor
+                }
+                stroke={chartConfig[protocol as keyof typeof chartConfig].color}
+                fillOpacity={1}
+                strokeWidth={2}
+                key={protocol}
+                label={chartConfig[protocol as keyof typeof chartConfig].label}
+              />
+            ))}
+          </AreaChart>
           {/* </AreaChart> */}
         </ChartContainer>
       </CardContent>
