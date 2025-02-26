@@ -112,7 +112,7 @@ const PLATFORMS = {
 type ValidPlatform = (typeof PLATFORMS)[keyof typeof PLATFORMS];
 
 const Stake: React.FC = () => {
-  const [showShareModal, setShowShareModal] = React.useState(true);
+  const [showShareModal, setShowShareModal] = React.useState(false);
   const [selectedPlatform, setSelectedPlatform] = useState<Platform>("none");
   const [isLendingOpen, setIsLendingOpen] = useState(false);
 
