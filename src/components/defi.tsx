@@ -203,14 +203,25 @@ const Defi: React.FC = () => {
   const yields: any = useAtomValue(protocolYieldsAtom);
 
   const sortedProtocols = useMemo(() => {
-    return Object.entries(protocolConfigs)
-      .filter(([protocol]) => !["avnu", "fibrous"].includes(protocol))
-      .sort(([a], [b]) => {
-        const yieldA = yields[a]?.value ?? -Infinity;
-        const yieldB = yields[b]?.value ?? -Infinity;
-        return yieldB - yieldA;
-      })
-      .map(([protocol]) => protocol);
+    return (
+      Object.entries(protocolConfigs)
+        // sorting badges of type "DEX Aggregator" to be at the end
+        .sort(([a], [b]) => {
+          const badgeA = protocolConfigs[a].badges[0].type;
+          const badgeB = protocolConfigs[b].badges[0].type;
+          return badgeA === "DEX Aggregator"
+            ? 1
+            : badgeB === "DEX Aggregator"
+              ? -1
+              : 0;
+        })
+        .sort(([a], [b]) => {
+          const yieldA = yields[a]?.value ?? -Infinity;
+          const yieldB = yields[b]?.value ?? -Infinity;
+          return yieldB - yieldA;
+        })
+        .map(([protocol]) => protocol)
+    );
   }, [yields]);
 
   return (
@@ -264,20 +275,6 @@ const Defi: React.FC = () => {
                 badges={config.badges}
                 description={config.description}
                 apy={shouldShowApy ? yields[protocol] : undefined}
-                action={config.action}
-              />
-            );
-          })}
-
-          {["avnu", "fibrous"].map((protocol) => {
-            const config = protocolConfigs[protocol];
-            return (
-              <DefiCard
-                key={protocol}
-                tokens={config.tokens}
-                protocolIcon={config.protocolIcon}
-                badges={config.badges}
-                description={config.description}
                 action={config.action}
               />
             );
