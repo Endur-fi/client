@@ -40,7 +40,6 @@ import {
 import { isMerryChristmasAtom, tabsAtom } from "@/store/merry.store";
 
 import { Icons } from "./Icons";
-import MigrateNostra from "./migrate-nostra";
 import MobileNav from "./mobile-nav";
 import { useSidebar } from "./ui/sidebar";
 
@@ -229,9 +228,9 @@ const Navbar = ({ className }: { className?: string }) => {
       {isMobile && <MobileNav />}
 
       <div className="relative flex items-center gap-4">
-        {!isMobile && NETWORK === constants.NetworkName.SN_MAIN && (
+        {/* {!isMobile && NETWORK === constants.NetworkName.SN_MAIN && (
           <MigrateNostra />
-        )}
+        )} */}
 
         <button
           className={cn(

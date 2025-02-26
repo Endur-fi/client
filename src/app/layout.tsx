@@ -15,46 +15,46 @@ const font = Figtree({
 });
 
 export const metadata: Metadata = {
-  title: "Endur | Liquid Staked STRK",
+  title: "Endur.fi | Starknet Liquid Staking (xSTRK) | Earn STRK Rewards",
   description:
-    "Stake your STRK to support Starknet's decentralization with xSTRK—a liquid staking token (LST) that empowers you to actively engage in DeFi, retain flexibility, and use your xSTRK across various protocols just like STRK. From the buidlers of Karnot and STRKFarm",
+    "Stake STRK with Endur and receive xSTRK - the liquid staking token on Starknet. Earn rewards while accessing DeFi with instant liquidity, higher rewards and faster unstaking",
   keywords: [
-    "endur",
-    "starknet",
-    "strk",
-    "xstrk",
+    "liquid staking starknet",
     "liquid staking",
-    "lst",
-    "defi",
-    "karnot",
-    "strkfarm",
-    "yield",
-    "farming",
-    "staking",
-    "LSTs",
-    "competitor",
-    "avnu",
-    "fibrous",
-    "starkware",
-    "vesu",
-    "ekubo",
-    "stark",
-    "brother",
-    "memecoin",
-    "chillguy",
+    "liquid stake starknet",
+    "starknet LST",
+    "STRK staking",
+    "Endur xSTRK",
+    "starknet liquid staking solution",
   ],
+  robots: "index,follow",
   openGraph: {
-    title: "Endur | Liquid Staked STRK",
+    title: "Starknet Liquid Staking (xSTRK) | Earn STRK Rewards | Endur.fi",
     description:
-      "Stake your STRK to support Starknet's decentralization with xSTRK—a liquid staking token (LST) that empowers you to actively engage in DeFi, retain flexibility, and use your xSTRK across various protocols just like STRK. From the buidlers of Karnot and STRKFarm",
-    images: ["https://endur.fi/og.png"],
+      "Stake STRK with Endur and receive xSTRK - the liquid staking token on Starknet. Earn rewards while accessing DeFi with instant liquidity, higher rewards and faster unstaking",
+    images: [
+      {
+        url: "https://app.endur.fi/og.png",
+        secureUrl: "https://app.endur.fi/og.png",
+        width: 1200,
+        height: 630,
+      },
+    ],
+    type: "website",
   },
   twitter: {
-    title: "Endur | Liquid Staked STRK",
+    card: "summary_large_image",
+    title: "Starknet Liquid Staking (xSTRK) | Earn STRK Rewards | Endur.fi",
     description:
-      "Stake your STRK to support Starknet's decentralization with xSTRK—a liquid staking token (LST) that empowers you to actively engage in DeFi, retain flexibility, and use your xSTRK across various protocols just like STRK. From the buidlers of Karnot and STRKFarm",
-    card: "player",
-    images: ["https://endur.fi/og.png"],
+      "Stake STRK with Endur and receive xSTRK - the liquid staking token on Starknet. Earn rewards while accessing DeFi with instant liquidity, higher rewards and faster unstaking",
+    site: "@endurfi",
+    creator: "@endurfi",
+    images: [
+      {
+        url: "https://app.endur.fi/og.png",
+        alt: "Cover Image of endur.fi",
+      },
+    ],
   },
 };
 
