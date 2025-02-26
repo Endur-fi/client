@@ -12,6 +12,7 @@ import {
   WITHDRAWAL_QUEUE_ADDRESS,
 } from "@/constants";
 import MyNumber from "@/lib/MyNumber";
+import LSTService from "@/services/lst";
 
 import {
   currentBlockAtom,
@@ -57,6 +58,7 @@ const userXSTRKBalanceQueryAtom = atomWithQuery((get) => {
 
 export const userXSTRKBalanceAtom = atom((get) => {
   const { data, error } = get(userXSTRKBalanceQueryAtom);
+
   return {
     value: error || !data ? MyNumber.fromZero() : data,
     error,
@@ -179,23 +181,11 @@ export const userSTRKBalanceAtom = atom((get) => {
 });
 
 export const totalStakedQueryAtom = atomWithQuery((get) => {
+  const lstService = new LSTService();
+
   return {
     queryKey: ["totalStaked", get(currentBlockAtom), get(providerAtom)],
-    queryFn: async ({ queryKey }: any): Promise<MyNumber> => {
-      const provider = get(providerAtom);
-      if (!provider) {
-        return MyNumber.fromZero();
-      }
-
-      try {
-        const lstContract = getLSTContract(provider);
-        const balance = await lstContract.call("total_assets");
-        return new MyNumber(balance.toString(), STRK_DECIMALS);
-      } catch (error) {
-        console.error("totalStakedAtom [3]", error);
-        return MyNumber.fromZero();
-      }
-    },
+    queryFn: lstService.getTotalStaked,
   };
 });
 
@@ -209,23 +199,11 @@ export const totalStakedAtom = atom((get) => {
 });
 
 export const totalSupplyQueryAtom = atomWithQuery((get) => {
+  const lstService = new LSTService();
+
   return {
     queryKey: ["totalSupply", get(currentBlockAtom), get(providerAtom)],
-    queryFn: async ({ queryKey }: any): Promise<MyNumber> => {
-      const provider = get(providerAtom);
-      if (!provider) {
-        return MyNumber.fromZero();
-      }
-
-      try {
-        const lstContract = getLSTContract(provider);
-        const balance = await lstContract.call("total_supply");
-        return new MyNumber(balance.toString(), STRK_DECIMALS);
-      } catch (error) {
-        console.error("totalSupplyAtom [3]", error);
-        return MyNumber.fromZero();
-      }
-    },
+    queryFn: lstService.getTotalSupply,
   };
 });
 
