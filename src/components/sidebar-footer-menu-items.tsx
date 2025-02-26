@@ -3,6 +3,7 @@
 import Link from "next/link";
 import React from "react";
 
+import { LINKS } from "@/constants";
 import { BookTextIcon } from "./ui/book-text";
 import { FilePenLineIcon } from "./ui/file-pen-line";
 import { MessageCircleMoreIcon } from "./ui/message-circle-more";
@@ -34,7 +35,7 @@ const SidebarFooterMenuItems = () => {
           onMouseLeave={() => setTriggerTwitterIconAnimation(false)}
         >
           <Link
-            href={"https://x.com/endurfi"}
+            href={LINKS.ENDUR_TWITTER}
             target="_blank"
             className="flex w-full cursor-pointer flex-row items-center gap-2 text-nowrap rounded-md text-base font-semibold text-[#03624C] transition-all"
           >
@@ -55,7 +56,7 @@ const SidebarFooterMenuItems = () => {
           onMouseLeave={() => setTriggerTelegramIconAnimation(false)}
         >
           <Link
-            href={"https://t.me/+jWY71PfbMMIwMTBl"}
+            href={LINKS.ENDUR_TELEGRAM}
             target="_blank"
             className="flex w-full cursor-pointer flex-row items-center gap-2 text-nowrap rounded-md text-base font-semibold text-[#03624C] transition-all"
           >
@@ -76,7 +77,7 @@ const SidebarFooterMenuItems = () => {
           onMouseLeave={() => setTriggerBlogIconAnimation(false)}
         >
           <Link
-            href={"https://blog.endur.fi/"}
+            href={LINKS.ENDUR_BLOG}
             target="_blank"
             className="flex w-full cursor-pointer flex-row items-center gap-2 text-nowrap rounded-md text-base font-semibold text-[#03624C] transition-all"
           >
@@ -97,7 +98,7 @@ const SidebarFooterMenuItems = () => {
           onMouseLeave={() => setTriggerDocsIconAnimation(false)}
         >
           <Link
-            href={"https://docs.endur.fi"}
+            href={LINKS.ENDUR_DOCS}
             target="_blank"
             className="flex w-full cursor-pointer flex-row items-center gap-2 text-nowrap rounded-md text-base font-semibold text-[#03624C] transition-all"
           >
@@ -118,7 +119,7 @@ const SidebarFooterMenuItems = () => {
           onMouseLeave={() => setTriggerChatIconAnimation(false)}
         >
           <Link
-            href="https://t.me/+jWY71PfbMMIwMTBl"
+            href={LINKS.ENDUR_TELEGRAM}
             target="_blank"
             className="flex w-full cursor-pointer flex-row items-center gap-2 text-nowrap rounded-md text-base font-semibold text-[#03624C] transition-all"
           >

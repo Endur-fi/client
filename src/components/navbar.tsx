@@ -8,9 +8,9 @@ import {
   useProvider,
   useSwitchChain,
 } from "@starknet-react/core";
-import { useAtom, useAtomValue, useSetAtom } from "jotai";
+import { useAtom, useSetAtom } from "jotai";
 import { X } from "lucide-react";
-import React, { useEffect } from "react";
+import React from "react";
 import { constants, num } from "starknet";
 import {
   connect,
@@ -37,7 +37,6 @@ import {
   providerAtom,
   userAddressAtom,
 } from "@/store/common.store";
-import { isMerryChristmasAtom, tabsAtom } from "@/store/merry.store";
 
 import { Icons } from "./Icons";
 import MobileNav from "./mobile-nav";
@@ -127,15 +126,6 @@ const Navbar = ({ className }: { className?: string }) => {
   const [__, setAddress] = useAtom(userAddressAtom);
   const [_, setLastWallet] = useAtom(lastWalletAtom);
   const setProvider = useSetAtom(providerAtom);
-  const activeTab = useAtomValue(tabsAtom);
-  const isMerry = useAtomValue(isMerryChristmasAtom);
-
-  // set tracking person
-  useEffect(() => {
-    if (address) {
-      MyAnalytics.setPerson(address);
-    }
-  }, [address]);
 
   const connectorConfig: ConnectOptionsWithConnectors = React.useMemo(() => {
     const hostname =
@@ -177,6 +167,13 @@ const Navbar = ({ className }: { className?: string }) => {
       console.error("connectWallet error", error);
     }
   }
+
+  // set tracking person
+  React.useEffect(() => {
+    if (address) {
+      MyAnalytics.setPerson(address);
+    }
+  }, [address]);
 
   // switch chain if not on the required chain
   React.useEffect(() => {
@@ -297,27 +294,6 @@ const Navbar = ({ className }: { className?: string }) => {
             </>
           )}
         </button>
-
-        {/* {activeTab !== "withdraw" && isMerry && (
-          <div className="hidden transition-all duration-500 lg:block">
-            <div className="group absolute -bottom-[138px] right-12">
-              <Icons.bell1Faded className="group-hover:hidden" />
-              <Icons.bell1 className="hidden group-hover:block" />
-              <p className="absolute -bottom-[4.3rem] -left-12 hidden w-44 rounded-md border border-[#03624C] bg-white p-2 text-sm text-[#03624C] transition-all group-hover:flex">
-                May 2025 be a multi-bagger year for you 😉
-              </p>
-            </div>
-
-            <div className="group absolute -bottom-[65px] right-6">
-              <Icons.bell2Faded className="group-hover:hidden" />
-              <Icons.bell2 className="hidden group-hover:block" />
-              <p className="absolute -bottom-[5.5rem] -left-24 hidden w-44 rounded-md border border-[#03624C] bg-white p-2 text-sm text-[#03624C] transition-all group-hover:flex">
-                We love you for being on Starknet and choosing Endur to stake
-                with.
-              </p>
-            </div>
-          </div>
-        )} */}
       </div>
     </div>
   );

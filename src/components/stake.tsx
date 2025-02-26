@@ -27,6 +27,11 @@ import erc4626Abi from "@/abi/erc4626.abi.json";
 import ixstrkAbi from "@/abi/ixstrk.abi.json";
 import vxstrkAbi from "@/abi/vxstrk.abi.json";
 import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -42,6 +47,7 @@ import {
 } from "@/components/ui/tooltip";
 import {
   getEndpoint,
+  LINKS,
   LST_ADDRRESS,
   NETWORK,
   NOSTRA_iXSTRK_ADDRESS,
@@ -58,6 +64,8 @@ import {
   formatNumber,
   formatNumberWithCommas,
 } from "@/lib/utils";
+import LSTService from "@/services/lst";
+import { providerAtom } from "@/store/common.store";
 import { protocolYieldsAtom } from "@/store/defi.store";
 import {
   exchangeRateAtom,
@@ -72,13 +80,6 @@ import {
 import { snAPYAtom } from "@/store/staking.store";
 import { isTxAccepted } from "@/store/transactions.atom";
 
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
-import LSTService from "@/services/lst";
-import { providerAtom } from "@/store/common.store";
 import { Icons } from "./Icons";
 import { getConnectors } from "./navbar";
 import { PlatformCard } from "./platform-card";
@@ -111,7 +112,7 @@ const PLATFORMS = {
 type ValidPlatform = (typeof PLATFORMS)[keyof typeof PLATFORMS];
 
 const Stake: React.FC = () => {
-  const [showShareModal, setShowShareModal] = React.useState(false);
+  const [showShareModal, setShowShareModal] = React.useState(true);
   const [selectedPlatform, setSelectedPlatform] = useState<Platform>("none");
   const [isLendingOpen, setIsLendingOpen] = useState(false);
 
@@ -811,8 +812,7 @@ const Stake: React.FC = () => {
                   fee rebate.{" "}
                   <Link
                     target="_blank"
-                    href="https://blog.endur.fi/endur-reimagining-value-distribution-in-liquid-staking-on-starknet"
-                    className="text-blue-600 underline"
+                    href={LINKS.ENDUR_VALUE_DISTRUBUTION_BLOG_LINK}
                   >
                     Learn more
                   </Link>
@@ -824,7 +824,7 @@ const Stake: React.FC = () => {
             <span className="line-through">{REWARD_FEES}%</span>{" "}
             <Link
               target="_blank"
-              href="https://blog.endur.fi/endur-reimagining-value-distribution-in-liquid-staking-on-starknet"
+              href={LINKS.ENDUR_VALUE_DISTRUBUTION_BLOG_LINK}
               className="underline"
             >
               Fee Rebate

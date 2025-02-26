@@ -6,9 +6,9 @@ import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import React from "react";
 
-import { DASHBOARD_URL } from "@/constants";
 import { cn } from "@/lib/utils";
 
+import { LINKS } from "@/constants";
 import { ChartColumnDecreasingIcon } from "./ui/chart-column-decreasing";
 import { FlameIcon } from "./ui/flame";
 import { GaugeIcon } from "./ui/gauge";
@@ -46,12 +46,7 @@ const MobileNav = () => {
 
   return (
     <div>
-      <motion.div
-        // animate={{
-        //   borderRadius: open ? "4px" : "2rem",
-        // }}
-        className="relative lg:hidden"
-      >
+      <motion.div className="relative lg:hidden">
         <div className="flex items-center justify-center gap-3">
           <div onClick={() => setOpen(!open)} ref={iconRef}>
             <MenuIcon
@@ -101,7 +96,7 @@ const MobileNav = () => {
               </Link>
 
               <Link
-                href={"https://dune.com/endurfi/xstrk-analytics"}
+                href={LINKS.DUNE_ANALYTICS}
                 className={cn(
                   "flex w-full cursor-pointer flex-row items-center gap-2 text-nowrap rounded-md p-2 px-3 text-sm font-semibold text-[#03624C] transition-all hover:bg-[#17876D] hover:text-white",
                 )}
@@ -111,7 +106,7 @@ const MobileNav = () => {
               </Link>
 
               <Link
-                href={DASHBOARD_URL}
+                href={LINKS.DASHBOARD_URL}
                 className={cn(
                   "flex w-full cursor-pointer flex-row items-center gap-2 text-nowrap rounded-md p-2 px-3 text-sm font-semibold text-[#03624C] transition-all hover:bg-[#17876D] hover:text-white",
                 )}

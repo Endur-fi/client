@@ -11,7 +11,7 @@ import { Info } from "lucide-react";
 import Link from "next/link";
 import React, { useMemo } from "react";
 import { useForm } from "react-hook-form";
-import { Contract } from "starknet";
+import { AccountInterface, Contract } from "starknet";
 import {
   connect,
   ConnectOptionsWithConnectors,
@@ -28,7 +28,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { getProvider, NETWORK, REWARD_FEES } from "@/constants";
+import { getProvider, LINKS, NETWORK, REWARD_FEES } from "@/constants";
 import { toast, useToast } from "@/hooks/use-toast";
 import { MyAnalytics } from "@/lib/analytics";
 import MyNumber from "@/lib/MyNumber";
@@ -49,7 +49,7 @@ import {
 } from "@/store/lst.store";
 import { snAPYAtom } from "@/store/staking.store";
 import { isTxAccepted } from "@/store/transactions.atom";
-import { AccountInterface } from "starknet";
+
 import { Icons } from "./Icons";
 import { getConnectors } from "./navbar";
 import { Button } from "./ui/button";
@@ -128,7 +128,7 @@ const FeeSection = () => (
             rebate.{" "}
             <Link
               target="_blank"
-              href="https://blog.endur.fi/endur-reimagining-value-distribution-in-liquid-staking-on-starknet"
+              href={LINKS.ENDUR_VALUE_DISTRUBUTION_BLOG_LINK}
               className="text-blue-600 underline"
             >
               Learn more
@@ -141,7 +141,7 @@ const FeeSection = () => (
       <span className="line-through">{REWARD_FEES}%</span>{" "}
       <Link
         target="_blank"
-        href="https://blog.endur.fi/endur-reimagining-value-distribution-in-liquid-staking-on-starknet"
+        href={LINKS.ENDUR_VALUE_DISTRUBUTION_BLOG_LINK}
         className="underline"
       >
         Fee Rebate
