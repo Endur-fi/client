@@ -2,9 +2,9 @@
 
 import { ColumnDef } from "@tanstack/react-table";
 
+import { ProtocolConfig } from "@/components/defi";
 import { IconProps, Icons } from "@/components/Icons";
 import { Button } from "@/components/ui/button";
-import { ProtocolConfig } from "@/components/defi";
 import React from "react";
 
 export type SizeColumn = {
@@ -33,7 +33,7 @@ export const columns: ColumnDef<ProtocolConfig>[] = [
     accessorKey: "asset",
     header: "Asset",
     cell: ({ row }) => (
-      <div className="flex items-center gap-4 py-3">
+      <div className="flex min-w-[280px] items-center gap-4 py-3">
         <div className="flex items-center -space-x-2">
           {row.original.tokens.map((t, idx) => t.icon)}
         </div>

@@ -80,9 +80,9 @@ export default function RootLayout({
               fallback={<div className="w-72">Loading sidebar...</div>}
             >
               <AppSidebar />
-            
-              <div className="flex flex-1 flex-col justify-between">
-                <MaxWidthWrapper className="flex h-full w-full flex-col items-center overflow-hidden px-7 py-3 lg:py-0">
+
+              <div className="flex flex-1 flex-col justify-between overflow-hidden">
+                <MaxWidthWrapper className="flex h-full w-full flex-col items-center px-3 py-3 lg:px-7 lg:py-0">
                   <Navbar />
                   {children}
                 </MaxWidthWrapper>

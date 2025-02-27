@@ -128,18 +128,17 @@ export function Chart({ chartData }: { chartData: HoldingInfo[] }) {
     }, 10);
 
     return () => clearInterval(interval); // Cleanup on unmount
-  }, [offset]);
+  }, []);
 
   return (
     <Card className="w-full shadow-none">
       <CardHeader className="flex items-center gap-2 space-y-0 py-5 pb-2 sm:flex-row">
         <div className="grid flex-1 gap-1 text-center sm:text-left">
-          <CardTitle>Your xSTRK holdings over time</CardTitle>
-          {/* <CardDescription>
-            Showing total visitors for the last 3 months
-          </CardDescription> */}
+          <CardTitle className="text-sm lg:text-base">
+            Your xSTRK holdings over time
+          </CardTitle>
         </div>
-        <div className="ml-auto flex w-fit rounded-md border shadow-sm">
+        <div className="mt-3 flex w-fit rounded-md border shadow-sm lg:ml-auto lg:mt-0">
           <Button
             className={cn(
               "flex h-7 w-10 items-center justify-center rounded-none rounded-l-[5px] border-r bg-transparent py-0 text-xs text-black text-muted-foreground shadow-none transition-all ease-linear hover:bg-transparent hover:text-black",
@@ -199,23 +198,23 @@ export function Chart({ chartData }: { chartData: HoldingInfo[] }) {
         </div>
       </CardHeader>
 
-      <CardContent className="px-2 !pl-0 pt-4 sm:px-6 sm:pt-6">
+      <CardContent className="px-2 py-4 sm:px-6 sm:pt-6">
         <ChartContainer
           config={chartConfig}
-          className="aspect-auto h-[250px] w-full"
+          className="aspect-auto h-[400px] w-full sm:h-[250px]"
         >
           {/* <AreaChart data={filteredData}> */}
           <AreaChart
             accessibilityLayer
             data={areaChartData}
-            margin={{
-              left: 12,
-              right: 12,
-            }}
+            // margin={{
+            //   left: 12,
+            //   right: 12,
+            // }}
           >
             <ChartLegend
-              content={<ChartLegendContent />}
-              className="relative ml-10 flex flex-row items-center gap-4 rounded-lg border px-4 py-2"
+              content={<ChartLegendContent innerClassName="w-fit" />}
+              className="relative mx-auto mt-4 flex w-fit flex-row items-center gap-4 rounded-lg border px-4 py-2"
             />
 
             <CartesianGrid vertical={false} />
@@ -256,7 +255,7 @@ export function Chart({ chartData }: { chartData: HoldingInfo[] }) {
                     return formatDate(value);
                   }}
                   chartData={
-                    filteredData.length == 0 ? getDummyData() : filteredData
+                    filteredData.length === 0 ? getDummyData() : filteredData
                   }
                   indicator="dot"
                 />
@@ -271,7 +270,7 @@ export function Chart({ chartData }: { chartData: HoldingInfo[] }) {
                 name={protocol}
                 type="monotone"
                 fill={
-                  filteredData.length == 0
+                  filteredData.length === 0
                     ? "url(#loading)"
                     : chartConfig[protocol as keyof typeof chartConfig]
                         .fillColor
@@ -279,7 +278,7 @@ export function Chart({ chartData }: { chartData: HoldingInfo[] }) {
                 stroke={chartConfig[protocol as keyof typeof chartConfig].color}
                 fillOpacity={1}
                 strokeWidth={2}
-                key={protocol}
+                key={`${protocol}-${index}`}
                 label={chartConfig[protocol as keyof typeof chartConfig].label}
               />
             ))}

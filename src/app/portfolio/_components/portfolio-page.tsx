@@ -8,25 +8,25 @@ import { useSidebar } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
 import { chartFilter } from "@/store/portfolio.store";
 
-import { useAccount } from "@starknet-react/core";
-import { Chart } from "./chart";
-import DefiHoldings from "./defi-holding";
-import Stats from "./stats";
-import { columns, SizeColumn } from "./table/columns";
-import { DataTable } from "./table/data-table";
 import MyNumber from "@/lib/MyNumber";
 import {
   DAppHoldings,
   protocolYieldsAtom,
   SupportedDApp,
 } from "@/store/defi.store";
+import { useAccount } from "@starknet-react/core";
+import { Chart } from "./chart";
+import DefiHoldings from "./defi-holding";
+import Stats from "./stats";
+import { columns, SizeColumn } from "./table/columns";
 
 import { BlockInfo } from "@/app/api/holdings/[address]/[nDays]/route";
 import { Icons } from "@/components/Icons";
 import { ProtocolConfig, protocolConfigs } from "@/components/defi";
 import { STRK_DECIMALS } from "@/constants";
+import { DataTable } from "./table/data-table";
 
-const data: SizeColumn[] = [
+const _data: SizeColumn[] = [
   {
     asset: "xSTRK/STRK",
     dapp: "Ekubo",
@@ -104,7 +104,7 @@ const PortfolioPage: React.FC = () => {
         );
         return config;
       })
-      .filter((config) => config != null);
+      .filter((config) => config !== null);
   }, [yields, sortedProtocols, holdings]);
 
   React.useEffect(() => {
@@ -166,7 +166,7 @@ const PortfolioPage: React.FC = () => {
         "lg:pl-28": !isPinned,
       })}
     >
-      <h1 className="mb-[5px] text-2xl font-bold text-black">
+      <h1 className="mb-[5px] text-lg font-bold text-black lg:text-2xl">
         Your xSTRK Portfolio
       </h1>
       <div className="flex w-full flex-col items-start justify-start gap-5 lg:flex-row">
@@ -180,7 +180,7 @@ const PortfolioPage: React.FC = () => {
 
       {/* <DataFilters data={data} /> */}
       <div
-        className="mb-4 mt-5 rounded-lg border border-[#17876D] bg-[#e7f0ef] p-4 text-sm text-[#17876D] dark:bg-gray-800 dark:text-blue-400"
+        className="mb-4 mt-5 rounded-lg border border-[#17876D] bg-[#e7f0ef] p-4 text-xs text-[#17876D] dark:bg-gray-800 dark:text-blue-400 lg:text-sm"
         role="alert"
       >
         <span className="font-medium">

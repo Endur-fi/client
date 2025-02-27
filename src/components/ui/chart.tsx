@@ -3,8 +3,8 @@
 import * as React from "react";
 import * as RechartsPrimitive from "recharts";
 
-import { cn } from "@/lib/utils";
 import { chartConfig } from "@/app/portfolio/_components/defi-holding";
+import { cn } from "@/lib/utils";
 import { SupportedDApp } from "@/store/defi.store";
 
 // Format: { THEME_NAME: CSS_SELECTOR }
@@ -186,6 +186,8 @@ const ChartTooltipContent = React.forwardRef<
 
     const nestLabel = payload.length === 1 && indicator !== "dot";
 
+    console.log(payload, "payloadddd");
+
     return (
       <div
         ref={ref}
@@ -246,7 +248,11 @@ const ChartTooltipContent = React.forwardRef<
                       </div>
                       {item.value && (
                         <span className="font-mono font-medium tabular-nums text-foreground">
-                          {Number(item.payload[item.name as string]).toFixed(2)}{" "}
+                          {item.payload.holdings
+                            ? Number(item.payload.holdings).toFixed(2)
+                            : Number(item.payload[item.name as string]).toFixed(
+                                2,
+                              )}{" "}
                           xSTRK
                         </span>
                       )}
@@ -271,10 +277,18 @@ const ChartLegendContent = React.forwardRef<
     Pick<RechartsPrimitive.LegendProps, "payload" | "verticalAlign"> & {
       hideIcon?: boolean;
       nameKey?: string;
+      innerClassName?: string;
     }
 >(
   (
-    { className, hideIcon = false, payload, verticalAlign = "bottom", nameKey },
+    {
+      className,
+      innerClassName,
+      hideIcon = false,
+      payload,
+      verticalAlign = "bottom",
+      nameKey,
+    },
     ref,
   ) => {
     const { config } = useChart();
@@ -287,7 +301,7 @@ const ChartLegendContent = React.forwardRef<
       <div
         ref={ref}
         className={cn(
-          "flex flex-col items-start justify-center gap-4",
+          "flex flex-col flex-wrap items-start justify-start gap-4 xl:flex-nowrap",
           verticalAlign === "top" ? "pb-3" : "pt-3",
           className,
         )}
@@ -299,7 +313,10 @@ const ChartLegendContent = React.forwardRef<
           return (
             <div
               key={item.value}
-              className="flex w-full items-center justify-between gap-2"
+              className={cn(
+                "flex w-full items-center justify-between gap-4",
+                innerClassName,
+              )}
             >
               <div
                 className={cn(
