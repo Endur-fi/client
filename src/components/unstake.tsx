@@ -2,22 +2,14 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  useAccount,
-  useConnect,
-  useSendTransaction,
-} from "@starknet-react/core";
+import { useAccount, useSendTransaction } from "@starknet-react/core";
 import { useAtom, useAtomValue } from "jotai";
 import { Info } from "lucide-react";
 import Link from "next/link";
 import React from "react";
 import { useForm } from "react-hook-form";
 import { AccountInterface, Contract } from "starknet";
-import {
-  connect,
-  ConnectOptionsWithConnectors,
-  StarknetkitConnector,
-} from "starknetkit";
+
 import * as z from "zod";
 
 import erc4626Abi from "@/abi/erc4626.abi.json";
@@ -29,9 +21,10 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { getProvider, LINKS, NETWORK, REWARD_FEES } from "@/constants";
+import { getProvider, LINKS, REWARD_FEES } from "@/constants";
 import { toast } from "@/hooks/use-toast";
-import { useTransactionHandler } from "@/hooks/useTransaction";
+import { useTransactionHandler } from "@/hooks/use-transactions";
+import { useWalletConnection } from "@/hooks/use-wallet-connection";
 import { MyAnalytics } from "@/lib/analytics";
 import MyNumber from "@/lib/MyNumber";
 import { eventNames, formatNumber } from "@/lib/utils";
@@ -52,10 +45,8 @@ import {
 import { snAPYAtom } from "@/store/staking.store";
 
 import { Icons } from "./Icons";
-import { getConnectors } from "./navbar";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
-import { useSidebar } from "./ui/sidebar";
 
 const formSchema = z.object({
   unstakeAmount: z.string().refine(
@@ -269,8 +260,7 @@ const Unstake = () => {
   const [txnDapp, setTxnDapp] = React.useState<"endur" | "dex">("dex");
 
   const { account, address } = useAccount();
-  const { connect: connectSnReact } = useConnect();
-  const { isMobile } = useSidebar();
+  const { connectWallet } = useWalletConnection();
 
   const [avnuQuote, setAvnuQuote] = useAtom(avnuQuoteAtom);
   const [avnuLoading, setAvnuLoading] = useAtom(avnuLoadingAtom);
@@ -303,23 +293,6 @@ const Unstake = () => {
   const { sendAsync, data, isPending, error } = useSendTransaction({});
 
   const { handleTransaction } = useTransactionHandler();
-
-  const connectorConfig: ConnectOptionsWithConnectors = React.useMemo(() => {
-    const hostname =
-      typeof window !== "undefined" ? window.location.hostname : "";
-    return {
-      modalMode: "canAsk",
-      modalTheme: "light",
-      webWalletUrl: "https://web.argent.xyz",
-      argentMobileOptions: {
-        dappName: "Endur.fi",
-        chainId: NETWORK,
-        url: hostname,
-      },
-      dappName: "Endur.fi",
-      connectors: getConnectors(isMobile) as StarknetkitConnector[],
-    };
-  }, [isMobile]);
 
   const youWillGet = React.useMemo(() => {
     if (form.getValues("unstakeAmount") && txnDapp === "endur") {
@@ -388,17 +361,6 @@ const Unstake = () => {
 
     fetchQuote();
   }, [address, form.watch("unstakeAmount")]);
-
-  async function connectWallet(config = connectorConfig) {
-    try {
-      const { connector } = await connect(config);
-      if (connector) {
-        connectSnReact({ connector: connector as any });
-      }
-    } catch (error) {
-      console.error("connectWallet error", error);
-    }
-  }
 
   const handleQuickUnstakePrice = (percentage: number) => {
     if (!address) {

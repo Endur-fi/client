@@ -5,7 +5,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import {
   useAccount,
   useBalance,
-  useConnect,
   useSendTransaction,
 } from "@starknet-react/core";
 import { useAtomValue } from "jotai";
@@ -17,11 +16,7 @@ import React from "react";
 import { useForm } from "react-hook-form";
 import { TwitterShareButton } from "react-share";
 import { Call, Contract } from "starknet";
-import {
-  connect,
-  ConnectOptionsWithConnectors,
-  StarknetkitConnector,
-} from "starknetkit";
+
 import * as z from "zod";
 
 import erc4626Abi from "@/abi/erc4626.abi.json";
@@ -50,14 +45,14 @@ import {
   getEndpoint,
   LINKS,
   LST_ADDRRESS,
-  NETWORK,
   NOSTRA_iXSTRK_ADDRESS,
   REWARD_FEES,
   STRK_TOKEN,
   VESU_vXSTRK_ADDRESS,
 } from "@/constants";
 import { toast } from "@/hooks/use-toast";
-import { useTransactionHandler } from "@/hooks/useTransaction";
+import { useTransactionHandler } from "@/hooks/use-transactions";
+import { useWalletConnection } from "@/hooks/use-wallet-connection";
 import { MyAnalytics } from "@/lib/analytics";
 import MyNumber from "@/lib/MyNumber";
 import {
@@ -78,11 +73,9 @@ import {
 import { snAPYAtom } from "@/store/staking.store";
 
 import { Icons } from "./Icons";
-import { getConnectors } from "./navbar";
 import { PlatformCard } from "./platform-card";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
-import { useSidebar } from "./ui/sidebar";
 
 const font = Figtree({ subsets: ["latin-ext"] });
 
@@ -115,13 +108,11 @@ const Stake: React.FC = () => {
   const searchParams = useSearchParams();
 
   const { address } = useAccount();
-  const { connect: connectSnReact } = useConnect();
+  const { connectWallet } = useWalletConnection();
   const { data: balance } = useBalance({
     address,
     token: STRK_TOKEN,
   });
-
-  const { isMobile } = useSidebar();
 
   const currentStaked = useAtomValue(userSTRKBalanceAtom);
   const totalStaked = useAtomValue(totalStakedAtom);
@@ -165,23 +156,6 @@ const Stake: React.FC = () => {
     });
   }, [yields]);
 
-  const connectorConfig: ConnectOptionsWithConnectors = React.useMemo(() => {
-    const hostname =
-      typeof window !== "undefined" ? window.location.hostname : "";
-    return {
-      modalMode: "canAsk",
-      modalTheme: "light",
-      webWalletUrl: "https://web.argent.xyz",
-      argentMobileOptions: {
-        dappName: "Endur.fi",
-        chainId: NETWORK,
-        url: hostname,
-      },
-      dappName: "Endur.fi",
-      connectors: getConnectors(isMobile) as StarknetkitConnector[],
-    };
-  }, [isMobile]);
-
   React.useEffect(() => {
     handleTransaction("STAKE", {
       form,
@@ -192,18 +166,6 @@ const Stake: React.FC = () => {
       setShowShareModal,
     });
   }, [data?.transaction_hash, form, isPending]);
-
-  async function connectWallet(config = connectorConfig) {
-    try {
-      const { connector } = await connect(config);
-
-      if (connector) {
-        connectSnReact({ connector: connector as any });
-      }
-    } catch (error) {
-      console.error("connectWallet error", error);
-    }
-  }
 
   const handleQuickStakePrice = (percentage: number) => {
     if (!address) {

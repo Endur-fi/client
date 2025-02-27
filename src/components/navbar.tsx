@@ -1,9 +1,8 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 
 import {
-  InjectedConnector,
   useAccount,
-  useConnect,
   useDisconnect,
   useProvider,
   useSwitchChain,
@@ -12,24 +11,11 @@ import { useAtom, useSetAtom } from "jotai";
 import { X } from "lucide-react";
 import React from "react";
 import { constants, num } from "starknet";
-import {
-  connect,
-  ConnectOptionsWithConnectors,
-  disconnect,
-  StarknetkitConnector,
-} from "starknetkit";
-import {
-  ArgentMobileConnector,
-  isInArgentMobileAppBrowser,
-} from "starknetkit/argentMobile";
-import {
-  BraavosMobileConnector,
-  isInBraavosMobileAppBrowser,
-} from "starknetkit/braavosMobile";
-import { WebWalletConnector } from "starknetkit/webwallet";
+import { disconnect } from "starknetkit";
 
 import { getProvider, NETWORK } from "@/constants";
 import { toast } from "@/hooks/use-toast";
+import { useWalletConnection } from "@/hooks/use-wallet-connection";
 import { MyAnalytics } from "@/lib/analytics";
 import { cn, shortAddress } from "@/lib/utils";
 import {
@@ -42,107 +28,20 @@ import { Icons } from "./Icons";
 import MobileNav from "./mobile-nav";
 import { useSidebar } from "./ui/sidebar";
 
-export const CONNECTOR_NAMES = [
-  "Braavos",
-  "Argent X",
-  "Argent (mobile)",
-  "Keplr",
-];
-
-export function getConnectors(isMobile: boolean) {
-  const hostname =
-    typeof window !== "undefined" ? window.location.hostname : "";
-
-  const mobileConnector = ArgentMobileConnector.init({
-    options: {
-      dappName: "Endurfi",
-      url: hostname,
-      chainId: constants.NetworkName.SN_MAIN,
-    },
-    inAppBrowserOptions: {},
-  }) as StarknetkitConnector;
-
-  const argentXConnector = new InjectedConnector({
-    options: {
-      id: "argentX",
-      name: "Argent X",
-    },
-  });
-
-  const braavosConnector = new InjectedConnector({
-    options: {
-      id: "braavos",
-      name: "Braavos",
-    },
-  });
-
-  const keplrConnector = new InjectedConnector({
-    options: {
-      id: "keplr",
-      name: "Keplr",
-    },
-  });
-
-  const braavosMobile = BraavosMobileConnector.init({
-    inAppBrowserOptions: {},
-  }) as StarknetkitConnector;
-
-  const webWalletConnector = new WebWalletConnector({
-    url: "https://web.argent.xyz",
-  }) as StarknetkitConnector;
-
-  const isMainnet = NETWORK === constants.NetworkName.SN_MAIN;
-
-  if (isMainnet) {
-    if (isInArgentMobileAppBrowser()) {
-      return [mobileConnector];
-    } else if (isInBraavosMobileAppBrowser()) {
-      return [braavosMobile];
-    } else if (isMobile) {
-      return [mobileConnector, braavosMobile, webWalletConnector];
-    }
-    return [
-      argentXConnector,
-      braavosConnector,
-      keplrConnector,
-      mobileConnector,
-      webWalletConnector,
-    ];
-  }
-  return [argentXConnector, braavosConnector, keplrConnector];
-}
-
 const Navbar = ({ className }: { className?: string }) => {
   // init analytics
   MyAnalytics.init();
 
   const { address, connector, chainId } = useAccount();
   const { provider } = useProvider();
-  const { connect: connectSnReact } = useConnect();
   const { disconnectAsync } = useDisconnect();
+  const { connectWallet, config } = useWalletConnection();
 
   const { isMobile } = useSidebar();
 
   const [__, setAddress] = useAtom(userAddressAtom);
   const [_, setLastWallet] = useAtom(lastWalletAtom);
   const setProvider = useSetAtom(providerAtom);
-
-  const connectorConfig: ConnectOptionsWithConnectors = React.useMemo(() => {
-    const hostname =
-      typeof window !== "undefined" ? window.location.hostname : "";
-    return {
-      modalMode: "canAsk",
-      modalTheme: "light",
-      webWalletUrl: "https://web.argent.xyz",
-      argentMobileOptions: {
-        dappName: "Endur.fi",
-        chainId: NETWORK,
-        url: hostname,
-      },
-      dappName: "Endur.fi",
-      connectors: getConnectors(isMobile) as StarknetkitConnector[],
-    };
-  }, [isMobile]);
 
   const requiredChainId = React.useMemo(() => {
     return NETWORK === constants.NetworkName.SN_MAIN
@@ -155,18 +54,6 @@ const Navbar = ({ className }: { className?: string }) => {
       chainId: requiredChainId,
     },
   });
-
-  async function connectWallet(config = connectorConfig) {
-    try {
-      const { connector } = await connect(config);
-
-      if (connector) {
-        connectSnReact({ connector: connector as any });
-      }
-    } catch (error) {
-      console.error("connectWallet error", error);
-    }
-  }
 
   // set tracking person
   React.useEffect(() => {
@@ -193,7 +80,6 @@ const Navbar = ({ className }: { className?: string }) => {
 
   // attempt to connect wallet on load
   React.useEffect(() => {
-    const config = connectorConfig;
     connectWallet({
       ...config,
       modalMode: "neverAsk",

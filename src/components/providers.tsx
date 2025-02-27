@@ -1,6 +1,5 @@
 "use client";
 
-import { useIsMobile } from "@/hooks/use-mobile";
 import { mainnet, sepolia } from "@starknet-react/chains";
 import {
   Connector,
@@ -11,7 +10,8 @@ import React from "react";
 import { constants, RpcProviderOptions } from "starknet";
 
 import { NETWORK } from "@/constants";
-import { getConnectors } from "./navbar";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { WalletConnector } from "@/services/wallet";
 
 interface ProvidersProps {
   children: React.ReactNode;
@@ -35,12 +35,13 @@ const provider = jsonRpcProvider({
 
 const Providers: React.FC<ProvidersProps> = ({ children }) => {
   const isMobile = useIsMobile();
+  const walletConnector = new WalletConnector(isMobile);
 
   return (
     <StarknetConfig
       chains={chains}
       provider={provider}
-      connectors={getConnectors(isMobile) as Connector[]}
+      connectors={walletConnector.getConnectors() as Connector[]}
     >
       {children}
     </StarknetConfig>
