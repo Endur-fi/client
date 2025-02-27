@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -7,12 +8,12 @@ import {
   useConnect,
   useSendTransaction,
 } from "@starknet-react/core";
-import { useAtom, useAtomValue } from "jotai";
+import { useAtomValue } from "jotai";
 import { ChevronDown, Info } from "lucide-react";
 import { Figtree } from "next/font/google";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import React, { useMemo, useState } from "react";
+import React from "react";
 import { useForm } from "react-hook-form";
 import { TwitterShareButton } from "react-share";
 import { Call, Contract } from "starknet";
@@ -55,7 +56,8 @@ import {
   STRK_TOKEN,
   VESU_vXSTRK_ADDRESS,
 } from "@/constants";
-import { toast, useToast } from "@/hooks/use-toast";
+import { toast } from "@/hooks/use-toast";
+import { useTransactionHandler } from "@/hooks/useTransaction";
 import { MyAnalytics } from "@/lib/analytics";
 import MyNumber from "@/lib/MyNumber";
 import {
@@ -73,12 +75,7 @@ import {
   totalStakedUSDAtom,
   userSTRKBalanceAtom,
 } from "@/store/lst.store";
-import {
-  isMerryChristmasAtom,
-  isStakeInputFocusAtom,
-} from "@/store/merry.store";
 import { snAPYAtom } from "@/store/staking.store";
-import { isTxAccepted } from "@/store/transactions.atom";
 
 import { Icons } from "./Icons";
 import { getConnectors } from "./navbar";
@@ -109,12 +106,11 @@ const PLATFORMS = {
   NOSTRA: "nostra-lend",
 } as const;
 
-type ValidPlatform = (typeof PLATFORMS)[keyof typeof PLATFORMS];
-
 const Stake: React.FC = () => {
   const [showShareModal, setShowShareModal] = React.useState(false);
-  const [selectedPlatform, setSelectedPlatform] = useState<Platform>("none");
-  const [isLendingOpen, setIsLendingOpen] = useState(false);
+  const [selectedPlatform, setSelectedPlatform] =
+    React.useState<Platform>("none");
+  const [isLendingOpen, setIsLendingOpen] = React.useState(false);
 
   const searchParams = useSearchParams();
 
@@ -126,10 +122,6 @@ const Stake: React.FC = () => {
   });
 
   const { isMobile } = useSidebar();
-  const { dismiss } = useToast();
-
-  const [isMerry, setIsMerry] = useAtom(isMerryChristmasAtom);
-  const [focusStakeInput, setFocusStakeInput] = useAtom(isStakeInputFocusAtom);
 
   const currentStaked = useAtomValue(userSTRKBalanceAtom);
   const totalStaked = useAtomValue(totalStakedAtom);
@@ -157,139 +149,21 @@ const Stake: React.FC = () => {
 
   const { sendAsync, data, isPending, error } = useSendTransaction({});
 
+  const { handleTransaction } = useTransactionHandler();
+
   const getPlatformYield = (platform: Platform) => {
     if (platform === "none") return 0;
     const key = platform === "vesu" ? "vesu" : "nostra-lend";
     return yields[key]?.value ?? 0;
   };
 
-  const sortedPlatforms = useMemo(() => {
+  const sortedPlatforms = React.useMemo(() => {
     return Object.values(PLATFORMS).sort((a, b) => {
       const totalSuppliedA = yields[a]?.totalSupplied || 0;
       const totalSuppliedB = yields[b]?.totalSupplied || 0;
       return totalSuppliedB - totalSuppliedA;
     });
   }, [yields]);
-
-  React.useEffect(() => {
-    (async () => {
-      if (data?.transaction_hash) {
-        // Track transaction init analytics
-        MyAnalytics.track(eventNames.STAKE_TX_INIT, {
-          address,
-          amount: Number(form.getValues("stakeAmount")),
-          txHash: data?.transaction_hash,
-        });
-      }
-      if (isPending) {
-        toast({
-          itemID: "stake",
-          variant: "pending",
-          description: (
-            <div className="flex items-center gap-5 border-none">
-              <div className="relative shrink-0">
-                <div className="absolute left-3 top-3 z-10 size-[52px] rounded-full bg-[#BBC2CC]" />
-                <Icons.toastPending className="animate-spin" />
-                <Icons.clock className="absolute left-[26.5px] top-[26.5px] z-20" />
-              </div>
-              <div className="flex flex-col items-start gap-2 text-sm font-medium text-[#3F6870]">
-                <span className="text-[18px] font-semibold text-[#075A5A]">
-                  In Progress..
-                </span>
-                Staking {form.getValues("stakeAmount")} STRK
-              </div>
-            </div>
-          ),
-        });
-      }
-
-      if (error?.name?.includes("UserRejectedRequestError")) {
-        // Track transaction rejected analytics
-        MyAnalytics.track(eventNames.STAKE_TX_REJECTED, {
-          address,
-          amount: Number(form.getValues("stakeAmount")),
-          type: error.name,
-        });
-        dismiss();
-      }
-
-      if (error?.name && !error?.name?.includes("UserRejectedRequestError")) {
-        // Track transaction rejected analytics
-        MyAnalytics.track(eventNames.STAKE_TX_REJECTED, {
-          address,
-          amount: Number(form.getValues("stakeAmount")),
-          type: error.name,
-        });
-        toast({
-          itemID: "stake",
-          variant: "pending",
-          description: (
-            <div className="flex items-center gap-5 border-none pl-2">
-              ❌
-              <div className="flex flex-col items-start text-sm font-medium text-[#3F6870]">
-                <span className="text-base font-semibold text-[#075A5A]">
-                  Something went wrong
-                </span>
-                Please try again
-              </div>
-            </div>
-          ),
-        });
-      }
-
-      if (data) {
-        const res = await isTxAccepted(data?.transaction_hash);
-
-        if (res) {
-          // Track transaction successful analytics
-          MyAnalytics.track(eventNames.STAKE_TX_SUCCESSFUL, {
-            address,
-            amount: Number(form.getValues("stakeAmount")),
-          });
-          toast({
-            itemID: "stake",
-            variant: "complete",
-            duration: 3000,
-            description: (
-              <div className="flex items-center gap-2 border-none">
-                <Icons.toastSuccess />
-                <div className="flex flex-col items-start gap-2 text-sm font-medium text-[#3F6870]">
-                  <span className="text-[18px] font-semibold text-[#075A5A]">
-                    Success 🎉
-                  </span>
-                  Staked {form.getValues("stakeAmount")} STRK
-                </div>
-              </div>
-            ),
-          });
-
-          setShowShareModal(true);
-
-          form.reset();
-        }
-      }
-    })();
-  }, [data, data?.transaction_hash, error?.name, form, isPending]);
-
-  // React.useEffect(() => {
-  //   if (form.getValues("stakeAmount").toLowerCase() === "xstrk") {
-  //     setIsMerry(true);
-  //     MyAnalytics.track("Activated Merry Christmas Theme", {
-  //       address,
-  //       tab: "stake",
-  //     });
-  //   }
-  // }, [form.getValues("stakeAmount"), form]);
-
-  // React.useEffect(() => {
-  //   if (!address) return;
-
-  //   if (focusStakeInput) {
-  //     handleQuickStakePrice(100);
-  //     form.setFocus("stakeAmount");
-  //     setFocusStakeInput(false);
-  //   }
-  // }, [address, focusStakeInput]);
 
   const connectorConfig: ConnectOptionsWithConnectors = React.useMemo(() => {
     const hostname =
@@ -307,6 +181,17 @@ const Stake: React.FC = () => {
       connectors: getConnectors(isMobile) as StarknetkitConnector[],
     };
   }, [isMobile]);
+
+  React.useEffect(() => {
+    handleTransaction("STAKE", {
+      form,
+      address: address ?? "",
+      data: data ?? { transaction_hash: "" },
+      error: error ?? { name: "" },
+      isPending,
+      setShowShareModal,
+    });
+  }, [data?.transaction_hash, form, isPending]);
 
   async function connectWallet(config = connectorConfig) {
     try {
@@ -350,6 +235,22 @@ const Stake: React.FC = () => {
         ((Number(balance?.formatted) * percentage) / 100).toString(),
       );
       form.clearErrors("stakeAmount");
+    }
+  };
+
+  const getCalculatedXSTRK = () => {
+    const amount = form.watch("stakeAmount");
+    if (!amount || isNaN(Number(amount)) || Number(amount) <= 0) return "0";
+
+    try {
+      return formatNumberWithCommas(
+        MyNumber.fromEther(amount, 18)
+          .operate("multipliedBy", MyNumber.fromEther("1", 18).toString())
+          .operate("div", exchangeRate.preciseRate.toString())
+          .toEtherStr(),
+      );
+    } catch (error) {
+      return "0";
     }
   };
 
@@ -450,30 +351,8 @@ const Stake: React.FC = () => {
     await sendAsync(calls);
   };
 
-  const getCalculatedXSTRK = () => {
-    const amount = form.watch("stakeAmount");
-    if (!amount || isNaN(Number(amount)) || Number(amount) <= 0) return "0";
-
-    try {
-      return formatNumberWithCommas(
-        MyNumber.fromEther(amount, 18)
-          .operate("multipliedBy", MyNumber.fromEther("1", 18).toString())
-          .operate("div", exchangeRate.preciseRate.toString())
-          .toEtherStr(),
-      );
-    } catch (error) {
-      return "0";
-    }
-  };
-
   return (
     <div className="relative h-full w-full">
-      {/* {isMerry && (
-        <div className="pointer-events-none absolute -left-[15px] -top-[7.5rem] hidden transition-all duration-500 lg:block">
-          <Icons.cloud />
-        </div>
-      )} */}
-
       <Dialog open={showShareModal} onOpenChange={setShowShareModal}>
         <DialogContent className={cn(font.className, "p-16 sm:max-w-xl")}>
           <DialogHeader>
@@ -499,10 +378,11 @@ const Stake: React.FC = () => {
                 borderRadius: "8px",
                 backgroundColor: "#17876D",
                 color: "white",
+                textWrap: "nowrap",
               }}
             >
               Share on
-              <Icons.X />
+              <Icons.X className="size-4 shrink-0" />
             </TwitterShareButton>
           </div>
         </DialogContent>
@@ -589,13 +469,6 @@ const Stake: React.FC = () => {
                         />
                       </div>
                     </FormControl>
-                    {/* {form.getValues("stakeAmount").toLowerCase() === "xstrk" ? (
-                      <p className="absolute -bottom-4 left-0 text-xs font-medium text-green-500 transition-all lg:left-1 lg:-ml-1">
-                        Merry Christmas!
-                      </p>
-                    ) : (
-                      <FormMessage className="absolute -bottom-5 left-0 text-xs lg:left-1" />
-                    )} */}
                   </FormItem>
                 )}
               />

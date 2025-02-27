@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -9,7 +10,7 @@ import {
 import { useAtom, useAtomValue } from "jotai";
 import { Info } from "lucide-react";
 import Link from "next/link";
-import React, { useMemo } from "react";
+import React from "react";
 import { useForm } from "react-hook-form";
 import { AccountInterface, Contract } from "starknet";
 import {
@@ -29,7 +30,8 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { getProvider, LINKS, NETWORK, REWARD_FEES } from "@/constants";
-import { toast, useToast } from "@/hooks/use-toast";
+import { toast } from "@/hooks/use-toast";
+import { useTransactionHandler } from "@/hooks/useTransaction";
 import { MyAnalytics } from "@/lib/analytics";
 import MyNumber from "@/lib/MyNumber";
 import { eventNames, formatNumber } from "@/lib/utils";
@@ -48,21 +50,12 @@ import {
   withdrawalQueueStateAtom,
 } from "@/store/lst.store";
 import { snAPYAtom } from "@/store/staking.store";
-import { isTxAccepted } from "@/store/transactions.atom";
 
 import { Icons } from "./Icons";
 import { getConnectors } from "./navbar";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { useSidebar } from "./ui/sidebar";
-
-interface DexRoute {
-  dex: "avnu";
-  exchangeRate: number;
-  logo: React.ReactNode;
-  name: string;
-  link: string;
-}
 
 const formSchema = z.object({
   unstakeAmount: z.string().refine(
@@ -166,7 +159,7 @@ const YouWillGetSection = ({
   </div>
 );
 
-const calculateWaitingTime = (queueState: any, unstakeAmount: string) => {
+const _calculateWaitingTime = (queueState: any, unstakeAmount: string) => {
   if (!queueState || !unstakeAmount) return "-";
 
   try {
@@ -278,9 +271,11 @@ const Unstake = () => {
   const { account, address } = useAccount();
   const { connect: connectSnReact } = useConnect();
   const { isMobile } = useSidebar();
-  const { dismiss } = useToast();
 
-  // const [isMerry, setIsMerry] = useAtom(isMerryChristmasAtom);
+  const [avnuQuote, setAvnuQuote] = useAtom(avnuQuoteAtom);
+  const [avnuLoading, setAvnuLoading] = useAtom(avnuLoadingAtom);
+  const [_avnuError, setAvnuError] = useAtom(avnuErrorAtom);
+
   const currentStaked = useAtomValue(userSTRKBalanceAtom);
   const exRate = useAtomValue(exchangeRateAtom);
   const totalStaked = useAtomValue(totalStakedAtom);
@@ -298,6 +293,7 @@ const Unstake = () => {
   });
 
   const provider = getProvider();
+
   const contract = new Contract(
     erc4626Abi,
     process.env.NEXT_PUBLIC_LST_ADDRESS as string,
@@ -306,114 +302,7 @@ const Unstake = () => {
 
   const { sendAsync, data, isPending, error } = useSendTransaction({});
 
-  React.useEffect(() => {
-    (async () => {
-      if (data?.transaction_hash) {
-        // Track transaction init analytics
-        MyAnalytics.track(eventNames.UNSTAKE_TX_INIT, {
-          address,
-          amount: Number(form.getValues("unstakeAmount")),
-          txHash: data.transaction_hash,
-        });
-      }
-      if (isPending) {
-        toast({
-          itemID: "unstake",
-          variant: "pending",
-          description: (
-            <div className="flex items-center gap-5 border-none">
-              <div className="relative shrink-0">
-                <div className="absolute left-3 top-3 z-10 size-[52px] rounded-full bg-[#BBC2CC]" />
-                <Icons.toastPending className="animate-spin" />
-                <Icons.clock className="absolute left-[26.5px] top-[26.5px] z-20" />
-              </div>
-              <div className="flex flex-col items-start gap-2 text-sm font-medium text-[#3F6870]">
-                <span className="text-[18px] font-semibold text-[#075A5A]">
-                  In Progress..
-                </span>
-                Unstaking {form.getValues("unstakeAmount")} STRK
-              </div>
-            </div>
-          ),
-        });
-      }
-
-      if (error?.name?.includes("UserRejectedRequestError")) {
-        // Track transaction rejected analytics
-        MyAnalytics.track(eventNames.UNSTAKE_TX_REJECTED, {
-          address,
-          amount: Number(form.getValues("unstakeAmount")),
-          type: error.name,
-        });
-        dismiss();
-      }
-
-      if (error?.name && !error?.name?.includes("UserRejectedRequestError")) {
-        // Track transaction rejected analytics
-        MyAnalytics.track(eventNames.UNSTAKE_TX_REJECTED, {
-          address,
-          amount: Number(form.getValues("unstakeAmount")),
-          type: error.name,
-        });
-        toast({
-          itemID: "unstake",
-          variant: "pending",
-          description: (
-            <div className="flex items-center gap-5 border-none pl-2">
-              ❌
-              <div className="flex flex-col items-start text-sm font-medium text-[#3F6870]">
-                <span className="text-base font-semibold text-[#075A5A]">
-                  Something went wrong
-                </span>
-                Please try again
-              </div>
-            </div>
-          ),
-        });
-      }
-
-      if (data) {
-        const res = await isTxAccepted(data?.transaction_hash);
-
-        if (res) {
-          // Track transaction successful analytics
-          MyAnalytics.track(eventNames.UNSTAKE_TX_SUCCESSFUL, {
-            address,
-            amount: Number(form.getValues("unstakeAmount")),
-            txHash: data.transaction_hash,
-          });
-          toast({
-            itemID: "unstake",
-            variant: "complete",
-            duration: 3000,
-            description: (
-              <div className="flex items-center gap-2 border-none">
-                <Icons.toastSuccess />
-                <div className="flex flex-col items-start gap-2 text-sm font-medium text-[#3F6870]">
-                  <span className="text-[18px] font-semibold text-[#075A5A]">
-                    Success 🎉
-                  </span>
-                  Unstaked {form.getValues("unstakeAmount")} STRK
-                </div>
-              </div>
-            ),
-          });
-
-          form.reset();
-        }
-      }
-    })();
-  }, [data, data?.transaction_hash, error?.name, form, isPending]);
-
-  // React.useEffect(() => {
-  //   if (form.getValues("unstakeAmount").toLowerCase() === "xstrk") {
-  //     setIsMerry(true);
-  //     MyAnalytics.track("Activated Merry Christmas Theme", {
-  //       address,
-  //       tab: "unstake",
-  //     });
-  //   }
-  // }, [form.getValues("unstakeAmount"), form]);
+  const { handleTransaction } = useTransactionHandler();
 
   const connectorConfig: ConnectOptionsWithConnectors = React.useMemo(() => {
     const hostname =
@@ -439,82 +328,24 @@ const Unstake = () => {
     return "0";
   }, [exRate.rate, form.watch("unstakeAmount"), txnDapp]);
 
-  async function connectWallet(config = connectorConfig) {
-    try {
-      const { connector } = await connect(config);
-      if (connector) {
-        connectSnReact({ connector: connector as any });
-      }
-    } catch (error) {
-      console.error("connectWallet error", error);
-    }
-  }
+  const dexRate = React.useMemo(() => {
+    if (!avnuQuote) return 0;
+    return Number(avnuQuote.buyAmount) / Number(avnuQuote.sellAmount);
+  }, [avnuQuote]);
 
-  const handleQuickUnstakePrice = (percentage: number) => {
-    if (!address) {
-      return toast({
-        description: (
-          <div className="flex items-center gap-2">
-            <Info className="size-5" />
-            Please connect your wallet
-          </div>
-        ),
-      });
-    }
+  const waitingTime = React.useMemo(() => {
+    return "~21 days";
+  }, [queueState.value, form.watch("unstakeAmount")]);
 
-    const amount = Number(currentXSTRKBalance.value.toEtherToFixedDecimals(9));
-
-    if (amount) {
-      form.setValue("unstakeAmount", ((amount * percentage) / 100).toString());
-      form.clearErrors("unstakeAmount");
-    }
-  };
-
-  const onSubmit = async (values: FormValues) => {
-    if (!address) {
-      return toast({
-        description: (
-          <div className="flex items-center gap-2">
-            <Info className="size-5" />
-            Please connect your wallet
-          </div>
-        ),
-      });
-    }
-
-    if (
-      Number(values.unstakeAmount) >
-      Number(currentXSTRKBalance.value.toEtherToFixedDecimals(9))
-    ) {
-      return toast({
-        description: (
-          <div className="flex items-center gap-2">
-            <Info className="size-5" />
-            Insufficient xSTRK balance
-          </div>
-        ),
-      });
-    }
-
-    // Track unstake button click
-    MyAnalytics.track(eventNames.UNSTAKE_CLICK, {
-      address,
-      amount: Number(values.unstakeAmount),
-      mode: "ViaEndur",
+  React.useEffect(() => {
+    handleTransaction("UNSTAKE", {
+      form,
+      address: address ?? "",
+      data: data ?? { transaction_hash: "" },
+      error: error ?? { name: "" },
+      isPending,
     });
-
-    const call1 = contract.populate("redeem", [
-      MyNumber.fromEther(values.unstakeAmount, 18),
-      address,
-      address,
-    ]);
-
-    sendAsync([call1]);
-  };
-
-  const [avnuQuote, setAvnuQuote] = useAtom(avnuQuoteAtom);
-  const [avnuLoading, setAvnuLoading] = useAtom(avnuLoadingAtom);
-  const [avnuError, setAvnuError] = useAtom(avnuErrorAtom);
+  }, [data?.transaction_hash, form, isPending]);
 
   React.useEffect(() => {
     const initializeAvnuQuote = async () => {
@@ -557,6 +388,37 @@ const Unstake = () => {
 
     fetchQuote();
   }, [address, form.watch("unstakeAmount")]);
+
+  async function connectWallet(config = connectorConfig) {
+    try {
+      const { connector } = await connect(config);
+      if (connector) {
+        connectSnReact({ connector: connector as any });
+      }
+    } catch (error) {
+      console.error("connectWallet error", error);
+    }
+  }
+
+  const handleQuickUnstakePrice = (percentage: number) => {
+    if (!address) {
+      return toast({
+        description: (
+          <div className="flex items-center gap-2">
+            <Info className="size-5" />
+            Please connect your wallet
+          </div>
+        ),
+      });
+    }
+
+    const amount = Number(currentXSTRKBalance.value.toEtherToFixedDecimals(9));
+
+    if (amount) {
+      form.setValue("unstakeAmount", ((amount * percentage) / 100).toString());
+      form.clearErrors("unstakeAmount");
+    }
+  };
 
   const handleDexSwap = async () => {
     if (!address || !avnuQuote) return;
@@ -608,15 +470,6 @@ const Unstake = () => {
     }
   };
 
-  const dexRate = useMemo(() => {
-    if (!avnuQuote) return 0;
-    return Number(avnuQuote.buyAmount) / Number(avnuQuote.sellAmount);
-  }, [avnuQuote]);
-
-  const waitingTime = useMemo(() => {
-    return "~21 days";
-  }, [queueState.value, form.watch("unstakeAmount")]);
-
   const getBetterRate = () => {
     const endurRate = exRate.rate;
     const dexRate = avnuQuote
@@ -627,14 +480,50 @@ const Unstake = () => {
     return endurRate > dexRate ? "endur" : "dex";
   };
 
+  const onSubmit = async (values: FormValues) => {
+    if (!address) {
+      return toast({
+        description: (
+          <div className="flex items-center gap-2">
+            <Info className="size-5" />
+            Please connect your wallet
+          </div>
+        ),
+      });
+    }
+
+    if (
+      Number(values.unstakeAmount) >
+      Number(currentXSTRKBalance.value.toEtherToFixedDecimals(9))
+    ) {
+      return toast({
+        description: (
+          <div className="flex items-center gap-2">
+            <Info className="size-5" />
+            Insufficient xSTRK balance
+          </div>
+        ),
+      });
+    }
+
+    // Track unstake button click
+    MyAnalytics.track(eventNames.UNSTAKE_CLICK, {
+      address,
+      amount: Number(values.unstakeAmount),
+      mode: "ViaEndur",
+    });
+
+    const call1 = contract.populate("redeem", [
+      MyNumber.fromEther(values.unstakeAmount, 18),
+      address,
+      address,
+    ]);
+
+    sendAsync([call1]);
+  };
+
   return (
     <div className="relative h-full w-full">
-      {/* {isMerry && (
-        <div className="pointer-events-none absolute -left-[15px] -top-[7.5rem] hidden transition-all duration-500 lg:block">
-          <Icons.cloud />
-        </div>
-      )} */}
-
       <div className="flex items-center justify-between px-3 py-2 lg:px-6">
         <p className="flex flex-col items-center text-xs font-semibold lg:flex-row lg:gap-2">
           <span className="flex items-center gap-1 text-xs font-semibold text-[#3F6870] lg:text-[#8D9C9C]">
