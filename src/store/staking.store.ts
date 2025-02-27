@@ -11,7 +11,7 @@ const stakingService = new StakingService();
 const snTotalStakedQueryAtom = atomWithQuery((get) => {
   return {
     queryKey: ["snTotalStaked", get(currentBlockAtom), get(providerAtom)],
-    queryFn: stakingService.getSNTotalStaked,
+    queryFn: () => stakingService.getSNTotalStaked(),
     refetchInterval: 60000,
   };
 });
@@ -28,7 +28,7 @@ export const snTotalStakedAtom = atom((get) => {
 export const yearlyMintingQueryAtom = atomWithQuery((get) => {
   return {
     queryKey: ["yearlyMinting", get(currentBlockAtom), get(providerAtom)],
-    queryFn: stakingService.getYearlyMinting,
+    queryFn: () => stakingService.getYearlyMinting(),
     refetchInterval: 60000,
   };
 });

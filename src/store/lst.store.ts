@@ -170,12 +170,13 @@ export const userSTRKBalanceAtom = atom((get) => {
 export const totalStakedQueryAtom = atomWithQuery((get) => {
   return {
     queryKey: ["totalStaked", get(currentBlockAtom), get(providerAtom)],
-    queryFn: lstService.getTotalStaked,
+    queryFn: () => lstService.getTotalStaked(),
   };
 });
 
 export const totalStakedAtom = atom((get) => {
   const { data, error } = get(totalStakedQueryAtom);
+
   return {
     value: error || !data ? MyNumber.fromZero() : data,
     error,
@@ -186,7 +187,7 @@ export const totalStakedAtom = atom((get) => {
 export const totalSupplyQueryAtom = atomWithQuery((get) => {
   return {
     queryKey: ["totalSupply", get(currentBlockAtom), get(providerAtom)],
-    queryFn: lstService.getTotalSupply,
+    queryFn: () => lstService.getTotalSupply(),
   };
 });
 
@@ -227,8 +228,10 @@ export const exchangeRateAtom = atom((get) => {
 
 export const totalStakedUSDAtom = atom((get) => {
   const { data: price, isLoading: isPriceLoading } = get(strkPriceAtom);
+
   const totalStaked = get(totalStakedAtom);
   const isLoading = totalStaked.isLoading || isPriceLoading;
+
   if (!price)
     return {
       value: 0,
