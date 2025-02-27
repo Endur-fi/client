@@ -219,7 +219,7 @@ const UnstakeOptionCard = ({
         {title.toLowerCase().includes("endur") && (
           <TooltipProvider delayDuration={0}>
             <Tooltip>
-              <TooltipTrigger>
+              <TooltipTrigger asChild>
                 <Info className="size-3 text-[#3F6870] lg:text-[#8D9C9C]" />
               </TooltipTrigger>
               <TooltipContent
