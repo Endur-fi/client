@@ -36,15 +36,12 @@ import {
 } from "@/store/avnu.store";
 import {
   exchangeRateAtom,
-  totalStakedAtom,
-  totalStakedUSDAtom,
-  userSTRKBalanceAtom,
   userXSTRKBalanceAtom,
   withdrawalQueueStateAtom,
 } from "@/store/lst.store";
-import { snAPYAtom } from "@/store/staking.store";
 
 import { Icons } from "./Icons";
+import Stats from "./stats";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 
@@ -266,12 +263,8 @@ const Unstake = () => {
   const [avnuLoading, setAvnuLoading] = useAtom(avnuLoadingAtom);
   const [_avnuError, setAvnuError] = useAtom(avnuErrorAtom);
 
-  const currentStaked = useAtomValue(userSTRKBalanceAtom);
   const exRate = useAtomValue(exchangeRateAtom);
-  const totalStaked = useAtomValue(totalStakedAtom);
-  const totalStakedUSD = useAtomValue(totalStakedUSDAtom);
   const currentXSTRKBalance = useAtomValue(userXSTRKBalanceAtom);
-  const apy = useAtomValue(snAPYAtom);
   const queueState = useAtomValue(withdrawalQueueStateAtom);
 
   const form = useForm<FormValues>({
@@ -486,52 +479,7 @@ const Unstake = () => {
 
   return (
     <div className="relative h-full w-full">
-      <div className="flex items-center justify-between px-3 py-2 lg:px-6">
-        <p className="flex flex-col items-center text-xs font-semibold lg:flex-row lg:gap-2">
-          <span className="flex items-center gap-1 text-xs font-semibold text-[#3F6870] lg:text-[#8D9C9C]">
-            APY
-            <TooltipProvider delayDuration={0}>
-              <Tooltip>
-                <TooltipTrigger>
-                  <Info className="size-3 text-[#3F6870] lg:text-[#8D9C9C]" />
-                </TooltipTrigger>
-                <TooltipContent
-                  side="right"
-                  className="max-w-56 rounded-md border border-[#03624C] bg-white text-[#03624C]"
-                >
-                  Estimated current compounded annualised yield on staking in
-                  terms of STRK.
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </span>
-          ~{(apy.value * 100).toFixed(2)}%
-        </p>
-
-        <div className="flex flex-col items-end text-xs font-bold text-[#3F6870] lg:flex-row lg:items-center lg:gap-2 lg:text-[#8D9C9C]">
-          TVL
-          <p className="flex items-center gap-2">
-            <span>
-              {formatNumber(totalStaked.value.toEtherToFixedDecimals(2))} STRK
-            </span>
-            <span className="font-medium">
-              | ${formatNumber(totalStakedUSD.value)}
-            </span>
-          </p>
-        </div>
-      </div>
-
-      <div className="flex items-center justify-between border-b bg-gradient-to-t from-[#E9F3F0] to-white px-5 py-12 lg:py-[41px]">
-        <div className="flex items-center gap-2 text-sm font-semibold text-black lg:gap-4 lg:text-2xl">
-          <Icons.strkLogo className="size-6 lg:size-[35px]" />
-          STRK
-        </div>
-
-        <div className="rounded-md bg-[#17876D] px-2 py-1 text-xs text-white">
-          Current staked:{" "}
-          {formatNumber(currentStaked.value.toEtherToFixedDecimals(2))} STRK
-        </div>
-      </div>
+      <Stats />
 
       <div className="flex h-[88px] w-full items-center px-7 pb-3 pt-5 md:h-[84px] lg:h-fit lg:gap-2">
         <div className="flex flex-1 flex-col items-start">

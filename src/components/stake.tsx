@@ -55,25 +55,16 @@ import { useTransactionHandler } from "@/hooks/use-transactions";
 import { useWalletConnection } from "@/hooks/use-wallet-connection";
 import { MyAnalytics } from "@/lib/analytics";
 import MyNumber from "@/lib/MyNumber";
-import {
-  cn,
-  eventNames,
-  formatNumber,
-  formatNumberWithCommas,
-} from "@/lib/utils";
+import { cn, eventNames, formatNumberWithCommas } from "@/lib/utils";
 import LSTService from "@/services/lst";
 import { providerAtom } from "@/store/common.store";
 import { protocolYieldsAtom } from "@/store/defi.store";
-import {
-  exchangeRateAtom,
-  totalStakedAtom,
-  totalStakedUSDAtom,
-  userSTRKBalanceAtom,
-} from "@/store/lst.store";
+import { exchangeRateAtom } from "@/store/lst.store";
 import { snAPYAtom } from "@/store/staking.store";
 
 import { Icons } from "./Icons";
 import { PlatformCard } from "./platform-card";
+import Stats from "./stats";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 
@@ -92,7 +83,7 @@ const formSchema = z.object({
 
 export type FormValues = z.infer<typeof formSchema>;
 
-type Platform = "none" | "vesu" | "nostra-lend";
+export type Platform = "none" | "vesu" | "nostra-lend";
 
 const PLATFORMS = {
   VESU: "vesu",
@@ -114,10 +105,7 @@ const Stake: React.FC = () => {
     token: STRK_TOKEN,
   });
 
-  const currentStaked = useAtomValue(userSTRKBalanceAtom);
-  const totalStaked = useAtomValue(totalStakedAtom);
   const exchangeRate = useAtomValue(exchangeRateAtom);
-  const totalStakedUSD = useAtomValue(totalStakedUSDAtom);
   const apy = useAtomValue(snAPYAtom);
   const yields = useAtomValue(protocolYieldsAtom);
   const rpcProvider = useAtomValue(providerAtom);
@@ -212,6 +200,7 @@ const Stake: React.FC = () => {
           .toEtherStr(),
       );
     } catch (error) {
+      console.error("Error in getCalculatedXSTRK", error);
       return "0";
     }
   };
@@ -350,60 +339,10 @@ const Stake: React.FC = () => {
         </DialogContent>
       </Dialog>
 
-      <div className="flex items-center justify-between px-3 py-2 lg:px-6">
-        <p className="flex flex-col items-center text-xs font-semibold lg:flex-row lg:gap-2">
-          <span className="flex items-center gap-1 text-xs font-semibold text-[#3F6870] lg:text-[#8D9C9C]">
-            APY
-            <TooltipProvider delayDuration={0}>
-              <Tooltip>
-                <TooltipTrigger>
-                  <Info className="size-3 text-[#3F6870] lg:text-[#8D9C9C]" />
-                </TooltipTrigger>
-                <TooltipContent
-                  side="right"
-                  className="max-w-56 rounded-md border border-[#03624C] bg-white text-[#03624C]"
-                >
-                  {selectedPlatform === "none"
-                    ? "Estimated current compounded annualised yield on staking in terms of STRK."
-                    : `Estimated yield including both staking and lending on ${selectedPlatform === "vesu" ? "Vesu" : "Nostra"}.`}
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </span>
-          <span className="flex items-center gap-1">
-            ~{(apy.value * 100).toFixed(2)}%
-            {selectedPlatform !== "none" && (
-              <span className="font-semibold text-[#17876D]">
-                + {getPlatformYield(selectedPlatform).toFixed(2)}%
-              </span>
-            )}
-          </span>
-        </p>
-
-        <div className="flex flex-col items-end text-xs font-bold text-[#3F6870] lg:flex-row lg:items-center lg:gap-2 lg:text-[#8D9C9C]">
-          TVL
-          <p className="flex items-center gap-2">
-            <span>
-              {formatNumber(totalStaked.value.toEtherToFixedDecimals(2))} STRK
-            </span>
-            <span className="font-medium">
-              | ${formatNumber(totalStakedUSD.value)}
-            </span>
-          </p>
-        </div>
-      </div>
-
-      <div className="flex items-center justify-between border-b bg-gradient-to-t from-[#E9F3F0] to-white px-5 py-12 lg:py-12">
-        <div className="flex items-center gap-2 text-sm font-semibold text-black lg:gap-4 lg:text-2xl">
-          <Icons.strkLogo className="size-6 lg:size-[35px]" />
-          STRK
-        </div>
-
-        <div className="rounded-md bg-[#17876D] px-2 py-1 text-xs text-white">
-          Current staked:{" "}
-          {formatNumber(currentStaked.value.toEtherToFixedDecimals(2))} STRK
-        </div>
-      </div>
+      <Stats
+        selectedPlatform={selectedPlatform}
+        getPlatformYield={getPlatformYield}
+      />
 
       <div className="flex w-full items-center px-7 pb-1.5 pt-5 lg:gap-2">
         <div className="flex flex-1 flex-col items-start">
