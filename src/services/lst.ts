@@ -1,4 +1,4 @@
-import { Contract, type RpcProvider } from "starknet";
+import { type BlockIdentifier, Contract, type RpcProvider } from "starknet";
 
 import ERC_4626_ABI from "@/abi/erc4626.abi.json";
 import NOSTRA_STRK_ABI from "@/abi/nostra.strk.abi.json";
@@ -31,11 +31,13 @@ class LSTService {
     return new Contract(NOSTRA_STRK_ABI, NST_STRK_ADDRESS, provider);
   }
 
-  async getTotalSupply() {
+  async getTotalSupply(blockNumber?: BlockIdentifier) {
     const lstContract = this.getLSTContract(this.provider);
 
     const { data: balance, error } = await tryCatch(
-      lstContract.call("total_supply"),
+      lstContract.call("total_supply", [], {
+        blockIdentifier: blockNumber,
+      }),
     );
 
     if (balance) {
@@ -46,13 +48,17 @@ class LSTService {
       console.error("totalSupplyError", error.message);
       return MyNumber.fromZero();
     }
+
+    return MyNumber.fromZero();
   }
 
-  async getTotalStaked() {
+  async getTotalStaked(blockNumber?: BlockIdentifier) {
     const lstContract = this.getLSTContract(this.provider);
 
     const { data: balance, error } = await tryCatch(
-      lstContract.call("total_assets"),
+      lstContract.call("total_assets", [], {
+        blockIdentifier: blockNumber,
+      }),
     );
 
     if (balance) {
@@ -63,6 +69,8 @@ class LSTService {
       console.error("totalStakedError", error.message);
       return MyNumber.fromZero();
     }
+
+    return MyNumber.fromZero();
   }
 }
 

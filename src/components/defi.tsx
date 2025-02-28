@@ -6,7 +6,7 @@ import React, { useMemo } from "react";
 import { useSidebar } from "@/components/ui/sidebar";
 import { MyAnalytics } from "@/lib/analytics";
 import { cn, eventNames } from "@/lib/utils";
-import { protocolYieldsAtom } from "@/store/defi.store";
+import { protocolYieldsAtom, SupportedDApp } from "@/store/defi.store";
 
 import DefiCard, {
   ProtocolAction,
@@ -15,20 +15,23 @@ import DefiCard, {
 } from "./defi-card";
 import { Icons } from "./Icons";
 
-interface ProtocolConfig {
+export interface ProtocolConfig {
   tokens: TokenDisplay[];
   protocolIcon: React.ReactNode;
+  protocolName: string;
   badges: ProtocolBadge[];
   description: string;
+  apy?: number; // not %
   action?: ProtocolAction;
 }
 
-export const protocolConfigs: Record<string, ProtocolConfig> = {
+export const protocolConfigs: Partial<Record<SupportedDApp, ProtocolConfig>> = {
   strkfarm: {
     tokens: [
       { icon: <Icons.endurLogo className="size-[22px]" />, name: "xSTRK" },
     ],
     protocolIcon: <Icons.strkfarmLogo className="size-8" />,
+    protocolName: "STRKFarm",
     badges: [{ type: "Yield Farming", color: "bg-[#E9F3F0] text-[#17876D]" }],
     description: "Auto compound defi spring rewards on xSTRK",
     action: undefined,
@@ -38,6 +41,7 @@ export const protocolConfigs: Record<string, ProtocolConfig> = {
       { icon: <Icons.endurLogo className="size-[22px]" />, name: "xSTRK" },
     ],
     protocolIcon: <Icons.vesuLogo className="size-8 rounded-full" />,
+    protocolName: "Vesu",
     badges: [{ type: "Lend/Borrow", color: "bg-[#EEF6FF] text-[#0369A1]" }],
     description:
       "Earn DeFi Spring rewards & yield, use xSTRK as collateral to Borrow and Multiply",
@@ -59,6 +63,7 @@ export const protocolConfigs: Record<string, ProtocolConfig> = {
       { icon: <Icons.strkLogo className="size-[22px]" />, name: "STRK" },
     ],
     protocolIcon: <Icons.avnuLogo className="size-8 rounded-full border" />,
+    protocolName: "Avnu",
     badges: [{ type: "DEX Aggregator", color: "bg-[#F3E8FF] text-[#9333EA]" }],
     description: "Swap xSTRK for STRK on Avnu",
     action: {
@@ -79,6 +84,7 @@ export const protocolConfigs: Record<string, ProtocolConfig> = {
       { icon: <Icons.strkLogo className="size-[22px]" />, name: "STRK" },
     ],
     protocolIcon: <Icons.fibrousLogo className="size-8 rounded-full" />,
+    protocolName: "Fibrous",
     badges: [{ type: "DEX Aggregator", color: "bg-[#F3E8FF] text-[#9333EA]" }],
     description: "Swap xSTRK for STRK on Fibrous",
     action: {
@@ -93,12 +99,13 @@ export const protocolConfigs: Record<string, ProtocolConfig> = {
       },
     },
   },
-  "nostra-pool": {
+  nostraDex: {
     tokens: [
       { icon: <Icons.endurLogo className="size-[22px]" />, name: "xSTRK" },
       { icon: <Icons.strkLogo className="size-[22px]" />, name: "STRK" },
     ],
-    protocolIcon: <Icons.nostraLogo className="size-8 rounded-full" />,
+    protocolIcon: <Icons.nostraLogo className="size-8 shrink-0 rounded-full" />,
+    protocolName: "Nostra (DEX)",
     badges: [{ type: "Liquidity Pool", color: "bg-[#FFF7ED] text-[#EA580C]" }],
     description:
       "Provide liquidity to the xSTRK/STRK pool on Nostra and earn trading fees",
@@ -114,11 +121,12 @@ export const protocolConfigs: Record<string, ProtocolConfig> = {
       },
     },
   },
-  "nostra-lend": {
+  nostraLending: {
     tokens: [
       { icon: <Icons.endurLogo className="size-[22px]" />, name: "xSTRK" },
     ],
-    protocolIcon: <Icons.nostraLogo className="size-8 rounded-full" />,
+    protocolIcon: <Icons.nostraLogo className="size-8 shrink-0 rounded-full" />,
+    protocolName: "Nostra (Lending)",
     badges: [{ type: "Lend/Borrow", color: "bg-[#EEF6FF] text-[#0369A1]" }],
     description: "Lend your xSTRK on Nostra to earn additional yield",
     action: {
@@ -139,6 +147,7 @@ export const protocolConfigs: Record<string, ProtocolConfig> = {
       { icon: <Icons.strkLogo className="size-[22px]" />, name: "STRK" },
     ],
     protocolIcon: <Icons.ekuboLogo className="size-8 rounded-full" />,
+    protocolName: "Ekubo",
     badges: [{ type: "Liquidity Pool", color: "bg-[#FFF7ED] text-[#EA580C]" }],
     description:
       "Provide liquidity to the xSTRK/STRK pool on Ekubo and earn trading fees & DeFi Spring rewards",
@@ -182,6 +191,7 @@ export const protocolConfigs: Record<string, ProtocolConfig> = {
     ],
     protocolIcon: <Icons.opusLogo className="size-8 rounded-full" />,
     badges: [{ type: "Lend/Borrow", color: "bg-[#EEF6FF] text-[#0369A1]" }],
+    protocolName: "Opus",
     description:
       "Deposit your xSTRK on Opus to borrow CASH and earn more rewards",
     action: {
@@ -207,8 +217,8 @@ const Defi: React.FC = () => {
       Object.entries(protocolConfigs)
         // sorting badges of type "DEX Aggregator" to be at the end
         .sort(([a], [b]) => {
-          const badgeA = protocolConfigs[a].badges[0].type;
-          const badgeB = protocolConfigs[b].badges[0].type;
+          const badgeA = protocolConfigs[a as SupportedDApp]?.badges[0]?.type;
+          const badgeB = protocolConfigs[b as SupportedDApp]?.badges[0]?.type;
           return badgeA === "DEX Aggregator"
             ? 1
             : badgeB === "DEX Aggregator"
@@ -226,7 +236,7 @@ const Defi: React.FC = () => {
 
   return (
     <div
-      className={cn("mx-auto mt-12 w-full max-w-7xl px-8", {
+      className={cn("mt-12 w-full", {
         "lg:pl-28": !isPinned,
       })}
     >
@@ -250,8 +260,10 @@ const Defi: React.FC = () => {
 
         <div className="mt-5 grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
           {sortedProtocols.map((protocol) => {
-            const config = protocolConfigs[protocol];
+            const config = protocolConfigs[protocol as SupportedDApp];
             const shouldShowApy = !["avnu", "fibrous"].includes(protocol);
+
+            if (!config) return null;
 
             if (Array.isArray(config.action)) {
               return config.action.map((action, index) => (

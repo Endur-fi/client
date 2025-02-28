@@ -83,11 +83,11 @@ const formSchema = z.object({
 
 export type FormValues = z.infer<typeof formSchema>;
 
-export type Platform = "none" | "vesu" | "nostra-lend";
+export type Platform = "none" | "vesu" | "nostraLending";
 
 const PLATFORMS = {
   VESU: "vesu",
-  NOSTRA: "nostra-lend",
+  NOSTRA: "nostraLending",
 } as const;
 
 const Stake: React.FC = () => {
@@ -132,7 +132,7 @@ const Stake: React.FC = () => {
 
   const getPlatformYield = (platform: Platform) => {
     if (platform === "none") return 0;
-    const key = platform === "vesu" ? "vesu" : "nostra-lend";
+    const key = platform === "vesu" ? "vesu" : "nostraLending";
     return yields[key]?.value ?? 0;
   };
 
@@ -466,7 +466,7 @@ const Stake: React.FC = () => {
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
               {sortedPlatforms.map((platform) => {
                 const platformKey =
-                  platform === "vesu" ? "vesu" : ("nostra-lend" as const);
+                  platform === "vesu" ? "vesu" : ("nostraLending" as const);
                 const yieldData = yields[platformKey];
                 return (
                   <PlatformCard

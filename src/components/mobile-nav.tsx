@@ -14,6 +14,7 @@ import { FlameIcon } from "./ui/flame";
 import { GaugeIcon } from "./ui/gauge";
 import { HandCoinsIcon } from "./ui/hand-coins";
 import { MenuIcon } from "./ui/menu";
+import { UserIcon } from "./ui/user";
 
 const MobileNav = () => {
   const [open, setOpen] = React.useState(false);
@@ -113,6 +114,19 @@ const MobileNav = () => {
               >
                 <GaugeIcon className="-ml-0.5 size-5" />
                 Staking Dashboard
+              </Link>
+
+              <Link
+                href="/portfolio"
+                className={cn(
+                  "flex w-full cursor-pointer flex-row items-center gap-2 text-nowrap rounded-md p-2 px-3 text-sm font-semibold text-[#03624C] transition-all hover:bg-[#17876D] hover:text-white",
+                  {
+                    "bg-[#17876D] text-white": pathname === "/portfolio",
+                  },
+                )}
+              >
+                <UserIcon className="-ml-0.5 size-5" />
+                Portfolio
               </Link>
             </motion.div>
           </AnimatePresence>

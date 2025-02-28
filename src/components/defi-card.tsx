@@ -4,10 +4,12 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
+import MyNumber from "@/lib/MyNumber";
 
 export interface TokenDisplay {
   icon: React.ReactNode;
   name: string;
+  holding?: MyNumber;
 }
 
 export interface ProtocolBadge {

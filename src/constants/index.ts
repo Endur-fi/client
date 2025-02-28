@@ -55,10 +55,13 @@ export function getEndpoint() {
 }
 
 export function getProvider() {
+  const rpcUrl =
+    process.env.NEXT_PUBLIC_RPC_URL ||
+    process.env.RPC_URL ||
+    "https://starknet-mainnet.public.blastapi.io";
+
   return new RpcProvider({
-    nodeUrl:
-      process.env.NEXT_PUBLIC_RPC_URL ||
-      "https://starknet-mainnet.public.blastapi.io",
+    nodeUrl: rpcUrl,
     blockIdentifier: "pending",
   });
 }
@@ -102,3 +105,7 @@ export function convertTimeString(timeString: string): string {
   const days = Math.ceil(hours / 24);
   return `${days}-${days + 1} days`;
 }
+
+export const convertToPlainObject = (data: any) => {
+  return JSON.parse(JSON.stringify(data));
+};
