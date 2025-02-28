@@ -3,7 +3,7 @@
 import { useAtomValue } from "jotai";
 import React from "react";
 
-import { formatNumber, getSTRKPrice } from "@/lib/utils";
+import { formatNumberWithCommas, getSTRKPrice } from "@/lib/utils";
 import { userEkuboxSTRKPositions } from "@/store/ekubo.store";
 import { userHaikoBalanceAtom } from "@/store/haiko.store";
 import { exchangeRateAtom, userXSTRKBalanceAtom } from "@/store/lst.store";
@@ -63,7 +63,7 @@ const Stats: React.FC = () => {
           Total staked STRK
         </span>
         <p className="flex items-end gap-2 text-xl font-semibold leading-[1] text-black">
-          {formatNumber(totalXSTRK.toFixed(2))}
+          {formatNumberWithCommas(totalXSTRK.toFixed(2))}
           <span className="text-sm font-normal leading-[1.2] text-muted-foreground/80">
             {totalUSD}
           </span>
@@ -75,7 +75,9 @@ const Stats: React.FC = () => {
           xSTRK in Wallet
         </span>
         <p className="flex items-end gap-4 text-xl font-semibold leading-[1] text-black">
-          {formatNumber(currentXSTRKBalance.value.toEtherToFixedDecimals(2))}
+          {formatNumberWithCommas(
+            currentXSTRKBalance.value.toEtherToFixedDecimals(2),
+          )}
         </p>
       </div>
 
@@ -84,10 +86,12 @@ const Stats: React.FC = () => {
           DApps xSTRK
         </span>
         <p className="flex items-end gap-4 text-xl font-semibold leading-[1] text-black">
-          {(
-            totalXSTRK -
-            Number(currentXSTRKBalance.value.toEtherToFixedDecimals(2))
-          ).toFixed(2)}
+          {formatNumberWithCommas(
+            (
+              totalXSTRK -
+              Number(currentXSTRKBalance.value.toEtherToFixedDecimals(2))
+            ).toFixed(2),
+          )}
         </p>
       </div>
 

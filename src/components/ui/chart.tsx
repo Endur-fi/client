@@ -4,8 +4,8 @@ import * as React from "react";
 import * as RechartsPrimitive from "recharts";
 
 import { chartConfig } from "@/app/portfolio/_components/defi-holding";
-import { cn } from "@/lib/utils";
-import { SupportedDApp } from "@/store/defi.store";
+import { cn, formatNumberWithCommas } from "@/lib/utils";
+import { type SupportedDApp } from "@/store/defi.store";
 
 // Format: { THEME_NAME: CSS_SELECTOR }
 const THEMES = { light: "", dark: ".dark" } as const;
@@ -248,9 +248,13 @@ const ChartTooltipContent = React.forwardRef<
                       {item.value && (
                         <span className="font-mono font-medium tabular-nums text-foreground">
                           {item.payload.holdings
-                            ? Number(item.payload.holdings).toFixed(2)
-                            : Number(item.payload[item.name as string]).toFixed(
-                                2,
+                            ? formatNumberWithCommas(
+                                Number(item.payload.holdings).toFixed(2),
+                              )
+                            : formatNumberWithCommas(
+                                Number(
+                                  item.payload[item.name as string],
+                                ).toFixed(2),
                               )}{" "}
                           xSTRK
                         </span>
@@ -332,7 +336,9 @@ const ChartLegendContent = React.forwardRef<
               </div>
 
               {item.payload?.value && (
-                <p>{item.payload?.value.toFixed(2)} xSTRK</p>
+                <p>
+                  {formatNumberWithCommas(item.payload?.value.toFixed(2))} xSTRK
+                </p>
               )}
             </div>
           );

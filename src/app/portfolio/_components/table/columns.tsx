@@ -1,11 +1,12 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
+import React from "react";
 
 import { ProtocolConfig } from "@/components/defi";
 import { IconProps, Icons } from "@/components/Icons";
 import { Button } from "@/components/ui/button";
-import React from "react";
+import { formatNumberWithCommas } from "@/lib/utils";
 
 export type SizeColumn = {
   asset: string;
@@ -15,7 +16,7 @@ export type SizeColumn = {
   logos: ((props: IconProps) => React.JSX.Element)[];
 };
 
-const getDappIcon = (dappName: string) => {
+const _getDappIcon = (dappName: string) => {
   switch (dappName.toLowerCase()) {
     case "ekubo":
       return <Icons.ekuboLogo className="size-5" />;
@@ -35,7 +36,7 @@ export const columns: ColumnDef<ProtocolConfig>[] = [
     cell: ({ row }) => (
       <div className="flex min-w-[280px] items-center gap-4 py-3">
         <div className="flex items-center -space-x-2">
-          {row.original.tokens.map((t, idx) => t.icon)}
+          {row.original.tokens.map((t, _idx) => t.icon)}
         </div>
         <p className="flex flex-col items-start gap-0.5 text-sm text-black/90">
           {row.original.tokens.map((t) => t.name).join("/")}
@@ -61,9 +62,11 @@ export const columns: ColumnDef<ProtocolConfig>[] = [
     header: "Amount in xSTRK",
     cell: ({ row }) => (
       <div className="flex gap-1.5 text-right">
-        {row.original.tokens[
-          row.original.tokens.findIndex((t) => t.name == "xSTRK")
-        ].holding?.toEtherToFixedDecimals(2) || "0.00"}
+        {formatNumberWithCommas(
+          row.original.tokens[
+            row.original.tokens.findIndex((t) => t.name === "xSTRK")
+          ].holding?.toEtherToFixedDecimals(2) ?? "0.00",
+        )}
       </div>
     ),
   },

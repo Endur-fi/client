@@ -1,30 +1,29 @@
 "use client";
 
+import { useAccount } from "@starknet-react/core";
 import axios from "axios";
 import { useAtomValue } from "jotai";
+import { Loader } from "lucide-react";
 import React from "react";
 
+import { BlockInfo } from "@/app/api/holdings/[address]/[nDays]/route";
+import { Icons } from "@/components/Icons";
+import { ProtocolConfig, protocolConfigs } from "@/components/defi";
 import { useSidebar } from "@/components/ui/sidebar";
-import { cn } from "@/lib/utils";
-import { chartFilter } from "@/store/portfolio.store";
-
+import { STRK_DECIMALS } from "@/constants";
 import MyNumber from "@/lib/MyNumber";
+import { cn } from "@/lib/utils";
 import {
   DAppHoldings,
   protocolYieldsAtom,
   SupportedDApp,
 } from "@/store/defi.store";
-import { useAccount } from "@starknet-react/core";
+import { chartFilter } from "@/store/portfolio.store";
+
 import { Chart } from "./chart";
 import DefiHoldings from "./defi-holding";
 import Stats from "./stats";
 import { columns, SizeColumn } from "./table/columns";
-
-import { BlockInfo } from "@/app/api/holdings/[address]/[nDays]/route";
-import { Icons } from "@/components/Icons";
-import { ProtocolConfig, protocolConfigs } from "@/components/defi";
-import { STRK_DECIMALS } from "@/constants";
-import { Loader } from "lucide-react";
 import { DataTable } from "./table/data-table";
 
 const _data: SizeColumn[] = [
