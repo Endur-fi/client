@@ -10,9 +10,12 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
+  type Table as TableType,
 } from "@tanstack/react-table";
+import { useAtom } from "jotai";
 import * as React from "react";
 
+import { type ProtocolConfig } from "@/components/defi";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -24,6 +27,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
+import { tableDataAtom } from "@/store/portfolio.store";
+
 import DataFilters from "../data-filters";
 
 interface DataTableProps<TData, TValue> {
@@ -35,15 +40,17 @@ interface DataTableProps<TData, TValue> {
 export function DataTable<TData, TValue>({
   columns,
   data,
-  searchKey,
+  searchKey = "dapp",
 }: DataTableProps<TData, TValue>) {
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     [],
   );
   const [sorting, setSorting] = React.useState<SortingState>([]);
-  const [isPaidHeader, setIsPaidHeader] = React.useState(false);
+
+  const [tableData, setTableData] = useAtom(tableDataAtom);
 
   const table = useReactTable({
+    // data: tableData as TData[],
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
@@ -58,28 +65,18 @@ export function DataTable<TData, TValue>({
     },
   });
 
-  // Checking if the header is Paid or not
-  React.useEffect(() => {
-    table.getHeaderGroups().map((headerGroup) => {
-      headerGroup.headers.map((header) => {
-        if (
-          flexRender(header.column.columnDef.header, header.getContext()) ===
-          "Paid"
-        ) {
-          setIsPaidHeader(true);
-        }
-      });
-    });
-  }, [table]);
-
   React.useEffect(() => {
     table.setPageSize(5);
+    if (data) setTableData(data as ProtocolConfig[]);
   }, [data, table]);
 
   return (
     <div>
       <div className="mb-4 w-full">
-        <DataFilters table={table} />
+        <DataFilters
+          table={table as unknown as TableType<ProtocolConfig[]>}
+          tableData={data as ProtocolConfig[]}
+        />
       </div>
 
       {searchKey && (
@@ -150,9 +147,6 @@ export function DataTable<TData, TValue>({
                   {row.getVisibleCells().map((cell, i) => (
                     <TableCell
                       className={cn("px-8", {
-                        "text-right":
-                          i === row.getVisibleCells().length - 1 &&
-                          !isPaidHeader,
                         "pl-16": i === 2,
                       })}
                       key={cell.id}

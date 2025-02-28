@@ -112,10 +112,8 @@ const DefiHoldings: React.FC = () => {
     ].sort((a, b) => b.holdings - a.holdings);
   }, [nostraBal, vxStrkBalance, userHaikoBalance, ekuboPosi]);
 
-  console.log(chartData, "chartConfig");
-
   return (
-    <Card className="font-poppins flex h-[500px] w-full shrink-0 flex-col rounded-xl border border-[#AACBC4]/30 bg-[#E3EFEC]/70 lg:h-full lg:w-fit">
+    <Card className="flex h-[500px] w-full shrink-0 flex-col rounded-xl border border-[#AACBC4]/30 bg-[#E3EFEC]/70 font-poppins lg:h-full lg:w-fit">
       <CardHeader className="items-center pb-0">
         <CardTitle className="text-lg font-normal">
           xSTRK holdings in DeFi

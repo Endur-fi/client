@@ -179,7 +179,6 @@ const ChartTooltipContent = React.forwardRef<
       labelKey,
     ]);
 
-    console.log("payload", payload);
     if (!active || !payload?.length) {
       return null;
     }

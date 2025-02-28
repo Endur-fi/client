@@ -1,29 +1,28 @@
 "use client";
 
+import { useAccount } from "@starknet-react/core";
 import axios from "axios";
 import { useAtomValue } from "jotai";
-import React, { useMemo } from "react";
+import React from "react";
 
+import { BlockInfo } from "@/app/api/holdings/[address]/[nDays]/route";
+import { Icons } from "@/components/Icons";
+import { ProtocolConfig, protocolConfigs } from "@/components/defi";
 import { useSidebar } from "@/components/ui/sidebar";
-import { cn } from "@/lib/utils";
-import { chartFilter } from "@/store/portfolio.store";
-
+import { STRK_DECIMALS } from "@/constants";
 import MyNumber from "@/lib/MyNumber";
+import { cn } from "@/lib/utils";
 import {
   DAppHoldings,
   protocolYieldsAtom,
   SupportedDApp,
 } from "@/store/defi.store";
-import { useAccount } from "@starknet-react/core";
+import { chartFilter } from "@/store/portfolio.store";
+
 import { Chart } from "./chart";
 import DefiHoldings from "./defi-holding";
 import Stats from "./stats";
 import { columns, SizeColumn } from "./table/columns";
-
-import { BlockInfo } from "@/app/api/holdings/[address]/[nDays]/route";
-import { Icons } from "@/components/Icons";
-import { ProtocolConfig, protocolConfigs } from "@/components/defi";
-import { STRK_DECIMALS } from "@/constants";
 import { DataTable } from "./table/data-table";
 
 const _data: SizeColumn[] = [
@@ -65,7 +64,7 @@ const PortfolioPage: React.FC = () => {
   const { isPinned } = useSidebar();
   const yields = useAtomValue(protocolYieldsAtom);
 
-  const sortedProtocols: SupportedDApp[] = useMemo(() => {
+  const sortedProtocols: SupportedDApp[] = React.useMemo(() => {
     const keys = Object.entries(protocolConfigs).map(
       ([protocol]) => protocol as SupportedDApp,
     );
@@ -78,7 +77,7 @@ const PortfolioPage: React.FC = () => {
       });
   }, [yields]);
 
-  const defiCards = useMemo<ProtocolConfig[]>(() => {
+  const defiCards = React.useMemo<ProtocolConfig[]>(() => {
     return sortedProtocols
       .map((protocol) => {
         // dont show if no config
@@ -178,7 +177,6 @@ const PortfolioPage: React.FC = () => {
         <DefiHoldings />
       </div>
 
-      {/* <DataFilters data={data} /> */}
       <div
         className="mb-4 mt-5 rounded-lg border border-[#17876D] bg-[#e7f0ef] p-4 text-xs text-[#17876D] dark:bg-gray-800 dark:text-blue-400 lg:text-sm"
         role="alert"

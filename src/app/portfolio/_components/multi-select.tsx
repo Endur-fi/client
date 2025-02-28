@@ -23,7 +23,6 @@ interface MultiSelectProps {
   setSelectedOptions: React.Dispatch<React.SetStateAction<Option[]>>;
   filteredOptions: Option[];
   setFilteredOptions: React.Dispatch<React.SetStateAction<Option[]>>;
-  table: any;
 }
 
 const MultiSelect: React.FC<MultiSelectProps> = ({
@@ -33,17 +32,13 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
   setSelectedOptions,
   filteredOptions,
   setFilteredOptions,
-  table,
 }) => {
   // const [searchTerm, setSearchTerm] = React.useState("");
 
   const handleOptionSelect = (option: Option) => {
-    console.log(table, "table");
     setSelectedOptions([...selectedOptions, option]);
 
     if (!option.label) return;
-
-    table.getColumn("dapp")?.setFilterValue(option.label);
 
     setFilteredOptions(filteredOptions.filter((o) => o !== option));
   };
@@ -83,7 +78,7 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
             {filteredOptions.map((option) => (
               <button
                 key={option.value}
-                className="flex w-full items-center gap-2 px-4 py-1.5 text-[#03624C] ease-linear hover:bg-[#17876D] hover:text-white"
+                className="flex w-full items-center gap-2 px-4 py-1.5 font-poppins text-[#03624C] ease-linear hover:bg-[#17876D] hover:text-white"
                 onClick={() => handleOptionSelect(option)}
               >
                 <span className="text-sm font-medium">{option.label}</span>
