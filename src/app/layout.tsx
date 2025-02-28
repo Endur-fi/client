@@ -3,13 +3,12 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import React from "react";
 
-import Providers from "@/components/providers";
-import { Toaster } from "@/components/ui/toaster";
-
 import { AppSidebar } from "@/components/app-sidebar";
 import Footer from "@/components/footer";
 import MaxWidthWrapper from "@/components/max-width-wrapper";
 import Navbar from "@/components/navbar";
+import Providers from "@/components/providers";
+import { Toaster } from "@/components/ui/toaster";
 
 import "./globals.css";
 
@@ -76,22 +75,18 @@ export default function RootLayout({
               className="-z-10 object-cover"
             />
 
-            <React.Suspense
-              fallback={<div className="w-72">Loading sidebar...</div>}
-            >
-              <AppSidebar />
+            <AppSidebar />
 
-              <div className="flex flex-1 flex-col justify-between overflow-hidden">
-                <MaxWidthWrapper className="flex h-full w-full flex-col items-center px-3 py-3 lg:px-7 lg:py-0">
-                  <Navbar />
-                  {children}
-                </MaxWidthWrapper>
+            <div className="flex flex-1 flex-col justify-between overflow-hidden">
+              <MaxWidthWrapper className="flex h-full w-full flex-col items-center px-3 py-3 lg:px-7 lg:py-0">
+                <Navbar />
+                {children}
+              </MaxWidthWrapper>
 
-                <div className="lg:hidden">
-                  <Footer />
-                </div>
+              <div className="lg:hidden">
+                <Footer />
               </div>
-            </React.Suspense>
+            </div>
           </div>
 
           <Toaster />

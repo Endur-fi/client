@@ -57,7 +57,7 @@ const Stats: React.FC = () => {
   }, [exchangeRate.rate, totalXSTRK]);
 
   return (
-    <div className="font-poppins flex h-fit w-full flex-wrap items-center justify-between gap-3 rounded-xl border border-[#AACBC4]/30 bg-white p-5 shadow-sm lg:px-12">
+    <div className="flex h-fit w-full flex-wrap items-center justify-between gap-3 rounded-xl border border-[#AACBC4]/30 bg-white p-5 font-poppins shadow-sm lg:px-12">
       <div className="flex flex-col items-start gap-3">
         <span className="text-xs font-medium text-[#03624C] lg:text-sm">
           Total staked STRK

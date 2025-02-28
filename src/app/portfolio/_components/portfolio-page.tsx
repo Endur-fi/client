@@ -168,13 +168,21 @@ const PortfolioPage: React.FC = () => {
       <h1 className="mb-[5px] text-lg font-bold text-black lg:text-2xl">
         Your xSTRK Portfolio
       </h1>
+
       <div className="flex w-full flex-col items-start justify-start gap-5 lg:flex-row">
         <div className="flex w-full flex-col items-start gap-5">
-          <Stats />
-          <Chart chartData={holdings} />
+          <React.Suspense fallback={<div>Loading stats ...</div>}>
+            <Stats />
+          </React.Suspense>
+
+          <React.Suspense fallback={<div>Loading charts...</div>}>
+            <Chart chartData={holdings} />
+          </React.Suspense>
         </div>
 
-        <DefiHoldings />
+        <React.Suspense fallback={<div>Loading defi holding..</div>}>
+          <DefiHoldings />
+        </React.Suspense>
       </div>
 
       <div
