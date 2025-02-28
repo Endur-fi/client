@@ -3,12 +3,13 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import React from "react";
 
+import Providers from "@/components/providers";
+import { Toaster } from "@/components/ui/toaster";
+
 import { AppSidebar } from "@/components/app-sidebar";
 import Footer from "@/components/footer";
 import MaxWidthWrapper from "@/components/max-width-wrapper";
 import Navbar from "@/components/navbar";
-import Providers from "@/components/providers";
-import { Toaster } from "@/components/ui/toaster";
 
 import "./globals.css";
 

@@ -1,28 +1,30 @@
 "use client";
 
-import { useAccount } from "@starknet-react/core";
 import axios from "axios";
 import { useAtomValue } from "jotai";
 import React from "react";
 
-import { BlockInfo } from "@/app/api/holdings/[address]/[nDays]/route";
-import { Icons } from "@/components/Icons";
-import { ProtocolConfig, protocolConfigs } from "@/components/defi";
 import { useSidebar } from "@/components/ui/sidebar";
-import { STRK_DECIMALS } from "@/constants";
-import MyNumber from "@/lib/MyNumber";
 import { cn } from "@/lib/utils";
+import { chartFilter } from "@/store/portfolio.store";
+
+import MyNumber from "@/lib/MyNumber";
 import {
   DAppHoldings,
   protocolYieldsAtom,
   SupportedDApp,
 } from "@/store/defi.store";
-import { chartFilter } from "@/store/portfolio.store";
-
+import { useAccount } from "@starknet-react/core";
 import { Chart } from "./chart";
 import DefiHoldings from "./defi-holding";
 import Stats from "./stats";
 import { columns, SizeColumn } from "./table/columns";
+
+import { BlockInfo } from "@/app/api/holdings/[address]/[nDays]/route";
+import { Icons } from "@/components/Icons";
+import { ProtocolConfig, protocolConfigs } from "@/components/defi";
+import { STRK_DECIMALS } from "@/constants";
+import { Loader } from "lucide-react";
 import { DataTable } from "./table/data-table";
 
 const _data: SizeColumn[] = [
@@ -165,37 +167,41 @@ const PortfolioPage: React.FC = () => {
         "lg:pl-28": !isPinned,
       })}
     >
-      <h1 className="mb-[5px] text-lg font-bold text-black lg:text-2xl">
+      <h1 className="mb-4 font-poppins text-lg font-semibold text-black lg:text-2xl">
         Your xSTRK Portfolio
       </h1>
 
-      <div className="flex w-full flex-col items-start justify-start gap-5 lg:flex-row">
-        <div className="flex w-full flex-col items-start gap-5">
-          <React.Suspense fallback={<div>Loading stats ...</div>}>
+      <React.Suspense
+        fallback={
+          <div className="my-5 flex w-full items-center justify-center gap-2 text-center">
+            Crunching the latest stats for you{" "}
+            <Loader className="size-4 animate-spin text-black" />
+          </div>
+        }
+      >
+        <div className="flex w-full flex-col items-start justify-start gap-5 lg:flex-row">
+          <div className="flex w-full flex-col items-start gap-5">
             <Stats />
-          </React.Suspense>
-
-          <React.Suspense fallback={<div>Loading charts...</div>}>
             <Chart chartData={holdings} />
-          </React.Suspense>
+          </div>
+
+          <DefiHoldings />
         </div>
 
-        <React.Suspense fallback={<div>Loading defi holding..</div>}>
-          <DefiHoldings />
-        </React.Suspense>
-      </div>
+        <div
+          className="mb-4 mt-5 rounded-lg border border-[#17876D] bg-[#e7f0ef] p-4 text-xs text-[#17876D] dark:bg-gray-800 dark:text-blue-400 lg:text-sm"
+          role="alert"
+        >
+          <span className="font-medium">
+            <b>Note:</b> This portfolio page is still a work in progress, so
+            some features may be missing or buggy. If you spot any issues,
+            please report them in our TG group. Also, xSTRK debt is not
+            displayed.
+          </span>
+        </div>
+      </React.Suspense>
 
-      <div
-        className="mb-4 mt-5 rounded-lg border border-[#17876D] bg-[#e7f0ef] p-4 text-xs text-[#17876D] dark:bg-gray-800 dark:text-blue-400 lg:text-sm"
-        role="alert"
-      >
-        <span className="font-medium">
-          <b>Note:</b> This portfolio page is still a work in progress, so some
-          features may be missing or buggy. If you spot any issues, please
-          report them in our TG group. Also, xSTRK debt is not displayed.
-        </span>
-      </div>
-      <div className="mt-5">
+      <div className="">
         <DataTable columns={columns} data={defiCards} />
       </div>
     </main>
