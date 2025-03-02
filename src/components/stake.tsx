@@ -1,15 +1,14 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 
-import { useState, useMemo } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   useAccount,
   useBalance,
-  useConnect,
   useSendTransaction,
 } from "@starknet-react/core";
-import { useAtom, useAtomValue } from "jotai";
-import { Info, ChevronDown } from "lucide-react";
+import { useAtomValue } from "jotai";
+import { ChevronDown, Info } from "lucide-react";
 import { Figtree } from "next/font/google";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -17,16 +16,17 @@ import React from "react";
 import { useForm } from "react-hook-form";
 import { TwitterShareButton } from "react-share";
 import { Call, Contract } from "starknet";
-import {
-  connect,
-  ConnectOptionsWithConnectors,
-  StarknetkitConnector,
-} from "starknetkit";
+
 import * as z from "zod";
 
 import erc4626Abi from "@/abi/erc4626.abi.json";
-import vxstrkAbi from "@/abi/vxstrk.abi.json";
 import ixstrkAbi from "@/abi/ixstrk.abi.json";
+import vxstrkAbi from "@/abi/vxstrk.abi.json";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import {
   Dialog,
   DialogContent,
@@ -43,49 +43,30 @@ import {
 } from "@/components/ui/tooltip";
 import {
   getEndpoint,
-  NETWORK,
+  LINKS,
+  LST_ADDRRESS,
+  NOSTRA_iXSTRK_ADDRESS,
   REWARD_FEES,
   STRK_TOKEN,
   VESU_vXSTRK_ADDRESS,
-  NOSTRA_iXSTRK_ADDRESS,
-  LST_ADDRRESS,
 } from "@/constants";
-import { toast, useToast } from "@/hooks/use-toast";
-import MyNumber from "@/lib/MyNumber";
-import {
-  cn,
-  formatNumber,
-  formatNumberWithCommas,
-  eventNames,
-} from "@/lib/utils";
+import { toast } from "@/hooks/use-toast";
+import { useTransactionHandler } from "@/hooks/use-transactions";
+import { useWalletConnection } from "@/hooks/use-wallet-connection";
 import { MyAnalytics } from "@/lib/analytics";
-import {
-  exchangeRateAtom,
-  getLSTContract,
-  totalStakedAtom,
-  totalStakedUSDAtom,
-  userSTRKBalanceAtom,
-} from "@/store/lst.store";
-import {
-  isMerryChristmasAtom,
-  isStakeInputFocusAtom,
-} from "@/store/merry.store";
-import { snAPYAtom } from "@/store/staking.store";
-import { isTxAccepted } from "@/store/transactions.atom";
+import MyNumber from "@/lib/MyNumber";
+import { cn, eventNames, formatNumberWithCommas } from "@/lib/utils";
+import LSTService from "@/services/lst";
+import { providerAtom } from "@/store/common.store";
 import { protocolYieldsAtom } from "@/store/defi.store";
+import { exchangeRateAtom } from "@/store/lst.store";
+import { snAPYAtom } from "@/store/staking.store";
 
 import { Icons } from "./Icons";
-import { getConnectors } from "./navbar";
+import { PlatformCard } from "./platform-card";
+import Stats from "./stats";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
-import { useSidebar } from "./ui/sidebar";
-import { PlatformCard } from "./platform-card";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
-import { providerAtom } from "@/store/common.store";
 
 const font = Figtree({ subsets: ["latin-ext"] });
 
@@ -102,39 +83,29 @@ const formSchema = z.object({
 
 export type FormValues = z.infer<typeof formSchema>;
 
-type Platform = "none" | "vesu" | "nostraLending";
+export type Platform = "none" | "vesu" | "nostraLending";
 
 const PLATFORMS = {
   VESU: "vesu",
   NOSTRA: "nostraLending",
 } as const;
 
-type ValidPlatform = (typeof PLATFORMS)[keyof typeof PLATFORMS];
-
 const Stake: React.FC = () => {
   const [showShareModal, setShowShareModal] = React.useState(false);
-  const [selectedPlatform, setSelectedPlatform] = useState<Platform>("none");
-  const [isLendingOpen, setIsLendingOpen] = useState(false);
+  const [selectedPlatform, setSelectedPlatform] =
+    React.useState<Platform>("none");
+  const [isLendingOpen, setIsLendingOpen] = React.useState(false);
 
   const searchParams = useSearchParams();
 
   const { address } = useAccount();
-  const { connect: connectSnReact } = useConnect();
+  const { connectWallet } = useWalletConnection();
   const { data: balance } = useBalance({
     address,
     token: STRK_TOKEN,
   });
 
-  const { isMobile } = useSidebar();
-  const { dismiss } = useToast();
-
-  const [isMerry, setIsMerry] = useAtom(isMerryChristmasAtom);
-  const [focusStakeInput, setFocusStakeInput] = useAtom(isStakeInputFocusAtom);
-
-  const currentStaked = useAtomValue(userSTRKBalanceAtom);
-  const totalStaked = useAtomValue(totalStakedAtom);
   const exchangeRate = useAtomValue(exchangeRateAtom);
-  const totalStakedUSD = useAtomValue(totalStakedUSDAtom);
   const apy = useAtomValue(snAPYAtom);
   const yields = useAtomValue(protocolYieldsAtom);
   const rpcProvider = useAtomValue(providerAtom);
@@ -151,9 +122,13 @@ const Stake: React.FC = () => {
 
   const contractSTRK = new Contract(erc4626Abi, STRK_TOKEN);
 
-  const contract = rpcProvider ? getLSTContract(rpcProvider) : null;
+  const lstService = new LSTService();
+
+  const contract = rpcProvider ? lstService.getLSTContract(rpcProvider) : null;
 
   const { sendAsync, data, isPending, error } = useSendTransaction({});
+
+  const { handleTransaction } = useTransactionHandler();
 
   const getPlatformYield = (platform: Platform) => {
     if (platform === "none") return 0;
@@ -161,7 +136,7 @@ const Stake: React.FC = () => {
     return yields[key]?.value ?? 0;
   };
 
-  const sortedPlatforms = useMemo(() => {
+  const sortedPlatforms = React.useMemo(() => {
     return Object.values(PLATFORMS).sort((a, b) => {
       const totalSuppliedA = yields[a]?.totalSupplied || 0;
       const totalSuppliedB = yields[b]?.totalSupplied || 0;
@@ -170,153 +145,15 @@ const Stake: React.FC = () => {
   }, [yields]);
 
   React.useEffect(() => {
-    (async () => {
-      if (data?.transaction_hash) {
-        // Track transaction init analytics
-        MyAnalytics.track(eventNames.STAKE_TX_INIT, {
-          address,
-          amount: Number(form.getValues("stakeAmount")),
-          txHash: data?.transaction_hash,
-        });
-      }
-      if (isPending) {
-        toast({
-          itemID: "stake",
-          variant: "pending",
-          description: (
-            <div className="flex items-center gap-5 border-none">
-              <div className="relative shrink-0">
-                <div className="absolute left-3 top-3 z-10 size-[52px] rounded-full bg-[#BBC2CC]" />
-                <Icons.toastPending className="animate-spin" />
-                <Icons.clock className="absolute left-[26.5px] top-[26.5px] z-20" />
-              </div>
-              <div className="flex flex-col items-start gap-2 text-sm font-medium text-[#3F6870]">
-                <span className="text-[18px] font-semibold text-[#075A5A]">
-                  In Progress..
-                </span>
-                Staking {form.getValues("stakeAmount")} STRK
-              </div>
-            </div>
-          ),
-        });
-      }
-
-      if (error?.name?.includes("UserRejectedRequestError")) {
-        // Track transaction rejected analytics
-        MyAnalytics.track(eventNames.STAKE_TX_REJECTED, {
-          address,
-          amount: Number(form.getValues("stakeAmount")),
-          type: error.name,
-        });
-        dismiss();
-      }
-
-      if (error?.name && !error?.name?.includes("UserRejectedRequestError")) {
-        // Track transaction rejected analytics
-        MyAnalytics.track(eventNames.STAKE_TX_REJECTED, {
-          address,
-          amount: Number(form.getValues("stakeAmount")),
-          type: error.name,
-        });
-        toast({
-          itemID: "stake",
-          variant: "pending",
-          description: (
-            <div className="flex items-center gap-5 border-none pl-2">
-              ❌
-              <div className="flex flex-col items-start text-sm font-medium text-[#3F6870]">
-                <span className="text-base font-semibold text-[#075A5A]">
-                  Something went wrong
-                </span>
-                Please try again
-              </div>
-            </div>
-          ),
-        });
-      }
-
-      if (data) {
-        const res = await isTxAccepted(data?.transaction_hash);
-
-        if (res) {
-          // Track transaction successful analytics
-          MyAnalytics.track(eventNames.STAKE_TX_SUCCESSFUL, {
-            address,
-            amount: Number(form.getValues("stakeAmount")),
-          });
-          toast({
-            itemID: "stake",
-            variant: "complete",
-            duration: 3000,
-            description: (
-              <div className="flex items-center gap-2 border-none">
-                <Icons.toastSuccess />
-                <div className="flex flex-col items-start gap-2 text-sm font-medium text-[#3F6870]">
-                  <span className="text-[18px] font-semibold text-[#075A5A]">
-                    Success 🎉
-                  </span>
-                  Staked {form.getValues("stakeAmount")} STRK
-                </div>
-              </div>
-            ),
-          });
-
-          setShowShareModal(true);
-
-          form.reset();
-        }
-      }
-    })();
-  }, [data, data?.transaction_hash, error?.name, form, isPending]);
-
-  // React.useEffect(() => {
-  //   if (form.getValues("stakeAmount").toLowerCase() === "xstrk") {
-  //     setIsMerry(true);
-  //     MyAnalytics.track("Activated Merry Christmas Theme", {
-  //       address,
-  //       tab: "stake",
-  //     });
-  //   }
-  // }, [form.getValues("stakeAmount"), form]);
-
-  // React.useEffect(() => {
-  //   if (!address) return;
-
-  //   if (focusStakeInput) {
-  //     handleQuickStakePrice(100);
-  //     form.setFocus("stakeAmount");
-  //     setFocusStakeInput(false);
-  //   }
-  // }, [address, focusStakeInput]);
-
-  const connectorConfig: ConnectOptionsWithConnectors = React.useMemo(() => {
-    const hostname =
-      typeof window !== "undefined" ? window.location.hostname : "";
-    return {
-      modalMode: "canAsk",
-      modalTheme: "light",
-      webWalletUrl: "https://web.argent.xyz",
-      argentMobileOptions: {
-        dappName: "Endur.fi",
-        chainId: NETWORK,
-        url: hostname,
-      },
-      dappName: "Endur.fi",
-      connectors: getConnectors(isMobile) as StarknetkitConnector[],
-    };
-  }, [isMobile]);
-
-  async function connectWallet(config = connectorConfig) {
-    try {
-      const { connector } = await connect(config);
-
-      if (connector) {
-        connectSnReact({ connector: connector as any });
-      }
-    } catch (error) {
-      console.error("connectWallet error", error);
-    }
-  }
+    handleTransaction("STAKE", {
+      form,
+      address: address ?? "",
+      data: data ?? { transaction_hash: "" },
+      error: error ?? { name: "" },
+      isPending,
+      setShowShareModal,
+    });
+  }, [data?.transaction_hash, form, isPending]);
 
   const handleQuickStakePrice = (percentage: number) => {
     if (!address) {
@@ -348,6 +185,23 @@ const Stake: React.FC = () => {
         ((Number(balance?.formatted) * percentage) / 100).toString(),
       );
       form.clearErrors("stakeAmount");
+    }
+  };
+
+  const getCalculatedXSTRK = () => {
+    const amount = form.watch("stakeAmount");
+    if (!amount || isNaN(Number(amount)) || Number(amount) <= 0) return "0";
+
+    try {
+      return formatNumberWithCommas(
+        MyNumber.fromEther(amount, 18)
+          .operate("multipliedBy", MyNumber.fromEther("1", 18).toString())
+          .operate("div", exchangeRate.preciseRate.toString())
+          .toEtherStr(),
+      );
+    } catch (error) {
+      console.error("Error in getCalculatedXSTRK", error);
+      return "0";
     }
   };
 
@@ -448,30 +302,8 @@ const Stake: React.FC = () => {
     await sendAsync(calls);
   };
 
-  const getCalculatedXSTRK = () => {
-    const amount = form.watch("stakeAmount");
-    if (!amount || isNaN(Number(amount)) || Number(amount) <= 0) return "0";
-
-    try {
-      return formatNumberWithCommas(
-        MyNumber.fromEther(amount, 18)
-          .operate("multipliedBy", MyNumber.fromEther("1", 18).toString())
-          .operate("div", exchangeRate.preciseRate.toString())
-          .toEtherStr(),
-      );
-    } catch (error) {
-      return "0";
-    }
-  };
-
   return (
     <div className="relative h-full w-full">
-      {/* {isMerry && (
-        <div className="pointer-events-none absolute -left-[15px] -top-[7.5rem] hidden transition-all duration-500 lg:block">
-          <Icons.cloud />
-        </div>
-      )} */}
-
       <Dialog open={showShareModal} onOpenChange={setShowShareModal}>
         <DialogContent className={cn(font.className, "p-16 sm:max-w-xl")}>
           <DialogHeader>
@@ -497,69 +329,20 @@ const Stake: React.FC = () => {
                 borderRadius: "8px",
                 backgroundColor: "#17876D",
                 color: "white",
+                textWrap: "nowrap",
               }}
             >
               Share on
-              <Icons.X />
+              <Icons.X className="size-4 shrink-0" />
             </TwitterShareButton>
           </div>
         </DialogContent>
       </Dialog>
 
-      <div className="flex items-center justify-between px-3 py-2 lg:px-6">
-        <p className="flex flex-col items-center text-xs font-semibold lg:flex-row lg:gap-2">
-          <span className="flex items-center gap-1 text-xs font-semibold text-[#3F6870] lg:text-[#8D9C9C]">
-            APY
-            <TooltipProvider delayDuration={0}>
-              <Tooltip>
-                <TooltipTrigger>
-                  <Info className="size-3 text-[#3F6870] lg:text-[#8D9C9C]" />
-                </TooltipTrigger>
-                <TooltipContent
-                  side="right"
-                  className="max-w-56 rounded-md border border-[#03624C] bg-white text-[#03624C]"
-                >
-                  {selectedPlatform === "none"
-                    ? "Estimated current compounded annualised yield on staking in terms of STRK."
-                    : `Estimated yield including both staking and lending on ${selectedPlatform === "vesu" ? "Vesu" : "Nostra"}.`}
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </span>
-          <span className="flex items-center gap-1">
-            ~{(apy.value * 100).toFixed(2)}%
-            {selectedPlatform !== "none" && (
-              <span className="font-semibold text-[#17876D]">
-                + {getPlatformYield(selectedPlatform).toFixed(2)}%
-              </span>
-            )}
-          </span>
-        </p>
-
-        <div className="flex flex-col items-end text-xs font-bold text-[#3F6870] lg:flex-row lg:items-center lg:gap-2 lg:text-[#8D9C9C]">
-          TVL
-          <p className="flex items-center gap-2">
-            <span>
-              {formatNumber(totalStaked.value.toEtherToFixedDecimals(2))} STRK
-            </span>
-            <span className="font-medium">
-              | ${formatNumber(totalStakedUSD.value)}
-            </span>
-          </p>
-        </div>
-      </div>
-
-      <div className="flex items-center justify-between border-b bg-gradient-to-t from-[#E9F3F0] to-white px-5 py-12 lg:py-12">
-        <div className="flex items-center gap-2 text-sm font-semibold text-black lg:gap-4 lg:text-2xl">
-          <Icons.strkLogo className="size-6 lg:size-[35px]" />
-          STRK
-        </div>
-
-        <div className="rounded-md bg-[#17876D] px-2 py-1 text-xs text-white">
-          Current staked:{" "}
-          {formatNumber(currentStaked.value.toEtherToFixedDecimals(2))} STRK
-        </div>
-      </div>
+      <Stats
+        selectedPlatform={selectedPlatform}
+        getPlatformYield={getPlatformYield}
+      />
 
       <div className="flex w-full items-center px-7 pb-1.5 pt-5 lg:gap-2">
         <div className="flex flex-1 flex-col items-start">
@@ -587,13 +370,6 @@ const Stake: React.FC = () => {
                         />
                       </div>
                     </FormControl>
-                    {/* {form.getValues("stakeAmount").toLowerCase() === "xstrk" ? (
-                      <p className="absolute -bottom-4 left-0 text-xs font-medium text-green-500 transition-all lg:left-1 lg:-ml-1">
-                        Merry Christmas!
-                      </p>
-                    ) : (
-                      <FormMessage className="absolute -bottom-5 left-0 text-xs lg:left-1" />
-                    )} */}
                   </FormItem>
                 )}
               />
@@ -810,8 +586,7 @@ const Stake: React.FC = () => {
                   fee rebate.{" "}
                   <Link
                     target="_blank"
-                    href="https://blog.endur.fi/endur-reimagining-value-distribution-in-liquid-staking-on-starknet"
-                    className="text-blue-600 underline"
+                    href={LINKS.ENDUR_VALUE_DISTRUBUTION_BLOG_LINK}
                   >
                     Learn more
                   </Link>
@@ -823,7 +598,7 @@ const Stake: React.FC = () => {
             <span className="line-through">{REWARD_FEES}%</span>{" "}
             <Link
               target="_blank"
-              href="https://blog.endur.fi/endur-reimagining-value-distribution-in-liquid-staking-on-starknet"
+              href={LINKS.ENDUR_VALUE_DISTRUBUTION_BLOG_LINK}
               className="underline"
             >
               Fee Rebate

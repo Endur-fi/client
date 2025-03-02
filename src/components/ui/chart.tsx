@@ -3,9 +3,9 @@
 import * as React from "react";
 import * as RechartsPrimitive from "recharts";
 
-import { cn } from "@/lib/utils";
 import { chartConfig } from "@/app/portfolio/_components/defi-holding";
-import { SupportedDApp } from "@/store/defi.store";
+import { cn, formatNumberWithCommas } from "@/lib/utils";
+import { type SupportedDApp } from "@/store/defi.store";
 
 // Format: { THEME_NAME: CSS_SELECTOR }
 const THEMES = { light: "", dark: ".dark" } as const;
@@ -179,12 +179,13 @@ const ChartTooltipContent = React.forwardRef<
       labelKey,
     ]);
 
-    console.log("payload", payload);
     if (!active || !payload?.length) {
       return null;
     }
 
     const nestLabel = payload.length === 1 && indicator !== "dot";
+
+    console.log(payload, "payloadddd");
 
     return (
       <div
@@ -246,7 +247,15 @@ const ChartTooltipContent = React.forwardRef<
                       </div>
                       {item.value && (
                         <span className="font-mono font-medium tabular-nums text-foreground">
-                          {Number(item.payload[item.name as string]).toFixed(2)}{" "}
+                          {item.payload.holdings
+                            ? formatNumberWithCommas(
+                                Number(item.payload.holdings).toFixed(2),
+                              )
+                            : formatNumberWithCommas(
+                                Number(
+                                  item.payload[item.name as string],
+                                ).toFixed(2),
+                              )}{" "}
                           xSTRK
                         </span>
                       )}
@@ -271,10 +280,18 @@ const ChartLegendContent = React.forwardRef<
     Pick<RechartsPrimitive.LegendProps, "payload" | "verticalAlign"> & {
       hideIcon?: boolean;
       nameKey?: string;
+      innerClassName?: string;
     }
 >(
   (
-    { className, hideIcon = false, payload, verticalAlign = "bottom", nameKey },
+    {
+      className,
+      innerClassName,
+      hideIcon = false,
+      payload,
+      verticalAlign = "bottom",
+      nameKey,
+    },
     ref,
   ) => {
     const { config } = useChart();
@@ -287,7 +304,7 @@ const ChartLegendContent = React.forwardRef<
       <div
         ref={ref}
         className={cn(
-          "flex flex-col items-start justify-center gap-4",
+          "flex flex-col flex-wrap items-start justify-start gap-4 xl:flex-nowrap",
           verticalAlign === "top" ? "pb-3" : "pt-3",
           className,
         )}
@@ -299,7 +316,10 @@ const ChartLegendContent = React.forwardRef<
           return (
             <div
               key={item.value}
-              className="flex w-full items-center justify-between gap-2"
+              className={cn(
+                "flex w-full items-center justify-between gap-4",
+                innerClassName,
+              )}
             >
               <div
                 className={cn(
@@ -316,7 +336,9 @@ const ChartLegendContent = React.forwardRef<
               </div>
 
               {item.payload?.value && (
-                <p>{item.payload?.value.toFixed(2)} xSTRK</p>
+                <p>
+                  {formatNumberWithCommas(item.payload?.value.toFixed(2))} xSTRK
+                </p>
               )}
             </div>
           );

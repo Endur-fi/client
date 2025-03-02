@@ -1,7 +1,9 @@
 import { X } from "lucide-react";
 import React from "react";
 
+import { type ProtocolConfig } from "@/components/defi";
 import { Button } from "@/components/ui/button";
+import { type Table as TableType } from "@tanstack/react-table";
 
 import MultiSelect, { type Option } from "./multi-select";
 
@@ -16,10 +18,11 @@ const protocolOptions: Option[] = [
 ];
 
 interface DataFiltersProps {
-  table: any;
+  table: TableType<ProtocolConfig[]>;
+  tableData: ProtocolConfig[];
 }
 
-const DataFilters: React.FC<DataFiltersProps> = ({ table }) => {
+const DataFilters: React.FC<DataFiltersProps> = ({ table, tableData }) => {
   const [selectedTypeOptions, setSelectedTypeOptions] = React.useState<
     Option[]
   >([]);
@@ -90,7 +93,6 @@ const DataFilters: React.FC<DataFiltersProps> = ({ table }) => {
           setSelectedOptions={setSelectedTypeOptions}
           filteredOptions={filteredTypeOptions}
           setFilteredOptions={setFilteredTypeOptions}
-          table={table}
         />
 
         <MultiSelect
@@ -100,7 +102,6 @@ const DataFilters: React.FC<DataFiltersProps> = ({ table }) => {
           setSelectedOptions={setSelectedProtocolOptions}
           filteredOptions={filteredProtocolOptions}
           setFilteredOptions={setFilteredProtocolOptions}
-          table={table}
         />
       </div>
     </div>

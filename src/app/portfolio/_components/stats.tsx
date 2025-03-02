@@ -1,9 +1,9 @@
 "use client";
 
 import { useAtomValue } from "jotai";
-import React, { useMemo } from "react";
+import React from "react";
 
-import { formatNumber } from "@/lib/utils";
+import { formatNumberWithCommas, getSTRKPrice } from "@/lib/utils";
 import { userEkuboxSTRKPositions } from "@/store/ekubo.store";
 import { userHaikoBalanceAtom } from "@/store/haiko.store";
 import { exchangeRateAtom, userXSTRKBalanceAtom } from "@/store/lst.store";
@@ -21,7 +21,7 @@ const Stats: React.FC = () => {
   const currentXSTRKBalance = useAtomValue(userXSTRKBalanceAtom);
   const exchangeRate = useAtomValue(exchangeRateAtom);
 
-  const totalXSTRK = useMemo(() => {
+  const totalXSTRK = React.useMemo(() => {
     const value =
       parseInt(userHaikoBalance.value.toString(), 2) +
       Number(vxStrkBalance.data.xSTRKAmount.toEtherToFixedDecimals(2)) +
@@ -40,21 +40,30 @@ const Stats: React.FC = () => {
     currentXSTRKBalance,
   ]);
 
-  const totalUSD = useMemo(() => {
+  const totalUSD = React.useMemo(async () => {
     if (Number.isNaN(exchangeRate.rate)) {
       return "";
     }
-    return `$${(totalXSTRK * exchangeRate.rate).toFixed(2)}`;
-  }, [totalXSTRK, exchangeRate]);
+
+    try {
+      const price = await getSTRKPrice();
+      const xstrkPrice = price * exchangeRate.rate;
+
+      return `$${(totalXSTRK * xstrkPrice).toFixed(2)}`;
+    } catch (error) {
+      console.error("Error in getting xSTRK total USD value", error);
+      return "";
+    }
+  }, [exchangeRate.rate, totalXSTRK]);
 
   return (
-    <div className="flex h-fit w-full items-center justify-between gap-3 rounded-xl border border-[#AACBC4]/30 bg-white p-5 px-12 font-poppins shadow-sm">
+    <div className="flex h-fit w-full flex-wrap items-center justify-between gap-3 rounded-xl border border-[#AACBC4]/30 bg-white p-5 font-poppins shadow-sm lg:px-12">
       <div className="flex flex-col items-start gap-3">
-        <span className="text-sm font-medium text-[#03624C]">
+        <span className="text-xs font-medium text-[#03624C] lg:text-sm">
           Total staked STRK
         </span>
         <p className="flex items-end gap-2 text-xl font-semibold leading-[1] text-black">
-          {formatNumber(totalXSTRK.toFixed(2))}
+          {formatNumberWithCommas(totalXSTRK.toFixed(2))}
           <span className="text-sm font-normal leading-[1.2] text-muted-foreground/80">
             {totalUSD}
           </span>
@@ -62,26 +71,34 @@ const Stats: React.FC = () => {
       </div>
 
       <div className="flex flex-col items-start gap-3">
-        <span className="text-sm font-medium text-[#03624C]">
+        <span className="text-xs font-medium text-[#03624C] lg:text-sm">
           xSTRK in Wallet
         </span>
         <p className="flex items-end gap-4 text-xl font-semibold leading-[1] text-black">
-          {formatNumber(currentXSTRKBalance.value.toEtherToFixedDecimals(2))}
+          {formatNumberWithCommas(
+            currentXSTRKBalance.value.toEtherToFixedDecimals(2),
+          )}
         </p>
       </div>
 
       <div className="flex flex-col items-start gap-3">
-        <span className="text-sm font-medium text-[#03624C]">DApps xSTRK</span>
+        <span className="text-xs font-medium text-[#03624C] lg:text-sm">
+          DApps xSTRK
+        </span>
         <p className="flex items-end gap-4 text-xl font-semibold leading-[1] text-black">
-          {(
-            totalXSTRK -
-            Number(currentXSTRKBalance.value.toEtherToFixedDecimals(2))
-          ).toFixed(2)}
+          {formatNumberWithCommas(
+            (
+              totalXSTRK -
+              Number(currentXSTRKBalance.value.toEtherToFixedDecimals(2))
+            ).toFixed(2),
+          )}
         </p>
       </div>
 
-      <div className="flex flex-col items-start gap-3">
-        <span className="text-sm font-medium text-[#03624C]">APY</span>
+      <div className="mr-5 flex flex-col items-start gap-3 sm:mr-0">
+        <span className="text-xs font-medium text-[#03624C] lg:text-sm">
+          APY
+        </span>
         <p className="-ml-3 flex items-end gap-4 text-xl font-semibold leading-[1] text-black">
           ~{(apy.value * 100).toFixed(2)}%
         </p>

@@ -33,7 +33,7 @@ export async function GET(_req: Request, context: any) {
   const nDays = Number(params.nDays);
 
   // get blocks to use for the chart
-  const host = process.env.VERCEL_URL;
+  const host = process.env.VERCEL_URL ?? "http://localhost:3000";
   if (!host) {
     return NextResponse.json({
       error: "Invalid host",

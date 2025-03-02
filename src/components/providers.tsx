@@ -1,6 +1,5 @@
 "use client";
 
-import { useIsMobile } from "@/hooks/use-mobile";
 import { mainnet, sepolia } from "@starknet-react/chains";
 import {
   Connector,
@@ -13,9 +12,9 @@ import { constants, RpcProviderOptions } from "starknet";
 
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { NETWORK } from "@/constants";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
-
-import { getConnectors } from "./navbar";
+import { WalletConnector } from "@/services/wallet";
 
 const font = Figtree({
   subsets: ["latin-ext"],
@@ -43,12 +42,13 @@ const provider = jsonRpcProvider({
 
 const Providers: React.FC<ProvidersProps> = ({ children }) => {
   const isMobile = useIsMobile();
+  const walletConnector = new WalletConnector(isMobile);
 
   return (
     <StarknetConfig
       chains={chains}
       provider={provider}
-      connectors={getConnectors(isMobile) as Connector[]}
+      connectors={walletConnector.getConnectors() as Connector[]}
     >
       <SidebarProvider className={cn(font.className, "w-full")}>
         {children}

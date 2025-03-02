@@ -104,7 +104,7 @@ export const protocolConfigs: Partial<Record<SupportedDApp, ProtocolConfig>> = {
       { icon: <Icons.endurLogo className="size-[22px]" />, name: "xSTRK" },
       { icon: <Icons.strkLogo className="size-[22px]" />, name: "STRK" },
     ],
-    protocolIcon: <Icons.nostraLogo className="size-8 rounded-full" />,
+    protocolIcon: <Icons.nostraLogo className="size-8 shrink-0 rounded-full" />,
     protocolName: "Nostra (DEX)",
     badges: [{ type: "Liquidity Pool", color: "bg-[#FFF7ED] text-[#EA580C]" }],
     description:
@@ -125,7 +125,7 @@ export const protocolConfigs: Partial<Record<SupportedDApp, ProtocolConfig>> = {
     tokens: [
       { icon: <Icons.endurLogo className="size-[22px]" />, name: "xSTRK" },
     ],
-    protocolIcon: <Icons.nostraLogo className="size-8 rounded-full" />,
+    protocolIcon: <Icons.nostraLogo className="size-8 shrink-0 rounded-full" />,
     protocolName: "Nostra (Lending)",
     badges: [{ type: "Lend/Borrow", color: "bg-[#EEF6FF] text-[#0369A1]" }],
     description: "Lend your xSTRK on Nostra to earn additional yield",
@@ -213,18 +213,25 @@ const Defi: React.FC = () => {
   const yields: any = useAtomValue(protocolYieldsAtom);
 
   const sortedProtocols = useMemo(() => {
-    const keys = Object.entries(protocolConfigs).map(
-      ([protocol]) => protocol as SupportedDApp,
+    return (
+      Object.entries(protocolConfigs)
+        // sorting badges of type "DEX Aggregator" to be at the end
+        .sort(([a], [b]) => {
+          const badgeA = protocolConfigs[a as SupportedDApp]?.badges[0]?.type;
+          const badgeB = protocolConfigs[b as SupportedDApp]?.badges[0]?.type;
+          return badgeA === "DEX Aggregator"
+            ? 1
+            : badgeB === "DEX Aggregator"
+              ? -1
+              : 0;
+        })
+        .sort(([a], [b]) => {
+          const yieldA = yields[a]?.value ?? -Infinity;
+          const yieldB = yields[b]?.value ?? -Infinity;
+          return yieldB - yieldA;
+        })
+        .map(([protocol]) => protocol)
     );
-
-    return keys
-      .filter((protocol) => !["avnu", "fibrous"].includes(protocol))
-      .sort((a, b) => {
-        const yieldA = yields[a]?.value ?? -Infinity;
-        const yieldB = yields[b]?.value ?? -Infinity;
-        return yieldB - yieldA;
-      })
-      .map((protocol) => protocol);
   }, [yields]);
 
   return (
@@ -253,8 +260,9 @@ const Defi: React.FC = () => {
 
         <div className="mt-5 grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
           {sortedProtocols.map((protocol) => {
-            const config = protocolConfigs[protocol];
+            const config = protocolConfigs[protocol as SupportedDApp];
             const shouldShowApy = !["avnu", "fibrous"].includes(protocol);
+
             if (!config) return null;
 
             if (Array.isArray(config.action)) {
@@ -279,21 +287,6 @@ const Defi: React.FC = () => {
                 badges={config.badges}
                 description={config.description}
                 apy={shouldShowApy ? yields[protocol] : undefined}
-                action={config.action}
-              />
-            );
-          })}
-
-          {(["avnu", "fibrous"] as SupportedDApp[]).map((protocol) => {
-            const config = protocolConfigs[protocol];
-            if (!config) return null;
-            return (
-              <DefiCard
-                key={protocol}
-                tokens={config.tokens}
-                protocolIcon={config.protocolIcon}
-                badges={config.badges}
-                description={config.description}
                 action={config.action}
               />
             );

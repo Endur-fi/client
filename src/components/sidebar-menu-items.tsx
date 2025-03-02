@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import React from "react";
 
-import { DASHBOARD_URL } from "@/constants";
+import { LINKS } from "@/constants";
 import { cn } from "@/lib/utils";
 
 import { ChartColumnDecreasingIcon } from "./ui/chart-column-decreasing";
@@ -98,7 +98,7 @@ const SidebarMenuItems = () => {
           onMouseLeave={() => setTriggerAnalyticsIconAnimation(false)}
         >
           <Link
-            href={"https://dune.com/endurfi/xstrk-analytics"}
+            href={LINKS.DUNE_ANALYTICS}
             target="_blank"
             className="flex cursor-pointer flex-row items-center gap-2 text-nowrap rounded-md text-base font-semibold text-[#03624C] transition-all"
           >
@@ -119,7 +119,7 @@ const SidebarMenuItems = () => {
           onMouseLeave={() => setTriggerDashboardIconAnimation(false)}
         >
           <Link
-            href={DASHBOARD_URL}
+            href={LINKS.DASHBOARD_URL}
             target="_blank"
             className="flex cursor-pointer flex-row items-center gap-2 text-nowrap rounded-md text-base font-semibold text-[#03624C] transition-all"
           >

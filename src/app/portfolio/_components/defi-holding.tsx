@@ -1,7 +1,7 @@
 "use client";
 
 import { useAtomValue } from "jotai";
-import React, { useMemo } from "react";
+import React from "react";
 import { Pie, PieChart } from "recharts";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -70,7 +70,7 @@ const DefiHoldings: React.FC = () => {
   const userHaikoBalance = useAtomValue(userHaikoBalanceAtom(undefined));
   const ekuboPosi = useAtomValue(userEkuboxSTRKPositions(undefined));
 
-  const chartData = useMemo(() => {
+  const chartData = React.useMemo(() => {
     return [
       {
         dapp: "nostraLending",
@@ -113,7 +113,7 @@ const DefiHoldings: React.FC = () => {
   }, [nostraBal, vxStrkBalance, userHaikoBalance, ekuboPosi]);
 
   return (
-    <Card className="flex h-full w-full shrink-0 flex-col rounded-xl border border-[#AACBC4]/30 bg-[#E3EFEC]/70 font-poppins lg:w-fit">
+    <Card className="flex h-[500px] w-full shrink-0 flex-col rounded-xl border border-[#AACBC4]/30 bg-[#E3EFEC]/70 font-poppins lg:h-full lg:w-fit">
       <CardHeader className="items-center pb-0">
         <CardTitle className="text-lg font-normal">
           xSTRK holdings in DeFi
@@ -122,7 +122,7 @@ const DefiHoldings: React.FC = () => {
       <CardContent className="flex-1 pb-4">
         <ChartContainer
           config={chartConfig}
-          className="mx-auto h-full max-h-[350px] w-[300px]"
+          className="z-50 mx-auto h-full max-h-[394px] w-[300px]"
           style={{ aspectRatio: "1 / 1" }}
         >
           <PieChart>
@@ -130,14 +130,18 @@ const DefiHoldings: React.FC = () => {
               cursor={false}
               content={<ChartTooltipContent hideLabel />}
             />
-            <Pie
-              data={chartData}
-              dataKey="holdings"
-              nameKey="dapp"
-              innerRadius={40}
-              paddingAngle={3}
-              cornerRadius={3}
-            />
+            {!chartData ? (
+              "loading pie chart..."
+            ) : (
+              <Pie
+                data={chartData}
+                dataKey="holdings"
+                nameKey="dapp"
+                innerRadius={30}
+                paddingAngle={3}
+                cornerRadius={3}
+              />
+            )}
             <ChartLegend content={<ChartLegendContent />} className="" />
           </PieChart>
         </ChartContainer>
