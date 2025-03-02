@@ -1,9 +1,8 @@
 import { NextResponse } from "next/server";
-import { RpcProvider } from "starknet";
 
 import { getProvider, STRK_DECIMALS } from "@/constants";
 import MyNumber from "@/lib/MyNumber";
-import { getLSTContract } from "@/store/lst.store";
+import LSTService from "@/services/lst";
 
 export const revalidate = 120;
 
@@ -14,10 +13,11 @@ export async function GET(_req: Request) {
     return NextResponse.json("Provider not found");
   }
 
-  try {
-    const lstContract = getLSTContract(provider as RpcProvider);
-    const totalSupply = await lstContract.call("total_supply");
+  const lstService = new LSTService();
 
+  const totalSupply = await lstService.getTotalSupply();
+
+  if (totalSupply) {
     const totalSupplyNum = Number(
       new MyNumber(
         totalSupply.toString(),
@@ -28,11 +28,9 @@ export async function GET(_req: Request) {
     const response = new Response(totalSupplyNum.toString());
 
     return response;
-  } catch (error) {
-    console.error("totalStakedError", error);
-    return NextResponse.json({
-      message: "totalStakedError",
-      error,
-    });
   }
+
+  return NextResponse.json({
+    message: "totalSupplyError",
+  });
 }

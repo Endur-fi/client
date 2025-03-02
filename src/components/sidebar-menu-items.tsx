@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import React from "react";
 
-import { DASHBOARD_URL } from "@/constants";
+import { LINKS } from "@/constants";
 import { cn } from "@/lib/utils";
 
 import { ChartColumnDecreasingIcon } from "./ui/chart-column-decreasing";
@@ -12,6 +12,7 @@ import { FlameIcon } from "./ui/flame";
 import { GaugeIcon } from "./ui/gauge";
 import { HandCoinsIcon } from "./ui/hand-coins";
 import { SidebarMenuButton, SidebarMenuItem, useSidebar } from "./ui/sidebar";
+import { UserIcon } from "./ui/user";
 
 const SidebarMenuItems = () => {
   const [triggerLSTIconAnimation, setTriggerLSTIconAnimation] =
@@ -22,6 +23,8 @@ const SidebarMenuItems = () => {
     React.useState(false);
   const [triggerDashboardIconAnimation, setTriggerDashboardIconAnimation] =
     React.useState(false);
+  const [triggerPortfolioIconAnimation, setTriggerPortfolioIconAnimation] =
+    React.useState(false);
 
   const { open } = useSidebar();
 
@@ -31,7 +34,7 @@ const SidebarMenuItems = () => {
   const referrer = searchParams.get("referrer");
 
   return (
-    <>
+    <React.Fragment>
       <SidebarMenuItem>
         <SidebarMenuButton
           asChild
@@ -95,7 +98,7 @@ const SidebarMenuItems = () => {
           onMouseLeave={() => setTriggerAnalyticsIconAnimation(false)}
         >
           <Link
-            href={"https://dune.com/endurfi/xstrk-analytics"}
+            href={LINKS.DUNE_ANALYTICS}
             target="_blank"
             className="flex cursor-pointer flex-row items-center gap-2 text-nowrap rounded-md text-base font-semibold text-[#03624C] transition-all"
           >
@@ -116,7 +119,7 @@ const SidebarMenuItems = () => {
           onMouseLeave={() => setTriggerDashboardIconAnimation(false)}
         >
           <Link
-            href={DASHBOARD_URL}
+            href={LINKS.DASHBOARD_URL}
             target="_blank"
             className="flex cursor-pointer flex-row items-center gap-2 text-nowrap rounded-md text-base font-semibold text-[#03624C] transition-all"
           >
@@ -128,7 +131,33 @@ const SidebarMenuItems = () => {
           </Link>
         </SidebarMenuButton>
       </SidebarMenuItem>
-    </>
+
+      <SidebarMenuItem>
+        <SidebarMenuButton
+          asChild
+          className={cn("transition-all hover:bg-[#17876D] hover:text-white", {
+            "bg-[#17876D] text-white": pathname === "/portfolio",
+          })}
+          onMouseEnter={() =>
+            pathname !== "/portfolio" && setTriggerPortfolioIconAnimation(true)
+          }
+          onMouseLeave={() =>
+            pathname !== "/portfolio" && setTriggerPortfolioIconAnimation(false)
+          }
+        >
+          <Link
+            href="/portfolio"
+            className="flex cursor-pointer flex-row items-center gap-2 text-nowrap rounded-md text-base font-semibold text-[#03624C] transition-all"
+          >
+            <UserIcon
+              triggerAnimation={triggerPortfolioIconAnimation}
+              className="-ml-0.5 size-5"
+            />
+            {open && "Portfolio"}
+          </Link>
+        </SidebarMenuButton>
+      </SidebarMenuItem>
+    </React.Fragment>
   );
 };
 

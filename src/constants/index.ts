@@ -8,6 +8,9 @@ export const REWARD_FEES = 15;
 export const RECEPIEINT_FEE_ADDRESS =
   "0x0066c76374A9AdB11D4d283aC400331ec6A691C61029168bD70CeA5d97dFc971";
 
+export const STRK_ORACLE_CONTRACT =
+  "0x7ca92dce6e5f7f81f6c393c647b5c0c266e7663088351a4bd34ee9f88569de5";
+
 export const LST_ADDRRESS = process.env
   .NEXT_PUBLIC_LST_ADDRESS as `0x${string}`;
 
@@ -35,15 +38,13 @@ export const NOSTRA_iXSTRK_ADDRESS =
   "0x04d1125a716f547a0b69413c0098e811da3b799d173429c95da4290a00c139f7";
 
 export const NETWORK =
-  process.env.NEXT_PUBLIC_CHAIN_ID == "SN_SEPOLIA"
+  process.env.NEXT_PUBLIC_CHAIN_ID === "SN_SEPOLIA"
     ? constants.NetworkName.SN_SEPOLIA
     : constants.NetworkName.SN_MAIN;
 
 export const isMainnet = () => {
   return NETWORK === constants.NetworkName.SN_MAIN;
 };
-
-export const DASHBOARD_URL = "https://dashboard.endur.fi";
 
 export function getEndpoint() {
   return (
@@ -54,13 +55,27 @@ export function getEndpoint() {
 }
 
 export function getProvider() {
+  const rpcUrl =
+    process.env.NEXT_PUBLIC_RPC_URL ||
+    process.env.RPC_URL ||
+    "https://starknet-mainnet.public.blastapi.io";
+
   return new RpcProvider({
-    nodeUrl:
-      process.env.NEXT_PUBLIC_RPC_URL ||
-      "https://starknet-mainnet.public.blastapi.io",
+    nodeUrl: rpcUrl,
     blockIdentifier: "pending",
   });
 }
+
+export const LINKS = {
+  DUNE_ANALYTICS: "https://dune.com/endurfi/xstrk-analytics",
+  DASHBOARD_URL: "https://dashboard.endur.fi",
+  ENDUR_TWITTER: "https://x.com/endurfi",
+  ENDUR_TELEGRAM: "https://t.me/+jWY71PfbMMIwMTBl",
+  ENDUR_BLOG: "https://blog.endur.fi/",
+  ENDUR_DOCS: "https://docs.endur.fi",
+  ENDUR_VALUE_DISTRUBUTION_BLOG_LINK:
+    "https://blog.endur.fi/endur-reimagining-value-distribution-in-liquid-staking-on-starknet",
+} as const;
 
 export function getExplorerEndpoint() {
   if (isMainnet()) {
@@ -90,3 +105,7 @@ export function convertTimeString(timeString: string): string {
   const days = Math.ceil(hours / 24);
   return `${days}-${days + 1} days`;
 }
+
+export const convertToPlainObject = (data: any) => {
+  return JSON.parse(JSON.stringify(data));
+};
