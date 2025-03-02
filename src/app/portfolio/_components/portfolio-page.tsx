@@ -3,7 +3,6 @@
 import { useAccount } from "@starknet-react/core";
 import axios from "axios";
 import { useAtomValue } from "jotai";
-import { Loader } from "lucide-react";
 import React from "react";
 
 import { BlockInfo } from "@/app/api/holdings/[address]/[nDays]/route";
@@ -23,8 +22,17 @@ import { chartFilter } from "@/store/portfolio.store";
 import { Chart } from "./chart";
 import DefiHoldings from "./defi-holding";
 import Stats from "./stats";
-import { columns, SizeColumn } from "./table/columns";
+import {
+  columns,
+  getPortfolioDAppAction,
+  getPortfolioDAppAmount,
+  getPortfolioDAppAPY,
+  getPortfolioDAppAsset,
+  getPortfolioDAppName,
+  SizeColumn,
+} from "./table/columns";
 import { DataTable } from "./table/data-table";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const _data: SizeColumn[] = [
   {
@@ -107,6 +115,8 @@ const PortfolioPage: React.FC = () => {
       .filter((config) => config !== null);
   }, [yields, sortedProtocols, holdings]);
 
+  const isMobile = useIsMobile();
+
   React.useEffect(() => {
     const fetchData = async () => {
       if (!address) return;
@@ -170,38 +180,73 @@ const PortfolioPage: React.FC = () => {
         Your xSTRK Portfolio
       </h1>
 
-      <React.Suspense
+      {/* <React.Suspense
         fallback={
           <div className="my-5 flex w-full items-center justify-center gap-2 text-center">
             Crunching the latest stats for you{" "}
             <Loader className="size-4 animate-spin text-black" />
           </div>
         }
+      > */}
+      <div className="flex w-full flex-col items-start justify-start gap-5 lg:flex-row">
+        <div className="flex w-full flex-col items-start gap-5">
+          <Stats />
+          <Chart chartData={holdings} />
+        </div>
+
+        <DefiHoldings />
+      </div>
+
+      <div
+        className="mb-4 mt-5 rounded-lg border border-[#17876D] bg-[#e7f0ef] p-4 text-xs text-[#17876D] dark:bg-gray-800 dark:text-blue-400 lg:text-sm"
+        role="alert"
       >
-        <div className="flex w-full flex-col items-start justify-start gap-5 lg:flex-row">
-          <div className="flex w-full flex-col items-start gap-5">
-            <Stats />
-            <Chart chartData={holdings} />
-          </div>
-
-          <DefiHoldings />
-        </div>
-
-        <div
-          className="mb-4 mt-5 rounded-lg border border-[#17876D] bg-[#e7f0ef] p-4 text-xs text-[#17876D] dark:bg-gray-800 dark:text-blue-400 lg:text-sm"
-          role="alert"
-        >
-          <span className="font-medium">
-            <b>Note:</b> This portfolio page is still a work in progress, so
-            some features may be missing or buggy. If you spot any issues,
-            please report them in our TG group. Also, xSTRK debt is not
-            displayed.
-          </span>
-        </div>
-      </React.Suspense>
+        <span className="font-medium">
+          <b>Note:</b> This portfolio page is still a work in progress, so some
+          features may be missing or buggy. If you spot any issues, please
+          report them in our TG group. Also, xSTRK debt is not displayed.
+        </span>
+      </div>
+      {/* </React.Suspense> */}
 
       <div className="">
-        <DataTable columns={columns} data={defiCards} />
+        {!isMobile && <DataTable columns={columns} data={defiCards} />}
+
+        {isMobile &&
+          defiCards.map((card, idx) => (
+            <div
+              key={idx}
+              className={cn(
+                "float-left w-full border-0 bg-white p-[10px] hover:bg-white",
+                {
+                  "!border-l !border-r border-[#17876D]/50 bg-[#dbe7e4] hover:bg-[#dbe7e4]":
+                    (idx + 1) % 2 === 0,
+                },
+              )}
+            >
+              {getPortfolioDAppAsset({ original: card })}
+              <div className="float-left w-full">
+                <div className="float-left w-1/2">
+                  {getPortfolioDAppName({ original: card })}
+                </div>
+                <div className="float-left w-1/2">
+                  {getPortfolioDAppAPY({ original: card })}
+                </div>
+              </div>
+              <div className="float-left mt-[10px] w-full">
+                <div className="float-left w-1/2">
+                  {getPortfolioDAppAction({ original: card })}
+                </div>
+                {address && (
+                  <div className="float-left mt-[5px] flex w-1/2">
+                    <Icons.wallet className="mr-[5px] mt-[5px]" />
+                    {getPortfolioDAppAmount({ original: card })}
+                    <span className="ml-[5px]">STRK</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
       </div>
     </main>
   );

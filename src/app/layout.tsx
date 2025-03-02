@@ -68,27 +68,29 @@ export default function RootLayout({
         <Analytics />
 
         <Providers>
-          <div className="relative flex h-full min-h-screen w-full overflow-x-hidden">
-            <Image
-              src="/subtle_tree_bg.svg"
-              alt="subtle_tree_bg"
-              fill
-              className="-z-10 object-cover"
-            />
+          <React.Suspense>
+            <div className="relative flex h-full min-h-screen w-full overflow-x-hidden">
+              <Image
+                src="/subtle_tree_bg.svg"
+                alt="subtle_tree_bg"
+                fill
+                className="-z-10 object-cover"
+              />
 
-            <AppSidebar />
+              <AppSidebar />
 
-            <div className="flex flex-1 flex-col justify-between overflow-hidden">
-              <MaxWidthWrapper className="flex h-full w-full flex-col items-center px-3 py-3 lg:px-7 lg:py-0">
-                <Navbar />
-                {children}
-              </MaxWidthWrapper>
+              <div className="flex flex-1 flex-col justify-between overflow-hidden">
+                <MaxWidthWrapper className="flex h-full w-full flex-col items-center px-3 py-3 lg:px-7 lg:py-0">
+                  <Navbar />
+                  {children}
+                </MaxWidthWrapper>
 
-              <div className="lg:hidden">
-                <Footer />
+                <div className="lg:hidden">
+                  <Footer />
+                </div>
               </div>
             </div>
-          </div>
+          </React.Suspense>
 
           <Toaster />
         </Providers>

@@ -3,20 +3,21 @@
 import { useAtomValue } from "jotai";
 import React from "react";
 
-import { formatNumberWithCommas, getSTRKPrice } from "@/lib/utils";
+import { formatNumberWithCommas } from "@/lib/utils";
 import { userEkuboxSTRKPositions } from "@/store/ekubo.store";
 import { userHaikoBalanceAtom } from "@/store/haiko.store";
 import { exchangeRateAtom, userXSTRKBalanceAtom } from "@/store/lst.store";
 import { userxSTRKNostraBalance } from "@/store/nostra.store";
 import { snAPYAtom } from "@/store/staking.store";
 import { uservXSTRKBalanceAtom } from "@/store/vesu.store";
+import { strkPriceAtom } from "@/store/common.store";
 
 const Stats: React.FC = () => {
   const vxStrkBalance = useAtomValue(uservXSTRKBalanceAtom(undefined));
   const userHaikoBalance = useAtomValue(userHaikoBalanceAtom(undefined));
   const nostraBal = useAtomValue(userxSTRKNostraBalance(undefined));
   const ekuboPosi = useAtomValue(userEkuboxSTRKPositions(undefined));
-
+  const strkPrice = useAtomValue(strkPriceAtom);
   const apy = useAtomValue(snAPYAtom);
   const currentXSTRKBalance = useAtomValue(userXSTRKBalanceAtom);
   const exchangeRate = useAtomValue(exchangeRateAtom);
@@ -40,14 +41,13 @@ const Stats: React.FC = () => {
     currentXSTRKBalance,
   ]);
 
-  const totalUSD = React.useMemo(async () => {
-    if (Number.isNaN(exchangeRate.rate)) {
+  const totalUSD = React.useMemo(() => {
+    if (Number.isNaN(exchangeRate.rate) || !strkPrice.data) {
       return "";
     }
 
     try {
-      const price = await getSTRKPrice();
-      const xstrkPrice = price * exchangeRate.rate;
+      const xstrkPrice = strkPrice.data * exchangeRate.rate;
 
       return `$${(totalXSTRK * xstrkPrice).toFixed(2)}`;
     } catch (error) {

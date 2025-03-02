@@ -1,6 +1,6 @@
 "use client";
 
-import { useAtom } from "jotai";
+import { useAtom, useAtomValue } from "jotai";
 import * as React from "react";
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
 
@@ -17,6 +17,8 @@ import { cn } from "@/lib/utils";
 import { chartFilter } from "@/store/portfolio.store";
 import { chartConfig } from "./defi-holding";
 import { HoldingInfo } from "./portfolio-page";
+import { userAddressAtom } from "@/store/common.store";
+import { Loader } from "lucide-react";
 
 function getLast7Days() {
   const result = [];
@@ -40,6 +42,7 @@ function getDummyData() {
 
 export function Chart({ chartData }: { chartData: HoldingInfo[] }) {
   const [timeRange, setTimeRange] = useAtom(chartFilter);
+  const address = useAtomValue(userAddressAtom);
 
   const filteredData = chartData.filter((item) => {
     const date = new Date(item.date);
@@ -198,7 +201,7 @@ export function Chart({ chartData }: { chartData: HoldingInfo[] }) {
         </div>
       </CardHeader>
 
-      <CardContent className="px-2 py-4 sm:px-6 sm:pt-6">
+      <CardContent className="relative px-2 py-4 sm:px-6 sm:pt-6">
         <ChartContainer
           config={chartConfig}
           className="aspect-auto h-[400px] w-full sm:h-[250px]"
@@ -285,6 +288,25 @@ export function Chart({ chartData }: { chartData: HoldingInfo[] }) {
           </AreaChart>
           {/* </AreaChart> */}
         </ChartContainer>
+        {(!address || filteredData.length == 0) && (
+          <div className="absolute inset-0 flex items-center justify-center bg-white/80 backdrop-blur-sm">
+            {!address && (
+              <div className="gap-2 p-[10px] text-center">
+                <b className="w-full">Connect Wallet</b>
+                <p className="text-[13px]">
+                  You will be able to see your xSTRK holding history across
+                  DApps
+                </p>
+              </div>
+            )}
+            {address && filteredData.length == 0 && (
+              <div className="my-5 flex w-full items-center justify-center gap-2 p-[10px] text-center">
+                Computing your wallet xSTRK holding history{" "}
+                <Loader className="size-4 animate-spin text-black" />
+              </div>
+            )}
+          </div>
+        )}
       </CardContent>
     </Card>
   );

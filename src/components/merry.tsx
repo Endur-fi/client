@@ -15,7 +15,8 @@ const Merry: React.FC = () => {
   const yields: any = useAtomValue(protocolYieldsAtom);
 
   const sortedProtocols = React.useMemo(() => {
-    return Object.entries(protocolConfigs).map(([protocol]) => protocol as SupportedDApp)
+    return Object.entries(protocolConfigs)
+      .map(([protocol]) => protocol as SupportedDApp)
       .filter((protocol) => !["avnu", "fibrous"].includes(protocol))
       .sort((a, b) => {
         const yieldA = yields[a]?.value ?? -Infinity;
@@ -42,7 +43,7 @@ const Merry: React.FC = () => {
       );
     },
     [yields],
-  ); 
+  );
 
   return (
     <div className="hidden transition-all duration-1000 lg:block">

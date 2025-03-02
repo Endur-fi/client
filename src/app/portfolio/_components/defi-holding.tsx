@@ -17,6 +17,7 @@ import { userEkuboxSTRKPositions } from "@/store/ekubo.store";
 import { userHaikoBalanceAtom } from "@/store/haiko.store";
 import { userxSTRKNostraBalance } from "@/store/nostra.store";
 import { uservXSTRKBalanceAtom } from "@/store/vesu.store";
+import { userAddressAtom } from "@/store/common.store";
 
 export const chartConfig = {
   // holdings: {
@@ -69,9 +70,10 @@ const DefiHoldings: React.FC = () => {
   const vxStrkBalance = useAtomValue(uservXSTRKBalanceAtom(undefined));
   const userHaikoBalance = useAtomValue(userHaikoBalanceAtom(undefined));
   const ekuboPosi = useAtomValue(userEkuboxSTRKPositions(undefined));
+  const address = useAtomValue(userAddressAtom);
 
-  const chartData = React.useMemo(() => {
-    return [
+  const { chartData, sumDefiHoldings } = React.useMemo(() => {
+    const output = [
       {
         dapp: "nostraLending",
         holdings: Number(nostraBal.data.xSTRKAmount.toEtherToFixedDecimals(2)),
@@ -110,10 +112,23 @@ const DefiHoldings: React.FC = () => {
         fill: chartConfig.strkfarm.color,
       },
     ].sort((a, b) => b.holdings - a.holdings);
+
+    const sumDefiHoldings = output.reduce(
+      (acc, curr) => acc + curr.holdings,
+      0,
+    );
+
+    if (sumDefiHoldings == 0 || !address) {
+      // set some mock values for the chart
+      // they are blurred anyways
+      output[0].holdings = 1;
+      output[2].holdings = 5;
+    }
+    return { chartData: output, sumDefiHoldings };
   }, [nostraBal, vxStrkBalance, userHaikoBalance, ekuboPosi]);
 
   return (
-    <Card className="flex h-[500px] w-full shrink-0 flex-col rounded-xl border border-[#AACBC4]/30 bg-[#E3EFEC]/70 font-poppins lg:h-full lg:w-fit">
+    <Card className="relative flex h-[500px] w-full shrink-0 flex-col rounded-xl border border-[#AACBC4]/30 bg-[#E3EFEC]/70 bg-white font-poppins lg:h-full lg:w-fit">
       <CardHeader className="items-center pb-0">
         <CardTitle className="text-lg font-normal">
           xSTRK holdings in DeFi
@@ -130,22 +145,37 @@ const DefiHoldings: React.FC = () => {
               cursor={false}
               content={<ChartTooltipContent hideLabel />}
             />
-            {!chartData ? (
-              "loading pie chart..."
-            ) : (
-              <Pie
-                data={chartData}
-                dataKey="holdings"
-                nameKey="dapp"
-                innerRadius={30}
-                paddingAngle={3}
-                cornerRadius={3}
-              />
-            )}
+            (
+            <Pie
+              data={chartData}
+              dataKey="holdings"
+              nameKey="dapp"
+              innerRadius={30}
+              paddingAngle={3}
+              cornerRadius={3}
+            />
+            )
             <ChartLegend content={<ChartLegendContent />} className="" />
           </PieChart>
         </ChartContainer>
       </CardContent>
+      {(!address || sumDefiHoldings == 0) && (
+        <div className="absolute inset-0 flex items-center justify-center bg-white/80 backdrop-blur-sm">
+          {!address && (
+            <div className="gap-2 p-[10px] text-center">
+              <b className="w-full">Connect Wallet</b>
+              <p className="text-[13px]">
+                You will be able to see your xSTRK distribution across DApps
+              </p>
+            </div>
+          )}
+          {address && sumDefiHoldings == 0 && (
+            <div className="flex items-center gap-2">
+              You have no xSTRK holdings in DeFi
+            </div>
+          )}
+        </div>
+      )}
     </Card>
   );
 };
