@@ -10,6 +10,7 @@ import { Icons } from "@/components/Icons";
 import { ProtocolConfig, protocolConfigs } from "@/components/defi";
 import { useSidebar } from "@/components/ui/sidebar";
 import { STRK_DECIMALS } from "@/constants";
+import { useIsMobile } from "@/hooks/use-mobile";
 import MyNumber from "@/lib/MyNumber";
 import { cn } from "@/lib/utils";
 import {
@@ -32,7 +33,6 @@ import {
   SizeColumn,
 } from "./table/columns";
 import { DataTable } from "./table/data-table";
-import { useIsMobile } from "@/hooks/use-mobile";
 
 const _data: SizeColumn[] = [
   {
@@ -71,6 +71,8 @@ const PortfolioPage: React.FC = () => {
   const { address } = useAccount();
 
   const { isPinned } = useSidebar();
+  const isMobile = useIsMobile();
+
   const yields = useAtomValue(protocolYieldsAtom);
 
   const sortedProtocols: SupportedDApp[] = React.useMemo(() => {
@@ -114,8 +116,6 @@ const PortfolioPage: React.FC = () => {
       })
       .filter((config) => config !== null);
   }, [yields, sortedProtocols, holdings]);
-
-  const isMobile = useIsMobile();
 
   React.useEffect(() => {
     const fetchData = async () => {
@@ -180,14 +180,6 @@ const PortfolioPage: React.FC = () => {
         Your xSTRK Portfolio
       </h1>
 
-      {/* <React.Suspense
-        fallback={
-          <div className="my-5 flex w-full items-center justify-center gap-2 text-center">
-            Crunching the latest stats for you{" "}
-            <Loader className="size-4 animate-spin text-black" />
-          </div>
-        }
-      > */}
       <div className="flex w-full flex-col items-start justify-start gap-5 lg:flex-row">
         <div className="flex w-full flex-col items-start gap-5">
           <Stats />
@@ -207,7 +199,6 @@ const PortfolioPage: React.FC = () => {
           report them in our TG group. Also, xSTRK debt is not displayed.
         </span>
       </div>
-      {/* </React.Suspense> */}
 
       <div className="">
         {!isMobile && <DataTable columns={columns} data={defiCards} />}
