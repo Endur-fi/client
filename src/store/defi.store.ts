@@ -422,6 +422,7 @@ export type SupportedDApp =
   | "ekubo"
   | "nostraDex"
   | "nostraLending"
+  | "nostra"
   | "haiko"
   | "opus"
   | "endur";

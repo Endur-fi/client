@@ -66,6 +66,8 @@ function serialisedMyNumberToNumber(serialised: {
 
 const PortfolioPage: React.FC = () => {
   const [holdings, setHoldings] = React.useState<HoldingInfo[]>([]);
+  const [lastUpdated, setLastUpdated] = React.useState<Date | null>(null);
+  const [isFetchError, setIsFetchError] = React.useState(false);
 
   const timeRange = useAtomValue(chartFilter);
   const { address } = useAccount();
@@ -112,7 +114,12 @@ const PortfolioPage: React.FC = () => {
         );
         return config;
       })
-      .filter((config) => config !== null);
+      .filter((config) => config !== null)
+      .sort((a, b) => {
+        const aAmount = a.tokens.find((t) => t.name === "xSTRK")?.holding;
+        const bAmount = b.tokens.find((t) => t.name === "xSTRK")?.holding;
+        return (Number(bAmount?.toEtherStr()) || 0) - (Number(aAmount?.toEtherStr()) || 0);
+      })
   }, [yields, sortedProtocols, holdings]);
 
   const isMobile = useIsMobile();
@@ -123,6 +130,8 @@ const PortfolioPage: React.FC = () => {
 
       try {
         console.log("fetching holdings");
+        setHoldings([]);
+        setIsFetchError(false);
         const res = await axios.get(
           `/api/holdings/${address}/${timeRange.slice(0, -1)}`,
         );
@@ -135,6 +144,7 @@ const PortfolioPage: React.FC = () => {
           const ekubo: DAppHoldings[] = res.data.ekubo;
           const wallet: DAppHoldings[] = res.data.wallet;
 
+          setLastUpdated(new Date(res.data.lastUpdated));
           // assert all arrays are of the same length
           if (
             blocks.length !== vesu.length ||
@@ -161,14 +171,32 @@ const PortfolioPage: React.FC = () => {
               endur: serialisedMyNumberToNumber(wallet[idx].xSTRKAmount as any),
             };
           });
+          holdings.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
           setHoldings(holdings);
         }
       } catch (error) {
         console.error("Error fetching data:", error);
+        setIsFetchError(true);
       }
     };
     fetchData();
   }, [address, timeRange]);
+
+  // merging common dapps
+  // to avoid too much splitting on chart, we merge some parts of dapps
+  const summaryPieChartHoldings = React.useMemo(() => {
+    const summary: HoldingInfo[] = [];
+    holdings.forEach((holding) => {
+      summary.push({
+        date: holding.date,
+        nostra: (holding.nostraDex || 0) + (holding.nostraLending || 0),
+        vesu: holding.vesu,
+        ekubo: holding.ekubo,
+        endur: holding.endur,
+      });
+    });
+    return summary;
+  }, [holdings]);
 
   return (
     <main
@@ -191,7 +219,11 @@ const PortfolioPage: React.FC = () => {
       <div className="flex w-full flex-col items-start justify-start gap-5 lg:flex-row">
         <div className="flex w-full flex-col items-start gap-5">
           <Stats />
-          <Chart chartData={holdings} />
+          <Chart 
+            chartData={summaryPieChartHoldings} 
+            lastUpdated={lastUpdated} 
+            error={isFetchError ? "Failed to fetch data" : null}
+            />
         </div>
 
         <DefiHoldings />

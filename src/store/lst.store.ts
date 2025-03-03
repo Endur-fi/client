@@ -9,7 +9,7 @@ import {
 } from "starknet";
 
 import WqAbi from "@/abi/wq.abi.json";
-import { STRK_DECIMALS, WITHDRAWAL_QUEUE_ADDRESS } from "@/constants";
+import { STRK_DECIMALS, WITHDRAWAL_QUEUE_ADDRESS, xSTRK_TOKEN_MAINNET_DEPLOYMENT_BLOCK } from "@/constants";
 import MyNumber from "@/lib/MyNumber";
 import LSTService from "@/services/lst";
 
@@ -24,6 +24,7 @@ import {
   type DAppHoldingsFn,
   getHoldingAtom,
 } from "./defi.store";
+import { isContractNotDeployed } from "@/lib/utils";
 
 const lstService = new LSTService();
 
@@ -33,6 +34,13 @@ export const getXSTRKHoldings: DAppHoldingsFn = async (
   blockNumber?: BlockIdentifier,
 ) => {
   const lstContract = lstService.getLSTContract(provider);
+  if (isContractNotDeployed(blockNumber, xSTRK_TOKEN_MAINNET_DEPLOYMENT_BLOCK)) {
+    return {
+      xSTRKAmount: MyNumber.fromZero(),
+      STRKAmount: MyNumber.fromZero(),
+    };
+  }
+  
   const balance = await lstContract.call("balance_of", [address], {
     blockIdentifier: blockNumber ?? "pending",
   });

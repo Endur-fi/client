@@ -2,6 +2,9 @@ import { constants, RpcProvider } from "starknet";
 
 export const STRK_TOKEN =
   "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d" as const;
+export const xSTRK_TOKEN_MAINNET = '0x28d709c875c0ceac3dce7065bec5328186dc89fe254527084d1689910954b0a';
+export const xSTRK_TOKEN_MAINNET_DEPLOYMENT_BLOCK = 929092;
+
 export const STRK_DECIMALS = 18;
 export const REWARD_FEES = 15;
 
