@@ -13,11 +13,11 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
+import { userAddressAtom } from "@/store/common.store";
 import { userEkuboxSTRKPositions } from "@/store/ekubo.store";
 import { userHaikoBalanceAtom } from "@/store/haiko.store";
 import { userLPTokenBalance, userxSTRKNostraBalance } from "@/store/nostra.store";
 import { uservXSTRKBalanceAtom } from "@/store/vesu.store";
-import { userAddressAtom } from "@/store/common.store";
 
 export const chartConfig = {
   // holdings: {
@@ -118,7 +118,7 @@ const DefiHoldings: React.FC = () => {
       0,
     );
 
-    if (sumDefiHoldings == 0 || !address) {
+    if (sumDefiHoldings === 0 || !address) {
       // set some mock values for the chart
       // they are blurred anyways
       output[0].holdings = 1;
@@ -159,7 +159,7 @@ const DefiHoldings: React.FC = () => {
           </PieChart>
         </ChartContainer>
       </CardContent>
-      {(!address || sumDefiHoldings == 0) && (
+      {(!address || sumDefiHoldings === 0) && (
         <div className="absolute inset-0 flex items-center justify-center bg-white/80 backdrop-blur-sm">
           {!address && (
             <div className="gap-2 p-[10px] text-center">
@@ -169,7 +169,7 @@ const DefiHoldings: React.FC = () => {
               </p>
             </div>
           )}
-          {address && sumDefiHoldings == 0 && (
+          {address && sumDefiHoldings === 0 && (
             <div className="flex items-center gap-2">
               You have no xSTRK holdings in DeFi
             </div>
