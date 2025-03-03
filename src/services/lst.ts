@@ -34,7 +34,9 @@ class LSTService {
 
   async getTotalSupply(blockNumber?: BlockIdentifier) {
     const lstContract = this.getLSTContract(this.provider);
-    if (isContractNotDeployed(blockNumber, xSTRK_TOKEN_MAINNET_DEPLOYMENT_BLOCK)) {
+    if (
+      isContractNotDeployed(blockNumber, xSTRK_TOKEN_MAINNET_DEPLOYMENT_BLOCK)
+    ) {
       return MyNumber.fromZero();
     }
 
@@ -58,7 +60,9 @@ class LSTService {
 
   async getTotalStaked(blockNumber?: BlockIdentifier) {
     const lstContract = this.getLSTContract(this.provider);
-    if (isContractNotDeployed(blockNumber, xSTRK_TOKEN_MAINNET_DEPLOYMENT_BLOCK)) {
+    if (
+      isContractNotDeployed(blockNumber, xSTRK_TOKEN_MAINNET_DEPLOYMENT_BLOCK)
+    ) {
       return MyNumber.fromZero();
     }
     const { data: balance, error } = await tryCatch(

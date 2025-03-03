@@ -11,7 +11,10 @@ import {
   N_XSTRK_C_CONTRACT_ADDRESS,
   N_XSTRK_CONTRACT_ADDRESS,
 } from "@/store/nostra.store";
-import { getVesuHoldings, getVesuxSTRKCollateral, getVesuxSTRKCollateralWrapper } from "@/store/vesu.store";
+import {
+  getVesuHoldings,
+  getVesuxSTRKCollateralWrapper,
+} from "@/store/vesu.store";
 import axios from "axios";
 import { NextResponse } from "next/server";
 
@@ -84,31 +87,55 @@ export async function GET(_req: Request, context: any) {
     });
   } catch (error) {
     console.error("Error fetching data:", error);
-    return NextResponse.json({
-      error: "Error fetching data",
-    }, {status: 500});
+    return NextResponse.json(
+      {
+        error: "Error fetching data",
+      },
+      { status: 500 },
+    );
   }
 }
 
 async function getAllVesuHoldings(address: string, blocks: BlockInfo[]) {
   return Promise.all(
     blocks.map(async (block) => {
-      const justSupply = await retry(getVesuHoldings, [address, getProvider(), block.block]);
-      const collateral = await retry(getVesuxSTRKCollateralWrapper(), [address, getProvider(), block.block]);
+      const justSupply = await retry(getVesuHoldings, [
+        address,
+        getProvider(),
+        block.block,
+      ]);
+      const collateral = await retry(getVesuxSTRKCollateralWrapper(), [
+        address,
+        getProvider(),
+        block.block,
+      ]);
 
       const output: DAppHoldings = {
-        xSTRKAmount: justSupply.xSTRKAmount.operate("plus", collateral.xSTRKAmount.toString()),
-        STRKAmount: justSupply.STRKAmount.operate("plus", collateral.STRKAmount.toString()),
-      }
+        xSTRKAmount: justSupply.xSTRKAmount.operate(
+          "plus",
+          collateral.xSTRKAmount.toString(),
+        ),
+        STRKAmount: justSupply.STRKAmount.operate(
+          "plus",
+          collateral.STRKAmount.toString(),
+        ),
+      };
       return output;
     }),
   );
 }
 
-async function getAllVesuCollateralHoldings(address: string, blocks: BlockInfo[]) {
+async function getAllVesuCollateralHoldings(
+  address: string,
+  blocks: BlockInfo[],
+) {
   return Promise.all(
     blocks.map(async (block) => {
-      return retry(getVesuxSTRKCollateralWrapper(), [address, getProvider(), block.block]);
+      return retry(getVesuxSTRKCollateralWrapper(), [
+        address,
+        getProvider(),
+        block.block,
+      ]);
     }),
   );
 }

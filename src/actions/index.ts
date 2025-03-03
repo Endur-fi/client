@@ -2,22 +2,6 @@
 
 import { DuneClient } from "@duneanalytics/client-sdk";
 import axios from "axios";
-import { Contract } from "starknet";
-
-import ekuboPositionAbi from "@/abi/ekubo.position.abi.json";
-import erc4626Abi from "@/abi/erc4626.abi.json";
-import nostraLpAbi from "@/abi/nostra.lp.abi.json";
-
-import { getProvider, STRK_DECIMALS, VESU_vXSTRK_ADDRESS } from "@/constants";
-import MyNumber from "@/lib/MyNumber";
-import { EKUBO_POSITION_ADDRESS, XSTRK_ADDRESS } from "@/store/ekubo.store";
-import {
-  i_XSTRK_C_CONTRACT_ADDRESS,
-  i_XSTRK_CONTRACT_ADDRESS,
-  LP_TOKEN_CONTRACT_ADDRESS,
-  N_XSTRK_C_CONTRACT_ADDRESS,
-  N_XSTRK_CONTRACT_ADDRESS,
-} from "@/store/nostra.store";
 
 const dune = new DuneClient(process.env.DUNE_API_KEY!);
 

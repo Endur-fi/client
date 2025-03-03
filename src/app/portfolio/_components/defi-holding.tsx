@@ -16,7 +16,7 @@ import {
 import { userAddressAtom } from "@/store/common.store";
 import { userEkuboxSTRKPositions } from "@/store/ekubo.store";
 import { userHaikoBalanceAtom } from "@/store/haiko.store";
-import { userLPTokenBalance, userxSTRKNostraBalance } from "@/store/nostra.store";
+import { userxSTRKNostraBalance } from "@/store/nostra.store";
 import { uservXSTRKBalanceAtom } from "@/store/vesu.store";
 
 export const chartConfig = {

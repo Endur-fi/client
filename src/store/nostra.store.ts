@@ -23,14 +23,14 @@ export const D_XSTRK_CONTRACT_ADDRESS =
 export const LP_TOKEN_CONTRACT_ADDRESS =
   "0x00205fd8586f6be6c16f4aa65cc1034ecff96d96481878e55f629cd0cb83e05f";
 
-const deploymentBlocksOfNostraContracts: {[contract: string]: number} = {
+const deploymentBlocksOfNostraContracts: { [contract: string]: number } = {
   "0x06878fd475d5cea090934d690ecbe4ad78503124e4f80380a2e45eb417aafb9c": 968482,
   "0x01b8d8e31f9dd1bde7dc878dd871225504837c78c40ff01cbf03a255e2154bf0": 968483,
   "0x04d1125a716f547a0b69413c0098e811da3b799d173429c95da4290a00c139f7": 968483,
   "0x0257afe480da9255a026127cd3a295a580ef316b297a69be22b89729ae8c1d2a": 968484,
   "0x0424638c9060d08b4820aabbb28347fc7234e2b7aadab58ad0f101e2412ea42d": 968481,
   "0x00205fd8586f6be6c16f4aa65cc1034ecff96d96481878e55f629cd0cb83e05f": 940755,
-}
+};
 
 export async function getNostraHoldingsByToken(
   address: string,
@@ -39,7 +39,12 @@ export async function getNostraHoldingsByToken(
   blockNumber?: BlockIdentifier,
 ) {
   const contract = new Contract(erc4626Abi, nostraToken, provider);
-  if(isContractNotDeployed(blockNumber, deploymentBlocksOfNostraContracts[nostraToken])) {
+  if (
+    isContractNotDeployed(
+      blockNumber,
+      deploymentBlocksOfNostraContracts[nostraToken],
+    )
+  ) {
     return MyNumber.fromZero();
   }
 
@@ -104,11 +109,16 @@ export const getNostraDexHoldings: DAppHoldingsFn = async (
     provider,
   );
 
-  if (isContractNotDeployed(blockNumber, deploymentBlocksOfNostraContracts[LP_TOKEN_CONTRACT_ADDRESS])) {
+  if (
+    isContractNotDeployed(
+      blockNumber,
+      deploymentBlocksOfNostraContracts[LP_TOKEN_CONTRACT_ADDRESS],
+    )
+  ) {
     return {
       xSTRKAmount: MyNumber.fromZero(),
       STRKAmount: MyNumber.fromZero(),
-    }
+    };
   }
 
   const balance = await contract.call("balance_of", [address], {

@@ -3,7 +3,7 @@
 import { useAccount } from "@starknet-react/core";
 import axios from "axios";
 import { useAtomValue } from "jotai";
-import React from "react";
+import React, { useEffect } from "react";
 
 import { BlockInfo } from "@/app/api/holdings/[address]/[nDays]/route";
 import { Icons } from "@/components/Icons";
@@ -33,6 +33,7 @@ import {
   SizeColumn,
 } from "./table/columns";
 import { DataTable } from "./table/data-table";
+import { MyAnalytics } from "@/lib/analytics";
 
 const _data: SizeColumn[] = [
   {
@@ -120,8 +121,11 @@ const PortfolioPage: React.FC = () => {
       .sort((a, b) => {
         const aAmount = a.tokens.find((t) => t.name === "xSTRK")?.holding;
         const bAmount = b.tokens.find((t) => t.name === "xSTRK")?.holding;
-        return (Number(bAmount?.toEtherStr()) || 0) - (Number(aAmount?.toEtherStr()) || 0);
-      })
+        return (
+          (Number(bAmount?.toEtherStr()) || 0) -
+          (Number(aAmount?.toEtherStr()) || 0)
+        );
+      });
   }, [yields, sortedProtocols, holdings]);
 
   React.useEffect(() => {
@@ -171,7 +175,9 @@ const PortfolioPage: React.FC = () => {
               endur: serialisedMyNumberToNumber(wallet[idx].xSTRKAmount as any),
             };
           });
-          holdings.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+          holdings.sort(
+            (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
+          );
           setHoldings(holdings);
         }
       } catch (error) {
@@ -198,6 +204,10 @@ const PortfolioPage: React.FC = () => {
     return summary;
   }, [holdings]);
 
+  useEffect(() => {
+    MyAnalytics.track("Open Portfolio", {});
+  }, []);
+
   return (
     <main
       className={cn("mt-12 flex h-full w-full flex-col", {
@@ -206,16 +216,19 @@ const PortfolioPage: React.FC = () => {
     >
       <h1 className="mb-4 font-poppins text-lg font-semibold text-black lg:text-2xl">
         Your xSTRK Portfolio
+        <span className="ml-2 inline-flex items-center rounded-full bg-white px-2.5 py-0.5 align-middle text-xs font-medium text-gray-800 shadow-[0px_0px_2px_grey]">
+          Beta
+        </span>
       </h1>
 
       <div className="flex w-full flex-col items-start justify-start gap-5 lg:flex-row">
         <div className="flex w-full flex-col items-start gap-5">
           <Stats />
-          <Chart 
-            chartData={summaryPieChartHoldings} 
-            lastUpdated={lastUpdated} 
+          <Chart
+            chartData={summaryPieChartHoldings}
+            lastUpdated={lastUpdated}
             error={isFetchError ? "Failed to fetch data" : null}
-            />
+          />
         </div>
 
         <DefiHoldings />

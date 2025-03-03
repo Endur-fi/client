@@ -195,18 +195,26 @@ export async function tryCatch<T, E = Error>(
   }
 }
 
-
-export function isContractNotDeployed(blockIdentifier: BlockIdentifier = 'pending', deploymentBlock: number) {
-  return Number.isInteger(blockIdentifier) && blockIdentifier as number < deploymentBlock;
+export function isContractNotDeployed(
+  blockIdentifier: BlockIdentifier = "pending",
+  deploymentBlock: number,
+) {
+  return (
+    Number.isInteger(blockIdentifier) &&
+    (blockIdentifier as number) < deploymentBlock
+  );
 }
 
-export function formatHumanFriendlyDateTime(date: Date, locale: string = 'en-US'): string {
+export function formatHumanFriendlyDateTime(
+  date: Date,
+  locale: string = "en-US",
+): string {
   const options: Intl.DateTimeFormatOptions = {
-    month: 'short',
-    day: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
-    hour12: true
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
   };
 
   return new Intl.DateTimeFormat(locale, options).format(date);

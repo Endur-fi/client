@@ -36,7 +36,7 @@ export const getEkuboHoldings: DAppHoldingsFn = async (
     // `https://mainnet-api.ekubo.org/positions/0x067138f4b11ac7757e39ee65814d7a714841586e2aa714ce4ececf38874af245`,
   );
 
-  if(isContractNotDeployed(blockNumber, EKUBO_POSITION_DEPLOYMENT_BLOCK)) {
+  if (isContractNotDeployed(blockNumber, EKUBO_POSITION_DEPLOYMENT_BLOCK)) {
     return {
       xSTRKAmount,
       STRKAmount,
@@ -118,7 +118,7 @@ export const getEkuboHoldings: DAppHoldingsFn = async (
             );
           }
         } catch (error: any) {
-          if (error.message.includes('NOT_INITIALIZED')) {
+          if (error.message.includes("NOT_INITIALIZED")) {
             // do nothing
             continue;
           }

@@ -5,7 +5,13 @@ import * as React from "react";
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   ChartContainer,
   ChartLegend,
@@ -40,7 +46,15 @@ function getDummyData() {
   });
 }
 
-export function Chart({ chartData, lastUpdated, error }: { chartData: HoldingInfo[], lastUpdated: Date | null, error: string | null }) {
+export function Chart({
+  chartData,
+  lastUpdated,
+  error,
+}: {
+  chartData: HoldingInfo[];
+  lastUpdated: Date | null;
+  error: string | null;
+}) {
   const [timeRange, setTimeRange] = useAtom(chartFilter);
   const address = useAtomValue(userAddressAtom);
 
@@ -140,7 +154,10 @@ export function Chart({ chartData, lastUpdated, error }: { chartData: HoldingInf
           <CardTitle className="text-sm lg:text-base">
             Your xSTRK holdings over time
           </CardTitle>
-          <CardDescription>Last updated: {lastUpdated ? formatHumanFriendlyDateTime(lastUpdated) : '-'}</CardDescription>
+          <CardDescription>
+            Last updated:{" "}
+            {lastUpdated ? formatHumanFriendlyDateTime(lastUpdated) : "-"}
+          </CardDescription>
         </div>
         <div className="mt-3 flex w-fit rounded-md border shadow-sm lg:ml-auto lg:mt-0">
           <Button
@@ -309,7 +326,10 @@ export function Chart({ chartData, lastUpdated, error }: { chartData: HoldingInf
             {address && error && (
               <div className="gap-2 p-[10px] text-center">
                 <b className="w-full">{error}</b>
-                <p className="text-[13px]">Please try again later. If the error persists, please contact us on telegram.</p>
+                <p className="text-[13px]">
+                  Please try again later. If the error persists, please contact
+                  us on telegram.
+                </p>
               </div>
             )}
           </div>
