@@ -40,7 +40,7 @@ export const protocolConfigs: Partial<Record<SupportedDApp, ProtocolConfig>> = {
     tokens: [
       { icon: <Icons.endurLogo className="size-[22px]" />, name: "xSTRK" },
     ],
-    protocolIcon: <Icons.vesuLogo className="size-8 rounded-full" />,
+    protocolIcon: <Icons.vesuLogo className="rounded-full" />,
     protocolName: "Vesu",
     badges: [{ type: "Lend/Borrow", color: "bg-[#EEF6FF] text-[#0369A1]" }],
     description:
@@ -104,7 +104,7 @@ export const protocolConfigs: Partial<Record<SupportedDApp, ProtocolConfig>> = {
       { icon: <Icons.endurLogo className="size-[22px]" />, name: "xSTRK" },
       { icon: <Icons.strkLogo className="size-[22px]" />, name: "STRK" },
     ],
-    protocolIcon: <Icons.nostraLogo className="size-8 shrink-0 rounded-full" />,
+    protocolIcon: <Icons.nostraLogo className="shrink-0 rounded-full" />,
     protocolName: "Nostra (DEX)",
     badges: [{ type: "Liquidity Pool", color: "bg-[#FFF7ED] text-[#EA580C]" }],
     description:
@@ -125,7 +125,7 @@ export const protocolConfigs: Partial<Record<SupportedDApp, ProtocolConfig>> = {
     tokens: [
       { icon: <Icons.endurLogo className="size-[22px]" />, name: "xSTRK" },
     ],
-    protocolIcon: <Icons.nostraLogo className="size-8 shrink-0 rounded-full" />,
+    protocolIcon: <Icons.nostraLogo className="shrink-0 rounded-full" />,
     protocolName: "Nostra (Lending)",
     badges: [{ type: "Lend/Borrow", color: "bg-[#EEF6FF] text-[#0369A1]" }],
     description: "Lend your xSTRK on Nostra to earn additional yield",
@@ -146,7 +146,7 @@ export const protocolConfigs: Partial<Record<SupportedDApp, ProtocolConfig>> = {
       { icon: <Icons.endurLogo className="size-[22px]" />, name: "xSTRK" },
       { icon: <Icons.strkLogo className="size-[22px]" />, name: "STRK" },
     ],
-    protocolIcon: <Icons.ekuboLogo className="size-8 rounded-full" />,
+    protocolIcon: <Icons.ekuboLogo className="rounded-full" />,
     protocolName: "Ekubo",
     badges: [{ type: "Liquidity Pool", color: "bg-[#FFF7ED] text-[#EA580C]" }],
     description:

@@ -3,20 +3,21 @@
 import { useAtomValue } from "jotai";
 import React from "react";
 
-import { formatNumberWithCommas, getSTRKPrice } from "@/lib/utils";
+import { formatNumberWithCommas } from "@/lib/utils";
 import { userEkuboxSTRKPositions } from "@/store/ekubo.store";
 import { userHaikoBalanceAtom } from "@/store/haiko.store";
 import { exchangeRateAtom, userXSTRKBalanceAtom } from "@/store/lst.store";
 import { userxSTRKNostraBalance } from "@/store/nostra.store";
 import { snAPYAtom } from "@/store/staking.store";
 import { uservXSTRKBalanceAtom } from "@/store/vesu.store";
+import { strkPriceAtom } from "@/store/common.store";
 
 const Stats: React.FC = () => {
   const vxStrkBalance = useAtomValue(uservXSTRKBalanceAtom(undefined));
   const userHaikoBalance = useAtomValue(userHaikoBalanceAtom(undefined));
   const nostraBal = useAtomValue(userxSTRKNostraBalance(undefined));
   const ekuboPosi = useAtomValue(userEkuboxSTRKPositions(undefined));
-
+  const strkPrice = useAtomValue(strkPriceAtom);
   const apy = useAtomValue(snAPYAtom);
   const currentXSTRKBalance = useAtomValue(userXSTRKBalanceAtom);
   const exchangeRate = useAtomValue(exchangeRateAtom);
@@ -40,14 +41,13 @@ const Stats: React.FC = () => {
     currentXSTRKBalance,
   ]);
 
-  const totalUSD = React.useMemo(async () => {
-    if (Number.isNaN(exchangeRate.rate)) {
+  const totalUSD = React.useMemo(() => {
+    if (Number.isNaN(exchangeRate.rate) || !strkPrice.data) {
       return "";
     }
 
     try {
-      const price = await getSTRKPrice();
-      const xstrkPrice = price * exchangeRate.rate;
+      const xstrkPrice = strkPrice.data * exchangeRate.rate;
 
       return `$${(totalXSTRK * xstrkPrice).toFixed(2)}`;
     } catch (error) {
@@ -83,7 +83,7 @@ const Stats: React.FC = () => {
 
       <div className="flex flex-col items-start gap-3">
         <span className="text-xs font-medium text-[#03624C] lg:text-sm">
-          DApps xSTRK
+          xSTRK in DApps
         </span>
         <p className="flex items-end gap-4 text-xl font-semibold leading-[1] text-black">
           {formatNumberWithCommas(
@@ -97,7 +97,7 @@ const Stats: React.FC = () => {
 
       <div className="mr-5 flex flex-col items-start gap-3 sm:mr-0">
         <span className="text-xs font-medium text-[#03624C] lg:text-sm">
-          APY
+          xSTRK APY
         </span>
         <p className="-ml-3 flex items-end gap-4 text-xl font-semibold leading-[1] text-black">
           ~{(apy.value * 100).toFixed(2)}%

@@ -1040,8 +1040,6 @@ export const Icons = {
   nostraLogo: (props: IconProps) => (
     <svg
       {...props}
-      width="24"
-      height="25"
       viewBox="0 0 24 25"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
@@ -1084,8 +1082,6 @@ export const Icons = {
   ekuboLogo: (props: IconProps) => (
     <svg
       {...props}
-      width="30"
-      height="30"
       viewBox="0 0 22 22"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
@@ -1152,8 +1148,6 @@ export const Icons = {
   vesuLogo: (props: IconProps) => (
     <svg
       {...props}
-      width="30"
-      height="30"
       viewBox="0 0 30 30"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"

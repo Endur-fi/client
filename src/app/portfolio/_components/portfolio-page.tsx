@@ -3,14 +3,14 @@
 import { useAccount } from "@starknet-react/core";
 import axios from "axios";
 import { useAtomValue } from "jotai";
-import { Loader } from "lucide-react";
-import React from "react";
+import React, { useEffect } from "react";
 
 import { BlockInfo } from "@/app/api/holdings/[address]/[nDays]/route";
 import { Icons } from "@/components/Icons";
 import { ProtocolConfig, protocolConfigs } from "@/components/defi";
 import { useSidebar } from "@/components/ui/sidebar";
 import { STRK_DECIMALS } from "@/constants";
+import { useIsMobile } from "@/hooks/use-mobile";
 import MyNumber from "@/lib/MyNumber";
 import { cn } from "@/lib/utils";
 import {
@@ -23,8 +23,17 @@ import { chartFilter } from "@/store/portfolio.store";
 import { Chart } from "./chart";
 import DefiHoldings from "./defi-holding";
 import Stats from "./stats";
-import { columns, SizeColumn } from "./table/columns";
+import {
+  columns,
+  getPortfolioDAppAction,
+  getPortfolioDAppAmount,
+  getPortfolioDAppAPY,
+  getPortfolioDAppAsset,
+  getPortfolioDAppName,
+  SizeColumn,
+} from "./table/columns";
 import { DataTable } from "./table/data-table";
+import { MyAnalytics } from "@/lib/analytics";
 
 const _data: SizeColumn[] = [
   {
@@ -58,11 +67,15 @@ function serialisedMyNumberToNumber(serialised: {
 
 const PortfolioPage: React.FC = () => {
   const [holdings, setHoldings] = React.useState<HoldingInfo[]>([]);
+  const [lastUpdated, setLastUpdated] = React.useState<Date | null>(null);
+  const [isFetchError, setIsFetchError] = React.useState(false);
 
   const timeRange = useAtomValue(chartFilter);
   const { address } = useAccount();
 
   const { isPinned } = useSidebar();
+  const isMobile = useIsMobile();
+
   const yields = useAtomValue(protocolYieldsAtom);
 
   const sortedProtocols: SupportedDApp[] = React.useMemo(() => {
@@ -104,7 +117,15 @@ const PortfolioPage: React.FC = () => {
         );
         return config;
       })
-      .filter((config) => config !== null);
+      .filter((config) => config !== null)
+      .sort((a, b) => {
+        const aAmount = a.tokens.find((t) => t.name === "xSTRK")?.holding;
+        const bAmount = b.tokens.find((t) => t.name === "xSTRK")?.holding;
+        return (
+          (Number(bAmount?.toEtherStr()) || 0) -
+          (Number(aAmount?.toEtherStr()) || 0)
+        );
+      });
   }, [yields, sortedProtocols, holdings]);
 
   React.useEffect(() => {
@@ -113,6 +134,8 @@ const PortfolioPage: React.FC = () => {
 
       try {
         console.log("fetching holdings");
+        setHoldings([]);
+        setIsFetchError(false);
         const res = await axios.get(
           `/api/holdings/${address}/${timeRange.slice(0, -1)}`,
         );
@@ -125,6 +148,7 @@ const PortfolioPage: React.FC = () => {
           const ekubo: DAppHoldings[] = res.data.ekubo;
           const wallet: DAppHoldings[] = res.data.wallet;
 
+          setLastUpdated(new Date(res.data.lastUpdated));
           // assert all arrays are of the same length
           if (
             blocks.length !== vesu.length ||
@@ -151,14 +175,38 @@ const PortfolioPage: React.FC = () => {
               endur: serialisedMyNumberToNumber(wallet[idx].xSTRKAmount as any),
             };
           });
+          holdings.sort(
+            (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
+          );
           setHoldings(holdings);
         }
       } catch (error) {
         console.error("Error fetching data:", error);
+        setIsFetchError(true);
       }
     };
     fetchData();
   }, [address, timeRange]);
+
+  // merging common dapps
+  // to avoid too much splitting on chart, we merge some parts of dapps
+  const summaryPieChartHoldings = React.useMemo(() => {
+    const summary: HoldingInfo[] = [];
+    holdings.forEach((holding) => {
+      summary.push({
+        date: holding.date,
+        nostra: (holding.nostraDex || 0) + (holding.nostraLending || 0),
+        vesu: holding.vesu,
+        ekubo: holding.ekubo,
+        endur: holding.endur,
+      });
+    });
+    return summary;
+  }, [holdings]);
+
+  useEffect(() => {
+    MyAnalytics.track("Open Portfolio", {});
+  }, []);
 
   return (
     <main
@@ -168,40 +216,73 @@ const PortfolioPage: React.FC = () => {
     >
       <h1 className="mb-4 font-poppins text-lg font-semibold text-black lg:text-2xl">
         Your xSTRK Portfolio
+        <span className="ml-2 inline-flex items-center rounded-full bg-white px-2.5 py-0.5 align-middle text-xs font-medium text-gray-800 shadow-[0px_0px_2px_grey]">
+          Beta
+        </span>
       </h1>
 
-      <React.Suspense
-        fallback={
-          <div className="my-5 flex w-full items-center justify-center gap-2 text-center">
-            Crunching the latest stats for you{" "}
-            <Loader className="size-4 animate-spin text-black" />
-          </div>
-        }
+      <div className="flex w-full flex-col items-start justify-start gap-5 lg:flex-row">
+        <div className="flex w-full flex-col items-start gap-5">
+          <Stats />
+          <Chart
+            chartData={summaryPieChartHoldings}
+            lastUpdated={lastUpdated}
+            error={isFetchError ? "Failed to fetch data" : null}
+          />
+        </div>
+
+        <DefiHoldings />
+      </div>
+
+      <div
+        className="mb-4 mt-5 rounded-lg border border-[#17876D] bg-[#e7f0ef] p-4 text-xs text-[#17876D] dark:bg-gray-800 dark:text-blue-400 lg:text-sm"
+        role="alert"
       >
-        <div className="flex w-full flex-col items-start justify-start gap-5 lg:flex-row">
-          <div className="flex w-full flex-col items-start gap-5">
-            <Stats />
-            <Chart chartData={holdings} />
-          </div>
-
-          <DefiHoldings />
-        </div>
-
-        <div
-          className="mb-4 mt-5 rounded-lg border border-[#17876D] bg-[#e7f0ef] p-4 text-xs text-[#17876D] dark:bg-gray-800 dark:text-blue-400 lg:text-sm"
-          role="alert"
-        >
-          <span className="font-medium">
-            <b>Note:</b> This portfolio page is still a work in progress, so
-            some features may be missing or buggy. If you spot any issues,
-            please report them in our TG group. Also, xSTRK debt is not
-            displayed.
-          </span>
-        </div>
-      </React.Suspense>
+        <span className="font-medium">
+          <b>Note:</b> This portfolio page is still a work in progress, so some
+          features may be missing or buggy. If you spot any issues, please
+          report them in our TG group. Also, xSTRK debt is not displayed.
+        </span>
+      </div>
 
       <div className="">
-        <DataTable columns={columns} data={defiCards} />
+        {!isMobile && <DataTable columns={columns} data={defiCards} />}
+
+        {isMobile &&
+          defiCards.map((card, idx) => (
+            <div
+              key={idx}
+              className={cn(
+                "float-left w-full border-0 bg-white p-[10px] hover:bg-white",
+                {
+                  "!border-l !border-r border-[#17876D]/50 bg-[#dbe7e4] hover:bg-[#dbe7e4]":
+                    (idx + 1) % 2 === 0,
+                },
+              )}
+            >
+              {getPortfolioDAppAsset({ original: card })}
+              <div className="float-left w-full">
+                <div className="float-left w-1/2">
+                  {getPortfolioDAppName({ original: card })}
+                </div>
+                <div className="float-left w-1/2">
+                  {getPortfolioDAppAPY({ original: card })}
+                </div>
+              </div>
+              <div className="float-left mt-[10px] w-full">
+                <div className="float-left w-1/2">
+                  {getPortfolioDAppAction({ original: card })}
+                </div>
+                {address && (
+                  <div className="float-left mt-[5px] flex w-1/2">
+                    <Icons.wallet className="mr-[5px] mt-[5px]" />
+                    {getPortfolioDAppAmount({ original: card })}
+                    <span className="ml-[5px]">STRK</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
       </div>
     </main>
   );

@@ -7,9 +7,10 @@ import {
   LST_ADDRRESS,
   NST_STRK_ADDRESS,
   STRK_DECIMALS,
+  xSTRK_TOKEN_MAINNET_DEPLOYMENT_BLOCK,
 } from "@/constants";
 import MyNumber from "@/lib/MyNumber";
-import { tryCatch } from "@/lib/utils";
+import { isContractNotDeployed, tryCatch } from "@/lib/utils";
 
 class LSTService {
   private provider: RpcProvider;
@@ -33,6 +34,11 @@ class LSTService {
 
   async getTotalSupply(blockNumber?: BlockIdentifier) {
     const lstContract = this.getLSTContract(this.provider);
+    if (
+      isContractNotDeployed(blockNumber, xSTRK_TOKEN_MAINNET_DEPLOYMENT_BLOCK)
+    ) {
+      return MyNumber.fromZero();
+    }
 
     const { data: balance, error } = await tryCatch(
       lstContract.call("total_supply", [], {
@@ -54,7 +60,11 @@ class LSTService {
 
   async getTotalStaked(blockNumber?: BlockIdentifier) {
     const lstContract = this.getLSTContract(this.provider);
-
+    if (
+      isContractNotDeployed(blockNumber, xSTRK_TOKEN_MAINNET_DEPLOYMENT_BLOCK)
+    ) {
+      return MyNumber.fromZero();
+    }
     const { data: balance, error } = await tryCatch(
       lstContract.call("total_assets", [], {
         blockIdentifier: blockNumber,
