@@ -12,7 +12,6 @@ import {
   useReactTable,
   type Table as TableType,
 } from "@tanstack/react-table";
-import { useAtom } from "jotai";
 import * as React from "react";
 
 import { type ProtocolConfig } from "@/components/defi";
@@ -27,7 +26,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
-import { tableDataAtom } from "@/store/portfolio.store";
 
 import DataFilters from "../data-filters";
 
@@ -47,10 +45,7 @@ export function DataTable<TData, TValue>({
   );
   const [sorting, setSorting] = React.useState<SortingState>([]);
 
-  const [tableData, setTableData] = useAtom(tableDataAtom);
-
   const table = useReactTable({
-    // data: tableData as TData[],
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
@@ -67,16 +62,12 @@ export function DataTable<TData, TValue>({
 
   React.useEffect(() => {
     table.setPageSize(5);
-    if (data) setTableData(data as ProtocolConfig[]);
   }, [data, table]);
 
   return (
     <div>
       <div className="mb-4 w-full">
-        <DataFilters
-          table={table as unknown as TableType<ProtocolConfig[]>}
-          tableData={data as ProtocolConfig[]}
-        />
+        <DataFilters table={table as unknown as TableType<ProtocolConfig[]>} />
       </div>
 
       {searchKey && (

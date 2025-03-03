@@ -17,12 +17,11 @@ const protocolOptions: Option[] = [
   { value: "nostra", label: "Nostra" },
 ];
 
-interface DataFiltersProps {
+export interface DataFiltersProps {
   table: TableType<ProtocolConfig[]>;
-  tableData: ProtocolConfig[];
 }
 
-const DataFilters: React.FC<DataFiltersProps> = ({ table, tableData }) => {
+const DataFilters: React.FC<DataFiltersProps> = ({ table }) => {
   const [selectedTypeOptions, setSelectedTypeOptions] = React.useState<
     Option[]
   >([]);
@@ -35,9 +34,26 @@ const DataFilters: React.FC<DataFiltersProps> = ({ table, tableData }) => {
   const [filteredProtocolOptions, setFilteredProtocolOptions] =
     React.useState(protocolOptions);
 
+  const removeOption = (option: Option) => {
+    table.setColumnFilters((prev) => {
+      const dapps: any = prev?.find((filter) => filter?.id === "dapp")?.value;
+
+      return prev.map((f) =>
+        f.id === "dapp"
+          ? {
+              ...f,
+              value: dapps?.filter((dapp: any) => dapp !== option.value),
+            }
+          : f,
+      );
+    });
+  };
+
   const handleRemoveTypeOption = (option: Option) => {
     setSelectedTypeOptions(selectedTypeOptions.filter((o) => o !== option));
     setFilteredTypeOptions([...filteredTypeOptions, option]);
+
+    removeOption(option);
   };
 
   const handleRemoveProtocolOption = (option: Option) => {
@@ -45,6 +61,8 @@ const DataFilters: React.FC<DataFiltersProps> = ({ table, tableData }) => {
       selectedProtocolOptions.filter((o) => o !== option),
     );
     setFilteredProtocolOptions([...filteredProtocolOptions, option]);
+
+    removeOption(option);
   };
 
   return (
@@ -93,6 +111,7 @@ const DataFilters: React.FC<DataFiltersProps> = ({ table, tableData }) => {
           setSelectedOptions={setSelectedTypeOptions}
           filteredOptions={filteredTypeOptions}
           setFilteredOptions={setFilteredTypeOptions}
+          table={table}
         />
 
         <MultiSelect
@@ -102,6 +121,7 @@ const DataFilters: React.FC<DataFiltersProps> = ({ table, tableData }) => {
           setSelectedOptions={setSelectedProtocolOptions}
           filteredOptions={filteredProtocolOptions}
           setFilteredOptions={setFilteredProtocolOptions}
+          table={table}
         />
       </div>
     </div>
