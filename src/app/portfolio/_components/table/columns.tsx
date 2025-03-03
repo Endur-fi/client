@@ -120,7 +120,6 @@ export const columns: ColumnDef<ProtocolConfig>[] = [
         row.original.protocolName.toLowerCase() === "vesu"
           ? "vesuu"
           : row.original.protocolName.toLowerCase();
-
       const dappType = getProtocolType(dappName);
 
       const dexLendOptions = filterValues.filter(
