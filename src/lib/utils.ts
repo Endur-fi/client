@@ -1,6 +1,6 @@
 import { BigNumber } from "bignumber.js";
 import { clsx, type ClassValue } from "clsx";
-import { Contract, num, RpcProvider } from "starknet";
+import { BlockIdentifier, Contract, num, RpcProvider } from "starknet";
 import { twMerge } from "tailwind-merge";
 
 import { STRK_ORACLE_CONTRACT } from "@/constants";
@@ -193,4 +193,29 @@ export async function tryCatch<T, E = Error>(
   } catch (error) {
     return { data: null, error: error as E };
   }
+}
+
+export function isContractNotDeployed(
+  blockIdentifier: BlockIdentifier = "pending",
+  deploymentBlock: number,
+) {
+  return (
+    Number.isInteger(blockIdentifier) &&
+    (blockIdentifier as number) < deploymentBlock
+  );
+}
+
+export function formatHumanFriendlyDateTime(
+  date: Date,
+  locale: string = "en-US",
+): string {
+  const options: Intl.DateTimeFormatOptions = {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  };
+
+  return new Intl.DateTimeFormat(locale, options).format(date);
 }

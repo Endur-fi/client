@@ -83,7 +83,7 @@ const Stats: React.FC = () => {
 
       <div className="flex flex-col items-start gap-3">
         <span className="text-xs font-medium text-[#03624C] lg:text-sm">
-          DApps xSTRK
+          xSTRK in DApps
         </span>
         <p className="flex items-end gap-4 text-xl font-semibold leading-[1] text-black">
           {formatNumberWithCommas(
@@ -97,7 +97,7 @@ const Stats: React.FC = () => {
 
       <div className="mr-5 flex flex-col items-start gap-3 sm:mr-0">
         <span className="text-xs font-medium text-[#03624C] lg:text-sm">
-          APY
+          xSTRK APY
         </span>
         <p className="-ml-3 flex items-end gap-4 text-xl font-semibold leading-[1] text-black">
           ~{(apy.value * 100).toFixed(2)}%

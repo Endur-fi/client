@@ -23,6 +23,11 @@ export const chartConfig = {
   // holdings: {
   //   label: "Holdings",
   // },
+  nostra: {
+    label: "Nostra",
+    color: "rgba(230, 139, 138, 1)",
+    fillColor: "rgba(230, 139, 138, 0.8)",
+  },
   nostraLending: {
     label: "Nostra (Lending)",
     color: "rgba(230, 139, 138, 1)",
@@ -75,14 +80,9 @@ const DefiHoldings: React.FC = () => {
   const { chartData, sumDefiHoldings } = React.useMemo(() => {
     const output = [
       {
-        dapp: "nostraLending",
+        dapp: "nostra",
         holdings: Number(nostraBal.data.xSTRKAmount.toEtherToFixedDecimals(2)),
-        fill: chartConfig.nostraLending.color,
-      },
-      {
-        dapp: "nostraDex",
-        holdings: Number(nostraBal.data.STRKAmount.toEtherToFixedDecimals(2)),
-        fill: chartConfig.nostraDex.color,
+        fill: chartConfig.nostra.color,
       },
       {
         dapp: "ekubo",

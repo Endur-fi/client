@@ -11,11 +11,14 @@ import {
   N_XSTRK_C_CONTRACT_ADDRESS,
   N_XSTRK_CONTRACT_ADDRESS,
 } from "@/store/nostra.store";
-import { getVesuHoldings } from "@/store/vesu.store";
+import {
+  getVesuHoldings,
+  getVesuxSTRKCollateralWrapper,
+} from "@/store/vesu.store";
 import axios from "axios";
 import { NextResponse } from "next/server";
 
-export const revalidate = 60;
+export const revalidate = 3600 * 6;
 
 export interface BlockInfo {
   block: number;
@@ -33,59 +36,108 @@ export async function GET(_req: Request, context: any) {
   const nDays = Number(params.nDays);
 
   // get blocks to use for the chart
-  const host = process.env.VERCEL_URL ?? "http://localhost:3000";
+  const _host = process.env.VERCEL_URL ?? "localhost:3000";
+  const http = _host.includes("localhost") ? "http" : "https";
+  const host = `${http}://${_host}`;
   if (!host) {
     return NextResponse.json({
       error: "Invalid host",
     });
   }
-  const result = await axios.get(`${host}/api/blocks/${nDays}`);
-  if (!result?.data) {
+  try {
+    const result = await axios.get(`${host}/api/blocks/${nDays}`);
+    if (!result?.data) {
+      return NextResponse.json({
+        error: "Invalid blocks",
+      });
+    }
+    const blocks: BlockInfo[] = result.data.blocks;
+
+    //
+    // Compute the holdings for each dapp
+    //
+    // ? ADD_NEW_PROTOCOL Modify this to add
+    // new dapp holdings
+    const vesuHoldingsProm = getAllVesuHoldings(addr, blocks);
+    const ekuboHoldingsProm = getAllEkuboHoldings(addr, blocks);
+    const nostraLendingHoldingsProm = getNostraLendingHoldings(addr, blocks);
+    const nostraDexHoldingsProm = getNostraDEXHoldings(addr, blocks);
+    const xstrkHoldingsProm = getAllXSTRKHoldings(addr, blocks);
+
+    // resolve promises
+    const [
+      vesuHoldings,
+      ekuboHoldings,
+      nostraLendingHoldings,
+      nostraDexHoldings,
+      xstrkHoldings,
+    ] = await Promise.all([
+      vesuHoldingsProm,
+      ekuboHoldingsProm,
+      nostraLendingHoldingsProm,
+      nostraDexHoldingsProm,
+      xstrkHoldingsProm,
+    ]);
     return NextResponse.json({
-      error: "Invalid blocks",
+      vesu: vesuHoldings,
+      ekubo: ekuboHoldings,
+      nostraLending: nostraLendingHoldings,
+      nostraDex: nostraDexHoldings,
+      wallet: xstrkHoldings,
+      blocks,
+      lastUpdated: new Date().toISOString(),
     });
+  } catch (error) {
+    console.error("Error fetching data:", error);
+    return NextResponse.json(
+      {
+        error: "Error fetching data",
+      },
+      { status: 500 },
+    );
   }
-  const blocks: BlockInfo[] = result.data.blocks;
-
-  //
-  // Compute the holdings for each dapp
-  //
-  // ? ADD_NEW_PROTOCOL Modify this to add
-  // new dapp holdings
-  const vesuHoldingsProm = getAllVesuHoldings(addr, blocks);
-  const ekuboHoldingsProm = getAllEkuboHoldings(addr, blocks);
-  const nostraLendingHoldingsProm = getNostraLendingHoldings(addr, blocks);
-  const nostraDexHoldingsProm = getNostraDEXHoldings(addr, blocks);
-  const xstrkHoldingsProm = getAllXSTRKHoldings(addr, blocks);
-
-  // resolve promises
-  const [
-    vesuHoldings,
-    ekuboHoldings,
-    nostraLendingHoldings,
-    nostraDexHoldings,
-    xstrkHoldings,
-  ] = await Promise.all([
-    vesuHoldingsProm,
-    ekuboHoldingsProm,
-    nostraLendingHoldingsProm,
-    nostraDexHoldingsProm,
-    xstrkHoldingsProm,
-  ]);
-  return NextResponse.json({
-    vesu: vesuHoldings,
-    ekubo: ekuboHoldings,
-    nostraLending: nostraLendingHoldings,
-    nostraDex: nostraDexHoldings,
-    wallet: xstrkHoldings,
-    blocks,
-  });
 }
 
 async function getAllVesuHoldings(address: string, blocks: BlockInfo[]) {
   return Promise.all(
     blocks.map(async (block) => {
-      return retry(getVesuHoldings, [address, getProvider(), block.block]);
+      const justSupply = await retry(getVesuHoldings, [
+        address,
+        getProvider(),
+        block.block,
+      ]);
+      const collateral = await retry(getVesuxSTRKCollateralWrapper(), [
+        address,
+        getProvider(),
+        block.block,
+      ]);
+
+      const output: DAppHoldings = {
+        xSTRKAmount: justSupply.xSTRKAmount.operate(
+          "plus",
+          collateral.xSTRKAmount.toString(),
+        ),
+        STRKAmount: justSupply.STRKAmount.operate(
+          "plus",
+          collateral.STRKAmount.toString(),
+        ),
+      };
+      return output;
+    }),
+  );
+}
+
+async function getAllVesuCollateralHoldings(
+  address: string,
+  blocks: BlockInfo[],
+) {
+  return Promise.all(
+    blocks.map(async (block) => {
+      return retry(getVesuxSTRKCollateralWrapper(), [
+        address,
+        getProvider(),
+        block.block,
+      ]);
     }),
   );
 }
