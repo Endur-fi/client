@@ -15,6 +15,7 @@ const typeOptions: Option[] = [
 const protocolOptions: Option[] = [
   { value: "ekubo", label: "Ekubo" },
   { value: "nostra", label: "Nostra" },
+  { value: "vesuu", label: "Vesu" },
 ];
 
 export interface DataFiltersProps {

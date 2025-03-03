@@ -93,7 +93,7 @@ export function getProtocolType(protocolName: string) {
       return "lend";
     case "ekubo":
       return "dex";
-    case "vesu":
+    case "vesuu":
       return "lend";
   }
 }
@@ -116,14 +116,18 @@ export const columns: ColumnDef<ProtocolConfig>[] = [
     ) => {
       if (filterValues.length === 0) return true;
 
-      const dappName = row.original.protocolName.toLowerCase();
+      const dappName =
+        row.original.protocolName.toLowerCase() === "vesu"
+          ? "vesuu"
+          : row.original.protocolName.toLowerCase();
       const dappType = getProtocolType(dappName);
 
       const dexLendOptions = filterValues.filter(
         (option) => option === "dex" || option === "lend",
       ) as string[];
       const dappOptions = filterValues.filter(
-        (option) => option === "ekubo" || option === "nostra",
+        (option) =>
+          option === "ekubo" || option === "nostra" || option === "vesuu",
       ) as string[];
 
       const hasDexLendOptions = dexLendOptions.length > 0;
