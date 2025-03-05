@@ -1,6 +1,6 @@
 import { useAtomValue } from "jotai";
 import { Info } from "lucide-react";
-import React from "react";
+import React, { useMemo } from "react";
 
 import {
   Tooltip,
@@ -12,12 +12,13 @@ import { formatNumber } from "@/lib/utils";
 import {
   totalStakedAtom,
   totalStakedUSDAtom,
-  userSTRKBalanceAtom,
+  userXSTRKBalanceAtom,
 } from "@/store/lst.store";
 import { snAPYAtom } from "@/store/staking.store";
 
 import { Icons } from "./Icons";
 import { type Platform } from "./stake";
+import { totalXSTRKAcrossDefiHoldingsAtom } from "@/app/portfolio/_components/stats";
 
 interface StatsProps {
   selectedPlatform?: Platform;
@@ -29,9 +30,15 @@ const Stats: React.FC<StatsProps> = ({
   getPlatformYield,
 }) => {
   const apy = useAtomValue(snAPYAtom);
-  const currentStaked = useAtomValue(userSTRKBalanceAtom);
+  const currentStaked = useAtomValue(userXSTRKBalanceAtom);
   const totalStaked = useAtomValue(totalStakedAtom);
   const totalStakedUSD = useAtomValue(totalStakedUSDAtom);
+
+  const totalXSTRKAcrossDefi = useAtomValue(totalXSTRKAcrossDefiHoldingsAtom);
+
+  const xSTRKInDefiOnly = useMemo(() => {
+    return totalXSTRKAcrossDefi - Number(currentStaked.value.toEtherStr());
+  }, [totalXSTRKAcrossDefi, currentStaked.value]);
 
   return (
     <>
@@ -88,9 +95,69 @@ const Stats: React.FC<StatsProps> = ({
           STRK
         </div>
 
-        <div className="rounded-md bg-[#17876D] px-2 py-1 text-xs text-white">
-          Current staked:{" "}
-          {formatNumber(currentStaked.value.toEtherToFixedDecimals(2))} STRK
+        <div>
+          <div className="flex items-center justify-between rounded-md bg-[#17876D] px-2 py-1 text-xs text-white">
+            <span>
+              Available stake:{" "}
+              {formatNumber(currentStaked.value.toEtherToFixedDecimals(2))}{" "}
+              xSTRK
+            </span>
+            <div className="ml-auto pl-2">
+              <TooltipProvider delayDuration={0}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Info className="ml-[5px] size-3 text-[#efefef]" />
+                  </TooltipTrigger>
+                  <TooltipContent
+                    side="right"
+                    className="max-w-56 rounded-md border border-[#03624C] bg-white text-[#03624C]"
+                  >
+                    xSTRK directly available in your wallet. You can unstake
+                    this xSTRK anytime.
+                    <br />
+                    <br />
+                    Excludes xSTRK in DeFi apps.
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+          </div>
+
+          <a href="/portfolio">
+            <div className="mt-[10px] flex items-center justify-between rounded-md bg-white px-2 py-1 text-xs text-[#17876D]">
+              <span>
+                Stake in DeFi: {formatNumber(xSTRKInDefiOnly.toFixed(2))} xSTRK
+              </span>
+              <div className="ml-auto pl-2">
+                <TooltipProvider delayDuration={0}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Info className="ml-[5px] size-3 text-[#17876D]" />
+                    </TooltipTrigger>
+                    <TooltipContent
+                      side="right"
+                      className="max-w-56 rounded-md border border-[#03624C] bg-white text-[#03624C]"
+                    >
+                      <div>
+                        xSTRK in third party DeFi apps. You cannot unstake this
+                        xSTRK directly. Withdraw your xSTRK from DeFi apps to
+                        unstake here.
+                      </div>
+                      <br />
+                      <div>
+                        <b>Note:</b> This is a beta feature, may not include all
+                        DApps. Click{" "}
+                        <a href="/portfolio">
+                          <b>here</b>
+                        </a>{" "}
+                        to see more details.
+                      </div>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+            </div>
+          </a>
         </div>
       </div>
     </>

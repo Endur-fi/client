@@ -1,45 +1,40 @@
 "use client";
 
-import { useAtomValue } from "jotai";
+import { atom, useAtomValue } from "jotai";
 import React from "react";
 
 import { formatNumberWithCommas } from "@/lib/utils";
 import { userEkuboxSTRKPositions } from "@/store/ekubo.store";
-import { userHaikoBalanceAtom } from "@/store/haiko.store";
 import { exchangeRateAtom, userXSTRKBalanceAtom } from "@/store/lst.store";
 import { userxSTRKNostraBalance } from "@/store/nostra.store";
 import { snAPYAtom } from "@/store/staking.store";
 import { uservXSTRKBalanceAtom } from "@/store/vesu.store";
 import { strkPriceAtom } from "@/store/common.store";
 
+export const totalXSTRKAcrossDefiHoldingsAtom = atom((get) => {
+  const vesuBalance = get(uservXSTRKBalanceAtom(undefined));
+  // const haikoBalance = get(userHaikoBalanceAtom(undefined));
+  const nostraBalance = get(userxSTRKNostraBalance(undefined));
+  const ekuboBalance = get(userEkuboxSTRKPositions(undefined));
+  const xstrkBalance = get(userXSTRKBalanceAtom);
+  const value =
+    Number(vesuBalance.data.xSTRKAmount.toEtherToFixedDecimals(2)) +
+    Number(nostraBalance.data.xSTRKAmount.toEtherToFixedDecimals(2)) +
+    Number(ekuboBalance.data.xSTRKAmount.toEtherToFixedDecimals(2)) +
+    Number(xstrkBalance.value.toEtherToFixedDecimals(2));
+  if (Number.isNaN(value)) {
+    return 0;
+  }
+  return value;
+});
+
 const Stats: React.FC = () => {
-  const vxStrkBalance = useAtomValue(uservXSTRKBalanceAtom(undefined));
-  const userHaikoBalance = useAtomValue(userHaikoBalanceAtom(undefined));
-  const nostraBal = useAtomValue(userxSTRKNostraBalance(undefined));
-  const ekuboPosi = useAtomValue(userEkuboxSTRKPositions(undefined));
   const strkPrice = useAtomValue(strkPriceAtom);
   const apy = useAtomValue(snAPYAtom);
   const currentXSTRKBalance = useAtomValue(userXSTRKBalanceAtom);
   const exchangeRate = useAtomValue(exchangeRateAtom);
 
-  const totalXSTRK = React.useMemo(() => {
-    const value =
-      parseInt(userHaikoBalance.value.toString(), 2) +
-      Number(vxStrkBalance.data.xSTRKAmount.toEtherToFixedDecimals(2)) +
-      Number(nostraBal.data.xSTRKAmount.toEtherToFixedDecimals(2)) +
-      Number(ekuboPosi.data.xSTRKAmount.toEtherToFixedDecimals(2)) +
-      Number(currentXSTRKBalance.value.toEtherToFixedDecimals(2));
-    if (Number.isNaN(value)) {
-      return 0;
-    }
-    return value;
-  }, [
-    nostraBal,
-    userHaikoBalance,
-    vxStrkBalance,
-    ekuboPosi,
-    currentXSTRKBalance,
-  ]);
+  const totalXSTRK = useAtomValue(totalXSTRKAcrossDefiHoldingsAtom);
 
   const totalUSD = React.useMemo(() => {
     if (Number.isNaN(exchangeRate.rate) || !strkPrice.data) {
