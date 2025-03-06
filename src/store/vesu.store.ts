@@ -4,7 +4,15 @@ import { BlockIdentifier, Contract } from "starknet";
 
 import erc4626Abi from "@/abi/erc4626.abi.json";
 import vesuSingletonAbi from "@/abi/vesu.singleton.abi.json";
-import { ETH_TOKEN, STRK_DECIMALS, STRK_TOKEN, USDC_TOKEN, USDT_TOKEN, WBTC_TOKEN, xSTRK_TOKEN_MAINNET } from "@/constants";
+import {
+  ETH_TOKEN,
+  STRK_DECIMALS,
+  STRK_TOKEN,
+  USDC_TOKEN,
+  USDT_TOKEN,
+  WBTC_TOKEN,
+  xSTRK_TOKEN_MAINNET,
+} from "@/constants";
 import MyNumber from "@/lib/MyNumber";
 
 import { DAppHoldingsAtom, DAppHoldingsFn, getHoldingAtom } from "./defi.store";
@@ -123,7 +131,8 @@ export const getVesuxSTRKCollateral = async (
 
 export const RE7_XSTRK_POOL_ID =
   "0x52fb52363939c3aa848f8f4ac28f0a51379f8d1b971d8444de25fbd77d8f161";
-export const ALTERSCOPE_XSTRK_POOL_ID = '0x27f2bb7fb0e232befc5aa865ee27ef82839d5fad3e6ec1de598d0fab438cb56';
+export const ALTERSCOPE_XSTRK_POOL_ID =
+  "0x27f2bb7fb0e232befc5aa865ee27ef82839d5fad3e6ec1de598d0fab438cb56";
 
 export const RE7_XSTRK_POOL_DEBT_STRK = STRK_TOKEN;
 
@@ -141,7 +150,7 @@ export const getVesuxSTRKCollateralWrapper = (): DAppHoldingsFn => {
       RE7_XSTRK_POOL_DEBT_STRK,
       blockNumber,
     );
-    
+
     // Alterscope
     const alterScopeBTC = getVesuxSTRKCollateral(
       address,
@@ -149,7 +158,7 @@ export const getVesuxSTRKCollateralWrapper = (): DAppHoldingsFn => {
       ALTERSCOPE_XSTRK_POOL_ID,
       WBTC_TOKEN,
       blockNumber,
-    )
+    );
     const alterScopeETH = getVesuxSTRKCollateral(
       address,
       provider,

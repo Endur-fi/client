@@ -26,10 +26,8 @@ import Stats from "./stats";
 import {
   columns,
   getPortfolioDAppAction,
-  getPortfolioDAppAmount,
   getPortfolioDAppAPY,
   getPortfolioDAppAsset,
-  getPortfolioDAppName,
   SizeColumn,
 } from "./table/columns";
 import { DataTable } from "./table/data-table";
@@ -225,16 +223,17 @@ const PortfolioPage: React.FC = () => {
         className="mb-4 rounded-lg border border-[#17876D] bg-[#e7f0ef] p-4 text-xs text-[#17876D] dark:bg-gray-800 dark:text-blue-400 lg:text-sm"
         role="alert"
       >
-        <b>Note:</b> 
-        <br/>
+        <b>Note:</b>
+        <br />
         <span className="font-medium">
-          1. This portfolio page is still a work in progress, so some
-          features may be missing or buggy. If you spot any issues, please
-          report them in our TG group
+          1. This portfolio page is still a work in progress, so some features
+          may be missing or buggy. If you spot any issues, please report them in
+          our TG group
         </span>
-        <br/>
+        <br />
         <span className="font-medium">
-          2. xSTRK debt is not used in our calculations and isn{"'"}t displayed here
+          2. xSTRK debt is not used in our calculations and isn{"'"}t displayed
+          here
         </span>
       </div>
 
@@ -251,39 +250,55 @@ const PortfolioPage: React.FC = () => {
         <DefiHoldings />
       </div>
 
-
       <div className={cn("w-full items-center", isMobile ? "mt-10" : "")}>
-        {isMobile && <h2 className="font-poppins text-md font-semibold text-black lg:text-2xl">
-          Detailed information
-        </h2>}        
-        <div className="max-w-[1100px] m-auto">
+        {isMobile && (
+          <h2 className="text-md font-poppins font-semibold text-black lg:text-2xl">
+            Detailed information
+          </h2>
+        )}
+        <div className="m-auto max-w-[1100px]">
           {!isMobile && <DataTable columns={columns} data={defiCards} />}
 
           {isMobile &&
             defiCards.map((card, idx) => (
               <div
                 key={idx}
-                className={cn("float-left w-full border-0 bg-white p-[10px] hover:bg-white mt-2")}
+                className={cn(
+                  "float-left mt-2 w-full border-0 bg-white p-[10px] hover:bg-white",
+                )}
               >
-                <div className="flex justify justify-between">
-                  <div className="flex gap-2 items-center">
+                <div className="justify flex justify-between">
+                  <div className="flex items-center gap-2">
                     <span className="w-[25px]">{card.protocolIcon}</span>
                     <span>{card.protocolName}</span>
                   </div>
                   <div>{getPortfolioDAppAction({ original: card })}</div>
                 </div>
-                <div className="text-[12px] text-[#939494] mt-2">{card.description}</div>
-                <div className="flex justify justify-between w-full">
-                  <div className="max-w-[60%]">{getPortfolioDAppAsset({ original: {...card, description: ''} })}</div>
-                  <div className="py-3">{getPortfolioDAppAPY({ original: card })}</div>
+                <div className="mt-2 text-[12px] text-[#939494]">
+                  {card.description}
+                </div>
+                <div className="justify flex w-full justify-between">
+                  <div className="max-w-[60%]">
+                    {getPortfolioDAppAsset({
+                      original: { ...card, description: "" },
+                    })}
+                  </div>
+                  <div className="py-3">
+                    {getPortfolioDAppAPY({ original: card })}
+                  </div>
                 </div>
                 <div>
-                  <span className="text-[#03624C] text-[12px]"><b>Your Holding:</b></span>
-                  <span className="flex">{formatNumberWithCommas(
-                    card.tokens[
-                      card.tokens.findIndex((t) => t.name === "xSTRK")
-                    ].holding?.toEtherToFixedDecimals(2) ?? "0.00",
-                  )} xSTRK</span>
+                  <span className="text-[12px] text-[#03624C]">
+                    <b>Your Holding:</b>
+                  </span>
+                  <span className="flex">
+                    {formatNumberWithCommas(
+                      card.tokens[
+                        card.tokens.findIndex((t) => t.name === "xSTRK")
+                      ].holding?.toEtherToFixedDecimals(2) ?? "0.00",
+                    )}{" "}
+                    xSTRK
+                  </span>
                 </div>
               </div>
             ))}

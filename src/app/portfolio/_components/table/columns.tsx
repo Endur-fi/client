@@ -37,9 +37,11 @@ export function getPortfolioDAppAsset(row: { original: ProtocolConfig }) {
       </div>
       <p className="flex flex-col items-start gap-0.5 text-sm text-black/90">
         {row.original.tokens.map((t) => t.name).join("/")}
-        {row.original.description && <span className="text-xs text-muted-foreground">
-          {row.original.description}
-        </span>}
+        {row.original.description && (
+          <span className="text-xs text-muted-foreground">
+            {row.original.description}
+          </span>
+        )}
       </p>
     </div>
   );
