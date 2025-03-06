@@ -3,6 +3,7 @@
 import { mainnet, sepolia } from "@starknet-react/chains";
 import {
   Connector,
+  InjectedConnector,
   jsonRpcProvider,
   StarknetConfig,
 } from "@starknet-react/core";
@@ -15,6 +16,8 @@ import { NETWORK } from "@/constants";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 import { WalletConnector } from "@/services/wallet";
+import { defaultEasyleapConfig, EasyleapProvider } from '@easyleap/sdk';
+import { WebWalletConnector } from "starknetkit/webwallet";
 
 const font = Figtree({
   subsets: ["latin-ext"],
@@ -45,15 +48,31 @@ const Providers: React.FC<ProvidersProps> = ({ children }) => {
   const walletConnector = new WalletConnector(isMobile);
 
   return (
-    <StarknetConfig
-      chains={chains}
-      provider={provider}
-      connectors={walletConnector.getConnectors() as Connector[]}
+    // <StarknetConfig
+    //   chains={chains}
+    //   provider={provider}
+    //   connectors={walletConnector.getConnectors() as Connector[]}
+    // >
+    //   <SidebarProvider className={cn(font.className, "w-full")}>
+    //     {children}
+    //   </SidebarProvider>
+    // </StarknetConfig>
+    <EasyleapProvider
+      starknetConfig={{
+        chains: defaultEasyleapConfig().starknetConfig.chains,
+        provider: defaultEasyleapConfig().starknetConfig.provider,
+        explorer: defaultEasyleapConfig().starknetConfig.explorer,
+        connectors: [
+          new WebWalletConnector(),
+          new InjectedConnector({ options: { id: "argentX" } }),
+          new InjectedConnector({ options: { id: "braavos" } }),
+        ],
+      }}
     >
       <SidebarProvider className={cn(font.className, "w-full")}>
         {children}
       </SidebarProvider>
-    </StarknetConfig>
+    </EasyleapProvider>
   );
 };
 

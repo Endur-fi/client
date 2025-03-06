@@ -23,7 +23,7 @@ import {
   providerAtom,
   userAddressAtom,
 } from "@/store/common.store";
-
+import { ConnectButton } from '@easyleap/sdk';
 import { Icons } from "./Icons";
 import MobileNav from "./mobile-nav";
 import { useSidebar } from "./ui/sidebar";
@@ -114,6 +114,8 @@ const Navbar = ({ className }: { className?: string }) => {
         {/* {!isMobile && NETWORK === constants.NetworkName.SN_MAIN && (
           <MigrateNostra />
         )} */}
+
+          <ConnectButton />
 
         <button
           className={cn(
