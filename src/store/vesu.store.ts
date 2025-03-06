@@ -4,7 +4,7 @@ import { BlockIdentifier, Contract } from "starknet";
 
 import erc4626Abi from "@/abi/erc4626.abi.json";
 import vesuSingletonAbi from "@/abi/vesu.singleton.abi.json";
-import { STRK_DECIMALS, STRK_TOKEN, xSTRK_TOKEN_MAINNET } from "@/constants";
+import { ETH_TOKEN, STRK_DECIMALS, STRK_TOKEN, USDC_TOKEN, USDT_TOKEN, WBTC_TOKEN, xSTRK_TOKEN_MAINNET } from "@/constants";
 import MyNumber from "@/lib/MyNumber";
 
 import { DAppHoldingsAtom, DAppHoldingsFn, getHoldingAtom } from "./defi.store";
@@ -123,6 +123,8 @@ export const getVesuxSTRKCollateral = async (
 
 export const RE7_XSTRK_POOL_ID =
   "0x52fb52363939c3aa848f8f4ac28f0a51379f8d1b971d8444de25fbd77d8f161";
+export const ALTERSCOPE_XSTRK_POOL_ID = '0x27f2bb7fb0e232befc5aa865ee27ef82839d5fad3e6ec1de598d0fab438cb56';
+
 export const RE7_XSTRK_POOL_DEBT_STRK = STRK_TOKEN;
 
 export const getVesuxSTRKCollateralWrapper = (): DAppHoldingsFn => {
@@ -139,9 +141,53 @@ export const getVesuxSTRKCollateralWrapper = (): DAppHoldingsFn => {
       RE7_XSTRK_POOL_DEBT_STRK,
       blockNumber,
     );
+    
+    // Alterscope
+    const alterScopeBTC = getVesuxSTRKCollateral(
+      address,
+      provider,
+      ALTERSCOPE_XSTRK_POOL_ID,
+      WBTC_TOKEN,
+      blockNumber,
+    )
+    const alterScopeETH = getVesuxSTRKCollateral(
+      address,
+      provider,
+      ALTERSCOPE_XSTRK_POOL_ID,
+      ETH_TOKEN,
+      blockNumber,
+    );
+    const alterScopeUSDC = getVesuxSTRKCollateral(
+      address,
+      provider,
+      ALTERSCOPE_XSTRK_POOL_ID,
+      USDC_TOKEN,
+      blockNumber,
+    );
+    const alterScopeUSDT = getVesuxSTRKCollateral(
+      address,
+      provider,
+      ALTERSCOPE_XSTRK_POOL_ID,
+      USDT_TOKEN,
+      blockNumber,
+    );
+    const alterScopeSTRK = getVesuxSTRKCollateral(
+      address,
+      provider,
+      ALTERSCOPE_XSTRK_POOL_ID,
+      STRK_TOKEN,
+      blockNumber,
+    );
     // ? add more pools here and update in below promise.all
 
-    const result = await Promise.all([output1]);
+    const result = await Promise.all([
+      output1,
+      alterScopeBTC,
+      alterScopeETH,
+      alterScopeUSDC,
+      alterScopeUSDT,
+      alterScopeSTRK,
+    ]);
     const sumXSTRKAmount = result.reduce(
       (acc, cur) => acc.operate("plus", cur.xSTRKAmount.toString()),
       new MyNumber("0", STRK_DECIMALS),

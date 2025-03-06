@@ -52,51 +52,55 @@ const Stats: React.FC = () => {
   }, [exchangeRate.rate, totalXSTRK]);
 
   return (
-    <div className="flex h-fit w-full flex-wrap items-center justify-between gap-3 rounded-xl border border-[#AACBC4]/30 bg-white p-5 font-poppins shadow-sm lg:px-12">
-      <div className="flex flex-col items-start gap-3">
-        <span className="text-xs font-medium text-[#03624C] lg:text-sm">
-          Total staked STRK
-        </span>
-        <p className="flex items-end gap-2 text-xl font-semibold leading-[1] text-black">
-          {formatNumberWithCommas(totalXSTRK.toFixed(2))}
-          <span className="text-sm font-normal leading-[1.2] text-muted-foreground/80">
-            {totalUSD}
+    <div className="flex h-fit w-full flex-wrap items-center justify-between rounded-xl border border-[#AACBC4]/30 bg-white p-5 font-poppins shadow-sm lg:px-12">
+      <div className="w-[100%] flex gap-3 lg:w-[50%]">
+        <div className="flex flex-col items-start gap-3 w-[50%]">
+          <span className="text-xs font-medium text-[#03624C] lg:text-sm">
+            Total staked STRK
           </span>
-        </p>
+          <p className="flex items-end gap-2 text-xl font-semibold leading-[1] text-black">
+            {formatNumberWithCommas(totalXSTRK.toFixed(2))}
+            <span className="text-sm font-normal leading-[1.2] text-muted-foreground/80">
+              {totalUSD}
+            </span>
+          </p>
+        </div>
+
+        <div className="flex flex-col items-start gap-3 w-[50%]">
+          <span className="text-xs font-medium text-[#03624C] lg:text-sm">
+            xSTRK in Wallet
+          </span>
+          <p className="flex items-end gap-4 text-xl font-semibold leading-[1] text-black">
+            {formatNumberWithCommas(
+              currentXSTRKBalance.value.toEtherToFixedDecimals(2),
+            )}
+          </p>
+        </div>
       </div>
 
-      <div className="flex flex-col items-start gap-3">
-        <span className="text-xs font-medium text-[#03624C] lg:text-sm">
-          xSTRK in Wallet
-        </span>
-        <p className="flex items-end gap-4 text-xl font-semibold leading-[1] text-black">
-          {formatNumberWithCommas(
-            currentXSTRKBalance.value.toEtherToFixedDecimals(2),
-          )}
-        </p>
-      </div>
+      <div className="w-[100%] flex gap-3 lg:w-[50%] mt-[25px] lg:mt-0">
+        <div className="flex flex-col items-start gap-3 w-[50%]">
+          <span className="text-xs font-medium text-[#03624C] lg:text-sm">
+            xSTRK in DApps
+          </span>
+          <p className="flex items-end gap-4 text-xl font-semibold leading-[1] text-black">
+            {formatNumberWithCommas(
+              (
+                totalXSTRK -
+                Number(currentXSTRKBalance.value.toEtherToFixedDecimals(2))
+              ).toFixed(2),
+            )}
+          </p>
+        </div>
 
-      <div className="flex flex-col items-start gap-3">
-        <span className="text-xs font-medium text-[#03624C] lg:text-sm">
-          xSTRK in DApps
-        </span>
-        <p className="flex items-end gap-4 text-xl font-semibold leading-[1] text-black">
-          {formatNumberWithCommas(
-            (
-              totalXSTRK -
-              Number(currentXSTRKBalance.value.toEtherToFixedDecimals(2))
-            ).toFixed(2),
-          )}
-        </p>
-      </div>
-
-      <div className="mr-5 flex flex-col items-start gap-3 sm:mr-0">
-        <span className="text-xs font-medium text-[#03624C] lg:text-sm">
-          xSTRK APY
-        </span>
-        <p className="-ml-3 flex items-end gap-4 text-xl font-semibold leading-[1] text-black">
-          ~{(apy.value * 100).toFixed(2)}%
-        </p>
+        <div className="flex flex-col items-start gap-3 w-[50%]">
+          <span className="text-xs font-medium text-[#03624C] lg:text-sm">
+            xSTRK APY
+          </span>
+          <p className="-ml-3 flex items-end gap-4 text-xl font-semibold leading-[1] text-black">
+            ~{(apy.value * 100).toFixed(2)}%
+          </p>
+        </div>
       </div>
     </div>
   );
