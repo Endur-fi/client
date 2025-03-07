@@ -134,19 +134,21 @@ const PortfolioPage: React.FC = () => {
         console.log("fetching holdings");
         setHoldings([]);
         setIsFetchError(false);
-        const res = await axios.get(
+        const res = await fetch(
           `/api/holdings/${address}/${timeRange.slice(0, -1)}`,
         );
-        if (res?.data) {
+        const data = await res.json();
+        // console.error("data", data);
+        if (data) {
           // ? ADD_NEW_PROTOCOL: Update this
-          const blocks: BlockInfo[] = res.data.blocks;
-          const vesu: DAppHoldings[] = res.data.vesu;
-          const nostraLending: DAppHoldings[] = res.data.nostraLending;
-          const nostraDex: DAppHoldings[] = res.data.nostraDex;
-          const ekubo: DAppHoldings[] = res.data.ekubo;
-          const wallet: DAppHoldings[] = res.data.wallet;
+          const blocks: BlockInfo[] = data.blocks;
+          const vesu: DAppHoldings[] = data.vesu;
+          const nostraLending: DAppHoldings[] = data.nostraLending;
+          const nostraDex: DAppHoldings[] = data.nostraDex;
+          const ekubo: DAppHoldings[] = data.ekubo;
+          const wallet: DAppHoldings[] = data.wallet;
 
-          setLastUpdated(new Date(res.data.lastUpdated));
+          setLastUpdated(new Date(data.lastUpdated));
           // assert all arrays are of the same length
           if (
             blocks.length !== vesu.length ||
@@ -228,7 +230,7 @@ const PortfolioPage: React.FC = () => {
         <span className="font-medium">
           1. This portfolio page is still a work in progress, so some features
           may be missing or buggy. If you spot any issues, please report them in
-          our TG group
+          our <a href="/tg" target="_blank"><b>TG group</b></a>
         </span>
         <br />
         <span className="font-medium">
