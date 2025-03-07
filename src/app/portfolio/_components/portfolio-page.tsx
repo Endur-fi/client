@@ -1,7 +1,6 @@
 "use client";
 
 import { useAccount } from "@starknet-react/core";
-import axios from "axios";
 import { useAtomValue } from "jotai";
 import React, { useEffect } from "react";
 
@@ -230,7 +229,10 @@ const PortfolioPage: React.FC = () => {
         <span className="font-medium">
           1. This portfolio page is still a work in progress, so some features
           may be missing or buggy. If you spot any issues, please report them in
-          our <a href="/tg" target="_blank"><b>TG group</b></a>
+          our{" "}
+          <a href="/tg" target="_blank">
+            <b>TG group</b>
+          </a>
         </span>
         <br />
         <span className="font-medium">
