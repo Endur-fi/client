@@ -6,7 +6,7 @@ import { getSTRKPrice, tryCatch } from "@/lib/utils";
 import LSTService from "@/services/lst";
 import StakingService from "@/services/staking";
 
-export const revalidate = 120;
+export const revalidate = 60 * 60; // 1 hour
 
 export async function GET(_req: Request) {
   const provider = getProvider();
@@ -53,7 +53,7 @@ export async function GET(_req: Request) {
       apy: newApy,
       apyInPercentage: `${apyInPercentage}%`,
     });
-
+    response.headers.set("Cache-Control", `s-maxage=${revalidate}, stale-while-revalidate=180`);
     return response;
   }
 
