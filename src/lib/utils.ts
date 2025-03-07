@@ -1,8 +1,11 @@
-import { toast } from "@/hooks/use-toast";
 import { BigNumber } from "bignumber.js";
 import { clsx, type ClassValue } from "clsx";
-import { Contract, num, RpcProvider } from "starknet";
+import { BlockIdentifier, Contract, num, RpcProvider } from "starknet";
 import { twMerge } from "tailwind-merge";
+
+import { STRK_ORACLE_CONTRACT } from "@/constants";
+import { toast } from "@/hooks/use-toast";
+
 import OracleAbi from "../abi/oracle.abi.json";
 
 export function cn(...inputs: ClassValue[]) {
@@ -156,14 +159,63 @@ export const eventNames = {
 export async function getSTRKPrice() {
   const provider = new RpcProvider({
     nodeUrl:
-      process.env.NEXT_PUBLIC_CHAIN_ID == "SN_MAIN"
+      process.env.NEXT_PUBLIC_CHAIN_ID === "SN_MAIN"
         ? process.env.NEXT_PUBLIC_RPC_URL
         : "https://starknet-mainnet.public.blastapi.io/rpc/v0_7",
   });
+
   if (!provider) return 0;
-  const STRK_ORACLE_CONTRACT =
-    "0x7ca92dce6e5f7f81f6c393c647b5c0c266e7663088351a4bd34ee9f88569de5";
+
   const contract = new Contract(OracleAbi, STRK_ORACLE_CONTRACT, provider);
   const data = await contract.call("get_price", []);
   return Number(data) / 10 ** 8;
+}
+
+// Types for the result object with discriminated union
+type Success<T> = {
+  data: T;
+  error: null;
+};
+
+type Failure<E> = {
+  data: null;
+  error: E;
+};
+
+type Result<T, E = Error> = Success<T> | Failure<E>;
+
+export async function tryCatch<T, E = Error>(
+  promise: Promise<T>,
+): Promise<Result<T, E>> {
+  try {
+    const data = await promise;
+    return { data, error: null };
+  } catch (error) {
+    return { data: null, error: error as E };
+  }
+}
+
+export function isContractNotDeployed(
+  blockIdentifier: BlockIdentifier = "pending",
+  deploymentBlock: number,
+) {
+  return (
+    Number.isInteger(blockIdentifier) &&
+    (blockIdentifier as number) < deploymentBlock
+  );
+}
+
+export function formatHumanFriendlyDateTime(
+  date: Date,
+  locale: string = "en-US",
+): string {
+  const options: Intl.DateTimeFormatOptions = {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  };
+
+  return new Intl.DateTimeFormat(locale, options).format(date);
 }

@@ -16,8 +16,6 @@ import { cn, formatNumberWithCommas } from "@/lib/utils";
 import { providerAtom } from "@/store/common.store";
 import {
   exchangeRateAtom,
-  getLSTContract,
-  getNstSTRKContract,
   nstStrkWithdrawalFeeAtom,
   userNstSTRKBalanceAtom,
 } from "@/store/lst.store";
@@ -30,6 +28,7 @@ import { Contract, uint256 } from "starknet";
 
 import { MyAnalytics } from "@/lib/analytics";
 import MyNumber from "@/lib/MyNumber";
+import LSTService from "@/services/lst";
 import { nostraLendYieldAtom } from "@/store/defi.store";
 import { snAPYAtom } from "@/store/staking.store";
 import { isTxAccepted } from "@/store/transactions.atom";
@@ -50,6 +49,8 @@ const MigrateNostra = () => {
   const exchangeRate = useAtomValue(exchangeRateAtom);
   const stakingApy = useAtomValue(snAPYAtom);
   const nostraLendApy = useAtomValue(nostraLendYieldAtom);
+
+  const lstService = new LSTService();
 
   const nstStrkWithdrawalFee = parseFloat(
     nstStrkWithdrawal.value.toEtherToFixedDecimals(4),
@@ -112,8 +113,8 @@ const MigrateNostra = () => {
 
     if (!rpcProvider) return;
 
-    const lstContract = getLSTContract(rpcProvider);
-    const nstContract = getNstSTRKContract(rpcProvider);
+    const lstContract = lstService.getLSTContract(rpcProvider);
+    const nstContract = lstService.getNstSTRKContract(rpcProvider);
     const strkContract = new Contract(erc4626Abi, STRK_TOKEN);
     const xSTRKContract = new Contract(erc4626Abi, LST_ADDRRESS);
     const ixSTRKContract = new Contract(nostraIXSTRK, NOSTRA_IXSTRK);

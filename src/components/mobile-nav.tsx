@@ -6,14 +6,15 @@ import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import React from "react";
 
-import { DASHBOARD_URL } from "@/constants";
 import { cn } from "@/lib/utils";
 
+import { LINKS } from "@/constants";
 import { ChartColumnDecreasingIcon } from "./ui/chart-column-decreasing";
 import { FlameIcon } from "./ui/flame";
 import { GaugeIcon } from "./ui/gauge";
 import { HandCoinsIcon } from "./ui/hand-coins";
 import { MenuIcon } from "./ui/menu";
+import { UserIcon } from "./ui/user";
 
 const MobileNav = () => {
   const [open, setOpen] = React.useState(false);
@@ -46,12 +47,7 @@ const MobileNav = () => {
 
   return (
     <div>
-      <motion.div
-        // animate={{
-        //   borderRadius: open ? "4px" : "2rem",
-        // }}
-        className="relative lg:hidden"
-      >
+      <motion.div className="relative lg:hidden">
         <div className="flex items-center justify-center gap-3">
           <div onClick={() => setOpen(!open)} ref={iconRef}>
             <MenuIcon
@@ -101,7 +97,7 @@ const MobileNav = () => {
               </Link>
 
               <Link
-                href={"https://dune.com/endurfi/xstrk-analytics"}
+                href={LINKS.DUNE_ANALYTICS}
                 className={cn(
                   "flex w-full cursor-pointer flex-row items-center gap-2 text-nowrap rounded-md p-2 px-3 text-sm font-semibold text-[#03624C] transition-all hover:bg-[#17876D] hover:text-white",
                 )}
@@ -111,13 +107,26 @@ const MobileNav = () => {
               </Link>
 
               <Link
-                href={DASHBOARD_URL}
+                href={LINKS.DASHBOARD_URL}
                 className={cn(
                   "flex w-full cursor-pointer flex-row items-center gap-2 text-nowrap rounded-md p-2 px-3 text-sm font-semibold text-[#03624C] transition-all hover:bg-[#17876D] hover:text-white",
                 )}
               >
                 <GaugeIcon className="-ml-0.5 size-5" />
                 Staking Dashboard
+              </Link>
+
+              <Link
+                href="/portfolio"
+                className={cn(
+                  "flex w-full cursor-pointer flex-row items-center gap-2 text-nowrap rounded-md p-2 px-3 text-sm font-semibold text-[#03624C] transition-all hover:bg-[#17876D] hover:text-white",
+                  {
+                    "bg-[#17876D] text-white": pathname === "/portfolio",
+                  },
+                )}
+              >
+                <UserIcon className="-ml-0.5 size-5" />
+                Portfolio
               </Link>
             </motion.div>
           </AnimatePresence>

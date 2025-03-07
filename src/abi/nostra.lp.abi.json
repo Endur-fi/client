@@ -1,0 +1,1113 @@
+[
+  {
+    "name": "Pair",
+    "type": "impl",
+    "interface_name": "nostra_pools::interface::pair::IPair"
+  },
+  {
+    "name": "core::integer::u256",
+    "type": "struct",
+    "members": [
+      {
+        "name": "low",
+        "type": "core::integer::u128"
+      },
+      {
+        "name": "high",
+        "type": "core::integer::u128"
+      }
+    ]
+  },
+  {
+    "name": "core::bool",
+    "type": "enum",
+    "variants": [
+      {
+        "name": "False",
+        "type": "()"
+      },
+      {
+        "name": "True",
+        "type": "()"
+      }
+    ]
+  },
+  {
+    "name": "nostra_pools::interface::pair::IPair",
+    "type": "interface",
+    "items": [
+      {
+        "name": "mint",
+        "type": "function",
+        "inputs": [
+          {
+            "name": "to",
+            "type": "core::starknet::contract_address::ContractAddress"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "core::integer::u256"
+          }
+        ],
+        "state_mutability": "external"
+      },
+      {
+        "name": "burn",
+        "type": "function",
+        "inputs": [
+          {
+            "name": "to",
+            "type": "core::starknet::contract_address::ContractAddress"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "(core::integer::u256, core::integer::u256)"
+          }
+        ],
+        "state_mutability": "external"
+      },
+      {
+        "name": "swap",
+        "type": "function",
+        "inputs": [
+          {
+            "name": "amount_0_out",
+            "type": "core::integer::u256"
+          },
+          {
+            "name": "amount_1_out",
+            "type": "core::integer::u256"
+          },
+          {
+            "name": "to",
+            "type": "core::starknet::contract_address::ContractAddress"
+          },
+          {
+            "name": "data",
+            "type": "core::array::Array::<core::felt252>"
+          }
+        ],
+        "outputs": [],
+        "state_mutability": "external"
+      },
+      {
+        "name": "out_given_in",
+        "type": "function",
+        "inputs": [
+          {
+            "name": "amount_in",
+            "type": "core::integer::u256"
+          },
+          {
+            "name": "first_token_in",
+            "type": "core::bool"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "core::integer::u256"
+          }
+        ],
+        "state_mutability": "view"
+      },
+      {
+        "name": "in_given_out",
+        "type": "function",
+        "inputs": [
+          {
+            "name": "amount_out",
+            "type": "core::integer::u256"
+          },
+          {
+            "name": "first_token_in",
+            "type": "core::bool"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "core::integer::u256"
+          }
+        ],
+        "state_mutability": "view"
+      }
+    ]
+  },
+  {
+    "name": "StablePair",
+    "type": "impl",
+    "interface_name": "nostra_pools::interface::pair::IStablePair"
+  },
+  {
+    "name": "nostra_pools::stable_math::AmplificationData",
+    "type": "struct",
+    "members": [
+      {
+        "name": "amp_start",
+        "type": "core::integer::u32"
+      },
+      {
+        "name": "amp_end",
+        "type": "core::integer::u32"
+      },
+      {
+        "name": "start_time",
+        "type": "core::integer::u64"
+      },
+      {
+        "name": "end_time",
+        "type": "core::integer::u64"
+      }
+    ]
+  },
+  {
+    "name": "nostra_pools::interface::pair::IStablePair",
+    "type": "interface",
+    "items": [
+      {
+        "name": "start_amp_update",
+        "type": "function",
+        "inputs": [
+          {
+            "name": "target_amp",
+            "type": "core::integer::u32"
+          },
+          {
+            "name": "duration",
+            "type": "core::integer::u64"
+          }
+        ],
+        "outputs": [],
+        "state_mutability": "external"
+      },
+      {
+        "name": "stop_amp_update",
+        "type": "function",
+        "inputs": [],
+        "outputs": [],
+        "state_mutability": "external"
+      },
+      {
+        "name": "set_rate_provider_0",
+        "type": "function",
+        "inputs": [
+          {
+            "name": "rate_provider",
+            "type": "core::starknet::contract_address::ContractAddress"
+          }
+        ],
+        "outputs": [],
+        "state_mutability": "external"
+      },
+      {
+        "name": "set_rate_provider_1",
+        "type": "function",
+        "inputs": [
+          {
+            "name": "rate_provider",
+            "type": "core::starknet::contract_address::ContractAddress"
+          }
+        ],
+        "outputs": [],
+        "state_mutability": "external"
+      },
+      {
+        "name": "amp_data",
+        "type": "function",
+        "inputs": [],
+        "outputs": [
+          {
+            "type": "nostra_pools::stable_math::AmplificationData"
+          }
+        ],
+        "state_mutability": "view"
+      },
+      {
+        "name": "get_rate_providers",
+        "type": "function",
+        "inputs": [],
+        "outputs": [
+          {
+            "type": "(core::starknet::contract_address::ContractAddress, core::starknet::contract_address::ContractAddress)"
+          }
+        ],
+        "state_mutability": "view"
+      }
+    ]
+  },
+  {
+    "name": "UpgradeableImpl",
+    "type": "impl",
+    "interface_name": "openzeppelin::upgrades::interface::IUpgradeable"
+  },
+  {
+    "name": "openzeppelin::upgrades::interface::IUpgradeable",
+    "type": "interface",
+    "items": [
+      {
+        "name": "upgrade",
+        "type": "function",
+        "inputs": [
+          {
+            "name": "new_class_hash",
+            "type": "core::starknet::class_hash::ClassHash"
+          }
+        ],
+        "outputs": [],
+        "state_mutability": "external"
+      }
+    ]
+  },
+  {
+    "name": "OwnableImpl",
+    "type": "impl",
+    "interface_name": "openzeppelin::access::ownable::interface::IOwnable"
+  },
+  {
+    "name": "openzeppelin::access::ownable::interface::IOwnable",
+    "type": "interface",
+    "items": [
+      {
+        "name": "owner",
+        "type": "function",
+        "inputs": [],
+        "outputs": [
+          {
+            "type": "core::starknet::contract_address::ContractAddress"
+          }
+        ],
+        "state_mutability": "view"
+      },
+      {
+        "name": "transfer_ownership",
+        "type": "function",
+        "inputs": [
+          {
+            "name": "new_owner",
+            "type": "core::starknet::contract_address::ContractAddress"
+          }
+        ],
+        "outputs": [],
+        "state_mutability": "external"
+      },
+      {
+        "name": "renounce_ownership",
+        "type": "function",
+        "inputs": [],
+        "outputs": [],
+        "state_mutability": "external"
+      }
+    ]
+  },
+  {
+    "name": "ERC20Impl",
+    "type": "impl",
+    "interface_name": "openzeppelin::token::erc20::interface::IERC20"
+  },
+  {
+    "name": "openzeppelin::token::erc20::interface::IERC20",
+    "type": "interface",
+    "items": [
+      {
+        "name": "total_supply",
+        "type": "function",
+        "inputs": [],
+        "outputs": [
+          {
+            "type": "core::integer::u256"
+          }
+        ],
+        "state_mutability": "view"
+      },
+      {
+        "name": "balance_of",
+        "type": "function",
+        "inputs": [
+          {
+            "name": "account",
+            "type": "core::starknet::contract_address::ContractAddress"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "core::integer::u256"
+          }
+        ],
+        "state_mutability": "view"
+      },
+      {
+        "name": "allowance",
+        "type": "function",
+        "inputs": [
+          {
+            "name": "owner",
+            "type": "core::starknet::contract_address::ContractAddress"
+          },
+          {
+            "name": "spender",
+            "type": "core::starknet::contract_address::ContractAddress"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "core::integer::u256"
+          }
+        ],
+        "state_mutability": "view"
+      },
+      {
+        "name": "transfer",
+        "type": "function",
+        "inputs": [
+          {
+            "name": "recipient",
+            "type": "core::starknet::contract_address::ContractAddress"
+          },
+          {
+            "name": "amount",
+            "type": "core::integer::u256"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "core::bool"
+          }
+        ],
+        "state_mutability": "external"
+      },
+      {
+        "name": "transfer_from",
+        "type": "function",
+        "inputs": [
+          {
+            "name": "sender",
+            "type": "core::starknet::contract_address::ContractAddress"
+          },
+          {
+            "name": "recipient",
+            "type": "core::starknet::contract_address::ContractAddress"
+          },
+          {
+            "name": "amount",
+            "type": "core::integer::u256"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "core::bool"
+          }
+        ],
+        "state_mutability": "external"
+      },
+      {
+        "name": "approve",
+        "type": "function",
+        "inputs": [
+          {
+            "name": "spender",
+            "type": "core::starknet::contract_address::ContractAddress"
+          },
+          {
+            "name": "amount",
+            "type": "core::integer::u256"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "core::bool"
+          }
+        ],
+        "state_mutability": "external"
+      }
+    ]
+  },
+  {
+    "name": "ERC20MetadataImpl",
+    "type": "impl",
+    "interface_name": "openzeppelin::token::erc20::interface::IERC20Metadata"
+  },
+  {
+    "name": "openzeppelin::token::erc20::interface::IERC20Metadata",
+    "type": "interface",
+    "items": [
+      {
+        "name": "name",
+        "type": "function",
+        "inputs": [],
+        "outputs": [
+          {
+            "type": "core::felt252"
+          }
+        ],
+        "state_mutability": "view"
+      },
+      {
+        "name": "symbol",
+        "type": "function",
+        "inputs": [],
+        "outputs": [
+          {
+            "type": "core::felt252"
+          }
+        ],
+        "state_mutability": "view"
+      },
+      {
+        "name": "decimals",
+        "type": "function",
+        "inputs": [],
+        "outputs": [
+          {
+            "type": "core::integer::u8"
+          }
+        ],
+        "state_mutability": "view"
+      }
+    ]
+  },
+  {
+    "name": "ERC20CamelOnlyImpl",
+    "type": "impl",
+    "interface_name": "openzeppelin::token::erc20::interface::IERC20CamelOnly"
+  },
+  {
+    "name": "openzeppelin::token::erc20::interface::IERC20CamelOnly",
+    "type": "interface",
+    "items": [
+      {
+        "name": "totalSupply",
+        "type": "function",
+        "inputs": [],
+        "outputs": [
+          {
+            "type": "core::integer::u256"
+          }
+        ],
+        "state_mutability": "view"
+      },
+      {
+        "name": "balanceOf",
+        "type": "function",
+        "inputs": [
+          {
+            "name": "account",
+            "type": "core::starknet::contract_address::ContractAddress"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "core::integer::u256"
+          }
+        ],
+        "state_mutability": "view"
+      },
+      {
+        "name": "transferFrom",
+        "type": "function",
+        "inputs": [
+          {
+            "name": "sender",
+            "type": "core::starknet::contract_address::ContractAddress"
+          },
+          {
+            "name": "recipient",
+            "type": "core::starknet::contract_address::ContractAddress"
+          },
+          {
+            "name": "amount",
+            "type": "core::integer::u256"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "core::bool"
+          }
+        ],
+        "state_mutability": "external"
+      }
+    ]
+  },
+  {
+    "name": "SafeAllowanceImpl",
+    "type": "impl",
+    "interface_name": "openzeppelin::token::erc20::interface::ISafeAllowance"
+  },
+  {
+    "name": "openzeppelin::token::erc20::interface::ISafeAllowance",
+    "type": "interface",
+    "items": [
+      {
+        "name": "increase_allowance",
+        "type": "function",
+        "inputs": [
+          {
+            "name": "spender",
+            "type": "core::starknet::contract_address::ContractAddress"
+          },
+          {
+            "name": "added_value",
+            "type": "core::integer::u256"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "core::bool"
+          }
+        ],
+        "state_mutability": "external"
+      },
+      {
+        "name": "decrease_allowance",
+        "type": "function",
+        "inputs": [
+          {
+            "name": "spender",
+            "type": "core::starknet::contract_address::ContractAddress"
+          },
+          {
+            "name": "subtracted_value",
+            "type": "core::integer::u256"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "core::bool"
+          }
+        ],
+        "state_mutability": "external"
+      }
+    ]
+  },
+  {
+    "name": "SafeAllowanceCamelImpl",
+    "type": "impl",
+    "interface_name": "openzeppelin::token::erc20::interface::ISafeAllowanceCamel"
+  },
+  {
+    "name": "openzeppelin::token::erc20::interface::ISafeAllowanceCamel",
+    "type": "interface",
+    "items": [
+      {
+        "name": "increaseAllowance",
+        "type": "function",
+        "inputs": [
+          {
+            "name": "spender",
+            "type": "core::starknet::contract_address::ContractAddress"
+          },
+          {
+            "name": "addedValue",
+            "type": "core::integer::u256"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "core::bool"
+          }
+        ],
+        "state_mutability": "external"
+      },
+      {
+        "name": "decreaseAllowance",
+        "type": "function",
+        "inputs": [
+          {
+            "name": "spender",
+            "type": "core::starknet::contract_address::ContractAddress"
+          },
+          {
+            "name": "subtractedValue",
+            "type": "core::integer::u256"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "core::bool"
+          }
+        ],
+        "state_mutability": "external"
+      }
+    ]
+  },
+  {
+    "name": "PairImpl",
+    "type": "impl",
+    "interface_name": "nostra_pools::interface::pair::IPairBase"
+  },
+  {
+    "name": "nostra_pools::interface::pair::IPairBase",
+    "type": "interface",
+    "items": [
+      {
+        "name": "skim",
+        "type": "function",
+        "inputs": [
+          {
+            "name": "to",
+            "type": "core::starknet::contract_address::ContractAddress"
+          }
+        ],
+        "outputs": [],
+        "state_mutability": "external"
+      },
+      {
+        "name": "sync",
+        "type": "function",
+        "inputs": [],
+        "outputs": [],
+        "state_mutability": "external"
+      },
+      {
+        "name": "set_swap_fee",
+        "type": "function",
+        "inputs": [
+          {
+            "name": "new_swap_fee",
+            "type": "core::integer::u128"
+          }
+        ],
+        "outputs": [],
+        "state_mutability": "external"
+      },
+      {
+        "name": "token_0",
+        "type": "function",
+        "inputs": [],
+        "outputs": [
+          {
+            "type": "core::starknet::contract_address::ContractAddress"
+          }
+        ],
+        "state_mutability": "view"
+      },
+      {
+        "name": "token_1",
+        "type": "function",
+        "inputs": [],
+        "outputs": [
+          {
+            "type": "core::starknet::contract_address::ContractAddress"
+          }
+        ],
+        "state_mutability": "view"
+      },
+      {
+        "name": "get_reserves",
+        "type": "function",
+        "inputs": [],
+        "outputs": [
+          {
+            "type": "(core::integer::u256, core::integer::u256)"
+          }
+        ],
+        "state_mutability": "view"
+      },
+      {
+        "name": "k_last",
+        "type": "function",
+        "inputs": [],
+        "outputs": [
+          {
+            "type": "core::integer::u256"
+          }
+        ],
+        "state_mutability": "view"
+      },
+      {
+        "name": "swap_fee",
+        "type": "function",
+        "inputs": [],
+        "outputs": [
+          {
+            "type": "core::integer::u128"
+          }
+        ],
+        "state_mutability": "view"
+      }
+    ]
+  },
+  {
+    "name": "constructor",
+    "type": "constructor",
+    "inputs": [
+      {
+        "name": "token_0",
+        "type": "core::starknet::contract_address::ContractAddress"
+      },
+      {
+        "name": "token_1",
+        "type": "core::starknet::contract_address::ContractAddress"
+      },
+      {
+        "name": "initial_amp",
+        "type": "core::integer::u32"
+      },
+      {
+        "name": "rate_provider_0",
+        "type": "core::starknet::contract_address::ContractAddress"
+      },
+      {
+        "name": "rate_provider_1",
+        "type": "core::starknet::contract_address::ContractAddress"
+      },
+      {
+        "name": "owner",
+        "type": "core::starknet::contract_address::ContractAddress"
+      }
+    ]
+  },
+  {
+    "kind": "struct",
+    "name": "openzeppelin::token::erc20::erc20::ERC20Component::Transfer",
+    "type": "event",
+    "members": [
+      {
+        "kind": "key",
+        "name": "from",
+        "type": "core::starknet::contract_address::ContractAddress"
+      },
+      {
+        "kind": "key",
+        "name": "to",
+        "type": "core::starknet::contract_address::ContractAddress"
+      },
+      {
+        "kind": "data",
+        "name": "value",
+        "type": "core::integer::u256"
+      }
+    ]
+  },
+  {
+    "kind": "struct",
+    "name": "openzeppelin::token::erc20::erc20::ERC20Component::Approval",
+    "type": "event",
+    "members": [
+      {
+        "kind": "key",
+        "name": "owner",
+        "type": "core::starknet::contract_address::ContractAddress"
+      },
+      {
+        "kind": "key",
+        "name": "spender",
+        "type": "core::starknet::contract_address::ContractAddress"
+      },
+      {
+        "kind": "data",
+        "name": "value",
+        "type": "core::integer::u256"
+      }
+    ]
+  },
+  {
+    "kind": "enum",
+    "name": "openzeppelin::token::erc20::erc20::ERC20Component::Event",
+    "type": "event",
+    "variants": [
+      {
+        "kind": "nested",
+        "name": "Transfer",
+        "type": "openzeppelin::token::erc20::erc20::ERC20Component::Transfer"
+      },
+      {
+        "kind": "nested",
+        "name": "Approval",
+        "type": "openzeppelin::token::erc20::erc20::ERC20Component::Approval"
+      }
+    ]
+  },
+  {
+    "kind": "struct",
+    "name": "nostra_pools::pair_component::PairComponent::PairMint",
+    "type": "event",
+    "members": [
+      {
+        "kind": "data",
+        "name": "sender",
+        "type": "core::starknet::contract_address::ContractAddress"
+      },
+      {
+        "kind": "data",
+        "name": "amount_0",
+        "type": "core::integer::u256"
+      },
+      {
+        "kind": "data",
+        "name": "amount_1",
+        "type": "core::integer::u256"
+      }
+    ]
+  },
+  {
+    "kind": "struct",
+    "name": "nostra_pools::pair_component::PairComponent::PairBurn",
+    "type": "event",
+    "members": [
+      {
+        "kind": "data",
+        "name": "sender",
+        "type": "core::starknet::contract_address::ContractAddress"
+      },
+      {
+        "kind": "data",
+        "name": "amount_0",
+        "type": "core::integer::u256"
+      },
+      {
+        "kind": "data",
+        "name": "amount_1",
+        "type": "core::integer::u256"
+      },
+      {
+        "kind": "data",
+        "name": "to",
+        "type": "core::starknet::contract_address::ContractAddress"
+      }
+    ]
+  },
+  {
+    "kind": "struct",
+    "name": "nostra_pools::pair_component::PairComponent::Swap",
+    "type": "event",
+    "members": [
+      {
+        "kind": "data",
+        "name": "sender",
+        "type": "core::starknet::contract_address::ContractAddress"
+      },
+      {
+        "kind": "data",
+        "name": "amount_0_in",
+        "type": "core::integer::u256"
+      },
+      {
+        "kind": "data",
+        "name": "amount_1_in",
+        "type": "core::integer::u256"
+      },
+      {
+        "kind": "data",
+        "name": "amount_0_out",
+        "type": "core::integer::u256"
+      },
+      {
+        "kind": "data",
+        "name": "amount_1_out",
+        "type": "core::integer::u256"
+      },
+      {
+        "kind": "data",
+        "name": "to",
+        "type": "core::starknet::contract_address::ContractAddress"
+      }
+    ]
+  },
+  {
+    "kind": "struct",
+    "name": "nostra_pools::pair_component::PairComponent::Sync",
+    "type": "event",
+    "members": [
+      {
+        "kind": "data",
+        "name": "reserve_0",
+        "type": "core::integer::u256"
+      },
+      {
+        "kind": "data",
+        "name": "reserve_1",
+        "type": "core::integer::u256"
+      }
+    ]
+  },
+  {
+    "kind": "enum",
+    "name": "nostra_pools::pair_component::PairComponent::Event",
+    "type": "event",
+    "variants": [
+      {
+        "kind": "nested",
+        "name": "PairMint",
+        "type": "nostra_pools::pair_component::PairComponent::PairMint"
+      },
+      {
+        "kind": "nested",
+        "name": "PairBurn",
+        "type": "nostra_pools::pair_component::PairComponent::PairBurn"
+      },
+      {
+        "kind": "nested",
+        "name": "Swap",
+        "type": "nostra_pools::pair_component::PairComponent::Swap"
+      },
+      {
+        "kind": "nested",
+        "name": "Sync",
+        "type": "nostra_pools::pair_component::PairComponent::Sync"
+      }
+    ]
+  },
+  {
+    "kind": "enum",
+    "name": "openzeppelin::security::reentrancyguard::ReentrancyGuardComponent::Event",
+    "type": "event",
+    "variants": []
+  },
+  {
+    "kind": "struct",
+    "name": "openzeppelin::access::ownable::ownable::OwnableComponent::OwnershipTransferred",
+    "type": "event",
+    "members": [
+      {
+        "kind": "data",
+        "name": "previous_owner",
+        "type": "core::starknet::contract_address::ContractAddress"
+      },
+      {
+        "kind": "data",
+        "name": "new_owner",
+        "type": "core::starknet::contract_address::ContractAddress"
+      }
+    ]
+  },
+  {
+    "kind": "enum",
+    "name": "openzeppelin::access::ownable::ownable::OwnableComponent::Event",
+    "type": "event",
+    "variants": [
+      {
+        "kind": "nested",
+        "name": "OwnershipTransferred",
+        "type": "openzeppelin::access::ownable::ownable::OwnableComponent::OwnershipTransferred"
+      }
+    ]
+  },
+  {
+    "kind": "struct",
+    "name": "openzeppelin::upgrades::upgradeable::UpgradeableComponent::Upgraded",
+    "type": "event",
+    "members": [
+      {
+        "kind": "data",
+        "name": "class_hash",
+        "type": "core::starknet::class_hash::ClassHash"
+      }
+    ]
+  },
+  {
+    "kind": "enum",
+    "name": "openzeppelin::upgrades::upgradeable::UpgradeableComponent::Event",
+    "type": "event",
+    "variants": [
+      {
+        "kind": "nested",
+        "name": "Upgraded",
+        "type": "openzeppelin::upgrades::upgradeable::UpgradeableComponent::Upgraded"
+      }
+    ]
+  },
+  {
+    "kind": "struct",
+    "name": "nostra_pools::stable_pair::StablePair::AmplificationUpdateStarted",
+    "type": "event",
+    "members": [
+      {
+        "kind": "data",
+        "name": "amp_start",
+        "type": "core::integer::u32"
+      },
+      {
+        "kind": "data",
+        "name": "amp_end",
+        "type": "core::integer::u32"
+      },
+      {
+        "kind": "data",
+        "name": "start_time",
+        "type": "core::integer::u64"
+      },
+      {
+        "kind": "data",
+        "name": "duration",
+        "type": "core::integer::u64"
+      }
+    ]
+  },
+  {
+    "kind": "struct",
+    "name": "nostra_pools::stable_pair::StablePair::AmplificationUpdateStopped",
+    "type": "event",
+    "members": [
+      {
+        "kind": "data",
+        "name": "amp",
+        "type": "core::integer::u32"
+      }
+    ]
+  },
+  {
+    "kind": "struct",
+    "name": "nostra_pools::stable_pair::StablePair::RateProviderSet",
+    "type": "event",
+    "members": [
+      {
+        "kind": "data",
+        "name": "token",
+        "type": "core::starknet::contract_address::ContractAddress"
+      },
+      {
+        "kind": "data",
+        "name": "rate_provider",
+        "type": "core::starknet::contract_address::ContractAddress"
+      }
+    ]
+  },
+  {
+    "kind": "enum",
+    "name": "nostra_pools::stable_pair::StablePair::Event",
+    "type": "event",
+    "variants": [
+      {
+        "kind": "flat",
+        "name": "ERC20Event",
+        "type": "openzeppelin::token::erc20::erc20::ERC20Component::Event"
+      },
+      {
+        "kind": "flat",
+        "name": "PairEvent",
+        "type": "nostra_pools::pair_component::PairComponent::Event"
+      },
+      {
+        "kind": "flat",
+        "name": "ReentrancyGuardEvent",
+        "type": "openzeppelin::security::reentrancyguard::ReentrancyGuardComponent::Event"
+      },
+      {
+        "kind": "flat",
+        "name": "OwnableEvent",
+        "type": "openzeppelin::access::ownable::ownable::OwnableComponent::Event"
+      },
+      {
+        "kind": "flat",
+        "name": "UpgradeableEvent",
+        "type": "openzeppelin::upgrades::upgradeable::UpgradeableComponent::Event"
+      },
+      {
+        "kind": "nested",
+        "name": "AmplificationUpdateStarted",
+        "type": "nostra_pools::stable_pair::StablePair::AmplificationUpdateStarted"
+      },
+      {
+        "kind": "nested",
+        "name": "AmplificationUpdateStopped",
+        "type": "nostra_pools::stable_pair::StablePair::AmplificationUpdateStopped"
+      },
+      {
+        "kind": "nested",
+        "name": "RateProviderSet",
+        "type": "nostra_pools::stable_pair::StablePair::RateProviderSet"
+      }
+    ]
+  }
+]
