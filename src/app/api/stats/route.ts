@@ -53,7 +53,10 @@ export async function GET(_req: Request) {
       apy: newApy,
       apyInPercentage: `${apyInPercentage}%`,
     });
-    response.headers.set("Cache-Control", `s-maxage=${revalidate}, stale-while-revalidate=180`);
+    response.headers.set(
+      "Cache-Control",
+      `s-maxage=${revalidate}, stale-while-revalidate=180`,
+    );
     return response;
   }
 

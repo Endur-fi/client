@@ -115,7 +115,10 @@ export async function GET(_req: Request, context: any) {
   const resp = NextResponse.json({
     blocks: blocksWithExchangeRates,
   });
-  resp.headers.set("Cache-Control", `s-maxage=${revalidate}, stale-while-revalidate=180`);
+  resp.headers.set(
+    "Cache-Control",
+    `s-maxage=${revalidate}, stale-while-revalidate=180`,
+  );
   return resp;
 }
 
