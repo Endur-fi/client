@@ -76,7 +76,8 @@ export async function GET(_req: Request, context: any) {
       nostraDexHoldingsProm,
       xstrkHoldingsProm,
     ]);
-    return NextResponse.json({
+    
+    const resp = NextResponse.json({
       vesu: vesuHoldings,
       ekubo: ekuboHoldings,
       nostraLending: nostraLendingHoldings,
@@ -85,6 +86,8 @@ export async function GET(_req: Request, context: any) {
       blocks,
       lastUpdated: new Date().toISOString(),
     });
+    resp.headers.set("Cache-Control", `s-maxage=${revalidate}, stale-while-revalidate=180`);
+    return resp;
   } catch (error) {
     console.error("Error fetching data:", error);
     return NextResponse.json(
