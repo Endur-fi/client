@@ -148,7 +148,7 @@ const DefiCard: React.FC<DefiCardProps> = ({
 
         <div className="flex items-center gap-2">
           <ProtocolBadges badges={badges} />
-          {protocolIcon}
+          <div className="w-[30px]">{protocolIcon}</div>
         </div>
       </div>
 

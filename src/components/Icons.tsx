@@ -1011,8 +1011,6 @@ export const Icons = {
   avnuLogo: (props: IconProps) => (
     <svg
       {...props}
-      width="30"
-      height="30"
       viewBox="0 0 30 30"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
@@ -1119,8 +1117,6 @@ export const Icons = {
   fibrousLogo: (props: IconProps) => (
     <svg
       {...props}
-      width="30"
-      height="30"
       viewBox="0 0 30 30"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
@@ -1175,8 +1171,6 @@ export const Icons = {
   strkfarmLogo: (props: IconProps) => (
     <svg
       {...props}
-      width="30"
-      height="30"
       viewBox="0 0 22 22"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
@@ -1229,8 +1223,6 @@ export const Icons = {
   opusLogo: (props: IconProps) => (
     <svg
       {...props}
-      width="36"
-      height="36"
       viewBox="0 0 100 32"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
