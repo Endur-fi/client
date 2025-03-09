@@ -1,4 +1,4 @@
-import { protocolYieldsAtom } from "@/store/defi.store";
+import { protocolYieldsAtom, SupportedDApp } from "@/store/defi.store";
 import { useAtomValue } from "jotai";
 import Image from "next/image";
 import React from "react";
@@ -16,19 +16,20 @@ const Merry: React.FC = () => {
 
   const sortedProtocols = React.useMemo(() => {
     return Object.entries(protocolConfigs)
-      .filter(([protocol]) => !["avnu", "fibrous"].includes(protocol))
-      .sort(([a], [b]) => {
+      .map(([protocol]) => protocol as SupportedDApp)
+      .filter((protocol) => !["avnu", "fibrous"].includes(protocol))
+      .sort((a, b) => {
         const yieldA = yields[a]?.value ?? -Infinity;
         const yieldB = yields[b]?.value ?? -Infinity;
         return yieldB - yieldA;
       })
-      .map(([protocol]) => protocol);
+      .map((protocol) => protocol);
   }, [yields]);
 
   const renderDefiCard = React.useCallback(
-    (protocol: any) => {
+    (protocol: SupportedDApp) => {
       const config = protocolConfigs[protocol];
-
+      if (!config) return null;
       return (
         <DefiCard
           key={protocol}
@@ -64,9 +65,7 @@ const Merry: React.FC = () => {
         <Icons.gift1Faded className="group-hover:hidden" />
         <Icons.gift1 className="hidden group-hover:block" />
         <div className="absolute -right-36 -top-[13rem] hidden rounded-md border border-[#03624C] bg-white p-2 text-sm text-[#03624C] transition-all group-hover:flex">
-          {renderDefiCard(
-            sortedProtocols.find((protocol) => protocol === "haiko"),
-          )}
+          {renderDefiCard("haiko")}
         </div>
       </div>
 
@@ -81,9 +80,7 @@ const Merry: React.FC = () => {
         <Icons.gift2Faded className="group-hover:hidden" />
         <Icons.gift2 className="hidden group-hover:block" />
         <div className="absolute -right-20 -top-44 hidden rounded-md border border-[#03624C] bg-white p-2 text-sm text-[#03624C] transition-all group-hover:flex">
-          {renderDefiCard(
-            sortedProtocols.find((protocol) => protocol === "ekubo"),
-          )}
+          {renderDefiCard("ekubo")}
         </div>
       </div>
 
@@ -98,9 +95,7 @@ const Merry: React.FC = () => {
         <Icons.gift3Faded className="group-hover:hidden" />
         <Icons.gift3 className="hidden group-hover:block" />
         <div className="absolute -right-24 -top-[14.2rem] hidden rounded-md border border-[#03624C] bg-white p-2 text-sm text-[#03624C] transition-all group-hover:flex">
-          {renderDefiCard(
-            sortedProtocols.find((protocol) => protocol === "nostra-pool"),
-          )}
+          {renderDefiCard("nostraDex")}
         </div>
       </div>
 
@@ -115,9 +110,7 @@ const Merry: React.FC = () => {
         <Icons.gift4Faded className="group-hover:hidden" />
         <Icons.gift4 className="hidden group-hover:block" />
         <div className="absolute -right-28 -top-[13rem] hidden rounded-md border border-[#03624C] bg-white p-2 text-sm text-[#03624C] transition-all group-hover:flex">
-          {renderDefiCard(
-            sortedProtocols.find((protocol) => protocol === "vesu"),
-          )}
+          {renderDefiCard("vesu")}
         </div>
       </div>
 
@@ -132,9 +125,7 @@ const Merry: React.FC = () => {
         <Icons.gift5Faded className="group-hover:hidden" />
         <Icons.gift5 className="hidden group-hover:block" />
         <div className="absolute -right-24 -top-[14.2rem] hidden rounded-md border border-[#03624C] bg-white p-2 text-sm text-[#03624C] transition-all group-hover:flex">
-          {renderDefiCard(
-            sortedProtocols.find((protocol) => protocol === "nostra-lend"),
-          )}
+          {renderDefiCard("nostraLending")}
         </div>
       </div>
 
@@ -149,9 +140,7 @@ const Merry: React.FC = () => {
         <Icons.gift6Faded className="group-hover:hidden" />
         <Icons.gift6 className="hidden group-hover:block" />
         <div className="absolute -top-[13.7rem] right-0 hidden rounded-md border border-[#03624C] bg-white p-2 text-sm text-[#03624C] transition-all group-hover:flex">
-          {renderDefiCard(
-            sortedProtocols.find((protocol) => protocol === "opus"),
-          )}
+          {renderDefiCard("opus")}
         </div>
       </div>
 

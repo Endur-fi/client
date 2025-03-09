@@ -1,60 +1,59 @@
 import { Analytics } from "@vercel/analytics/react";
 import type { Metadata } from "next";
-import { Figtree } from "next/font/google";
+import Image from "next/image";
 import React from "react";
 
 import Providers from "@/components/providers";
-import { SidebarProvider } from "@/components/ui/sidebar";
 import { Toaster } from "@/components/ui/toaster";
-import { cn } from "@/lib/utils";
+
+import { AppSidebar } from "@/components/app-sidebar";
+import Footer from "@/components/footer";
+import MaxWidthWrapper from "@/components/max-width-wrapper";
+import Navbar from "@/components/navbar";
 
 import "./globals.css";
 
-const font = Figtree({
-  subsets: ["latin-ext"],
-});
-
 export const metadata: Metadata = {
-  title: "Endur | Liquid Staked STRK",
+  title: "Endur.fi | Starknet Liquid Staking (xSTRK) | Earn STRK Rewards",
   description:
-    "Stake your STRK to support Starknet's decentralization with xSTRK—a liquid staking token (LST) that empowers you to actively engage in DeFi, retain flexibility, and use your xSTRK across various protocols just like STRK. From the buidlers of Karnot and STRKFarm",
+    "Stake STRK with Endur and receive xSTRK - the liquid staking token on Starknet. Earn rewards while accessing DeFi with instant liquidity, higher rewards and faster unstaking",
   keywords: [
-    "endur",
-    "starknet",
-    "strk",
-    "xstrk",
+    "liquid staking starknet",
     "liquid staking",
-    "lst",
-    "defi",
-    "karnot",
-    "strkfarm",
-    "yield",
-    "farming",
-    "staking",
-    "LSTs",
-    "competitor",
-    "avnu",
-    "fibrous",
-    "starkware",
-    "vesu",
-    "ekubo",
-    "stark",
-    "brother",
-    "memecoin",
-    "chillguy",
+    "liquid stake starknet",
+    "starknet LST",
+    "STRK staking",
+    "Endur xSTRK",
+    "starknet liquid staking solution",
   ],
+  robots: "index,follow",
   openGraph: {
-    title: "Endur | Liquid Staked STRK",
+    title: "Starknet Liquid Staking (xSTRK) | Earn STRK Rewards | Endur.fi",
     description:
-      "Stake your STRK to support Starknet's decentralization with xSTRK—a liquid staking token (LST) that empowers you to actively engage in DeFi, retain flexibility, and use your xSTRK across various protocols just like STRK. From the buidlers of Karnot and STRKFarm",
-    images: ["https://endur.fi/og.png"],
+      "Stake STRK with Endur and receive xSTRK - the liquid staking token on Starknet. Earn rewards while accessing DeFi with instant liquidity, higher rewards and faster unstaking",
+    images: [
+      {
+        url: "https://app.endur.fi/og.png",
+        secureUrl: "https://app.endur.fi/og.png",
+        width: 1200,
+        height: 630,
+      },
+    ],
+    type: "website",
   },
   twitter: {
-    title: "Endur | Liquid Staked STRK",
+    card: "summary_large_image",
+    title: "Starknet Liquid Staking (xSTRK) | Earn STRK Rewards | Endur.fi",
     description:
-      "Stake your STRK to support Starknet's decentralization with xSTRK—a liquid staking token (LST) that empowers you to actively engage in DeFi, retain flexibility, and use your xSTRK across various protocols just like STRK. From the buidlers of Karnot and STRKFarm",
-    card: "player",
-    images: ["https://endur.fi/og.png"],
+      "Stake STRK with Endur and receive xSTRK - the liquid staking token on Starknet. Earn rewards while accessing DeFi with instant liquidity, higher rewards and faster unstaking",
+    site: "@endurfi",
+    creator: "@endurfi",
+    images: [
+      {
+        url: "https://app.endur.fi/og.png",
+        alt: "Cover Image of endur.fi",
+      },
+    ],
   },
 };
 
@@ -67,11 +66,33 @@ export default function RootLayout({
     <html lang="en">
       <body className="bg-[#F1F7F6]">
         <Analytics />
+
         <Providers>
-          <SidebarProvider className={cn(font.className, "w-full")}>
-            {children}
-            <Toaster />
-          </SidebarProvider>
+          <React.Suspense>
+            <div className="relative flex h-full min-h-screen w-full overflow-x-hidden">
+              <Image
+                src="/subtle_tree_bg.svg"
+                alt="subtle_tree_bg"
+                fill
+                className="-z-10 object-cover"
+              />
+
+              <AppSidebar />
+
+              <div className="flex flex-1 flex-col justify-between overflow-hidden">
+                <MaxWidthWrapper className="flex h-full w-full flex-col items-center px-3 py-3 lg:px-7 lg:py-0">
+                  <Navbar />
+                  {children}
+                </MaxWidthWrapper>
+
+                <div className="lg:hidden">
+                  <Footer />
+                </div>
+              </div>
+            </div>
+          </React.Suspense>
+
+          <Toaster />
         </Providers>
       </body>
     </html>

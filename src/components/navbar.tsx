@@ -1,16 +1,15 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 
 import {
-  InjectedConnector,
   useAccount,
-  useConnect,
   useDisconnect,
   useProvider,
   useSwitchChain,
 } from "@starknet-react/core";
-import { useAtom, useAtomValue, useSetAtom } from "jotai";
+import { useAtom, useSetAtom } from "jotai";
 import { X } from "lucide-react";
-import React, { useEffect } from "react";
+import React from "react";
 import { constants, num } from "starknet";
 import {
   connect,
@@ -30,6 +29,7 @@ import { WebWalletConnector } from "starknetkit/webwallet";
 
 import { getProvider, NETWORK } from "@/constants";
 import { toast } from "@/hooks/use-toast";
+import { useWalletConnection } from "@/hooks/use-wallet-connection";
 import { MyAnalytics } from "@/lib/analytics";
 import { cn, shortAddress } from "@/lib/utils";
 import {
@@ -37,7 +37,6 @@ import {
   providerAtom,
   userAddressAtom,
 } from "@/store/common.store";
-import { isMerryChristmasAtom, tabsAtom } from "@/store/merry.store";
 
 import { Icons } from "./Icons";
 import MobileNav from "./mobile-nav";
@@ -120,8 +119,8 @@ const Navbar = ({ className }: { className?: string }) => {
 
   const { address, connector, chainId } = useAccount();
   const { provider } = useProvider();
-  const { connect: connectSnReact } = useConnect();
   const { disconnectAsync } = useDisconnect();
+  const { connectWallet, config } = useWalletConnection();
 
   const { isMobile } = useSidebar();
 
@@ -163,17 +162,12 @@ const Navbar = ({ className }: { className?: string }) => {
     },
   });
 
-  async function connectWallet(config = connectorConfig) {
-    try {
-      const { connector } = await connect(config);
-
-      if (connector) {
-        connectSnReact({ connector: connector as any });
-      }
-    } catch (error) {
-      console.error("connectWallet error", error);
+  // set tracking person
+  React.useEffect(() => {
+    if (address) {
+      MyAnalytics.setPerson(address);
     }
-  }
+  }, [address]);
 
   // switch chain if not on the required chain
   React.useEffect(() => {
@@ -193,7 +187,6 @@ const Navbar = ({ className }: { className?: string }) => {
 
   // attempt to connect wallet on load
   React.useEffect(() => {
-    const config = connectorConfig;
     connectWallet({
       ...config,
       modalMode: "neverAsk",
@@ -294,27 +287,6 @@ const Navbar = ({ className }: { className?: string }) => {
             </>
           )}
         </button>
-
-        {/* {activeTab !== "withdraw" && isMerry && (
-          <div className="hidden transition-all duration-500 lg:block">
-            <div className="group absolute -bottom-[138px] right-12">
-              <Icons.bell1Faded className="group-hover:hidden" />
-              <Icons.bell1 className="hidden group-hover:block" />
-              <p className="absolute -bottom-[4.3rem] -left-12 hidden w-44 rounded-md border border-[#03624C] bg-white p-2 text-sm text-[#03624C] transition-all group-hover:flex">
-                May 2025 be a multi-bagger year for you 😉
-              </p>
-            </div>
-
-            <div className="group absolute -bottom-[65px] right-6">
-              <Icons.bell2Faded className="group-hover:hidden" />
-              <Icons.bell2 className="hidden group-hover:block" />
-              <p className="absolute -bottom-[5.5rem] -left-24 hidden w-44 rounded-md border border-[#03624C] bg-white p-2 text-sm text-[#03624C] transition-all group-hover:flex">
-                We love you for being on Starknet and choosing Endur to stake
-                with.
-              </p>
-            </div>
-          </div>
-        )} */}
       </div>
     </div>
   );

@@ -1,39 +1,17 @@
 import { atom } from "jotai";
 import { atomWithQuery } from "jotai-tanstack-query";
-import { Contract } from "starknet";
 
-import MintingAbi from "@/abi/minting.abi.json";
-import StakingAbi from "@/abi/staking.abi.json";
 import MyNumber from "@/lib/MyNumber";
+import StakingService from "@/services/staking";
 
-import {
-  SN_MINTING_CURVE_ADRESS,
-  SN_STAKING_ADRESS,
-  STRK_DECIMALS,
-} from "@/constants";
 import { currentBlockAtom, providerAtom } from "./common.store";
+
+const stakingService = new StakingService();
 
 const snTotalStakedQueryAtom = atomWithQuery((get) => {
   return {
     queryKey: ["snTotalStaked", get(currentBlockAtom), get(providerAtom)],
-    queryFn: async ({ queryKey }: any) => {
-      const provider = get(providerAtom);
-      if (!provider) {
-        return MyNumber.fromZero();
-      }
-      const stakingContract = new Contract(
-        StakingAbi,
-        SN_STAKING_ADRESS,
-        provider,
-      );
-      try {
-        const totalStaked = await stakingContract.call("get_total_stake");
-        return new MyNumber(totalStaked.toString(), STRK_DECIMALS);
-      } catch (error) {
-        console.error("snTotalStakedQueryAtom", error);
-        return MyNumber.fromZero();
-      }
-    },
+    queryFn: () => stakingService.getSNTotalStaked(),
     refetchInterval: 60000,
   };
 });
@@ -50,24 +28,7 @@ export const snTotalStakedAtom = atom((get) => {
 export const yearlyMintingQueryAtom = atomWithQuery((get) => {
   return {
     queryKey: ["yearlyMinting", get(currentBlockAtom), get(providerAtom)],
-    queryFn: async ({ queryKey }: any) => {
-      const provider = get(providerAtom);
-      if (!provider) {
-        return MyNumber.fromZero();
-      }
-      const mintingContract = new Contract(
-        MintingAbi,
-        SN_MINTING_CURVE_ADRESS,
-        provider,
-      );
-      try {
-        const yearlyMinting = await mintingContract.call("yearly_mint");
-        return new MyNumber(yearlyMinting.toString(), STRK_DECIMALS);
-      } catch (error) {
-        console.error("yearlyMintingQueryAtom", error);
-        return MyNumber.fromZero();
-      }
-    },
+    queryFn: () => stakingService.getYearlyMinting(),
     refetchInterval: 60000,
   };
 });
