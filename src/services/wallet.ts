@@ -64,6 +64,43 @@ export class WalletConnector {
 
     const isMainnet = NETWORK === constants.NetworkName.SN_MAIN;
 
+    const isInstalled = [
+      argentXConnector,
+      braavosConnector,
+      keplrConnector,
+    ].map((wallet) => {
+      return {
+        id: wallet.id,
+        isInstalled:
+          typeof window === "undefined"
+            ? false
+            : window[`starknet_${wallet.id}`] !== undefined,
+      };
+    });
+
+    const defaultConnectors = [
+      argentXConnector,
+      braavosConnector,
+      keplrConnector,
+    ];
+
+    // put uninstall wallets at the end
+    const sortedConnectors: any[] = defaultConnectors.sort((a, b) => {
+      const aInstalled = isInstalled.find(
+        (wallet) => wallet.id === a.id,
+      )?.isInstalled;
+      const bInstalled = isInstalled.find(
+        (wallet) => wallet.id === b.id,
+      )?.isInstalled;
+
+      if (aInstalled && bInstalled) {
+        return 0;
+      } else if (aInstalled) {
+        return -1;
+      }
+      return 1;
+    });
+
     if (isMainnet) {
       if (isInArgentMobileAppBrowser()) {
         return [mobileConnector];
@@ -72,14 +109,11 @@ export class WalletConnector {
       } else if (this.isMobile) {
         return [mobileConnector, braavosMobile, webWalletConnector];
       }
-      return [
-        argentXConnector,
-        braavosConnector,
-        keplrConnector,
-        mobileConnector,
-        webWalletConnector,
-      ];
+
+      sortedConnectors.push(mobileConnector);
+      sortedConnectors.push(webWalletConnector);
+      return sortedConnectors;
     }
-    return [argentXConnector, braavosConnector, keplrConnector];
+    return sortedConnectors;
   }
 }
