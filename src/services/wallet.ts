@@ -78,6 +78,8 @@ export class WalletConnector {
       };
     });
 
+    console.log("isInstalled", isInstalled);
+
     const defaultConnectors = [
       argentXConnector,
       braavosConnector,
