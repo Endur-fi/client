@@ -1,5 +1,6 @@
 import { getProvider } from "@/constants";
 import MyNumber from "@/lib/MyNumber";
+import { retry } from "@/lib/utils";
 import { DAppHoldings } from "@/store/defi.store";
 import { getEkuboHoldings } from "@/store/ekubo.store";
 import { getXSTRKHoldings } from "@/store/lst.store";
@@ -216,23 +217,4 @@ async function getAllXSTRKHoldings(address: string, blocks: BlockInfo[]) {
   );
 }
 
-async function retry<T extends (...args: any[]) => Promise<any>>(
-  fn: T,
-  args: Parameters<T>,
-  retries: number = 3,
-  delay: number = 1000,
-): Promise<ReturnType<T>> {
-  let attempts = 0;
 
-  while (attempts < retries) {
-    try {
-      return (await fn(...args)) as ReturnType<T>;
-    } catch (error) {
-      attempts++;
-      if (attempts >= retries) throw error;
-      await new Promise((resolve) => setTimeout(resolve, delay));
-    }
-  }
-
-  throw new Error("Function failed after max retries");
-}

@@ -1,58 +1,20 @@
+import { standariseAddress } from "@/lib/utils";
 import { constants, RpcProvider } from "starknet";
 
 export const STRK_TOKEN =
-  "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d" as const;
-
-
-export interface Token {
-  symbol: string;
-  address: string;
-  logoUrl: string;
-  decimals: number;
-  balance?: number;
-}
-
-export const TOKENS: Token[] = [
-  { symbol: 'ETH', address: '0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7', logoUrl: 'https://assets.coingecko.com/coins/images/279/small/ethereum.png', decimals: 18 },
-  { symbol: 'STRK', address: '0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d', logoUrl: 'https://assets.coingecko.com/coins/images/26433/standard/starknet.png', decimals: 18 },
-  { symbol: 'xSTRK', address: '0x0000000000000000000000000000000000000000000000000000000000000001', logoUrl: 'https://endur.fi/logo.svg', decimals: 18 },
-  { symbol: 'USDT', address: '0x068f5c6a61780768455de69077e07e89787839bf8166decfbf92b645209c0fb8', logoUrl: 'https://assets.coingecko.com/coins/images/325/small/Tether.png', decimals: 6 },
-  { symbol: 'USDC', address: '0x053c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8', logoUrl: 'https://assets.coingecko.com/coins/images/6319/small/USD_Coin_icon.png', decimals: 6 },
-  { symbol: 'DAI', address: '0x00da114221cb83fa859dbdb4c44beeaa0bb37c7537ad5ae66fe5e0efd20e6eb3', logoUrl: 'https://assets.coingecko.com/coins/images/9956/small/Badge_Dai.png', decimals: 18 }
-];
-
-export const ERC20_ABI = [
-  {
-    members: [
-      { name: "low", offset: 0, type: "felt" },
-      { name: "high", offset: 1, type: "felt" }
-    ],
-    name: "Uint256",
-    size: 2,
-    type: "struct"
-  },
-  {
-    inputs: [{ name: "account", type: "felt" }],
-    name: "balanceOf",
-    outputs: [{ name: "balance", type: "Uint256" }],
-    stateMutability: "view",
-    type: "function"
-  }
-];
-
+  standariseAddress("0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d" as const);
 export const ETH_TOKEN =
-  "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7";
+  standariseAddress("0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7" as const);
 export const USDC_TOKEN =
-  "0x053c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8";
+  standariseAddress("0x053c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8" as const);
 export const USDT_TOKEN =
-  "0x068f5c6a61780768455de69077e07e89787839bf8166decfbf92b645209c0fb8";
+  standariseAddress("0x068f5c6a61780768455de69077e07e89787839bf8166decfbf92b645209c0fb8" as const);
 export const WBTC_TOKEN =
-  "0x03fe2b97c1fd336e750087d68b9b867997fd64a2661ff3ca5a7c771641e8e7ac";
+  standariseAddress("0x03fe2b97c1fd336e750087d68b9b867997fd64a2661ff3ca5a7c771641e8e7ac" as const);
 
 export const xSTRK_TOKEN_MAINNET =
   "0x28d709c875c0ceac3dce7065bec5328186dc89fe254527084d1689910954b0a";
 export const xSTRK_TOKEN_MAINNET_DEPLOYMENT_BLOCK = 929092;
-
 
 export const STRK_DECIMALS = 18;
 export const REWARD_FEES = 15;

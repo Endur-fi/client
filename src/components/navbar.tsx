@@ -9,7 +9,7 @@ import {
 } from "@starknet-react/core";
 import { useAtom, useSetAtom } from "jotai";
 import { X } from "lucide-react";
-import React from "react";
+import React, { useEffect } from "react";
 import { constants, num } from "starknet";
 import {
   connect,
@@ -41,7 +41,7 @@ import {
 import { Icons } from "./Icons";
 import MobileNav from "./mobile-nav";
 import { useSidebar } from "./ui/sidebar";
-import TokenSelector from "./paymaster-modal";
+import TokenSelector from "./paymaster-menu";
 
 export const CONNECTOR_NAMES = [
   "Braavos",
@@ -49,69 +49,6 @@ export const CONNECTOR_NAMES = [
   "Argent (mobile)",
   "Keplr",
 ];
-
-export function getConnectors(isMobile: boolean) {
-  const hostname =
-    typeof window !== "undefined" ? window.location.hostname : "";
-
-  const mobileConnector = ArgentMobileConnector.init({
-    options: {
-      dappName: "Endurfi",
-      url: typeof window !== "undefined" ? window.location.hostname : "",
-      chainId: constants.NetworkName.SN_MAIN,
-    },
-    inAppBrowserOptions: {},
-  }) as StarknetkitConnector;
-
-  const argentXConnector = new InjectedConnector({
-    options: {
-      id: "argentX",
-      name: "Argent X",
-    },
-  });
-
-  const braavosConnector = new InjectedConnector({
-    options: {
-      id: "braavos",
-      name: "Braavos",
-    },
-  });
-
-  const keplrConnector = new InjectedConnector({
-    options: {
-      id: "keplr",
-      name: "Keplr",
-    },
-  });
-
-  const braavosMobile = BraavosMobileConnector.init({
-    inAppBrowserOptions: {},
-  }) as StarknetkitConnector;
-
-  const webWalletConnector = new WebWalletConnector({
-    url: "https://web.argent.xyz",
-  }) as StarknetkitConnector;
-
-  const isMainnet = NETWORK === constants.NetworkName.SN_MAIN;
-
-  if (isMainnet) {
-    if (isInArgentMobileAppBrowser()) {
-      return [mobileConnector];
-    } else if (isInBraavosMobileAppBrowser()) {
-      return [braavosMobile];
-    } else if (isMobile) {
-      return [mobileConnector, braavosMobile, webWalletConnector];
-    }
-    return [
-      argentXConnector,
-      braavosConnector,
-      keplrConnector,
-      mobileConnector,
-      webWalletConnector,
-    ];
-  }
-  return [argentXConnector, braavosConnector, keplrConnector];
-}
 
 const Navbar = ({ className }: { className?: string }) => {
   // init analytics
@@ -134,21 +71,6 @@ const Navbar = ({ className }: { className?: string }) => {
       MyAnalytics.setPerson(address);
     }
   }, [address]);
-
-  const connectorConfig: ConnectOptionsWithConnectors = React.useMemo(() => {
-    return {
-      modalMode: "canAsk",
-      modalTheme: "light",
-      webWalletUrl: "https://web.argent.xyz",
-      argentMobileOptions: {
-        dappName: "Endur.fi",
-        chainId: NETWORK,
-        url: window.location.hostname,
-      },
-      dappName: "Endur.fi",
-      connectors: getConnectors(isMobile) as StarknetkitConnector[],
-    };
-  }, [isMobile]);
 
   const requiredChainId = React.useMemo(() => {
     return NETWORK === constants.NetworkName.SN_MAIN
@@ -222,6 +144,7 @@ const Navbar = ({ className }: { className?: string }) => {
           <MigrateNostra />
         )} */}
 
+        <TokenSelector />
         <button
           className={cn(
             "flex h-10 items-center justify-center gap-2 rounded-lg border border-[#ECECED80] bg-[#AACBC433] text-sm font-bold text-[#03624C] focus-visible:outline-[#03624C]",

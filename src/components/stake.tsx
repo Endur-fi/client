@@ -6,15 +6,16 @@ import {
   useAccount,
   useBalance,
   useSendTransaction,
-  useProvider
+  useProvider,
+  useEstimateFees
 } from "@starknet-react/core";
 import { useAtomValue } from "jotai";
 import { ChevronDown, Info } from "lucide-react";
 import { Figtree } from "next/font/google";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import React from "react";
-import { useForm } from "react-hook-form";
+import React, { useEffect } from "react";
+import { useForm, useWatch } from "react-hook-form";
 import { TwitterShareButton } from "react-share";
 import { Call, Contract } from "starknet";
 
@@ -59,25 +60,18 @@ import { MyAnalytics } from "@/lib/analytics";
 import MyNumber from "@/lib/MyNumber";
 import { cn, eventNames, formatNumberWithCommas } from "@/lib/utils";
 import LSTService from "@/services/lst";
-import { providerAtom } from "@/store/common.store";
 import { protocolYieldsAtom } from "@/store/defi.store";
 import { exchangeRateAtom } from "@/store/lst.store";
 import { snAPYAtom } from "@/store/staking.store";
 
 import { Icons } from "./Icons";
-import { PlatformCard } from "./platform-card";
 import Stats from "./stats";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { useSidebar } from "./ui/sidebar";
 import { PlatformCard } from "./platform-card";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
 import { providerAtom } from "@/store/common.store";
-import { useAvnuPaymaster } from '@/hooks/use-avnu-paymaster';
+import { avnuPaymasterAtom } from "@/hooks/use-avnu-paymaster";
 
 const font = Figtree({ subsets: ["latin-ext"] });
 
@@ -106,14 +100,15 @@ const Stake: React.FC = () => {
   const [selectedPlatform, setSelectedPlatform] =
     React.useState<Platform>("none");
   const [isLendingOpen, setIsLendingOpen] = React.useState(false);
+  const [calls, setCalls] = React.useState<Call[]>([]);
 
   const searchParams = useSearchParams();
 
-  const { address } = useAccount();
+  const { address, account } = useAccount();
   const { connectWallet } = useWalletConnection();
   const { data: balance } = useBalance({
     address,
-    token: STRK_TOKEN,
+    token: STRK_TOKEN as `0x${string}`,
   });
 
   const exchangeRate = useAtomValue(exchangeRateAtom);
@@ -130,6 +125,7 @@ const Stake: React.FC = () => {
     },
     mode: "onChange",
   });
+  const watchedValues = useWatch({ control: form.control })
 
   const { provider } = useProvider();
 
@@ -144,8 +140,20 @@ const Stake: React.FC = () => {
   const contract = rpcProvider ? lstService.getLSTContract(rpcProvider) : null;
 
   const { sendAsync, data, isPending, error } = useSendTransaction({});
-  const { executeTransaction, selectedGasToken, loading: paymasterLoading, estimatedGasFees } = useAvnuPaymaster();
+  const paymaster = useAtomValue(avnuPaymasterAtom);
 
+  const { data: feeEstimateETH, error: feeEstError, isLoading: feeLoading } = useEstimateFees({
+    calls,
+  });
+
+  const [estimatedGasFees, setEstimatedGasFees] = React.useState<bigint>(BigInt(0));
+  useEffect(() => {
+    if (!account || !calls.length || !feeEstimateETH) {
+      setEstimatedGasFees(BigInt(0));
+      return;
+    }
+    paymaster.estimateGasFees(feeEstimateETH).then(setEstimatedGasFees);
+  }, [calls, account, feeEstimateETH]);
 
   const { handleTransaction } = useTransactionHandler();
 
@@ -224,51 +232,8 @@ const Stake: React.FC = () => {
     }
   };
 
-  const onSubmit = async (values: FormValues) => {
-    const stakeAmount = Number(values.stakeAmount);
-
-    if (
-      isNaN(stakeAmount) ||
-      !Number.isFinite(stakeAmount) ||
-      stakeAmount <= 0
-    ) {
-      return toast({
-        description: (
-          <div className="flex items-center gap-2">
-            <Info className="size-5" />
-            Invalid stake amount
-          </div>
-        ),
-      });
-    }
-
-    if (stakeAmount > Number(balance?.formatted)) {
-      return toast({
-        description: (
-          <div className="flex items-center gap-2">
-            <Info className="size-5" />
-            Insufficient balance
-          </div>
-        ),
-      });
-    }
-
-    if (!address) {
-      return toast({
-        description: (
-          <div className="flex items-center gap-2">
-            <Info className="size-5" />
-            Please connect your wallet
-          </div>
-        ),
-      });
-    }
-    // track stake button click
-    MyAnalytics.track(eventNames.STAKE_CLICK, {
-      address,
-      amount: Number(values.stakeAmount),
-    });
-
+  async function getCalls(values: FormValues): Promise<Call[]> {
+    if (!address) return []
     const strkAmount = MyNumber.fromEther(values.stakeAmount, 18);
     const previewCall = await contract?.preview_deposit(strkAmount.toString());
     const xstrkAmount = previewCall?.toString() || "0";
@@ -318,7 +283,88 @@ const Stake: React.FC = () => {
       }
     }
 
-    await sendAsync(calls);
+    return calls;
+  }
+
+  useEffect(() => {
+    console.log("formState", form.formState.isDirty, form.getValues());
+    if (form.formState.isDirty) {
+      getCalls(form.getValues()).then(setCalls);
+    }
+  }, [JSON.stringify(watchedValues), address]);
+
+  const onSubmit = async (values: FormValues) => {
+    const stakeAmount = Number(values.stakeAmount);
+
+    if (
+      isNaN(stakeAmount) ||
+      !Number.isFinite(stakeAmount) ||
+      stakeAmount <= 0
+    ) {
+      return toast({
+        description: (
+          <div className="flex items-center gap-2">
+            <Info className="size-5" />
+            Invalid stake amount
+          </div>
+        ),
+      });
+    }
+
+    if (stakeAmount > Number(balance?.formatted)) {
+      return toast({
+        description: (
+          <div className="flex items-center gap-2">
+            <Info className="size-5" />
+            Insufficient balance
+          </div>
+        ),
+      });
+    }
+
+    if (!address || !account) {
+      return toast({
+        description: (
+          <div className="flex items-center gap-2">
+            <Info className="size-5" />
+            Please connect your wallet
+          </div>
+        ),
+      });
+    }
+
+    if (!calls.length) {
+      return toast({
+        description: (
+          <div className="flex items-center gap-2">
+            <Info className="size-5" />
+            Invalid transaction
+          </div>
+        ),
+      });
+    }
+
+    if (!feeEstimateETH) {
+      console.error("Error estimating gas fees", feeEstError, feeLoading);
+      return toast({
+        description: (
+          <div className="flex items-center gap-2">
+            <Info className="size-5" />
+            Error estimating gas fees
+          </div>
+        ),
+      });
+    }
+
+    // track stake button click
+    MyAnalytics.track(eventNames.STAKE_CLICK, {
+      address,
+      amount: Number(values.stakeAmount),
+    });
+
+    // await sendAsync(calls);
+    console.log(`calls`, calls);
+    await paymaster.executeTransaction(account, calls, feeEstimateETH);
   };
 
   return (
@@ -625,7 +671,7 @@ const Stake: React.FC = () => {
           </p>
         </div>
 
-        {selectedGasToken && (
+        {paymaster.selectedGasToken && (
           <div className="flex items-center justify-between rounded-md text-xs font-medium text-[#939494] lg:text-[13px]">
             <p className="flex items-center gap-1">
               Estimated Gas Fee
@@ -644,15 +690,16 @@ const Stake: React.FC = () => {
               </TooltipProvider>
             </p>
             <p>
-              {formatUnits(estimatedGasFees, selectedGasToken.decimals)} {selectedGasToken.priceInUSD}
-              {selectedGasToken.priceInUSD && (
+              {formatUnits(estimatedGasFees, paymaster.selectedGasToken.decimals)} {paymaster.selectedGasToken.symbol}
+              {paymaster.selectedGasToken.priceInUSD > 0 && (
                 <span className="text-[#8D9C9C] ml-1">
                   (≈${(
-                    Number(formatUnits(estimatedGasFees, selectedGasToken.decimals)) * 
-                    selectedGasToken.priceInUSD
+                    Number(formatUnits(estimatedGasFees, paymaster.selectedGasToken.decimals)) * 
+                    paymaster.selectedGasToken.priceInUSD
                   ).toFixed(2)})
                 </span>
               )}
+              {feeLoading && <span>Loading</span>}
             </p>
           </div>
         )}

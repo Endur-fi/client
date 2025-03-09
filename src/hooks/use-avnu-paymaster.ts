@@ -9,129 +9,125 @@ import {
   GaslessOptions,
   GasTokenPrice,
   getGasFeesInGasToken,
-  PaymasterReward,
+  SEPOLIA_BASE_URL,
+  BASE_URL,
 } from '@avnu/gasless-sdk';
-import { AccountInterface, AccountInvocationItem, Call, EstimateFee, TransactionType } from 'starknet';
+import { Account, AccountInterface, AccountInvocationItem, Call, EstimateFee, EstimateFeeResponse, Invocation, RpcProvider, stark, transaction, TransactionType } from 'starknet';
 import { toast } from '@/hooks/use-toast';
-import { TOKENS } from '@/constants';
+import { getProvider, isMainnet } from '@/constants';
+import { atom } from 'jotai';
+import { get } from 'http';
+import { providerAtom, userAddressAtom } from '@/store/common.store';
+import { atomWithQuery } from 'jotai-tanstack-query';
+import { standariseAddress } from '@/lib/utils';
 
-const AVNU_BASE_URL = process.env.NEXT_PUBLIC_AVNU_API_URL || 'https://sepolia.api.avnu.fi';
+const AVNU_BASE_URL = isMainnet() ? BASE_URL : SEPOLIA_BASE_URL;
 
-export function useAvnuPaymaster() {
-  const { address, account } = useAccount();
-  const { provider } = useProvider();
-  const [loading, setLoading] = useState(false);
-  const [gasTokenPrices, setGasTokenPrices] = useState<GasTokenPrice[]>([]);
-  const [selectedGasToken, setSelectedGasToken] = useState<GasTokenPrice | null>(null);
-  const [compatibility, setCompatibility] = useState<GaslessCompatibility | null>(null);
-  const [rewards, setRewards] = useState<PaymasterReward[]>([]);
-  const [error, setError] = useState<string | null>(null);
-  const [isApiAvailable, setIsApiAvailable] = useState(true);
-  const [currentEstimatedFees, setCurrentEstimatedFees] = useState<bigint>(BigInt(0));
-  const [toastShown, setToastShown] = useState(false);
+export interface TokenMetadata {
+  symbol: string;
+  address: string;
+  logoUri: string;
+  name: string;
+  balance: number;
+}
 
-  const options: GaslessOptions = {
+export type GasTokenWithBalance = GasTokenPrice & TokenMetadata;
+
+export class AvnuPaymaster {
+  address: string | undefined;
+  provider: RpcProvider | undefined;
+
+  avnuOptions: GaslessOptions = {
     baseUrl: AVNU_BASE_URL,
   };
 
-  const checkApiAvailability = useCallback(async () => {
+  accountCompatibility: GaslessCompatibility | undefined;
+  gasTokenPrices: GasTokenPrice[] = [];
+  selectedGasToken: GasTokenWithBalance | null = null;
+
+  constructor(address: string, provider: RpcProvider) {
+    this.address = address;
+    this.provider = provider;
+  }
+
+  static dummy() {
+    return new AvnuPaymaster('0x0', getProvider());
+  }
+
+  changeAdress(address: string) {
+    this.address = address;
+  }
+
+  changeProvider(provider: RpcProvider) {
+    this.provider = provider;
+  }
+
+  setSelectedGasToken(token: GasTokenWithBalance) {
+    this.selectedGasToken = token;
+  }
+  
+  async isAvnuAPIAvailable() {
     try {
       const response = await fetch(`${AVNU_BASE_URL}/paymaster/v1/status`);
-      setIsApiAvailable(response.ok);
       return response.ok;
     } catch (err) {
       console.error('Avnu API unavailable:', err);
-      setIsApiAvailable(false);
       return false;
     }
-  }, []);
+  }
 
-  useEffect(() => {
-    if (!address) return;
+  async loadGasTokens() {
+    if (!this.address) return [];
+    if (!(await this.isAvnuAPIAvailable())) return [];
 
-    const initializePaymaster = async () => {
-      const isAvailable = await checkApiAvailability();
-      if (!isAvailable && !toastShown) {
-        toast({
-          title: "Paymaster Service Unavailable",
-          description: "Using regular transaction method",
-          variant: "destructive",
-        });
-        setToastShown(true);
-        return;
-      }
+    const [compatibilityResult, rewardsResult, pricesResult] = await Promise.all([
+      fetchAccountCompatibility(this.address, this.avnuOptions),
+      fetchAccountsRewards(this.address, this.avnuOptions),
+      fetchGasTokenPrices(this.avnuOptions),
+    ]);
 
-      try {
-        const [compatibilityResult, rewardsResult, pricesResult] = await Promise.all([
-          fetchAccountCompatibility(address, options),
-          fetchAccountsRewards(address, options),
-          fetchGasTokenPrices(options),
-        ]);
+    this.accountCompatibility = compatibilityResult;
+    // setRewards(rewardsResult);
 
-        setCompatibility(compatibilityResult);
-        setRewards(rewardsResult);
+    // set gas tokens
+    this.gasTokenPrices = pricesResult;
+  }
 
-        // Map gasTokenPrices to include the symbol property
-        const updatedGasTokenPrices = pricesResult.map((token) => {
-          const tokenInfo = TOKENS.find((t) => t.address === token.tokenAddress);
-          return {
-            ...token,
-            symbol: tokenInfo?.symbol || "UNKNOWN",
-            priceInUSD: token.priceInUSD || 0,
-          };
-        });
-
-        setGasTokenPrices(updatedGasTokenPrices);
-        console.log("Gas Token Prices:", updatedGasTokenPrices);
-
-        // Set the default gas token to STRK if available, otherwise ETH
-        const defaultGasToken =
-          updatedGasTokenPrices.find((t) => t.symbol === "STRK") || updatedGasTokenPrices[0];
-        setSelectedGasToken(defaultGasToken);
-        console.log("Selected Gas Token (Default):", defaultGasToken);
-      } catch (err) {
-        console.error("Failed to initialize paymaster:", err);
-        setError("Failed to initialize paymaster services");
-        setIsApiAvailable(false);
-      }
-    };
-
-    initializePaymaster();
-  }, [address, checkApiAvailability, options, toastShown]);
-
-  const estimateGasFees = useCallback(async (calls: Call[]): Promise<bigint> => {
-    if (!account || !provider || !selectedGasToken) return BigInt(0);
+  async estimateGasFees(feeEstimateETH: EstimateFeeResponse) {
+    if (!this.address || !this.provider || !this.selectedGasToken) return BigInt(0);
+    if (!(await this.isAvnuAPIAvailable())) return BigInt(0);
     
     try {
-      const invocations: AccountInvocationItem[] = calls.map(call => ({
-        type: TransactionType.INVOKE,
-        calldata: call.calldata,
-        contractAddress: call.contractAddress,
-        entrypoint: call.entrypoint,
-        nonce: 0,
-        maxFee: 0,
-        version: 1,
-      }));
+      // const contractVersion = await this.provider.getContractVersion(account.address);
+      // const nonce = await this.provider.getNonceForAddress(account.address);
+      // const details = stark.v3Details({ skipValidate: true });
+      // const invocation = {
+      //   ...details,
+      //   contractAddress: account.address,
+      //   calldata: transaction.getExecuteCalldata(calls, contractVersion.cairo),
+      //   signature: [],
+      // };
       
-      const estimationResult = await provider.getEstimateFeeBulk(invocations, {
-        blockIdentifier: 'pending'
-      });
+      // const invocation: Invocation = { 
+      //   ...details,
+      //   contractAddress: account.address,
+      //   calldata: transaction.getExecuteCalldata(calls, contractVersion.cairo),
+      //   signature: [],
+      // };
+      
+      // console.log('estimateGasFees invocations:', invocation, nonce, details);
+      // this.provider.getInvokeEstimateFee()
+      // const estimationResult = await this.provider.getInvokeEstimateFee(invocation, { ...details, nonce, version: 1 }, 'pending', true);
+      // console.log('estimateGasFees estimationResult:', estimationResult);
 
-      if (!estimationResult?.length) {
-        throw new Error('Failed to estimate fees');
-      }
-
-      const overallFee = estimationResult.reduce((acc, fee) => {
-        const feeBigInt = BigInt(fee.overall_fee || 0);
-        return acc + feeBigInt;
-      }, BigInt(0));
+      const overallFee = feeEstimateETH.overall_fee;
       
       if (overallFee <= BigInt(0)) {
         throw new Error('Invalid fee estimation');
       }
 
-      if (!compatibility) {
-        setCurrentEstimatedFees(overallFee);
+      if (!this.accountCompatibility) {
+        // setCurrentEstimatedFees(overallFee);
         return overallFee;
       }
 
@@ -139,74 +135,96 @@ export function useAvnuPaymaster() {
 
       const gasFeesInToken = getGasFeesInGasToken(
         gasFeesWithMargin,
-        selectedGasToken,
-        BigInt(estimationResult[0]?.gas_price || 0),
-        BigInt(estimationResult[0]?.data_gas_price || 0),
-        compatibility.gasConsumedOverhead,
-        compatibility.dataGasConsumedOverhead
+        this.selectedGasToken,
+        BigInt(feeEstimateETH.gas_price || 0),
+        BigInt(feeEstimateETH.data_gas_consumed || 0),
+        this.accountCompatibility.gasConsumedOverhead,
+        this.accountCompatibility.dataGasConsumedOverhead
       );
 
       if (gasFeesInToken <= BigInt(0)) {
         throw new Error('Invalid gas token conversion');
       }
 
-      setCurrentEstimatedFees(gasFeesInToken);
+      // setCurrentEstimatedFees(gasFeesInToken);
       return gasFeesInToken;
     } catch (error) {
       console.error('Error estimating gas fees:', error);
       const fallbackFee = BigInt('1000000000000000'); 
-      setCurrentEstimatedFees(fallbackFee);
+      // setCurrentEstimatedFees(fallbackFee);
       return fallbackFee;
     }
-  }, [account, provider, selectedGasToken, compatibility]);
+  }
 
-  const executeTransaction = useCallback(async (calls: Call[]) => {
-    if (!account || !selectedGasToken) {
-      setError('Account or gas token not selected');
+  async executeTransaction(account: AccountInterface, calls: Call[], feeEstimateETH: EstimateFeeResponse, options?: GaslessOptions) {
+    if (!this.address || !this.provider || !this.selectedGasToken) {
       return;
     }
 
-    setLoading(true);
-    setError(null);
+    if (standariseAddress(account.address) != standariseAddress(this.address)) {
+      console.error('Account address does not match paymaster address');
+      return;
+    }
+
+    if (!(await this.isAvnuAPIAvailable()) || !this.accountCompatibility?.isCompatible) {
+      // todo handle this case
+      console.error('Avnu API unavailable or account not compatible');
+      const response = await account.execute(calls);
+      return response;
+    }
 
     try {
-      const maxGasTokenAmount = await estimateGasFees(calls);
-
-      if (!isApiAvailable) {
-        const response = await account.execute(calls);
-        setLoading(false);
-        return response;
-      }
-
+      const maxGasTokenAmount = await this.estimateGasFees(feeEstimateETH);
+      console.log('executeTransaction maxGasTokenAmount:', maxGasTokenAmount, this.selectedGasToken, calls);
       const response = await executeCalls(
         account as AccountInterface,
         calls,
         {
-          gasTokenAddress: selectedGasToken.tokenAddress,
+          gasTokenAddress: this.selectedGasToken.tokenAddress,
           maxGasTokenAmount,
         },
-        options
+        // options
       );
-
-      setLoading(false);
+      console.log('executeTransaction response:', response);
       return response;
     } catch (err) {
-      setError('Failed to execute transaction');
-      setLoading(false);
-      throw err;
+      console.error('Error V3 tx, sending normal:', err);
+      try {
+        const response = await account.execute(calls);
+        console.log('executeTransaction response:', response);
+        return response;
+      } catch (error) {
+        console.error('Error executing transaction:', error);
+        throw error;
+      }
     }
-  }, [account, selectedGasToken, estimateGasFees, isApiAvailable, options]);
-
-  return {
-    loading,
-    gasTokenPrices,
-    selectedGasToken,
-    setSelectedGasToken,
-    compatibility,
-    rewards,
-    error,
-    executeTransaction,
-    estimatedGasFees: currentEstimatedFees,
-    isApiAvailable
-  };
+  }
 }
+
+const avnuPaymasterQueryAtom = atomWithQuery((get) => {
+  return {
+    queryKey: ['avnu-paymaster', get(userAddressAtom), get(providerAtom)],
+    queryFn: async () => {
+      const address = get(userAddressAtom);
+      const provider = get(providerAtom);
+      if (!address || !provider) {
+        return null;
+      }
+
+      // const existingPaymaster = get(avnuPaymasterAtom);
+
+      const paymaster = new AvnuPaymaster(address, provider);
+      await paymaster.loadGasTokens();
+      // if (existingPaymaster.selectedGasToken) {
+      //   paymaster.setSelectedGasToken(existingPaymaster.selectedGasToken);
+      // }
+
+      return paymaster;
+    },
+  }
+})
+
+export const avnuPaymasterAtom = atom((get) => {
+  const query = get(avnuPaymasterQueryAtom);
+  return query.data || AvnuPaymaster.dummy();
+})

@@ -1,9 +1,17 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   compiler: {
-    removeConsole: {
-      exclude: ["error"],
-    },
+    // removeConsole: {
+    //   exclude: ["error"],
+    // },
+  },
+  images: {
+    domains: [
+      'raw.githubusercontent.com', 
+      'assets.coingecko.com',
+      'etherscan.io',
+      'i.imgur.com',
+    ],
   },
   async redirects() {
     return [
@@ -55,9 +63,6 @@ const nextConfig = {
         ],
       },
     ];
-  },
-  images: {
-    domains: ['assets.coingecko.com'],
   },
 };
 
