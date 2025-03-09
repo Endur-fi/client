@@ -2,15 +2,21 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useAccount, useSendTransaction } from "@starknet-react/core";
+import {
+  useAccount,
+  useConnect,
+  useSendTransaction,
+  useProvider
+} from "@starknet-react/core";
 import { useAtom, useAtomValue } from "jotai";
-import { Info } from "lucide-react";
+import { Info } from 'lucide-react';
 import Link from "next/link";
 import React from "react";
 import { useForm } from "react-hook-form";
 import { AccountInterface, Contract } from "starknet";
 
 import * as z from "zod";
+import { formatUnits } from "ethers";
 
 import erc4626Abi from "@/abi/erc4626.abi.json";
 import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
@@ -39,11 +45,27 @@ import {
   userXSTRKBalanceAtom,
   withdrawalQueueStateAtom,
 } from "@/store/lst.store";
+import { isMerryChristmasAtom } from "@/store/merry.store";
+import { snAPYAtom } from "@/store/staking.store";
+import { isTxAccepted } from "@/store/transactions.atom";
+import { AccountInterface } from "starknet";
 
 import { Icons } from "./Icons";
 import Stats from "./stats";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
+
+import { useSidebar } from "./ui/sidebar";
+import { useAvnuPaymaster } from "@/hooks/use-avnu-paymaster";
+
+interface DexRoute {
+  dex: "avnu";
+  exchangeRate: number;
+  logo: React.ReactNode;
+  name: string;
+  link: string;
+}
+
 
 const formSchema = z.object({
   unstakeAmount: z.string().refine(
@@ -284,6 +306,7 @@ const Unstake = () => {
   );
 
   const { sendAsync, data, isPending, error } = useSendTransaction({});
+  const { executeTransaction, selectedGasToken, loading: paymasterLoading, estimatedGasFees } = useAvnuPaymaster();
 
   const { handleTransaction } = useTransactionHandler();
 
