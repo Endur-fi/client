@@ -78,7 +78,7 @@ export class WalletConnector {
       };
     });
 
-    console.warn("isInstalled", isInstalled);
+    // console.warn("isInstalled", isInstalled);
 
     const defaultConnectors = [
       argentXConnector,

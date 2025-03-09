@@ -2,7 +2,7 @@
 const nextConfig = {
   compiler: {
     removeConsole: {
-      exclude: ["error", "warn"],
+      exclude: ["error"],
     },
   },
   async redirects() {
