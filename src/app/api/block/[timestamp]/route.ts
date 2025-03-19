@@ -1,4 +1,4 @@
-import { getProvider } from "@/constants";
+import { BLOCK_NUMBER_24_NOV_2024, getProvider } from "@/constants";
 
 import { NextResponse } from "next/server";
 
@@ -39,7 +39,7 @@ export async function getBlockNumberForTimestamp(
   }
 
   // Get the genesis block to determine the lower bound of the search
-  const genesisBlock = await provider.getBlock(925000); // 925000 block number at Nov 24 2024 04:17:28
+  const genesisBlock = await provider.getBlock(BLOCK_NUMBER_24_NOV_2024);
   const genesisBlockTimestamp = genesisBlock.timestamp;
 
   // Check if the timestamp is before the genesis block
