@@ -102,7 +102,7 @@ export async function GET(_req: Request, context: any) {
   }
 }
 
-async function getAllVesuHoldings(address: string, blocks: BlockInfo[]) {
+export async function getAllVesuHoldings(address: string, blocks: BlockInfo[]) {
   return Promise.all(
     blocks.map(async (block) => {
       const justSupply = await retry(getVesuHoldings, [
@@ -131,7 +131,7 @@ async function getAllVesuHoldings(address: string, blocks: BlockInfo[]) {
   );
 }
 
-async function getAllVesuCollateralHoldings(
+export async function getAllVesuCollateralHoldings(
   address: string,
   blocks: BlockInfo[],
 ) {
@@ -146,7 +146,10 @@ async function getAllVesuCollateralHoldings(
   );
 }
 
-async function getAllEkuboHoldings(address: string, blocks: BlockInfo[]) {
+export async function getAllEkuboHoldings(
+  address: string,
+  blocks: BlockInfo[],
+) {
   return Promise.all(
     blocks.map(async (block) => {
       return retry(getEkuboHoldings, [address, getProvider(), block.block]);
@@ -161,7 +164,7 @@ async function getAllEkuboHoldings(address: string, blocks: BlockInfo[]) {
  * @param blocks - An array of BlockInfo objects representing the blocks to retrieve holdings from.
  * @returns A promise that resolves to an array of DAppHoldings objects representing the lending holdings.
  */
-async function getNostraLendingHoldings(
+export async function getNostraLendingHoldings(
   address: string,
   blocks: BlockInfo[],
 ): Promise<DAppHoldings[]> {
@@ -198,7 +201,10 @@ async function getNostraLendingHoldings(
   return result;
 }
 
-async function getNostraDEXHoldings(address: string, blocks: BlockInfo[]) {
+export async function getNostraDEXHoldings(
+  address: string,
+  blocks: BlockInfo[],
+) {
   const provider = getProvider();
 
   return Promise.all(
@@ -208,7 +214,10 @@ async function getNostraDEXHoldings(address: string, blocks: BlockInfo[]) {
   );
 }
 
-async function getAllXSTRKHoldings(address: string, blocks: BlockInfo[]) {
+export async function getAllXSTRKHoldings(
+  address: string,
+  blocks: BlockInfo[],
+) {
   return Promise.all(
     blocks.map(async (block) => {
       return retry(getXSTRKHoldings, [address, getProvider(), block.block]);
@@ -216,7 +225,7 @@ async function getAllXSTRKHoldings(address: string, blocks: BlockInfo[]) {
   );
 }
 
-async function retry<T extends (...args: any[]) => Promise<any>>(
+export async function retry<T extends (...args: any[]) => Promise<any>>(
   fn: T,
   args: Parameters<T>,
   retries: number = 3,
