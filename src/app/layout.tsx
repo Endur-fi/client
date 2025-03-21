@@ -8,6 +8,7 @@ import { SidebarProvider } from "@/components/ui/sidebar";
 import { Toaster } from "@/components/ui/toaster";
 import { cn } from "@/lib/utils";
 
+import "@easyleap/sdk/styles.css";
 import "./globals.css";
 
 const font = Figtree({

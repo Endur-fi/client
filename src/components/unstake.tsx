@@ -12,11 +12,6 @@ import Link from "next/link";
 import React, { useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { Contract } from "starknet";
-import {
-  connect,
-  ConnectOptionsWithConnectors,
-  StarknetkitConnector,
-} from "starknetkit";
 import * as z from "zod";
 
 import erc4626Abi from "@/abi/erc4626.abi.json";
@@ -28,7 +23,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { getProvider, NETWORK, REWARD_FEES } from "@/constants";
+import { getProvider, REWARD_FEES } from "@/constants";
 import { toast, useToast } from "@/hooks/use-toast";
 import { MyAnalytics } from "@/lib/analytics";
 import MyNumber from "@/lib/MyNumber";
@@ -51,10 +46,10 @@ import { snAPYAtom } from "@/store/staking.store";
 import { isTxAccepted } from "@/store/transactions.atom";
 import { AccountInterface } from "starknet";
 import { Icons } from "./Icons";
-import { getConnectors } from "./navbar";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { useSidebar } from "./ui/sidebar";
+import { ConnectButton, useAccount as useAccountEasyleap } from "@easyleap/sdk";
 
 interface DexRoute {
   dex: "avnu";
@@ -275,7 +270,8 @@ const UnstakeOptionCard = ({
 const Unstake = () => {
   const [txnDapp, setTxnDapp] = React.useState<"endur" | "dex">("dex");
 
-  const { account, address } = useAccount();
+  const { account } = useAccount();
+  const { addressSource, addressDestination } = useAccountEasyleap();
   const { connect: connectSnReact } = useConnect();
   const { isMobile } = useSidebar();
   const { dismiss } = useToast();
@@ -311,7 +307,7 @@ const Unstake = () => {
       if (data?.transaction_hash) {
         // Track transaction init analytics
         MyAnalytics.track(eventNames.UNSTAKE_TX_INIT, {
-          address,
+          address: addressDestination,
           amount: Number(form.getValues("unstakeAmount")),
           txHash: data.transaction_hash,
         });
@@ -341,7 +337,7 @@ const Unstake = () => {
       if (error?.name?.includes("UserRejectedRequestError")) {
         // Track transaction rejected analytics
         MyAnalytics.track(eventNames.UNSTAKE_TX_REJECTED, {
-          address,
+          address: addressDestination,
           amount: Number(form.getValues("unstakeAmount")),
           type: error.name,
         });
@@ -351,7 +347,7 @@ const Unstake = () => {
       if (error?.name && !error?.name?.includes("UserRejectedRequestError")) {
         // Track transaction rejected analytics
         MyAnalytics.track(eventNames.UNSTAKE_TX_REJECTED, {
-          address,
+          address: addressDestination,
           amount: Number(form.getValues("unstakeAmount")),
           type: error.name,
         });
@@ -378,7 +374,7 @@ const Unstake = () => {
         if (res) {
           // Track transaction successful analytics
           MyAnalytics.track(eventNames.UNSTAKE_TX_SUCCESSFUL, {
-            address,
+            address: addressDestination,
             amount: Number(form.getValues("unstakeAmount")),
             txHash: data.transaction_hash,
           });
@@ -415,23 +411,6 @@ const Unstake = () => {
   //   }
   // }, [form.getValues("unstakeAmount"), form]);
 
-  const connectorConfig: ConnectOptionsWithConnectors = React.useMemo(() => {
-    const hostname =
-      typeof window !== "undefined" ? window.location.hostname : "";
-    return {
-      modalMode: "canAsk",
-      modalTheme: "light",
-      webWalletUrl: "https://web.argent.xyz",
-      argentMobileOptions: {
-        dappName: "Endur.fi",
-        chainId: NETWORK,
-        url: hostname,
-      },
-      dappName: "Endur.fi",
-      connectors: getConnectors(isMobile) as StarknetkitConnector[],
-    };
-  }, [isMobile]);
-
   const youWillGet = React.useMemo(() => {
     if (form.getValues("unstakeAmount") && txnDapp === "endur") {
       return (Number(form.getValues("unstakeAmount")) * exRate.rate).toFixed(2);
@@ -439,19 +418,8 @@ const Unstake = () => {
     return "0";
   }, [exRate.rate, form.watch("unstakeAmount"), txnDapp]);
 
-  async function connectWallet(config = connectorConfig) {
-    try {
-      const { connector } = await connect(config);
-      if (connector) {
-        connectSnReact({ connector: connector as any });
-      }
-    } catch (error) {
-      console.error("connectWallet error", error);
-    }
-  }
-
   const handleQuickUnstakePrice = (percentage: number) => {
-    if (!address) {
+    if (!addressDestination) {
       return toast({
         description: (
           <div className="flex items-center gap-2">
@@ -471,7 +439,7 @@ const Unstake = () => {
   };
 
   const onSubmit = async (values: FormValues) => {
-    if (!address) {
+    if (!addressDestination || !addressSource) {
       return toast({
         description: (
           <div className="flex items-center gap-2">
@@ -498,15 +466,15 @@ const Unstake = () => {
 
     // Track unstake button click
     MyAnalytics.track(eventNames.UNSTAKE_CLICK, {
-      address,
+      address: addressDestination,
       amount: Number(values.unstakeAmount),
       mode: "ViaEndur",
     });
 
     const call1 = contract.populate("redeem", [
       MyNumber.fromEther(values.unstakeAmount, 18),
-      address,
-      address,
+      addressDestination,
+      addressDestination,
     ]);
 
     sendAsync([call1]);
@@ -543,7 +511,7 @@ const Unstake = () => {
       try {
         const quotes = await getAvnuQuotes(
           form.getValues("unstakeAmount"),
-          address || "0x0",
+          addressDestination || "0x0",
         );
         setAvnuQuote(quotes[0] || null);
         setAvnuError(null);
@@ -556,13 +524,13 @@ const Unstake = () => {
     };
 
     fetchQuote();
-  }, [address, form.watch("unstakeAmount")]);
+  }, [addressDestination, form.watch("unstakeAmount")]);
 
   const handleDexSwap = async () => {
-    if (!address || !avnuQuote) return;
+    if (!addressDestination || !avnuQuote) return;
 
     MyAnalytics.track(eventNames.UNSTAKE_CLICK, {
-      address,
+      address: addressDestination,
       amount: Number(form.getValues("unstakeAmount")),
       mode: "Instant",
     });
@@ -815,10 +783,14 @@ const Unstake = () => {
           </div>
 
           <div className="mt-6 px-5">
-            {!address ? (
-              <StyledButton onClick={() => connectWallet()}>
-                Connect Wallet
-              </StyledButton>
+            {!!addressSource && !addressDestination ? (
+              <ConnectButton
+                style={{
+                  buttonStyles: {
+                    width: "100%",
+                  },
+                }}
+              />
             ) : (
               <StyledButton
                 onClick={form.handleSubmit(onSubmit)}
@@ -869,10 +841,14 @@ const Unstake = () => {
             </div> */}
           </div>
           <div className="mt-6 px-5">
-            {!address ? (
-              <StyledButton onClick={() => connectWallet()}>
-                Connect Wallet
-              </StyledButton>
+            {!addressSource && !addressDestination ? (
+              <ConnectButton
+                style={{
+                  buttonStyles: {
+                    width: "100%",
+                  },
+                }}
+              />
             ) : (
               <StyledButton
                 onClick={handleDexSwap}

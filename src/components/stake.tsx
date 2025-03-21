@@ -2,26 +2,16 @@
 
 import { useState, useMemo } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  useAccount,
-  useBalance,
-  useConnect,
-  useSendTransaction,
-} from "@starknet-react/core";
+import { useConnect } from "@starknet-react/core";
 import { useAtom, useAtomValue } from "jotai";
 import { Info, ChevronDown } from "lucide-react";
 import { Figtree } from "next/font/google";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import React from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { TwitterShareButton } from "react-share";
 import { Call, Contract } from "starknet";
-import {
-  connect,
-  ConnectOptionsWithConnectors,
-  StarknetkitConnector,
-} from "starknetkit";
 import * as z from "zod";
 
 import erc4626Abi from "@/abi/erc4626.abi.json";
@@ -43,9 +33,9 @@ import {
 } from "@/components/ui/tooltip";
 import {
   getEndpoint,
-  NETWORK,
   REWARD_FEES,
   STRK_TOKEN,
+  ETH_TOKEN,
   VESU_vXSTRK_ADDRESS,
   NOSTRA_iXSTRK_ADDRESS,
   LST_ADDRRESS,
@@ -75,7 +65,6 @@ import { isTxAccepted } from "@/store/transactions.atom";
 import { protocolYieldsAtom } from "@/store/defi.store";
 
 import { Icons } from "./Icons";
-import { getConnectors } from "./navbar";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { useSidebar } from "./ui/sidebar";
@@ -86,6 +75,27 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { providerAtom } from "@/store/common.store";
+import {
+  ConnectButton,
+  useAmountOut,
+  useSendTransaction,
+  useAccount,
+  useBalance,
+  useSharedState,
+  useMode,
+  // InteractionMode,
+  TokenTransfer,
+} from "@easyleap/sdk";
+
+declare global {
+  interface BigInt {
+    toJSON(): string;
+  }
+}
+
+BigInt.prototype.toJSON = function () {
+  return this.toString();
+};
 
 const font = Figtree({ subsets: ["latin-ext"] });
 
@@ -115,15 +125,19 @@ const Stake: React.FC = () => {
   const [showShareModal, setShowShareModal] = React.useState(false);
   const [selectedPlatform, setSelectedPlatform] = useState<Platform>("none");
   const [isLendingOpen, setIsLendingOpen] = useState(false);
+  const [calls, setCalls] = React.useState<Call[]>([]);
 
   const searchParams = useSearchParams();
 
-  const { address } = useAccount();
-  const { connect: connectSnReact } = useConnect();
-  const { data: balance } = useBalance({
-    address,
-    token: STRK_TOKEN,
+  const sharedState = useSharedState();
+  const mode = useMode();
+
+  const balanceInfo = useBalance({
+    l2TokenAddress: STRK_TOKEN,
   });
+
+  const { addressSource, addressDestination } = useAccount();
+  const { connect: connectSnReact } = useConnect();
 
   const { isMobile } = useSidebar();
   const { dismiss } = useToast();
@@ -148,12 +162,42 @@ const Stake: React.FC = () => {
     },
     mode: "onChange",
   });
+  const watchedValues = useWatch({ control: form.control });
+  const stakedAmount = form.getValues("stakeAmount");
 
   const contractSTRK = new Contract(erc4626Abi, STRK_TOKEN);
 
   const contract = rpcProvider ? getLSTContract(rpcProvider) : null;
 
-  const { sendAsync, data, isPending, error } = useSendTransaction({});
+  const rawAmount = React.useMemo(() => {
+    return BigInt(Math.round(Number(stakedAmount) * 1e18).toFixed(0));
+  }, [stakedAmount]);
+
+  const amountOutRes = useAmountOut(rawAmount);
+
+  React.useEffect(() => {
+    console.log("formState", form.formState.isDirty, form.getValues());
+    // if (form.formState.isDirty) {
+    getCalls(form.getValues()).then(setCalls);
+    // }
+  }, [JSON.stringify(watchedValues), addressSource, addressDestination]);
+
+  const {
+    send,
+    error,
+    isPending,
+    dataSN,
+    dataEVM: _,
+    isSuccessSN,
+    isSuccessEVM,
+  } = useSendTransaction({
+    calls,
+    bridgeConfig: {
+      // ! This is L2 ETH address. Dont change
+      l2_token_address: ETH_TOKEN,
+      amount: rawAmount,
+    },
+  });
 
   const getPlatformYield = (platform: Platform) => {
     if (platform === "none") return 0;
@@ -171,12 +215,12 @@ const Stake: React.FC = () => {
 
   React.useEffect(() => {
     (async () => {
-      if (data?.transaction_hash) {
+      if (dataSN?.transaction_hash) {
         // Track transaction init analytics
         MyAnalytics.track(eventNames.STAKE_TX_INIT, {
-          address,
+          address: addressDestination,
           amount: Number(form.getValues("stakeAmount")),
-          txHash: data?.transaction_hash,
+          txHash: dataSN?.transaction_hash,
         });
       }
       if (isPending) {
@@ -204,7 +248,7 @@ const Stake: React.FC = () => {
       if (error?.name?.includes("UserRejectedRequestError")) {
         // Track transaction rejected analytics
         MyAnalytics.track(eventNames.STAKE_TX_REJECTED, {
-          address,
+          address: addressDestination,
           amount: Number(form.getValues("stakeAmount")),
           type: error.name,
         });
@@ -214,7 +258,7 @@ const Stake: React.FC = () => {
       if (error?.name && !error?.name?.includes("UserRejectedRequestError")) {
         // Track transaction rejected analytics
         MyAnalytics.track(eventNames.STAKE_TX_REJECTED, {
-          address,
+          address: addressDestination,
           amount: Number(form.getValues("stakeAmount")),
           type: error.name,
         });
@@ -235,13 +279,13 @@ const Stake: React.FC = () => {
         });
       }
 
-      if (data) {
-        const res = await isTxAccepted(data?.transaction_hash);
+      if (dataSN) {
+        const res = await isTxAccepted(dataSN?.transaction_hash);
 
         if (res) {
           // Track transaction successful analytics
           MyAnalytics.track(eventNames.STAKE_TX_SUCCESSFUL, {
-            address,
+            address: addressDestination,
             amount: Number(form.getValues("stakeAmount")),
           });
           toast({
@@ -267,7 +311,7 @@ const Stake: React.FC = () => {
         }
       }
     })();
-  }, [data, data?.transaction_hash, error?.name, form, isPending]);
+  }, [dataSN, dataSN?.transaction_hash, error?.name, form, isPending]);
 
   // React.useEffect(() => {
   //   if (form.getValues("stakeAmount").toLowerCase() === "xstrk") {
@@ -289,37 +333,8 @@ const Stake: React.FC = () => {
   //   }
   // }, [address, focusStakeInput]);
 
-  const connectorConfig: ConnectOptionsWithConnectors = React.useMemo(() => {
-    const hostname =
-      typeof window !== "undefined" ? window.location.hostname : "";
-    return {
-      modalMode: "canAsk",
-      modalTheme: "light",
-      webWalletUrl: "https://web.argent.xyz",
-      argentMobileOptions: {
-        dappName: "Endur.fi",
-        chainId: NETWORK,
-        url: hostname,
-      },
-      dappName: "Endur.fi",
-      connectors: getConnectors(isMobile) as StarknetkitConnector[],
-    };
-  }, [isMobile]);
-
-  async function connectWallet(config = connectorConfig) {
-    try {
-      const { connector } = await connect(config);
-
-      if (connector) {
-        connectSnReact({ connector: connector as any });
-      }
-    } catch (error) {
-      console.error("connectWallet error", error);
-    }
-  }
-
   const handleQuickStakePrice = (percentage: number) => {
-    if (!address) {
+    if (!addressSource || !addressDestination) {
       return toast({
         description: (
           <div className="flex items-center gap-2">
@@ -330,72 +345,52 @@ const Stake: React.FC = () => {
       });
     }
 
-    if (balance && percentage === 100) {
-      if (Number(balance?.formatted) < 1) {
+    if (balanceInfo && percentage === 100) {
+      if (Number(balanceInfo?.data?.formatted) < 1) {
         form.setValue("stakeAmount", "0");
         form.clearErrors("stakeAmount");
         return;
       }
 
-      form.setValue("stakeAmount", (Number(balance?.formatted) - 1).toString());
+      form.setValue(
+        "stakeAmount",
+        (Number(balanceInfo?.data?.formatted) - 1).toString(),
+      );
       form.clearErrors("stakeAmount");
       return;
     }
 
-    if (balance) {
+    if (balanceInfo) {
       form.setValue(
         "stakeAmount",
-        ((Number(balance?.formatted) * percentage) / 100).toString(),
+        ((Number(balanceInfo?.data?.formatted) * percentage) / 100).toString(),
       );
       form.clearErrors("stakeAmount");
     }
   };
 
-  const onSubmit = async (values: FormValues) => {
-    const stakeAmount = Number(values.stakeAmount);
+  const tokensOut: TokenTransfer[] = React.useMemo(() => {
+    return [
+      {
+        name: "ETH",
+        amount: (Number(rawAmount) / 1e18).toFixed(4),
+        logo: "https://app.strkfarm.com/zklend/icons/tokens/eth.svg?w=20",
+      },
+    ];
+  }, [rawAmount]);
 
-    if (
-      isNaN(stakeAmount) ||
-      !Number.isFinite(stakeAmount) ||
-      stakeAmount <= 0
-    ) {
-      return toast({
-        description: (
-          <div className="flex items-center gap-2">
-            <Info className="size-5" />
-            Invalid stake amount
-          </div>
-        ),
-      });
-    }
+  const tokensIn: TokenTransfer[] = React.useMemo(() => {
+    return [
+      {
+        name: "vETH",
+        amount: (Number(amountOutRes.amountOut) / 1e18).toFixed(4),
+        logo: "https://app.strkfarm.com/zklend/icons/tokens/eth.svg?w=20",
+      },
+    ];
+  }, [amountOutRes.amountOut]);
 
-    if (stakeAmount > Number(balance?.formatted)) {
-      return toast({
-        description: (
-          <div className="flex items-center gap-2">
-            <Info className="size-5" />
-            Insufficient balance
-          </div>
-        ),
-      });
-    }
-
-    if (!address) {
-      return toast({
-        description: (
-          <div className="flex items-center gap-2">
-            <Info className="size-5" />
-            Please connect your wallet
-          </div>
-        ),
-      });
-    }
-    // track stake button click
-    MyAnalytics.track(eventNames.STAKE_CLICK, {
-      address,
-      amount: Number(values.stakeAmount),
-    });
-
+  async function getCalls(values: FormValues): Promise<Call[]> {
+    if (!addressDestination || !addressSource) return [];
     const strkAmount = MyNumber.fromEther(values.stakeAmount, 18);
     const previewCall = await contract?.preview_deposit(strkAmount.toString());
     const xstrkAmount = previewCall?.toString() || "0";
@@ -405,10 +400,10 @@ const Stake: React.FC = () => {
     const call2 = referrer
       ? contract?.populate("deposit_with_referral", [
           strkAmount,
-          address,
+          addressDestination,
           referrer,
         ])
-      : contract?.populate("deposit", [strkAmount, address]);
+      : contract?.populate("deposit", [strkAmount, addressDestination]);
 
     const calls: Call[] = [call1];
     if (call2) {
@@ -432,20 +427,117 @@ const Stake: React.FC = () => {
         const vesuContract = new Contract(vxstrkAbi, VESU_vXSTRK_ADDRESS);
         const lendingCall = vesuContract.populate("deposit", [
           xstrkAmount,
-          address,
+          addressSource,
         ]);
         calls.push(approveCall, lendingCall);
       } else {
         const nostraContract = new Contract(ixstrkAbi, NOSTRA_iXSTRK_ADDRESS);
         const lendingCall = nostraContract.populate("mint", [
-          address,
+          addressSource,
           xstrkAmount,
         ]);
         calls.push(approveCall, lendingCall);
       }
     }
 
-    await sendAsync(calls);
+    return calls;
+  }
+
+  const onSubmit = async (values: FormValues) => {
+    const stakeAmount = Number(values.stakeAmount);
+
+    if (
+      isNaN(stakeAmount) ||
+      !Number.isFinite(stakeAmount) ||
+      stakeAmount <= 0
+    ) {
+      return toast({
+        description: (
+          <div className="flex items-center gap-2">
+            <Info className="size-5" />
+            Invalid stake amount
+          </div>
+        ),
+      });
+    }
+
+    if (stakeAmount > Number(balanceInfo?.data?.formatted)) {
+      return toast({
+        description: (
+          <div className="flex items-center gap-2">
+            <Info className="size-5" />
+            Insufficient balance
+          </div>
+        ),
+      });
+    }
+
+    if (!addressSource || !addressDestination) {
+      return toast({
+        description: (
+          <div className="flex items-center gap-2">
+            <Info className="size-5" />
+            Please connect your wallet
+          </div>
+        ),
+      });
+    }
+    // track stake button click
+    MyAnalytics.track(eventNames.STAKE_CLICK, {
+      address: addressSource,
+      amount: Number(values.stakeAmount),
+    });
+
+    const strkAmount = MyNumber.fromEther(values.stakeAmount, 18);
+    const previewCall = await contract?.preview_deposit(strkAmount.toString());
+    const xstrkAmount = previewCall?.toString() || "0";
+
+    const call1 = contractSTRK.populate("approve", [LST_ADDRRESS, strkAmount]);
+
+    const call2 = referrer
+      ? contract?.populate("deposit_with_referral", [
+          strkAmount,
+          addressDestination,
+          referrer,
+        ])
+      : contract?.populate("deposit", [strkAmount, addressDestination]);
+
+    const calls: Call[] = [call1];
+    if (call2) {
+      calls.push(call2);
+    }
+
+    if (selectedPlatform !== "none") {
+      const lstContract = new Contract(erc4626Abi, LST_ADDRRESS);
+
+      const lendingAddress =
+        selectedPlatform === "vesu"
+          ? VESU_vXSTRK_ADDRESS
+          : NOSTRA_iXSTRK_ADDRESS;
+
+      const approveCall = lstContract.populate("approve", [
+        lendingAddress,
+        xstrkAmount,
+      ]);
+
+      if (selectedPlatform === "vesu") {
+        const vesuContract = new Contract(vxstrkAbi, VESU_vXSTRK_ADDRESS);
+        const lendingCall = vesuContract.populate("deposit", [
+          xstrkAmount,
+          addressDestination,
+        ]);
+        calls.push(approveCall, lendingCall);
+      } else {
+        const nostraContract = new Contract(ixstrkAbi, NOSTRA_iXSTRK_ADDRESS);
+        const lendingCall = nostraContract.populate("mint", [
+          addressDestination,
+          xstrkAmount,
+        ]);
+        calls.push(approveCall, lendingCall);
+      }
+    }
+
+    await send(tokensIn, tokensOut);
   };
 
   const getCalculatedXSTRK = () => {
@@ -640,7 +732,9 @@ const Stake: React.FC = () => {
             <Icons.wallet className="size-3 lg:size-5" />
             <span className="hidden md:block">Balance:</span>
             <span className="font-bold">
-              {balance?.formatted ? Number(balance?.formatted).toFixed(2) : "0"}{" "}
+              {balanceInfo?.data?.formatted
+                ? Number(balanceInfo?.data?.formatted).toFixed(2)
+                : "0"}{" "}
               STRK
             </span>
           </div>
@@ -833,16 +927,15 @@ const Stake: React.FC = () => {
       </div>
 
       <div className="mt-6 px-5">
-        {!address && (
-          <Button
-            onClick={() => connectWallet()}
-            className="w-full rounded-2xl bg-[#17876D] py-6 text-sm font-semibold text-white hover:bg-[#17876D] disabled:bg-[#03624C4D] disabled:text-[#17876D] disabled:opacity-90"
-          >
-            Connect Wallet
-          </Button>
-        )}
-
-        {address && (
+        {!addressSource && !addressDestination ? (
+          <ConnectButton
+            style={{
+              buttonStyles: {
+                width: "100%",
+              },
+            }}
+          />
+        ) : (
           <Button
             type="submit"
             disabled={
