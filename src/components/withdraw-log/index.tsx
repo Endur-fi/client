@@ -1,27 +1,20 @@
 import { useAccount } from "@starknet-react/core";
 import { useAtomValue } from "jotai";
-import { LoaderCircle } from "lucide-react";
-import Link from "next/link";
 import React from "react";
 
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { getExplorerEndpoint } from "@/constants";
 import MyNumber from "@/lib/MyNumber";
-import { cn, convertFutureTimestamp } from "@/lib/utils";
 import { withdrawLogsAtom } from "@/store/transactions.atom";
 
-import { Icons } from "./Icons";
+import { Loader } from "lucide-react";
+import {
+  type Status,
+  withdrawLogColumn,
+  type WithdrawLogColumn,
+} from "./table/columns";
+import { WithdrawDataTable } from "./table/data-table";
 
 const WithdrawLog: React.FC = () => {
-  const [withdrawals, setWithdrawals] = React.useState<any>();
-  const [loading, setLoading] = React.useState(false);
+  const [withdrawals, setWithdrawals] = React.useState<WithdrawLogColumn[]>();
 
   const withdrawalLogs = useAtomValue(withdrawLogsAtom);
 
@@ -30,8 +23,6 @@ const WithdrawLog: React.FC = () => {
   React.useEffect(() => {
     (async () => {
       if (!address) return;
-
-      setLoading(true);
 
       const withdrawalData = withdrawalLogs?.value;
 
@@ -50,18 +41,66 @@ const WithdrawLog: React.FC = () => {
           }
           return acc;
         }, {}),
-      ).sort((a: any, b: any) => b.timestamp - a.timestamp);
+      )
+        .sort((a: any, b: any) => b.timestamp - a.timestamp)
+        .reverse();
 
-      setLoading(false);
+      const formattedWithdrawals: WithdrawLogColumn[] = uniqueWithdrawals.map(
+        (item: any) => ({
+          queuePosition: item?.request_id,
+          amount: new MyNumber(item?.amount_strk, 18).toEtherToFixedDecimals(2),
+          status: (item?.is_claimed ? "Success" : "Pending") as Status,
+          claimTime: item?.claim_time,
+          txHash: item?.tx_hash,
+        }),
+      );
 
-      setWithdrawals(uniqueWithdrawals.reverse());
+      setWithdrawals(formattedWithdrawals);
     })();
   }, [address, withdrawalLogs?.value]);
 
+  if (withdrawalLogs.isLoading)
+    return (
+      <div className="-mt-5 flex h-full items-center justify-center gap-2">
+        Loading your withdraw logs <Loader className="size-5 animate-spin" />
+      </div>
+    );
+
   return (
     <div className="h-full w-full">
-      <div className="overflow-y-auto">
-        <Table className="h-full">
+      <div className="my-3 flex w-full grid-cols-3 flex-wrap items-center justify-center gap-5 px-5 lg:grid">
+        <div className="h-full rounded-[12px] border border-[#AACBC4]/30 bg-[#E3EFEC]/30 p-2 px-3 lg:col-span-1 lg:w-full">
+          <p className="text-[10px] font-medium text-[#03624C]">
+            Global Pending withdrawals
+          </p>
+          <p className="text-base font-medium text-[#021B1A]">500K STRK</p>
+          <p className="mt-4 text-[10px] font-medium text-[#021B1A]">
+            Your pending - 300 STRK
+          </p>
+        </div>
+
+        <div className="h-full rounded-[12px] border border-[#AACBC4]/30 bg-[#E3EFEC]/30 p-2 px-3 lg:col-span-1 lg:w-full">
+          <p className="text-[10px] font-medium text-[#03624C]">
+            Global Pending requests
+          </p>
+          <p className="text-base font-medium text-[#021B1A]">50,000</p>
+          <p className="mt-4 text-[10px] font-medium text-[#021B1A]">
+            Your pending -{" "}
+            {withdrawals?.filter((item) => item.status === "Pending")?.length}
+          </p>
+        </div>
+
+        <div className="h-full rounded-[12px] border border-[#AACBC4]/30 bg-[#E3EFEC]/30 p-2 px-3 lg:col-span-1 lg:w-full">
+          <p className="text-[10px] font-medium text-[#03624C]">
+            Global Amount available
+          </p>
+          <p className="text-base font-medium text-[#021B1A]">500 STRK</p>
+        </div>
+      </div>
+
+      <WithdrawDataTable columns={withdrawLogColumn} data={withdrawals ?? []} />
+
+      {/* <Table className="h-full">
           <TableHeader>
             <TableRow className="border-none bg-gradient-to-t from-[#18a79b40] to-[#38EF7D00] hover:bg-gradient-to-t">
               <TableHead className="pl-3 font-normal text-black sm:w-[100px]">
@@ -87,7 +126,7 @@ const WithdrawLog: React.FC = () => {
               </TableRow>
             )}
 
-            {loading && (
+            {withdrawalLogs.isLoading && (
               <TableRow>
                 <TableCell></TableCell>
                 <TableCell className="flex items-center justify-center py-5 pl-14 text-muted-foreground">
@@ -140,18 +179,21 @@ const WithdrawLog: React.FC = () => {
                   )}
                 </TableRow>
               ))}
-            {withdrawals && address && !withdrawals.length && (
-              <TableRow>
-                <TableCell></TableCell>
-                <TableCell className="flex items-center justify-center py-5 pl-5 text-muted-foreground">
-                  No withdrawals
-                </TableCell>
-                <TableCell></TableCell>
-              </TableRow>
-            )}
+
+            {withdrawals &&
+              address &&
+              !withdrawals.length &&
+              !withdrawalLogs.isLoading && (
+                <TableRow>
+                  <TableCell></TableCell>
+                  <TableCell className="flex items-center justify-center py-5 pl-5 text-muted-foreground">
+                    No withdrawals
+                  </TableCell>
+                  <TableCell></TableCell>
+                </TableRow>
+              )}
           </TableBody>
-        </Table>
-      </div>
+        </Table> */}
     </div>
   );
 };
