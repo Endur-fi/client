@@ -17,15 +17,15 @@ export function shortAddress(_address: string, startChars = 4, endChars = 4) {
   return truncate(x, startChars, endChars);
 }
 
-export function formatNumber(num: number | string, decimals?: number): string {
+export function formatNumber(num: number | string, decimals = 2): string {
   const numberValue = typeof num === "string" ? Number(num) : num;
 
   if (numberValue >= 1_000_000) {
-    return `${(numberValue / 1_000_000).toFixed(decimals ?? 2)}m`;
+    return `${(numberValue / 1_000_000).toFixed(decimals)}m`;
   } else if (numberValue >= 1_000) {
-    return `${(numberValue / 1_000).toFixed(decimals ?? 2)}k`;
+    return `${(numberValue / 1_000).toFixed(decimals)}k`;
   }
-  return `${numberValue.toFixed(decimals ?? 2)}`;
+  return `${numberValue}`;
 }
 
 export function formatNumberWithCommas(
