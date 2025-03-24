@@ -189,6 +189,7 @@ export function WithdrawDataTable<TData, TValue>({
           "absolute -bottom-[5.5rem] left-1/2 flex -translate-x-1/2 items-center justify-center space-x-2 py-4",
           {
             "-bottom-[15.3rem]": noResults,
+            "-bottom-[18.3rem]": table.getRowModel().rows.length <= 5,
           },
         )}
       >

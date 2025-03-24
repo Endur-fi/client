@@ -27,6 +27,7 @@ export type WithdrawLogColumn = {
   status: Status;
   claimTime: string;
   txHash: string;
+  // rank: number;
 };
 
 export const withdrawLogColumn: ColumnDef<WithdrawLogColumn>[] = [
@@ -43,7 +44,7 @@ export const withdrawLogColumn: ColumnDef<WithdrawLogColumn>[] = [
               </TooltipTrigger>
 
               <TooltipContent side="right" className="rounded-md">
-                You can claim your within{" "}
+                Your position in the withdrawal queue
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
@@ -125,7 +126,7 @@ export const withdrawLogColumn: ColumnDef<WithdrawLogColumn>[] = [
                     <Info className="size-3 text-[#939494]" />
                   </TooltipTrigger>
 
-                  <TooltipContent side="right" className="rounded-md">
+                  <TooltipContent side="bottom" className="rounded-md">
                     You can claim your within{" "}
                     {convertFutureTimestamp(row.original.claimTime as any)}
                   </TooltipContent>
