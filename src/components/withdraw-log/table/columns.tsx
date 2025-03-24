@@ -39,11 +39,13 @@ export const withdrawLogColumn: ColumnDef<WithdrawLogColumn>[] = [
           Queue Position
           <TooltipProvider delayDuration={0}>
             <Tooltip>
-              <TooltipTrigger asChild>
+              <TooltipTrigger className="ml-1" tabIndex={-1} asChild>
                 <Info className="size-3 text-black" />
               </TooltipTrigger>
-
-              <TooltipContent side="right" className="rounded-md">
+              <TooltipContent
+                side="right"
+                className="max-w-[13rem] rounded-md border border-[#03624C] bg-white text-[#03624C]"
+              >
                 Your position in the withdrawal queue
               </TooltipContent>
             </Tooltip>
@@ -122,11 +124,13 @@ export const withdrawLogColumn: ColumnDef<WithdrawLogColumn>[] = [
 
               <TooltipProvider delayDuration={0}>
                 <Tooltip>
-                  <TooltipTrigger asChild>
+                  <TooltipTrigger className="ml-1" tabIndex={-1} asChild>
                     <Info className="size-3 text-[#939494]" />
                   </TooltipTrigger>
-
-                  <TooltipContent side="bottom" className="rounded-md">
+                  <TooltipContent
+                    side="bottom"
+                    className="max-w-[13rem] rounded-md border border-[#03624C] bg-white text-[#03624C]"
+                  >
                     You can claim your within{" "}
                     {convertFutureTimestamp(row.original.claimTime as any)}
                   </TooltipContent>
