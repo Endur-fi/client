@@ -27,7 +27,7 @@ export type WithdrawLogColumn = {
   status: Status;
   claimTime: string;
   txHash: string;
-  // rank: number;
+  rank: number;
 };
 
 export const withdrawLogColumn: ColumnDef<WithdrawLogColumn>[] = [
@@ -55,11 +55,21 @@ export const withdrawLogColumn: ColumnDef<WithdrawLogColumn>[] = [
     },
     cell: ({ row }) => {
       const requestId = row.original.queuePosition;
+      const rank = row.original.rank;
+      const status = row.original.status;
 
       return (
         <div className="flex flex-col items-start gap-1">
-          <span className="text-sm font-normal">Rank - {requestId}</span>
-          <span className="text-xs text-[#939494]">ID - {requestId}</span>
+          {status !== "Success" && (
+            <span className="text-sm font-normal">Rank - {rank}</span>
+          )}
+          <span
+            className={cn("text-xs text-[#939494]", {
+              "text-sm font-normal text-black/70": status === "Success",
+            })}
+          >
+            ID - {requestId}
+          </span>
         </div>
       );
     },

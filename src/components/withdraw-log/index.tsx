@@ -47,6 +47,7 @@ const WithdrawLog: React.FC = () => {
     globalPendingWithdrawStatsAtom,
   );
   const globalAmountAvailable = useAtomValue(globalAmountAvailableAtom);
+
   const { address } = useAccount();
 
   const yourPendingWithdrawalsAmount = React.useMemo(
@@ -85,14 +86,31 @@ const WithdrawLog: React.FC = () => {
 
     const uniqueWithdrawals = getUniqueWithdrawals(withdrawalData);
 
+    const maxRequestID = uniqueWithdrawals?.reduce(
+      (acc, item) =>
+        item.is_claimed
+          ? Math.max(Number(acc || 0), Number(item.request_id))
+          : acc,
+      0,
+    );
+
+    console.log(maxRequestID, "max");
+
     const formattedWithdrawals: WithdrawLogColumn[] = uniqueWithdrawals.map(
-      (item: any) => ({
-        queuePosition: item.request_id,
-        amount: new MyNumber(item.amount_strk, 18).toEtherToFixedDecimals(2),
-        status: (item.is_claimed ? "Success" : "Pending") as Status,
-        claimTime: item.claim_time,
-        txHash: item.tx_hash,
-      }),
+      (item: any) => {
+        const negativeDiff = Number(item.request_id) - maxRequestID;
+
+        const rank = negativeDiff <= 0 ? 1 : negativeDiff;
+
+        return {
+          queuePosition: item.request_id,
+          amount: new MyNumber(item.amount_strk, 18).toEtherToFixedDecimals(2),
+          status: (item.is_claimed ? "Success" : "Pending") as Status,
+          claimTime: item.claim_time,
+          txHash: item.tx_hash,
+          rank,
+        };
+      },
     );
 
     setWithdrawals(formattedWithdrawals);

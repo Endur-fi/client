@@ -98,7 +98,7 @@ const Tabs = () => {
         className={cn(
           "mt-6 min-h-[31.5rem] w-full max-w-xl rounded-xl bg-white shadow-xl lg:h-fit lg:pb-5",
           {
-            "mb-24": activeTab === "withdraw",
+            "mb-24 lg:pb-0.5": activeTab === "withdraw",
           },
         )}
       >
