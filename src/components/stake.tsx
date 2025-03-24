@@ -11,7 +11,7 @@ import { useSearchParams } from "next/navigation";
 import React from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { TwitterShareButton } from "react-share";
-import { Call, Contract } from "starknet";
+import { Call, CallData, Contract } from "starknet";
 import * as z from "zod";
 
 import erc4626Abi from "@/abi/erc4626.abi.json";
@@ -83,8 +83,11 @@ import {
   useBalance,
   useSharedState,
   useMode,
-  // InteractionMode,
+  InteractionMode,
   TokenTransfer,
+  ADDRESSES,
+  ReviewModal,
+  getConfig,
 } from "@easyleap/sdk";
 
 declare global {
@@ -177,9 +180,8 @@ const Stake: React.FC = () => {
 
   React.useEffect(() => {
     console.log("formState", form.formState.isDirty, form.getValues());
-    // if (form.formState.isDirty) {
+
     getCalls(form.getValues()).then(setCalls);
-    // }
   }, [JSON.stringify(watchedValues), addressSource, addressDestination]);
 
   const {
@@ -193,8 +195,7 @@ const Stake: React.FC = () => {
   } = useSendTransaction({
     calls,
     bridgeConfig: {
-      // ! This is L2 ETH address. Dont change
-      l2_token_address: ETH_TOKEN,
+      l2_token_address: STRK_TOKEN,
       amount: rawAmount,
     },
   });
@@ -372,9 +373,9 @@ const Stake: React.FC = () => {
   const tokensOut: TokenTransfer[] = React.useMemo(() => {
     return [
       {
-        name: "ETH",
+        name: "STRK",
         amount: (Number(rawAmount) / 1e18).toFixed(4),
-        logo: "https://app.strkfarm.com/zklend/icons/tokens/eth.svg?w=20",
+        logo: "https://app.strkfarm.com/zklend/icons/tokens/strk.svg?w=20",
       },
     ];
   }, [rawAmount]);
@@ -382,9 +383,9 @@ const Stake: React.FC = () => {
   const tokensIn: TokenTransfer[] = React.useMemo(() => {
     return [
       {
-        name: "vETH",
+        name: "xSTRk",
         amount: (Number(amountOutRes.amountOut) / 1e18).toFixed(4),
-        logo: "https://app.strkfarm.com/zklend/icons/tokens/eth.svg?w=20",
+        logo: "https://app.strkfarm.com/zklend/icons/tokens/xstrk.svg?w=20",
       },
     ];
   }, [amountOutRes.amountOut]);
@@ -488,54 +489,54 @@ const Stake: React.FC = () => {
       amount: Number(values.stakeAmount),
     });
 
-    const strkAmount = MyNumber.fromEther(values.stakeAmount, 18);
-    const previewCall = await contract?.preview_deposit(strkAmount.toString());
-    const xstrkAmount = previewCall?.toString() || "0";
+    // const strkAmount = MyNumber.fromEther(values.stakeAmount, 18);
+    // const previewCall = await contract?.preview_deposit(strkAmount.toString());
+    // const xstrkAmount = previewCall?.toString() || "0";
 
-    const call1 = contractSTRK.populate("approve", [LST_ADDRRESS, strkAmount]);
+    // const call1 = contractSTRK.populate("approve", [LST_ADDRRESS, strkAmount]);
 
-    const call2 = referrer
-      ? contract?.populate("deposit_with_referral", [
-          strkAmount,
-          addressDestination,
-          referrer,
-        ])
-      : contract?.populate("deposit", [strkAmount, addressDestination]);
+    // const call2 = referrer
+    //   ? contract?.populate("deposit_with_referral", [
+    //       strkAmount,
+    //       addressDestination,
+    //       referrer,
+    //     ])
+    //   : contract?.populate("deposit", [strkAmount, addressDestination]);
 
-    const calls: Call[] = [call1];
-    if (call2) {
-      calls.push(call2);
-    }
+    // const calls: Call[] = [call1];
+    // if (call2) {
+    //   calls.push(call2);
+    // }
 
-    if (selectedPlatform !== "none") {
-      const lstContract = new Contract(erc4626Abi, LST_ADDRRESS);
+    // if (selectedPlatform !== "none") {
+    //   const lstContract = new Contract(erc4626Abi, LST_ADDRRESS);
 
-      const lendingAddress =
-        selectedPlatform === "vesu"
-          ? VESU_vXSTRK_ADDRESS
-          : NOSTRA_iXSTRK_ADDRESS;
+    //   const lendingAddress =
+    //     selectedPlatform === "vesu"
+    //       ? VESU_vXSTRK_ADDRESS
+    //       : NOSTRA_iXSTRK_ADDRESS;
 
-      const approveCall = lstContract.populate("approve", [
-        lendingAddress,
-        xstrkAmount,
-      ]);
+    //   const approveCall = lstContract.populate("approve", [
+    //     lendingAddress,
+    //     xstrkAmount,
+    //   ]);
 
-      if (selectedPlatform === "vesu") {
-        const vesuContract = new Contract(vxstrkAbi, VESU_vXSTRK_ADDRESS);
-        const lendingCall = vesuContract.populate("deposit", [
-          xstrkAmount,
-          addressDestination,
-        ]);
-        calls.push(approveCall, lendingCall);
-      } else {
-        const nostraContract = new Contract(ixstrkAbi, NOSTRA_iXSTRK_ADDRESS);
-        const lendingCall = nostraContract.populate("mint", [
-          addressDestination,
-          xstrkAmount,
-        ]);
-        calls.push(approveCall, lendingCall);
-      }
-    }
+    //   if (selectedPlatform === "vesu") {
+    //     const vesuContract = new Contract(vxstrkAbi, VESU_vXSTRK_ADDRESS);
+    //     const lendingCall = vesuContract.populate("deposit", [
+    //       xstrkAmount,
+    //       addressDestination,
+    //     ]);
+    //     calls.push(approveCall, lendingCall);
+    //   } else {
+    //     const nostraContract = new Contract(ixstrkAbi, NOSTRA_iXSTRK_ADDRESS);
+    //     const lendingCall = nostraContract.populate("mint", [
+    //       addressDestination,
+    //       xstrkAmount,
+    //     ]);
+    //     calls.push(approveCall, lendingCall);
+    //   }
+    // }
 
     await send(tokensIn, tokensOut);
   };
@@ -563,6 +564,8 @@ const Stake: React.FC = () => {
           <Icons.cloud />
         </div>
       )} */}
+
+      <ReviewModal />
 
       <Dialog open={showShareModal} onOpenChange={setShowShareModal}>
         <DialogContent className={cn(font.className, "p-16 sm:max-w-xl")}>
