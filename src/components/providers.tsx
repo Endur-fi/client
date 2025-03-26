@@ -51,7 +51,7 @@ const Providers: React.FC<ProvidersProps> = ({ children }) => {
         mainBgColor: "#03624C4D",
 
         starknetButton: {
-          backgroundColor: "#17876D",
+          backgroundColor: "rgba(23, 135, 109, 0.53)",
           color: "#FFFFFF",
           border: "0px solid transparent",
           borderRadius: "0.75rem",
@@ -60,14 +60,14 @@ const Providers: React.FC<ProvidersProps> = ({ children }) => {
         evmButton: {
           backgroundColor: "#17876D",
           color: "#FFFFFF",
-          border: "2px solid #B5AADF",
+          border: "2px solid  #443F53",
           borderRadius: "0.75rem",
         },
 
         switchButton: {
           backgroundColor: "#17876D",
           color: "#FFFFFF",
-          border: "2px solid #B5AADF",
+          border: "2px solid #443F53",
         },
 
         historyButton: {

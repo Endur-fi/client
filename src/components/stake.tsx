@@ -11,7 +11,7 @@ import { useSearchParams } from "next/navigation";
 import React from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { TwitterShareButton } from "react-share";
-import { Call, CallData, Contract } from "starknet";
+import { Call, Contract } from "starknet";
 import * as z from "zod";
 
 import erc4626Abi from "@/abi/erc4626.abi.json";
@@ -35,7 +35,6 @@ import {
   getEndpoint,
   REWARD_FEES,
   STRK_TOKEN,
-  ETH_TOKEN,
   VESU_vXSTRK_ADDRESS,
   NOSTRA_iXSTRK_ADDRESS,
   LST_ADDRRESS,
@@ -83,11 +82,9 @@ import {
   useBalance,
   useSharedState,
   useMode,
-  InteractionMode,
   TokenTransfer,
-  ADDRESSES,
   ReviewModal,
-  getConfig,
+  DestinationDapp,
 } from "@easyleap/sdk";
 
 declare global {
@@ -385,10 +382,15 @@ const Stake: React.FC = () => {
       {
         name: "xSTRk",
         amount: (Number(amountOutRes.amountOut) / 1e18).toFixed(4),
-        logo: "https://app.strkfarm.com/zklend/icons/tokens/xstrk.svg?w=20",
+        logo: "https://imagedelivery.net/0xPAQaDtnQhBs8IzYRIlNg/c1f44170-c1b0-4531-3d3b-5f0bacfe1300/logo",
       },
     ];
   }, [amountOutRes.amountOut]);
+
+  const destinationDapp: DestinationDapp = {
+    name: "Endur",
+    logo: "https://app.endur.fi/favicon.ico",
+  };
 
   async function getCalls(values: FormValues): Promise<Call[]> {
     if (!addressDestination || !addressSource) return [];
@@ -538,7 +540,7 @@ const Stake: React.FC = () => {
     //   }
     // }
 
-    await send(tokensIn, tokensOut);
+    await send(tokensIn, tokensOut, destinationDapp);
   };
 
   const getCalculatedXSTRK = () => {
