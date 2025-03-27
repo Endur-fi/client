@@ -16,6 +16,7 @@ export const xSTRK_TOKEN_MAINNET =
 export const xSTRK_TOKEN_MAINNET_DEPLOYMENT_BLOCK = 929092;
 
 export const STRK_DECIMALS = 18;
+export const ETH_DECIMALS = 18;
 export const REWARD_FEES = 15;
 
 export const RECEPIEINT_FEE_ADDRESS =

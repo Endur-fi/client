@@ -1,59 +1,102 @@
 "use client";
 
-import { mainnet, sepolia } from "@starknet-react/chains";
-import {
-  Connector,
-  jsonRpcProvider,
-  StarknetConfig,
-} from "@starknet-react/core";
-import { Figtree } from "next/font/google";
 import React from "react";
-import { constants, RpcProviderOptions } from "starknet";
 
+import { InjectedConnector } from "@starknet-react/core";
+import { WebWalletConnector } from "starknetkit/webwallet";
+import {
+  defaultEasyleapConfig,
+  EasyleapConfig,
+  EasyleapProvider,
+} from "@easyleap/sdk";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { SidebarProvider } from "@/components/ui/sidebar";
-import { NETWORK } from "@/constants";
-import { useIsMobile } from "@/hooks/use-mobile";
-import { cn } from "@/lib/utils";
-import { WalletConnector } from "@/services/wallet";
-
-const font = Figtree({
-  subsets: ["latin-ext"],
-});
 
 interface ProvidersProps {
   children: React.ReactNode;
 }
 
-const chains = [mainnet, sepolia];
-
-const provider = jsonRpcProvider({
-  rpc: () => {
-    const args: RpcProviderOptions = {
-      nodeUrl: process.env.NEXT_PUBLIC_RPC_URL,
-      chainId:
-        NETWORK === constants.NetworkName.SN_MAIN
-          ? constants.StarknetChainId.SN_MAIN
-          : constants.StarknetChainId.SN_SEPOLIA,
-      blockIdentifier: "pending",
-    };
-    return args;
-  },
-});
-
 const Providers: React.FC<ProvidersProps> = ({ children }) => {
-  const isMobile = useIsMobile();
-  const walletConnector = new WalletConnector(isMobile);
+  const queryClient = new QueryClient();
+
+  const easyleapConfig: EasyleapConfig = {
+    theme: {
+      noneMode: {
+        backgroundColor: "#17876D",
+        color: "#fff",
+        border: "1px solid #fff",
+      },
+      starknetMode: {
+        mainBgColor: "#03624C4D",
+
+        button: {
+          backgroundColor: "#17876D",
+          color: "#FFFFFF",
+          border: "2px solid #443F53",
+        },
+
+        switchButton: {
+          backgroundColor: "#17876D",
+          color: "#FFFFFF",
+          border: "2px solid #443F53",
+        },
+
+        historyButton: {
+          backgroundColor: "#17876D",
+          color: "#FFFFFF",
+          border: "2px solid #443F53",
+        },
+      },
+      bridgeMode: {
+        mainBgColor: "#03624C4D",
+
+        starknetButton: {
+          backgroundColor: "rgba(23, 135, 109, 0.53)",
+          color: "#FFFFFF",
+          border: "0px solid transparent",
+        },
+
+        evmButton: {
+          backgroundColor: "#17876D",
+          color: "#FFFFFF",
+          border: "2px solid  #443F53",
+        },
+
+        switchButton: {
+          backgroundColor: "#17876D",
+          color: "#FFFFFF",
+          border: "2px solid #443F53",
+        },
+
+        historyButton: {
+          backgroundColor: "#17876D",
+          color: "#FFFFFF",
+          border: "2px solid #443F53",
+        },
+      },
+    },
+  };
 
   return (
-    <StarknetConfig
-      chains={chains}
-      provider={provider}
-      connectors={walletConnector.getConnectors() as Connector[]}
-    >
-      <SidebarProvider className={cn(font.className, "w-full")}>
-        {children}
+    <QueryClientProvider client={queryClient}>
+      <SidebarProvider>
+        <EasyleapProvider
+          starknetConfig={{
+            chains: defaultEasyleapConfig().starknetConfig.chains,
+            provider: defaultEasyleapConfig().starknetConfig.provider,
+            explorer: defaultEasyleapConfig().starknetConfig.explorer,
+            connectors: [
+              new WebWalletConnector(),
+              new InjectedConnector({ options: { id: "argentX" } }),
+              new InjectedConnector({ options: { id: "braavos" } }),
+            ],
+          }}
+          theme={easyleapConfig.theme}
+        >
+          {children}
+        </EasyleapProvider>
       </SidebarProvider>
-    </StarknetConfig>
+    </QueryClientProvider>
   );
 };
 

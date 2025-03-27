@@ -11,6 +11,7 @@ import Footer from "@/components/footer";
 import MaxWidthWrapper from "@/components/max-width-wrapper";
 import Navbar from "@/components/navbar";
 
+import "@easyleap/sdk/styles.css";
 import "./globals.css";
 
 export const metadata: Metadata = {

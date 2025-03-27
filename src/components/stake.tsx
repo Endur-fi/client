@@ -2,21 +2,15 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  useAccount,
-  useBalance,
-  useSendTransaction,
-} from "@starknet-react/core";
 import { useAtomValue } from "jotai";
-import { ChevronDown, Info } from "lucide-react";
+import { Info, ChevronDown } from "lucide-react";
 import { Figtree } from "next/font/google";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import React from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { TwitterShareButton } from "react-share";
 import { Call, Contract } from "starknet";
-
 import * as z from "zod";
 
 import erc4626Abi from "@/abi/erc4626.abi.json";
@@ -52,7 +46,6 @@ import {
 } from "@/constants";
 import { toast } from "@/hooks/use-toast";
 import { useTransactionHandler } from "@/hooks/use-transactions";
-import { useWalletConnection } from "@/hooks/use-wallet-connection";
 import { MyAnalytics } from "@/lib/analytics";
 import MyNumber from "@/lib/MyNumber";
 import { cn, eventNames, formatNumberWithCommas } from "@/lib/utils";
@@ -67,6 +60,26 @@ import { PlatformCard } from "./platform-card";
 import Stats from "./stats";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
+import {
+  ConnectButton,
+  useAmountOut,
+  useSendTransaction,
+  useAccount,
+  useBalance,
+  TokenTransfer,
+  ReviewModal,
+  DestinationDapp,
+} from "@easyleap/sdk";
+
+declare global {
+  interface BigInt {
+    toJSON(): string;
+  }
+}
+
+BigInt.prototype.toJSON = function () {
+  return this.toString();
+};
 
 const font = Figtree({ subsets: ["latin-ext"] });
 
@@ -95,15 +108,15 @@ const Stake: React.FC = () => {
   const [selectedPlatform, setSelectedPlatform] =
     React.useState<Platform>("none");
   const [isLendingOpen, setIsLendingOpen] = React.useState(false);
+  const [calls, setCalls] = React.useState<Call[]>([]);
 
   const searchParams = useSearchParams();
 
-  const { address } = useAccount();
-  const { connectWallet } = useWalletConnection();
-  const { data: balance } = useBalance({
-    address,
-    token: STRK_TOKEN,
+  const balanceInfo = useBalance({
+    l2TokenAddress: STRK_TOKEN,
   });
+
+  const { addressSource, addressDestination } = useAccount();
 
   const exchangeRate = useAtomValue(exchangeRateAtom);
   const apy = useAtomValue(snAPYAtom);
@@ -119,6 +132,8 @@ const Stake: React.FC = () => {
     },
     mode: "onChange",
   });
+  const watchedValues = useWatch({ control: form.control });
+  const stakedAmount = form.getValues("stakeAmount");
 
   const contractSTRK = new Contract(erc4626Abi, STRK_TOKEN);
 
@@ -126,7 +141,26 @@ const Stake: React.FC = () => {
 
   const contract = rpcProvider ? lstService.getLSTContract(rpcProvider) : null;
 
-  const { sendAsync, data, isPending, error } = useSendTransaction({});
+  const rawAmount = React.useMemo(() => {
+    return BigInt(Math.round(Number(stakedAmount) * 1e18).toFixed(0));
+  }, [stakedAmount]);
+
+  const amountOutRes = useAmountOut(rawAmount);
+
+  React.useEffect(() => {
+    console.log("formState", form.formState.isDirty, form.getValues());
+
+    getCalls(form.getValues()).then(setCalls);
+  }, [JSON.stringify(watchedValues), addressSource, addressDestination]);
+
+  const { send, error, isPending, dataSN, dataEVM, isSuccessSN, isSuccessEVM } =
+    useSendTransaction({
+      calls,
+      bridgeConfig: {
+        l2_token_address: STRK_TOKEN,
+        amount: rawAmount,
+      },
+    });
 
   const { handleTransaction } = useTransactionHandler();
 
@@ -147,16 +181,16 @@ const Stake: React.FC = () => {
   React.useEffect(() => {
     handleTransaction("STAKE", {
       form,
-      address: address ?? "",
-      data: data ?? { transaction_hash: "" },
+      address: (addressSource || addressDestination) ?? "",
+      data: (dataSN || dataEVM) ?? { transaction_hash: "" },
       error: error ?? { name: "" },
       isPending,
       setShowShareModal,
     });
-  }, [data?.transaction_hash, form, isPending]);
+  }, [dataSN?.transaction_hash, dataEVM?.transaction_hash, form, isPending]);
 
   const handleQuickStakePrice = (percentage: number) => {
-    if (!address) {
+    if (!addressSource || !addressDestination) {
       return toast({
         description: (
           <div className="flex items-center gap-2">
@@ -167,26 +201,108 @@ const Stake: React.FC = () => {
       });
     }
 
-    if (balance && percentage === 100) {
-      if (Number(balance?.formatted) < 1) {
+    if (balanceInfo && percentage === 100) {
+      if (Number(balanceInfo?.data?.formatted) < 1) {
         form.setValue("stakeAmount", "0");
         form.clearErrors("stakeAmount");
         return;
       }
 
-      form.setValue("stakeAmount", (Number(balance?.formatted) - 1).toString());
+      form.setValue(
+        "stakeAmount",
+        (Number(balanceInfo?.data?.formatted) - 1).toString(),
+      );
       form.clearErrors("stakeAmount");
       return;
     }
 
-    if (balance) {
+    if (balanceInfo) {
       form.setValue(
         "stakeAmount",
-        ((Number(balance?.formatted) * percentage) / 100).toString(),
+        ((Number(balanceInfo?.data?.formatted) * percentage) / 100).toString(),
       );
       form.clearErrors("stakeAmount");
     }
   };
+
+  const tokensOut: TokenTransfer[] = React.useMemo(() => {
+    return [
+      {
+        name: "STRK",
+        amount: (Number(rawAmount) / 1e18).toFixed(4),
+        logo: "https://app.strkfarm.com/zklend/icons/tokens/strk.svg?w=20",
+      },
+    ];
+  }, [rawAmount]);
+
+  const tokensIn: TokenTransfer[] = React.useMemo(() => {
+    return [
+      {
+        name: "xSTRk",
+        amount: (Number(amountOutRes.amountOut) / 1e18).toFixed(4),
+        logo: "https://imagedelivery.net/0xPAQaDtnQhBs8IzYRIlNg/c1f44170-c1b0-4531-3d3b-5f0bacfe1300/logo",
+      },
+    ];
+  }, [amountOutRes.amountOut]);
+
+  const destinationDapp: DestinationDapp = {
+    name: "Endur",
+    logo: "https://app.endur.fi/favicon.ico",
+  };
+
+  async function getCalls(values: FormValues): Promise<Call[]> {
+    if (!addressDestination || !addressSource) return [];
+    const strkAmount = MyNumber.fromEther(values.stakeAmount, 18);
+    const previewCall = await contract?.preview_deposit(strkAmount.toString());
+    const xstrkAmount = previewCall?.toString() || "0";
+
+    const call1 = contractSTRK.populate("approve", [LST_ADDRRESS, strkAmount]);
+
+    const call2 = referrer
+      ? contract?.populate("deposit_with_referral", [
+          strkAmount,
+          addressDestination,
+          referrer,
+        ])
+      : contract?.populate("deposit", [strkAmount, addressDestination]);
+
+    const calls: Call[] = [call1];
+    if (call2) {
+      calls.push(call2);
+    }
+
+    if (selectedPlatform !== "none") {
+      const lstContract = new Contract(erc4626Abi, LST_ADDRRESS);
+
+      const lendingAddress =
+        selectedPlatform === "vesu"
+          ? VESU_vXSTRK_ADDRESS
+          : NOSTRA_iXSTRK_ADDRESS;
+
+      const approveCall = lstContract.populate("approve", [
+        lendingAddress,
+        xstrkAmount,
+      ]);
+
+      if (selectedPlatform === "vesu") {
+        const vesuContract = new Contract(vxstrkAbi, VESU_vXSTRK_ADDRESS);
+        const lendingCall = vesuContract.populate("deposit", [
+          xstrkAmount,
+          addressSource,
+        ]);
+        calls.push(approveCall, lendingCall);
+      } else {
+        const nostraContract = new Contract(ixstrkAbi, NOSTRA_iXSTRK_ADDRESS);
+        const lendingCall = nostraContract.populate("mint", [
+          addressSource,
+          xstrkAmount,
+        ]);
+        calls.push(approveCall, lendingCall);
+      }
+    }
+
+    return calls;
+  }
 
   const getCalculatedXSTRK = () => {
     const amount = form.watch("stakeAmount");
@@ -223,7 +339,7 @@ const Stake: React.FC = () => {
       });
     }
 
-    if (stakeAmount > Number(balance?.formatted)) {
+    if (stakeAmount > Number(balanceInfo?.data?.formatted)) {
       return toast({
         description: (
           <div className="flex items-center gap-2">
@@ -234,7 +350,7 @@ const Stake: React.FC = () => {
       });
     }
 
-    if (!address) {
+    if (!addressSource || !addressDestination) {
       return toast({
         description: (
           <div className="flex items-center gap-2">
@@ -246,64 +362,72 @@ const Stake: React.FC = () => {
     }
     // track stake button click
     MyAnalytics.track(eventNames.STAKE_CLICK, {
-      address,
+      address: addressSource,
       amount: Number(values.stakeAmount),
     });
 
-    const strkAmount = MyNumber.fromEther(values.stakeAmount, 18);
-    const previewCall = await contract?.preview_deposit(strkAmount.toString());
-    const xstrkAmount = previewCall?.toString() || "0";
+    // const strkAmount = MyNumber.fromEther(values.stakeAmount, 18);
+    // const previewCall = await contract?.preview_deposit(strkAmount.toString());
+    // const xstrkAmount = previewCall?.toString() || "0";
 
-    const call1 = contractSTRK.populate("approve", [LST_ADDRRESS, strkAmount]);
+    // const call1 = contractSTRK.populate("approve", [LST_ADDRRESS, strkAmount]);
 
-    const call2 = referrer
-      ? contract?.populate("deposit_with_referral", [
-          strkAmount,
-          address,
-          referrer,
-        ])
-      : contract?.populate("deposit", [strkAmount, address]);
+    // const call2 = referrer
+    //   ? contract?.populate("deposit_with_referral", [
+    //       strkAmount,
+    //       addressDestination,
+    //       referrer,
+    //     ])
+    //   : contract?.populate("deposit", [strkAmount, addressDestination]);
 
-    const calls: Call[] = [call1];
-    if (call2) {
-      calls.push(call2);
-    }
+    // const calls: Call[] = [call1];
+    // if (call2) {
+    //   calls.push(call2);
+    // }
 
-    if (selectedPlatform !== "none") {
-      const lstContract = new Contract(erc4626Abi, LST_ADDRRESS);
+    // if (selectedPlatform !== "none") {
+    //   const lstContract = new Contract(erc4626Abi, LST_ADDRRESS);
 
-      const lendingAddress =
-        selectedPlatform === "vesu"
-          ? VESU_vXSTRK_ADDRESS
-          : NOSTRA_iXSTRK_ADDRESS;
+    //   const lendingAddress =
+    //     selectedPlatform === "vesu"
+    //       ? VESU_vXSTRK_ADDRESS
+    //       : NOSTRA_iXSTRK_ADDRESS;
 
-      const approveCall = lstContract.populate("approve", [
-        lendingAddress,
-        xstrkAmount,
-      ]);
+    //   const approveCall = lstContract.populate("approve", [
+    //     lendingAddress,
+    //     xstrkAmount,
+    //   ]);
 
-      if (selectedPlatform === "vesu") {
-        const vesuContract = new Contract(vxstrkAbi, VESU_vXSTRK_ADDRESS);
-        const lendingCall = vesuContract.populate("deposit", [
-          xstrkAmount,
-          address,
-        ]);
-        calls.push(approveCall, lendingCall);
-      } else {
-        const nostraContract = new Contract(ixstrkAbi, NOSTRA_iXSTRK_ADDRESS);
-        const lendingCall = nostraContract.populate("mint", [
-          address,
-          xstrkAmount,
-        ]);
-        calls.push(approveCall, lendingCall);
-      }
-    }
+    //   if (selectedPlatform === "vesu") {
+    //     const vesuContract = new Contract(vxstrkAbi, VESU_vXSTRK_ADDRESS);
+    //     const lendingCall = vesuContract.populate("deposit", [
+    //       xstrkAmount,
+    //       addressDestination,
+    //     ]);
+    //     calls.push(approveCall, lendingCall);
+    //   } else {
+    //     const nostraContract = new Contract(ixstrkAbi, NOSTRA_iXSTRK_ADDRESS);
+    //     const lendingCall = nostraContract.populate("mint", [
+    //       addressDestination,
+    //       xstrkAmount,
+    //     ]);
+    //     calls.push(approveCall, lendingCall);
+    //   }
+    // }
 
-    await sendAsync(calls);
+    await send(tokensIn, tokensOut, destinationDapp);
   };
 
   return (
     <div className="relative h-full w-full">
+      {/* {isMerry && (
+        <div className="pointer-events-none absolute -left-[15px] -top-[7.5rem] hidden transition-all duration-500 lg:block">
+          <Icons.cloud />
+        </div>
+      )} */}
+
+      <ReviewModal />
+
       <Dialog open={showShareModal} onOpenChange={setShowShareModal}>
         <DialogContent className={cn(font.className, "p-16 sm:max-w-xl")}>
           <DialogHeader>
@@ -416,7 +540,9 @@ const Stake: React.FC = () => {
             <Icons.wallet className="size-3 lg:size-5" />
             <span className="hidden md:block">Balance:</span>
             <span className="font-bold">
-              {balance?.formatted ? Number(balance?.formatted).toFixed(2) : "0"}{" "}
+              {balanceInfo?.data?.formatted
+                ? Number(balanceInfo?.data?.formatted).toFixed(2)
+                : "0"}{" "}
               STRK
             </span>
           </div>
@@ -608,16 +734,15 @@ const Stake: React.FC = () => {
       </div>
 
       <div className="mt-6 px-5">
-        {!address && (
-          <Button
-            onClick={() => connectWallet()}
-            className="w-full rounded-2xl bg-[#17876D] py-6 text-sm font-semibold text-white hover:bg-[#17876D] disabled:bg-[#03624C4D] disabled:text-[#17876D] disabled:opacity-90"
-          >
-            Connect Wallet
-          </Button>
-        )}
-
-        {address && (
+        {!addressSource && !addressDestination ? (
+          <ConnectButton
+            style={{
+              buttonStyles: {
+                width: "100%",
+              },
+            }}
+          />
+        ) : (
           <Button
             type="submit"
             disabled={
