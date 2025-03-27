@@ -7,7 +7,7 @@ import { Info, ChevronDown } from "lucide-react";
 import { Figtree } from "next/font/google";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import React from "react";
+import React, { useMemo } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { TwitterShareButton } from "react-share";
 import { Call, Contract } from "starknet";
@@ -41,6 +41,7 @@ import {
   LST_ADDRRESS,
   NOSTRA_iXSTRK_ADDRESS,
   REWARD_FEES,
+  STRK_DECIMALS,
   STRK_TOKEN,
   VESU_vXSTRK_ADDRESS,
 } from "@/constants";
@@ -149,8 +150,7 @@ const Stake: React.FC = () => {
 
   React.useEffect(() => {
     console.log("formState", form.formState.isDirty, form.getValues());
-
-    getCalls(form.getValues()).then(setCalls);
+    getCalls(new MyNumber(amountOutRes.amountOut, STRK_DECIMALS)).then(setCalls);
   }, [JSON.stringify(watchedValues), addressSource, addressDestination]);
 
   const { send, error, isPending, dataSN, dataEVM, isSuccessSN, isSuccessEVM } =
@@ -235,24 +235,47 @@ const Stake: React.FC = () => {
     ];
   }, [rawAmount]);
 
+  const getCalculatedXSTRK = () => {
+    // const amount = 
+    if (!amountOutRes.amountOut) return "0";
+    const amount = new MyNumber(amountOutRes.amountOut, STRK_DECIMALS).toEtherToFixedDecimals(6);
+    if (!amount || isNaN(Number(amount)) || Number(amount) <= 0) return "0";
+
+    try {
+      return formatNumberWithCommas(
+        MyNumber.fromEther(amount, 18)
+          .operate("multipliedBy", MyNumber.fromEther("1", 18).toString())
+          .operate("div", exchangeRate.preciseRate.toString())
+          .toEtherStr(),
+      );
+    } catch (error) {
+      console.error("Error in getCalculatedXSTRK", error);
+      return "0";
+    }
+  };
+
+  const xSTRKOut = useMemo(() => {
+    return getCalculatedXSTRK();
+  }, [amountOutRes, exchangeRate]);
+
+
   const tokensIn: TokenTransfer[] = React.useMemo(() => {
     return [
       {
-        name: "xSTRk",
-        amount: (Number(amountOutRes.amountOut) / 1e18).toFixed(4),
+        name: "xSTRK",
+        amount: xSTRKOut,
         logo: "https://imagedelivery.net/0xPAQaDtnQhBs8IzYRIlNg/c1f44170-c1b0-4531-3d3b-5f0bacfe1300/logo",
       },
     ];
-  }, [amountOutRes.amountOut]);
+  }, [xSTRKOut]);
 
   const destinationDapp: DestinationDapp = {
     name: "Endur",
     logo: "https://app.endur.fi/favicon.ico",
   };
 
-  async function getCalls(values: FormValues): Promise<Call[]> {
+  async function getCalls(strkAmount: MyNumber): Promise<Call[]> {
     if (!addressDestination || !addressSource) return [];
-    const strkAmount = MyNumber.fromEther(values.stakeAmount, 18);
     const previewCall = await contract?.preview_deposit(strkAmount.toString());
     const xstrkAmount = previewCall?.toString() || "0";
 
@@ -303,23 +326,6 @@ const Stake: React.FC = () => {
 
     return calls;
   }
-
-  const getCalculatedXSTRK = () => {
-    const amount = form.watch("stakeAmount");
-    if (!amount || isNaN(Number(amount)) || Number(amount) <= 0) return "0";
-
-    try {
-      return formatNumberWithCommas(
-        MyNumber.fromEther(amount, 18)
-          .operate("multipliedBy", MyNumber.fromEther("1", 18).toString())
-          .operate("div", exchangeRate.preciseRate.toString())
-          .toEtherStr(),
-      );
-    } catch (error) {
-      console.error("Error in getCalculatedXSTRK", error);
-      return "0";
-    }
-  };
 
   const onSubmit = async (values: FormValues) => {
     const stakeAmount = Number(values.stakeAmount);
@@ -661,7 +667,7 @@ const Stake: React.FC = () => {
             </TooltipProvider>
           </p>
           <span className="text-xs lg:text-[13px]">
-            {getCalculatedXSTRK()} xSTRK
+            {xSTRKOut} xSTRK | {JSON.stringify(amountOutRes.amountOut)} | {JSON.stringify(rawAmount)}
           </span>
         </div>
 
