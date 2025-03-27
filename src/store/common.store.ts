@@ -4,13 +4,15 @@ import { atomWithQuery } from "jotai-tanstack-query";
 import { atomWithStorage, createJSONStorage } from "jotai/utils";
 import { Provider } from "starknet";
 
+export const timePeriodAtom = atom<Provider | null>(null);
+
 export const providerAtom = atom<Provider | null>(null);
 
 export const currentBlockAtom = atom(async (get) => {
   const provider = get(providerAtom);
 
   // plus 1 to represent pending block
-  return provider ? (await provider.getBlockNumber()) + 1 : 0;
+  return provider ? await provider.getBlockNumber() : 0;
 });
 
 export const userAddressAtom = atom<string | undefined>();

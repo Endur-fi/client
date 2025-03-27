@@ -4,10 +4,12 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
+import MyNumber from "@/lib/MyNumber";
 
 export interface TokenDisplay {
   icon: React.ReactNode;
   name: string;
+  holding?: MyNumber;
 }
 
 export interface ProtocolBadge {
@@ -146,7 +148,7 @@ const DefiCard: React.FC<DefiCardProps> = ({
 
         <div className="flex items-center gap-2">
           <ProtocolBadges badges={badges} />
-          {protocolIcon}
+          <div className="w-[30px]">{protocolIcon}</div>
         </div>
       </div>
 

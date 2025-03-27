@@ -1,20 +1,12 @@
 import { NextResponse } from "next/server";
-import { Contract, RpcProvider } from "starknet";
 
-import MintingAbi from "@/abi/minting.abi.json";
-import StakingAbi from "@/abi/staking.abi.json";
+import { getProvider, STRK_DECIMALS } from "@/constants";
 import MyNumber from "@/lib/MyNumber";
-import { getLSTContract } from "@/store/lst.store";
+import { getSTRKPrice, tryCatch } from "@/lib/utils";
+import LSTService from "@/services/lst";
+import StakingService from "@/services/staking";
 
-import {
-  getProvider,
-  SN_MINTING_CURVE_ADRESS,
-  SN_STAKING_ADRESS,
-  STRK_DECIMALS,
-} from "@/constants";
-import { getSTRKPrice } from "@/lib/utils";
-
-export const revalidate = 120;
+export const revalidate = 60 * 60; // 1 hour
 
 export async function GET(_req: Request) {
   const provider = getProvider();
@@ -23,40 +15,16 @@ export async function GET(_req: Request) {
     return NextResponse.json("Provider not found");
   }
 
-  let yearlyMinting = MyNumber.fromZero();
-  let totalStaked = MyNumber.fromZero();
+  const stakingService = new StakingService();
+  const lstService = new LSTService();
 
-  const mintingContract = new Contract(
-    MintingAbi,
-    SN_MINTING_CURVE_ADRESS,
-    provider,
-  );
-
-  try {
-    const res = await mintingContract.call("yearly_mint");
-    yearlyMinting = new MyNumber(res.toString(), STRK_DECIMALS);
-  } catch (error) {
-    console.error("yearlyMintingError", error);
-    return NextResponse.json({
-      message: "yearlyMintingError",
-      error,
-    });
-  }
-
-  const stakingContract = new Contract(StakingAbi, SN_STAKING_ADRESS, provider);
-
-  try {
-    const res = await stakingContract.call("get_total_stake");
-    totalStaked = new MyNumber(res.toString(), STRK_DECIMALS);
-  } catch (error) {
-    console.error("snTotalStakedError", error);
-    return NextResponse.json({
-      message: "snTotalStakedError",
-      error,
-    });
-  }
+  const yearlyMinting =
+    (await stakingService.getYearlyMinting()) ?? MyNumber.fromZero();
+  const totalStaked =
+    (await stakingService.getSNTotalStaked()) ?? MyNumber.fromZero();
 
   let apy = 0;
+
   if (Number(totalStaked.toEtherToFixedDecimals(0)) !== 0) {
     apy =
       Number(yearlyMinting.toEtherToFixedDecimals(4)) /
@@ -67,15 +35,14 @@ export async function GET(_req: Request) {
 
   const apyInPercentage = (newApy * 100).toFixed(2);
 
-  try {
-    const lstContract = getLSTContract(provider as RpcProvider);
-    const balance = await lstContract.call("total_assets");
+  const balance = await lstService.getTotalStaked();
 
+  const { data: price, error: strkPriceError } = await tryCatch(getSTRKPrice());
+
+  if (balance && price) {
     const tvlInStrk = Number(
       new MyNumber(balance.toString(), STRK_DECIMALS).toEtherStr(),
     );
-
-    const price = await getSTRKPrice();
 
     const tvlInUsd = price * tvlInStrk;
 
@@ -86,13 +53,22 @@ export async function GET(_req: Request) {
       apy: newApy,
       apyInPercentage: `${apyInPercentage}%`,
     });
-
+    response.headers.set(
+      "Cache-Control",
+      `s-maxage=${revalidate}, stale-while-revalidate=180`,
+    );
     return response;
-  } catch (error) {
-    console.error("totalStakedError", error);
+  }
+
+  if (strkPriceError) {
+    console.error("strkPriceError", strkPriceError);
     return NextResponse.json({
-      message: "totalStakedError",
-      error,
+      message: "strkPriceError",
+      error: strkPriceError.message,
     });
   }
+
+  return NextResponse.json({
+    message: "Stats api error",
+  });
 }

@@ -53,6 +53,14 @@ html {
     --sidebar-accent-foreground: 240 5.9% 10%;
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+    --color-nostra: #ff4240;
+    --color-ekubo: #3f1883;
+    --color-strkfarm: #9f91f6;
+    --color-fibrous: #73fcfd;
+
+    --color-strk: #ec796b;
+    --color-usdt: #17876d;
   }
 
   .dark {

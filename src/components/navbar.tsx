@@ -1,13 +1,8 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 
-import {
-  useAccount,
-  useConnect,
-  useDisconnect,
-  useProvider,
-  useSwitchChain,
-} from "@starknet-react/core";
-import { useAtom, useAtomValue, useSetAtom } from "jotai";
+import { useAccount, useProvider, useSwitchChain } from "@starknet-react/core";
+import { useAtom, useSetAtom } from "jotai";
 import React, { useEffect } from "react";
 import { constants, num } from "starknet";
 
@@ -21,7 +16,6 @@ import {
   providerAtom,
   userAddressAtom,
 } from "@/store/common.store";
-import { isMerryChristmasAtom, tabsAtom } from "@/store/merry.store";
 
 import MobileNav from "./mobile-nav";
 import { useSidebar } from "./ui/sidebar";
@@ -39,16 +33,12 @@ const Navbar = ({ className }: { className?: string }) => {
 
   const { address, connector, chainId } = useAccount();
   const { provider } = useProvider();
-  const { connect: connectSnReact } = useConnect();
-  const { disconnectAsync } = useDisconnect();
 
   const { isMobile } = useSidebar();
 
   const [__, setAddress] = useAtom(userAddressAtom);
   const [_, setLastWallet] = useAtom(lastWalletAtom);
   const setProvider = useSetAtom(providerAtom);
-  const activeTab = useAtomValue(tabsAtom);
-  const isMerry = useAtomValue(isMerryChristmasAtom);
 
   // set tracking person
   useEffect(() => {

@@ -10,6 +10,7 @@ import {
   EasyleapProvider,
 } from "@easyleap/sdk";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { SidebarProvider } from "@/components/ui/sidebar";
 
 interface ProvidersProps {
   children: React.ReactNode;
@@ -78,21 +79,23 @@ const Providers: React.FC<ProvidersProps> = ({ children }) => {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <EasyleapProvider
-        starknetConfig={{
-          chains: defaultEasyleapConfig().starknetConfig.chains,
-          provider: defaultEasyleapConfig().starknetConfig.provider,
-          explorer: defaultEasyleapConfig().starknetConfig.explorer,
-          connectors: [
-            new WebWalletConnector(),
-            new InjectedConnector({ options: { id: "argentX" } }),
-            new InjectedConnector({ options: { id: "braavos" } }),
-          ],
-        }}
-        theme={easyleapConfig.theme}
-      >
-        {children}
-      </EasyleapProvider>
+      <SidebarProvider>
+        <EasyleapProvider
+          starknetConfig={{
+            chains: defaultEasyleapConfig().starknetConfig.chains,
+            provider: defaultEasyleapConfig().starknetConfig.provider,
+            explorer: defaultEasyleapConfig().starknetConfig.explorer,
+            connectors: [
+              new WebWalletConnector(),
+              new InjectedConnector({ options: { id: "argentX" } }),
+              new InjectedConnector({ options: { id: "braavos" } }),
+            ],
+          }}
+          theme={easyleapConfig.theme}
+        >
+          {children}
+        </EasyleapProvider>
+      </SidebarProvider>
     </QueryClientProvider>
   );
 };

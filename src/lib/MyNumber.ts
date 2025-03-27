@@ -68,8 +68,8 @@ export default class MyNumber {
     return this.bigNumber[command](fullNum);
   }
 
-  operate(command: "div" | "plus" | "multipliedBy", value: string | number) {
-    const bn = new BigNumber(Number(value).toFixed(6));
+  operate(command: "div" | "plus" | "multipliedBy", valueRaw: string | number) {
+    const bn = new BigNumber(Number(valueRaw).toFixed(6));
     return new MyNumber(this.bigNumber[command](bn).toFixed(0), this.decimals);
   }
 
