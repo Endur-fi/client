@@ -18,8 +18,8 @@ importers:
         specifier: ^0.2.4
         version: 0.2.4
       '@easyleap/sdk':
-        specifier: file:/Users/oche/repos/starkfarm/sdk-ts/lib
-        version: file:../sdk-ts/lib(mvoaporxxl5whkqdbyi5hngwwu)
+        specifier: 0.0.6-beta.10
+        version: 0.0.6-beta.10(mvoaporxxl5whkqdbyi5hngwwu)
       '@hookform/resolvers':
         specifier: ^3.9.1
         version: 3.9.1(react-hook-form@7.53.2(react@18.3.1))
@@ -335,8 +335,8 @@ packages:
   '@duneanalytics/client-sdk@0.2.4':
     resolution: {integrity: sha512-Znr/AIqq+XBh3ezyvNCEbXn2re6pYeLiWQRJezRHh5lI0EikZNQya1jlQTTr3ZTJi7L8aA5GjEp7RyhF/vfSeA==}
 
-  '@easyleap/sdk@file:../sdk-ts/lib':
-    resolution: {directory: ../sdk-ts/lib, type: directory}
+  '@easyleap/sdk@0.0.6-beta.10':
+    resolution: {integrity: sha512-xrw/EWZ/1kjgnMgIEMuVG8fhcB+nxFBBcJQbiT4YemDQmSI6avL6eLAqdJ5L+zn6Eh/NzpUHHjfm/CLDtLqy0A==}
     peerDependencies:
       '@starknet-react/chains': ^3.1.0
       '@starknet-react/core': ^3.5.0
@@ -5233,7 +5233,7 @@ snapshots:
     transitivePeerDependencies:
       - encoding
 
-  '@easyleap/sdk@file:../sdk-ts/lib(mvoaporxxl5whkqdbyi5hngwwu)':
+  '@easyleap/sdk@0.0.6-beta.10(mvoaporxxl5whkqdbyi5hngwwu)':
     dependencies:
       '@apollo/client': 3.13.5(@types/react@18.3.12)(graphql@16.9.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@emotion/is-prop-valid': 1.3.1

@@ -32,7 +32,6 @@ const Providers: React.FC<ProvidersProps> = ({ children }) => {
           backgroundColor: "#17876D",
           color: "#FFFFFF",
           border: "2px solid #443F53",
-          borderRadius: "0.75rem",
         },
 
         switchButton: {
@@ -54,14 +53,12 @@ const Providers: React.FC<ProvidersProps> = ({ children }) => {
           backgroundColor: "rgba(23, 135, 109, 0.53)",
           color: "#FFFFFF",
           border: "0px solid transparent",
-          borderRadius: "0.75rem",
         },
 
         evmButton: {
           backgroundColor: "#17876D",
           color: "#FFFFFF",
           border: "2px solid  #443F53",
-          borderRadius: "0.75rem",
         },
 
         switchButton: {
