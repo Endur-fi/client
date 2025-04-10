@@ -55,6 +55,7 @@ import { providerAtom } from "@/store/common.store";
 import { protocolYieldsAtom } from "@/store/defi.store";
 import { exchangeRateAtom } from "@/store/lst.store";
 import { snAPYAtom } from "@/store/staking.store";
+import { isMerryChristmasAtom } from "@/store/merry.store";
 
 import { Icons } from "./Icons";
 import { PlatformCard } from "./platform-card";
@@ -119,6 +120,7 @@ const Stake: React.FC = () => {
 
   const { addressSource, addressDestination } = useAccount();
 
+  const isMerry = useAtomValue(isMerryChristmasAtom);
   const exchangeRate = useAtomValue(exchangeRateAtom);
   const apy = useAtomValue(snAPYAtom);
   const yields = useAtomValue(protocolYieldsAtom);
@@ -426,11 +428,11 @@ const Stake: React.FC = () => {
 
   return (
     <div className="relative h-full w-full">
-      {/* {isMerry && (
+      {isMerry && (
         <div className="pointer-events-none absolute -left-[15px] -top-[7.5rem] hidden transition-all duration-500 lg:block">
           <Icons.cloud />
         </div>
-      )} */}
+      )}
 
       <ReviewModal />
 
