@@ -90,9 +90,11 @@ const Navbar = ({ className }: { className?: string }) => {
   return (
     <div
       className={cn(
-        "flex h-20 w-full items-center justify-end",
+        "h-20 w-full items-center justify-end",
         {
           "justify-between": isMobile,
+          "flex flex-col gap-4": isMobile,
+          "flex": !isMobile,
         },
         className,
       )}
