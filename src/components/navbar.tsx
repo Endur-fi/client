@@ -94,7 +94,7 @@ const Navbar = ({ className }: { className?: string }) => {
         {
           "justify-between": isMobile,
           "flex flex-col gap-4": isMobile,
-          "flex": !isMobile,
+          flex: !isMobile,
         },
         className,
       )}

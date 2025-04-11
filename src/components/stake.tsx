@@ -149,18 +149,24 @@ const Stake: React.FC = () => {
   const amountOutRes = useAmountOut(rawAmount);
 
   React.useEffect(() => {
-    console.log("formState", form.formState.isDirty, form.getValues(), amountOutRes.amountOut);
-    getCalls(new MyNumber(amountOutRes.amountOut.toString(), STRK_DECIMALS)).then(setCalls);
+    console.log(
+      "formState",
+      form.formState.isDirty,
+      form.getValues(),
+      amountOutRes.amountOut,
+    );
+    getCalls(
+      new MyNumber(amountOutRes.amountOut.toString(), STRK_DECIMALS),
+    ).then(setCalls);
   }, [amountOutRes.amountOut]);
 
-  const { send, error, isPending, data } =
-    useSendTransaction({
-      calls,
-      bridgeConfig: {
-        l2_token_address: STRK_TOKEN,
-        amount: rawAmount,
-      },
-    });
+  const { send, error, isPending, data } = useSendTransaction({
+    calls,
+    bridgeConfig: {
+      l2_token_address: STRK_TOKEN,
+      amount: rawAmount,
+    },
+  });
 
   const { handleTransaction } = useTransactionHandler();
 
@@ -182,7 +188,7 @@ const Stake: React.FC = () => {
     handleTransaction("STAKE", {
       form,
       address: (addressSource || addressDestination) ?? "",
-      data: (data) ? { transaction_hash: data } : { transaction_hash: ""},
+      data: data ? { transaction_hash: data } : { transaction_hash: "" },
       error: error ?? { name: "" },
       isPending,
       setShowShareModal,
@@ -236,13 +242,24 @@ const Stake: React.FC = () => {
   }, [rawAmount]);
 
   const getCalculatedXSTRK = () => {
-    // const amount = 
-    console.log("getCalculatedXSTRK", amountOutRes.amountOut, exchangeRate.preciseRate.toString());
+    // const amount =
+    console.log(
+      "getCalculatedXSTRK",
+      amountOutRes.amountOut,
+      exchangeRate.preciseRate.toString(),
+    );
     if (!amountOutRes.amountOut || exchangeRate.rate == 0) return "0";
-    const amount = new MyNumber(amountOutRes.amountOut.toString(), STRK_DECIMALS).toEtherToFixedDecimals(6);
+    const amount = new MyNumber(
+      amountOutRes.amountOut.toString(),
+      STRK_DECIMALS,
+    ).toEtherToFixedDecimals(6);
     if (!amount || isNaN(Number(amount)) || Number(amount) <= 0) return "0";
 
-    console.log("getCalculatedXSTRK2", amount, exchangeRate.preciseRate.toString());
+    console.log(
+      "getCalculatedXSTRK2",
+      amount,
+      exchangeRate.preciseRate.toString(),
+    );
     try {
       const out = formatNumberWithCommas(
         MyNumber.fromEther(amount, 18)
@@ -261,7 +278,6 @@ const Stake: React.FC = () => {
   const xSTRKOut = useMemo(() => {
     return getCalculatedXSTRK();
   }, [amountOutRes.amountOut, exchangeRate]);
-
 
   const tokensIn: TokenTransfer[] = React.useMemo(() => {
     return [
@@ -670,9 +686,7 @@ const Stake: React.FC = () => {
               </Tooltip>
             </TooltipProvider>
           </p>
-          <span className="text-xs lg:text-[13px]">
-            {xSTRKOut} xSTRK
-          </span>
+          <span className="text-xs lg:text-[13px]">{xSTRKOut} xSTRK</span>
         </div>
 
         <div className="flex items-center justify-between rounded-md text-xs font-medium text-[#939494] lg:text-[13px]">

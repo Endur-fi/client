@@ -60,7 +60,11 @@ export const getTotalAssetsByBlock = async (
   blockNumber: BlockIdentifier = "pending",
 ) => {
   const balance = await lstService.getTotalStaked(blockNumber);
-  console.log(`exchangeRateAtom::getTotalAssetsByBlock`, balance.toString(), blockNumber);
+  console.log(
+    `exchangeRateAtom::getTotalAssetsByBlock`,
+    balance.toString(),
+    blockNumber,
+  );
   return balance;
 };
 
@@ -68,7 +72,11 @@ export const getTotalSupplyByBlock = async (
   blockNumber: BlockIdentifier = "pending",
 ) => {
   const balance = await lstService.getTotalSupply(blockNumber);
-  console.log(`exchangeRateAtom::getTotalSupplyByBlock`, balance.toString(), blockNumber);
+  console.log(
+    `exchangeRateAtom::getTotalSupplyByBlock`,
+    balance.toString(),
+    blockNumber,
+  );
   return balance;
 };
 
@@ -300,7 +308,12 @@ export const totalSupplyQueryAtom = atomFamily(
 
         try {
           const out = await getTotalSupplyByBlock(blockNumber);
-          console.log('exchangeRateAtom::totalSupplyQueryAtom', provider, out.toString(), blockNumber);
+          console.log(
+            "exchangeRateAtom::totalSupplyQueryAtom",
+            provider,
+            out.toString(),
+            blockNumber,
+          );
           return out;
         } catch (error) {
           console.error("totalSupplyAtom [3]", error);
@@ -323,8 +336,18 @@ export const exchangeRateAtom = atom((get) => {
     !totalSupply.data ||
     totalSupply.data.value.isZero()
   ) {
-    console.log(`exchangeRateAtom::err::totalStaked`, totalStaked.data?.value.toEtherStr(), totalStaked.error, totalStaked.isLoading);
-    console.log(`exchangeRateAtom::err::totalSupply`, totalSupply.data?.value.toEtherStr(), totalSupply.error, totalSupply.isLoading);
+    console.log(
+      `exchangeRateAtom::err::totalStaked`,
+      totalStaked.data?.value.toEtherStr(),
+      totalStaked.error,
+      totalStaked.isLoading,
+    );
+    console.log(
+      `exchangeRateAtom::err::totalSupply`,
+      totalSupply.data?.value.toEtherStr(),
+      totalSupply.error,
+      totalSupply.isLoading,
+    );
 
     // return ex rate as zero
     // Note: Technically it should be one, but
