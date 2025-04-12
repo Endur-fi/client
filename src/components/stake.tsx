@@ -154,7 +154,7 @@ const Stake: React.FC = () => {
       "formState",
       form.formState.isDirty,
       form.getValues(),
-      amountOutRes.amountOut,
+      amountOutRes.amountOut, amountOutRes.fee, amountOutRes.error, amountOutRes
     );
     getCalls(new MyNumber(amountOutRes.amountOut.toString(), STRK_DECIMALS))
       .then(setCalls)

@@ -18,8 +18,8 @@ importers:
         specifier: ^0.2.4
         version: 0.2.5
       '@easyleap/sdk':
-        specifier: 0.0.6-beta.23
-        version: 0.0.6-beta.23(h7ara4f5cvffdldrrkcp4n2cnq)
+        specifier: 0.0.6-beta.25
+        version: 0.0.6-beta.25(h7ara4f5cvffdldrrkcp4n2cnq)
       '@hookform/resolvers':
         specifier: ^3.9.1
         version: 3.10.0(react-hook-form@7.55.0(react@18.3.1))
@@ -341,8 +341,8 @@ packages:
   '@duneanalytics/client-sdk@0.2.5':
     resolution: {integrity: sha512-ftE9sLIuzcxX0g9nhOA0pN/uxTvPwa88CVXpgU2sSRGnN43Kb5ZuaexetVNcNidapdIV95bWW+VpnoSvpMJUXw==}
 
-  '@easyleap/sdk@0.0.6-beta.23':
-    resolution: {integrity: sha512-W4lUUDK4k1fjOkn83h0QeHBScONYqOtSFQN9Ma7nCypQ26+Cf9ND2/fTHSarF6RGTd/47/fkVsz++fnJcXOKTw==}
+  '@easyleap/sdk@0.0.6-beta.25':
+    resolution: {integrity: sha512-S++ABw/qjaE9ovwS3JWLr6Plk2z0L2Uj4Ip5zZAJfHhnt5wHarycaAarYhoWntZRnDxC0qwsKSFJrMlRu8hy2w==}
     peerDependencies:
       '@starknet-react/chains': ^3.1.0
       '@starknet-react/core': ^3.5.0
@@ -3834,11 +3834,6 @@ packages:
     engines: {node: '>=10.13.0'}
     hasBin: true
 
-  qrcode@1.5.4:
-    resolution: {integrity: sha512-1ca71Zgiu6ORjHqFBDpnSMTR2ReToX4l1Au1VFLyVeBTFavzQnv5JxMFr3ukHVKpSrSA2MCk0lNJSykjUfz7Zg==}
-    engines: {node: '>=10.13.0'}
-    hasBin: true
-
   qs@6.14.0:
     resolution: {integrity: sha512-YWWTjgABSKcvs/nWBi9PycY/JiPJqOD4JA6o9Sej2AtvSGarXxKC3OQSk4pAarbdQlKAh5D4FCQkJNkW+GAn3w==}
     engines: {node: '>=0.6'}
@@ -5042,7 +5037,7 @@ snapshots:
       deprecated: 0.0.2
       loglevel: 1.9.2
 
-  '@easyleap/sdk@0.0.6-beta.23(h7ara4f5cvffdldrrkcp4n2cnq)':
+  '@easyleap/sdk@0.0.6-beta.25(h7ara4f5cvffdldrrkcp4n2cnq)':
     dependencies:
       '@apollo/client': 3.13.7(@types/react@18.3.20)(graphql@16.10.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@emotion/is-prop-valid': 1.3.1
@@ -7296,7 +7291,7 @@ snapshots:
       detect-browser: 5.3.0
       family: 0.1.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(viem@2.22.23(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@3.24.2))(wagmi@2.14.16(@tanstack/query-core@5.72.2)(@tanstack/react-query@5.72.2(react@18.3.1))(@types/react@18.3.20)(bufferutil@4.0.9)(react@18.3.1)(typescript@5.8.3)(utf-8-validate@5.0.10)(viem@2.22.23(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@3.24.2))(zod@3.24.2))
       framer-motion: 6.5.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
-      qrcode: 1.5.4
+      qrcode: 1.5.3
       react: 18.3.1
       react-dom: 18.3.1(react@18.3.1)
       react-transition-state: 1.1.5(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -9094,12 +9089,6 @@ snapshots:
     dependencies:
       dijkstrajs: 1.0.3
       encode-utf8: 1.0.3
-      pngjs: 5.0.0
-      yargs: 15.4.1
-
-  qrcode@1.5.4:
-    dependencies:
-      dijkstrajs: 1.0.3
       pngjs: 5.0.0
       yargs: 15.4.1
 
