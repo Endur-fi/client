@@ -14,7 +14,7 @@
     "@apollo/client": "^3.11.10",
     "@avnu/avnu-sdk": "^3.0.0",
     "@duneanalytics/client-sdk": "^0.2.4",
-    "@easyleap/sdk": "0.0.6-beta.21",
+    "@easyleap/sdk": "0.0.6-beta.23",
     "@hookform/resolvers": "^3.9.1",
     "@prisma/client": "5.22.0",
     "@radix-ui/react-collapsible": "^1.1.1",
@@ -58,6 +58,7 @@
     "starknetkit": "^2.6.1",
     "tailwind-merge": "^2.5.4",
     "tailwindcss-animate": "^1.0.7",
+    "wagmi": "^2.14.16",
     "zod": "^3.23.8"
   },
   "devDependencies": {
@@ -65,12 +66,16 @@
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "autoprefixer": "^10.4.20",
+    "css-loader": "^7.1.2",
     "eslint": "^8",
     "eslint-config-next": "14.2.14",
+    "next-transpile-modules": "^10.0.1",
+    "null-loader": "^4.0.1",
     "postcss": "^8.4.47",
     "prettier": "3.3.3",
     "prettier-plugin-tailwindcss": "^0.6.8",
     "prisma": "5.22.0",
+    "style-loader": "^4.0.0",
     "tailwindcss": "^3.4.14",
     "tailwindcss-motion": "^1.0.0",
     "typescript": "^5"

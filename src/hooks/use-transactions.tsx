@@ -3,7 +3,6 @@ import React from "react";
 import { Icons } from "@/components/Icons";
 import { MyAnalytics } from "@/lib/analytics";
 import { eventNames } from "@/lib/utils";
-import { isTxAccepted } from "@/store/transactions.atom";
 
 import { toast, useToast } from "./use-toast";
 
@@ -22,6 +21,7 @@ interface TransactionHandlerProps {
     name?: string;
   };
   isPending: boolean;
+  isSuccess: boolean;
   setShowShareModal?: (show: boolean) => void;
 }
 
@@ -36,6 +36,7 @@ const useTransactionHandler = () => {
       data,
       error,
       isPending,
+      isSuccess,
       setShowShareModal,
     }: TransactionHandlerProps,
   ) => {
@@ -120,10 +121,10 @@ const useTransactionHandler = () => {
       });
     }
 
-    if (data && data?.transaction_hash) {
-      const res = await isTxAccepted(data.transaction_hash);
+    if (isSuccess) {
+      // const res = await isTxAccepted(data.transaction_hash);
 
-      if (res) {
+      if (isSuccess) {
         // Track transaction successful analytics
         MyAnalytics.track(
           eventNames[
@@ -146,7 +147,7 @@ const useTransactionHandler = () => {
               <Icons.toastSuccess />
               <div className="flex flex-col items-start gap-2 text-sm font-medium text-[#3F6870]">
                 <span className="text-[18px] font-semibold text-[#075A5A]">
-                  Success 🎉
+                  Submitted Successfully 🎉
                 </span>
                 {transactionType === "STAKE" ? "Staked" : "Unstaked"}{" "}
                 {form.getValues(`${transactionType.toLowerCase()}Amount`)} STRK

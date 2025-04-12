@@ -70,6 +70,7 @@ import {
   TokenTransfer,
   ReviewModal,
   DestinationDapp,
+  useWaitForTransaction,
 } from "@easyleap/sdk";
 
 declare global {
@@ -155,16 +156,19 @@ const Stake: React.FC = () => {
       form.getValues(),
       amountOutRes.amountOut,
     );
-    getCalls(
-      new MyNumber(amountOutRes.amountOut.toString(), STRK_DECIMALS),
-    ).then(setCalls);
-  }, [amountOutRes.amountOut]);
+    getCalls(new MyNumber(amountOutRes.amountOut.toString(), STRK_DECIMALS))
+      .then(setCalls)
+      .catch((err) => {
+        console.error("Error Stake calls", err);
+      });
+  }, [amountOutRes.amountOut, addressDestination, addressSource]);
 
   const { send, error, isPending, data } = useSendTransaction({
     calls,
     bridgeConfig: {
       l2_token_address: STRK_TOKEN,
-      amount: rawAmount,
+      userInputAmount: rawAmount,
+      postFeeAmount: amountOutRes.amountOut,
     },
   });
 
@@ -184,19 +188,22 @@ const Stake: React.FC = () => {
     });
   }, [yields]);
 
+  const txState = useWaitForTransaction({ hash: data });
+
   React.useEffect(() => {
     handleTransaction("STAKE", {
       form,
       address: (addressSource || addressDestination) ?? "",
       data: data ? { transaction_hash: data } : { transaction_hash: "" },
-      error: error ?? { name: "" },
-      isPending,
+      error: error || txState.error || { name: "" },
+      isPending: isPending || data ? txState.isPending : false,
+      isSuccess: txState.isSuccess,
       setShowShareModal,
     });
-  }, [data, form, isPending]);
+  }, [data, form, isPending, txState.isPending]);
 
   const handleQuickStakePrice = (percentage: number) => {
-    if (!addressSource || !addressDestination) {
+    if (!addressDestination) {
       return toast({
         description: (
           <div className="flex items-center gap-2">
@@ -295,7 +302,7 @@ const Stake: React.FC = () => {
   };
 
   async function getCalls(strkAmount: MyNumber): Promise<Call[]> {
-    if (!addressDestination || !addressSource) return [];
+    if (!addressDestination) return [];
     const previewCall = await contract?.preview_deposit(strkAmount.toString());
     const xstrkAmount = previewCall?.toString() || "0";
 
@@ -313,7 +320,6 @@ const Stake: React.FC = () => {
     if (call2) {
       calls.push(call2);
     }
-
     if (selectedPlatform !== "none") {
       const lstContract = new Contract(erc4626Abi, LST_ADDRRESS);
 
@@ -343,7 +349,6 @@ const Stake: React.FC = () => {
         calls.push(approveCall, lendingCall);
       }
     }
-
     return calls;
   }
 
@@ -376,7 +381,7 @@ const Stake: React.FC = () => {
       });
     }
 
-    if (!addressSource || !addressDestination) {
+    if (!addressDestination) {
       return toast({
         description: (
           <div className="flex items-center gap-2">
@@ -391,55 +396,6 @@ const Stake: React.FC = () => {
       address: addressSource,
       amount: Number(values.stakeAmount),
     });
-
-    // const strkAmount = MyNumber.fromEther(values.stakeAmount, 18);
-    // const previewCall = await contract?.preview_deposit(strkAmount.toString());
-    // const xstrkAmount = previewCall?.toString() || "0";
-
-    // const call1 = contractSTRK.populate("approve", [LST_ADDRRESS, strkAmount]);
-
-    // const call2 = referrer
-    //   ? contract?.populate("deposit_with_referral", [
-    //       strkAmount,
-    //       addressDestination,
-    //       referrer,
-    //     ])
-    //   : contract?.populate("deposit", [strkAmount, addressDestination]);
-
-    // const calls: Call[] = [call1];
-    // if (call2) {
-    //   calls.push(call2);
-    // }
-
-    // if (selectedPlatform !== "none") {
-    //   const lstContract = new Contract(erc4626Abi, LST_ADDRRESS);
-
-    //   const lendingAddress =
-    //     selectedPlatform === "vesu"
-    //       ? VESU_vXSTRK_ADDRESS
-    //       : NOSTRA_iXSTRK_ADDRESS;
-
-    //   const approveCall = lstContract.populate("approve", [
-    //     lendingAddress,
-    //     xstrkAmount,
-    //   ]);
-
-    //   if (selectedPlatform === "vesu") {
-    //     const vesuContract = new Contract(vxstrkAbi, VESU_vXSTRK_ADDRESS);
-    //     const lendingCall = vesuContract.populate("deposit", [
-    //       xstrkAmount,
-    //       addressDestination,
-    //     ]);
-    //     calls.push(approveCall, lendingCall);
-    //   } else {
-    //     const nostraContract = new Contract(ixstrkAbi, NOSTRA_iXSTRK_ADDRESS);
-    //     const lendingCall = nostraContract.populate("mint", [
-    //       addressDestination,
-    //       xstrkAmount,
-    //     ]);
-    //     calls.push(approveCall, lendingCall);
-    //   }
-    // }
 
     await send(tokensIn, tokensOut, destinationDapp);
   };
@@ -782,6 +738,9 @@ const Stake: React.FC = () => {
             {selectedPlatform === "none"
               ? "Stake STRK"
               : `Stake & Lend on ${selectedPlatform === "vesu" ? "Vesu" : "Nostra"}`}
+            {amountOutRes.isLoading && (
+              <div className="easyleap-h-4 easyleap-w-4 easyleap-animate-spin easyleap-rounded-full easyleap-border-2 easyleap-border-white easyleap-border-t-transparent"></div>
+            )}
           </Button>
         )}
       </div>

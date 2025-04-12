@@ -310,6 +310,7 @@ const Unstake = () => {
       data: data ?? { transaction_hash: "" },
       error: error ?? { name: "" },
       isPending,
+      isSuccess: false, // todo to fix this later
     });
   }, [data?.transaction_hash, form, isPending]);
 

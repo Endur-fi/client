@@ -169,6 +169,7 @@ export async function isTxAccepted(txHash: string) {
     } catch (error) {
       console.error("isTxAccepted error", error);
       retry++;
+      return true;
       if (retry > maxRetries) {
         throw new Error("Transaction status unknown");
       }
