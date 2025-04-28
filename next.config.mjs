@@ -32,8 +32,14 @@ const nextConfig = {
         source: "/x",
         destination: "https://x.com/endurfi",
         permanent: true,
-      },
+      }
     ];
+  },
+  async rewrites() {
+    return [{
+      source: "/strkfarm/:path*",
+      destination: "https://app.strkfarm.com/:path*",
+    }]
   },
   async headers() {
     return [

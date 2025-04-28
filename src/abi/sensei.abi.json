@@ -1,0 +1,245 @@
+[
+  {
+    "type": "impl",
+    "name": "IStrategyCustomImpl",
+    "interface_name": "strkfarm::interfaces::ERC721Strategy::IStrategyCustom"
+  },
+  {
+    "type": "struct",
+    "name": "core::integer::u256",
+    "members": [
+      {
+        "name": "low",
+        "type": "core::integer::u128"
+      },
+      {
+        "name": "high",
+        "type": "core::integer::u128"
+      }
+    ]
+  },
+  {
+    "type": "struct",
+    "name": "strkfarm::interfaces::IEkuboDistributor::Claim",
+    "members": [
+      {
+        "name": "id",
+        "type": "core::integer::u64"
+      },
+      {
+        "name": "claimee",
+        "type": "core::starknet::contract_address::ContractAddress"
+      },
+      {
+        "name": "amount",
+        "type": "core::integer::u128"
+      }
+    ]
+  },
+  {
+    "type": "struct",
+    "name": "core::array::Span::<core::felt252>",
+    "members": [
+      {
+        "name": "snapshot",
+        "type": "@core::array::Array::<core::felt252>"
+      }
+    ]
+  },
+  {
+    "type": "struct",
+    "name": "strkfarm::components::swap::Route",
+    "members": [
+      {
+        "name": "token_from",
+        "type": "core::starknet::contract_address::ContractAddress"
+      },
+      {
+        "name": "token_to",
+        "type": "core::starknet::contract_address::ContractAddress"
+      },
+      {
+        "name": "exchange_address",
+        "type": "core::starknet::contract_address::ContractAddress"
+      },
+      {
+        "name": "percent",
+        "type": "core::integer::u128"
+      },
+      {
+        "name": "additional_swap_params",
+        "type": "core::array::Array::<core::felt252>"
+      }
+    ]
+  },
+  {
+    "type": "struct",
+    "name": "strkfarm::components::swap::AvnuMultiRouteSwap",
+    "members": [
+      {
+        "name": "token_from_address",
+        "type": "core::starknet::contract_address::ContractAddress"
+      },
+      {
+        "name": "token_from_amount",
+        "type": "core::integer::u256"
+      },
+      {
+        "name": "token_to_address",
+        "type": "core::starknet::contract_address::ContractAddress"
+      },
+      {
+        "name": "token_to_amount",
+        "type": "core::integer::u256"
+      },
+      {
+        "name": "token_to_min_amount",
+        "type": "core::integer::u256"
+      },
+      {
+        "name": "beneficiary",
+        "type": "core::starknet::contract_address::ContractAddress"
+      },
+      {
+        "name": "integrator_fee_amount_bps",
+        "type": "core::integer::u128"
+      },
+      {
+        "name": "integrator_fee_recipient",
+        "type": "core::starknet::contract_address::ContractAddress"
+      },
+      {
+        "name": "routes",
+        "type": "core::array::Array::<strkfarm::components::swap::Route>"
+      }
+    ]
+  },
+  {
+    "type": "struct",
+    "name": "strkfarm::interfaces::ERC721Strategy::Position",
+    "members": [
+      {
+        "name": "acc1_supply_shares",
+        "type": "core::integer::u256"
+      },
+      {
+        "name": "acc1_borrow_shares",
+        "type": "core::integer::u256"
+      },
+      {
+        "name": "acc2_supply_shares",
+        "type": "core::integer::u256"
+      },
+      {
+        "name": "acc2_borrow_shares",
+        "type": "core::integer::u256"
+      }
+    ]
+  },
+  {
+    "type": "enum",
+    "name": "core::bool",
+    "variants": [
+      {
+        "name": "False",
+        "type": "()"
+      },
+      {
+        "name": "True",
+        "type": "()"
+      }
+    ]
+  },
+  {
+    "type": "struct",
+    "name": "strkfarm::interfaces::ERC721Strategy::PositionDescription",
+    "members": [
+      {
+        "name": "estimated_size",
+        "type": "core::integer::u256"
+      },
+      {
+        "name": "deposit1",
+        "type": "core::integer::u256"
+      },
+      {
+        "name": "borrow1",
+        "type": "core::integer::u256"
+      },
+      {
+        "name": "deposit2",
+        "type": "core::integer::u256"
+      },
+      {
+        "name": "borrow2",
+        "type": "core::integer::u256"
+      }
+    ]
+  },
+  {
+    "type": "struct",
+    "name": "strkfarm::interfaces::oracle::IPriceOracleDispatcher",
+    "members": [
+      {
+        "name": "contract_address",
+        "type": "core::starknet::contract_address::ContractAddress"
+      }
+    ]
+  },
+  {
+    "type": "struct",
+    "name": "ekubo::interfaces::core::ICoreDispatcher",
+    "members": [
+      {
+        "name": "contract_address",
+        "type": "core::starknet::contract_address::ContractAddress"
+      }
+    ]
+  },
+  {
+    "type": "struct",
+    "name": "strkfarm::components::ekuboSwap::IRouterDispatcher",
+    "members": [
+      {
+        "name": "contract_address",
+        "type": "core::starknet::contract_address::ContractAddress"
+      }
+    ]
+  },
+  {
+    "type": "struct",
+    "name": "strkfarm::components::ekuboSwap::EkuboSwapStruct",
+    "members": [
+      {
+        "name": "core",
+        "type": "ekubo::interfaces::core::ICoreDispatcher"
+      },
+      {
+        "name": "router",
+        "type": "strkfarm::components::ekuboSwap::IRouterDispatcher"
+      }
+    ]
+  },
+  {
+    "type": "interface",
+    "name": "strkfarm::interfaces::ERC721Strategy::IStrategyCustom",
+    "items": [
+      {
+        "type": "function",
+        "name": "describe_position",
+        "inputs": [
+          {
+            "name": "token_id",
+            "type": "core::felt252"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "(strkfarm::interfaces::ERC721Strategy::Position, strkfarm::interfaces::ERC721Strategy::PositionDescription)"
+          }
+        ],
+        "state_mutability": "view"
+      }
+    ]
+  }
+]
