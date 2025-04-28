@@ -308,8 +308,15 @@ const nostraLendYieldQueryAtom = atomWithQuery(() => ({
 const strkFarmYieldQueryAtom = atomWithQuery(() => ({
   queryKey: ["strkFarmYield"],
   queryFn: async (): Promise<ProtocolYield> => {
+    const hostname = window.location.origin;
+    const res = await fetch(`${hostname}/strkfarm/api/strategies`);
+    const data = await res.json();
+    const strategies = data.strategies;
+    const xSTRKStrategy = strategies.find(
+      (strategy: any) => strategy.id === "xstrk_sensei",
+    );
     return {
-      value: null,
+      value: xSTRKStrategy.apy * 100,
       isLoading: false,
       error: "Coming soon",
     };

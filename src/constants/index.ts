@@ -69,8 +69,8 @@ export function getEndpoint() {
 
 export function getProvider() {
   const rpcUrl =
-    process.env.NEXT_PUBLIC_RPC_URL ||
     process.env.RPC_URL ||
+    process.env.NEXT_PUBLIC_RPC_URL ||
     "https://starknet-mainnet.public.blastapi.io";
 
   return new RpcProvider({

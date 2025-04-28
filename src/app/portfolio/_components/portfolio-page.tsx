@@ -5,7 +5,6 @@ import { useAtomValue } from "jotai";
 import React, { useEffect } from "react";
 
 import { BlockInfo } from "@/app/api/holdings/[address]/[nDays]/route";
-import { Icons } from "@/components/Icons";
 import { ProtocolConfig, protocolConfigs } from "@/components/defi";
 import { useSidebar } from "@/components/ui/sidebar";
 import { STRK_DECIMALS } from "@/constants";
@@ -27,27 +26,9 @@ import {
   getPortfolioDAppAction,
   getPortfolioDAppAPY,
   getPortfolioDAppAsset,
-  SizeColumn,
 } from "./table/columns";
 import { DataTable } from "./table/data-table";
 import { MyAnalytics } from "@/lib/analytics";
-
-const _data: SizeColumn[] = [
-  {
-    asset: "xSTRK/STRK",
-    dapp: "Ekubo",
-    amount: "500",
-    apy: "10%",
-    logos: [Icons.endurLogo, Icons.strkLogo],
-  },
-  {
-    asset: "xSTRK/STRK",
-    dapp: "Nostra",
-    amount: "500",
-    apy: "10%",
-    logos: [Icons.endurLogo, Icons.strkLogo],
-  },
-];
 
 export type HoldingInfo = {
   date: string;
@@ -146,6 +127,7 @@ const PortfolioPage: React.FC = () => {
           const nostraDex: DAppHoldings[] = data.nostraDex;
           const ekubo: DAppHoldings[] = data.ekubo;
           const wallet: DAppHoldings[] = data.wallet;
+          const strkfarm: DAppHoldings[] = data.strkfarm;
 
           setLastUpdated(new Date(data.lastUpdated));
           // assert all arrays are of the same length
@@ -154,7 +136,8 @@ const PortfolioPage: React.FC = () => {
             blocks.length !== nostraLending.length ||
             blocks.length !== nostraDex.length ||
             blocks.length !== ekubo.length ||
-            blocks.length !== wallet.length
+            blocks.length !== wallet.length ||
+            blocks.length !== strkfarm.length
           ) {
             throw new Error("Invalid holdings data");
           }
@@ -172,6 +155,9 @@ const PortfolioPage: React.FC = () => {
               vesu: serialisedMyNumberToNumber(vesu[idx].xSTRKAmount as any),
               ekubo: serialisedMyNumberToNumber(ekubo[idx].xSTRKAmount as any),
               endur: serialisedMyNumberToNumber(wallet[idx].xSTRKAmount as any),
+              strkfarm: serialisedMyNumberToNumber(
+                strkfarm[idx].xSTRKAmount as any,
+              ),
             };
           });
           holdings.sort(
@@ -198,6 +184,7 @@ const PortfolioPage: React.FC = () => {
         vesu: holding.vesu,
         ekubo: holding.ekubo,
         endur: holding.endur,
+        strkfarm: holding.strkfarm,
       });
     });
     return summary;

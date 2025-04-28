@@ -11,6 +11,7 @@ import {
   N_XSTRK_C_CONTRACT_ADDRESS,
   N_XSTRK_CONTRACT_ADDRESS,
 } from "@/store/nostra.store";
+import { getXSTRKSenseiHoldings } from "@/store/strkfarm.store";
 import {
   getVesuHoldings,
   getVesuxSTRKCollateralWrapper,
@@ -61,6 +62,7 @@ export async function GET(_req: Request, context: any) {
     const nostraLendingHoldingsProm = getNostraLendingHoldings(addr, blocks);
     const nostraDexHoldingsProm = getNostraDEXHoldings(addr, blocks);
     const xstrkHoldingsProm = getAllXSTRKHoldings(addr, blocks);
+    const strkfarmHoldingsProm = getAllXSTRKSenseiHoldings(addr, blocks);
 
     // resolve promises
     const [
@@ -69,12 +71,14 @@ export async function GET(_req: Request, context: any) {
       nostraLendingHoldings,
       nostraDexHoldings,
       xstrkHoldings,
+      strkfarmHoldings,
     ] = await Promise.all([
       vesuHoldingsProm,
       ekuboHoldingsProm,
       nostraLendingHoldingsProm,
       nostraDexHoldingsProm,
       xstrkHoldingsProm,
+      strkfarmHoldingsProm,
     ]);
 
     const resp = NextResponse.json({
@@ -82,6 +86,7 @@ export async function GET(_req: Request, context: any) {
       ekubo: ekuboHoldings,
       nostraLending: nostraLendingHoldings,
       nostraDex: nostraDexHoldings,
+      strkfarm: strkfarmHoldings,
       wallet: xstrkHoldings,
       blocks,
       lastUpdated: new Date().toISOString(),
@@ -127,6 +132,18 @@ async function getAllVesuHoldings(address: string, blocks: BlockInfo[]) {
         ),
       };
       return output;
+    }),
+  );
+}
+
+async function getAllXSTRKSenseiHoldings(address: string, blocks: BlockInfo[]) {
+  return Promise.all(
+    blocks.map(async (block) => {
+      return retry(getXSTRKSenseiHoldings, [
+        address,
+        getProvider(),
+        block.block,
+      ]);
     }),
   );
 }
