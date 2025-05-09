@@ -136,7 +136,7 @@ export async function getAllVesuHoldings(address: string, blocks: BlockInfo[]) {
   );
 }
 
-async function getAllXSTRKSenseiHoldings(address: string, blocks: BlockInfo[]) {
+export async function getAllXSTRKSenseiHoldings(address: string, blocks: BlockInfo[]) {
   return Promise.all(
     blocks.map(async (block) => {
       return retry(getXSTRKSenseiHoldings, [

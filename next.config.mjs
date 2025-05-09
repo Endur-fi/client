@@ -1,9 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   compiler: {
-    removeConsole: {
-      exclude: ["error"],
-    },
+    // removeConsole: {
+    //   exclude: ["error"],
+    // },
   },
   async redirects() {
     return [

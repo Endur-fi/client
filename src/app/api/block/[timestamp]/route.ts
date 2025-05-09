@@ -4,6 +4,8 @@ import { NextResponse } from "next/server";
 
 export const revalidate = 60 * 60 * 6; // 6 hours
 
+const timestampBlockCache: Record<number, number> = {};
+
 export async function GET(_req: Request, context: any) {
   const { params } = context;
 
@@ -15,7 +17,15 @@ export async function GET(_req: Request, context: any) {
     });
   }
 
+  if (timestampBlockCache[timestamp]) {
+    console.log(`using cache for ${timestamp} => ${timestampBlockCache[timestamp]}`);
+    return NextResponse.json({
+      block: timestampBlockCache[timestamp],
+    });
+  }
+
   const block = await getBlockNumberForTimestamp(timestamp);
+  timestampBlockCache[timestamp] = block;
 
   return NextResponse.json({
     block,
@@ -32,6 +42,7 @@ export async function getBlockNumberForTimestamp(
   const latestBlockTimestamp = latestBlock.timestamp;
 
   // Check if the timestamp is in the future
+  console.log(`latestBlockTimestamp: ${latestBlockTimestamp}, timestampSeconds: ${timestampSeconds}, block: ${latestBlock.block_number}`);
   if (timestampSeconds > latestBlockTimestamp) {
     throw new Error(
       "Timestamp is in the future. No blocks exist for this timestamp.",

@@ -7,6 +7,7 @@ import {
   getAllEkuboHoldings,
   getAllVesuHoldings,
   getAllXSTRKHoldings,
+  getAllXSTRKSenseiHoldings,
   getNostraDEXHoldings,
   getNostraLendingHoldings,
 } from "@/app/api/holdings/[address]/[nDays]/route";
@@ -26,7 +27,7 @@ export interface BlockInfo {
 export async function GET(_req: Request, context: any) {
   const { params } = context;
   const addr = params.address;
-  const timestamp = Number(params.timestamp);
+  const blockNumber = Number(params.block);
 
   // get blocks to use for the chart
   const host = process.env.HOSTNAME ?? "http://localhost:3000";
@@ -38,15 +39,6 @@ export async function GET(_req: Request, context: any) {
   }
 
   try {
-    const result = await axios.get(`${host}/api/block/${timestamp}`);
-
-    if (!result?.data) {
-      return NextResponse.json({
-        error: "Invalid blocks",
-      });
-    }
-
-    const blockNumber = result.data.block;
     const blocks = [
       {
         block: blockNumber,
@@ -63,6 +55,7 @@ export async function GET(_req: Request, context: any) {
     const nostraLendingHoldingsProm = getNostraLendingHoldings(addr, blocks);
     const nostraDexHoldingsProm = getNostraDEXHoldings(addr, blocks);
     const xstrkHoldingsProm = getAllXSTRKHoldings(addr, blocks);
+    const strkfarmHoldingsProm = getAllXSTRKSenseiHoldings(addr, blocks);
 
     // resolve promises
     const [
@@ -71,12 +64,14 @@ export async function GET(_req: Request, context: any) {
       nostraLendingHoldings,
       nostraDexHoldings,
       xstrkHoldings,
+      strkfarmHoldings,
     ] = await Promise.all([
       vesuHoldingsProm,
       ekuboHoldingsProm,
       nostraLendingHoldingsProm,
       nostraDexHoldingsProm,
       xstrkHoldingsProm,
+      strkfarmHoldingsProm
     ]);
     return NextResponse.json({
       vesu: vesuHoldings,
@@ -84,6 +79,7 @@ export async function GET(_req: Request, context: any) {
       nostraLending: nostraLendingHoldings,
       nostraDex: nostraDexHoldings,
       wallet: xstrkHoldings,
+      strkfarm: strkfarmHoldings,
       blocks,
       lastUpdated: new Date().toISOString(),
     });
