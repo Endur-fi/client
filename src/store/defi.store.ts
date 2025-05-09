@@ -339,7 +339,7 @@ const strkFarmEkuboYieldQueryAtom = atomWithQuery(() => ({
         value: 0,
         isLoading: false,
         error: "Failed to find strategy",
-      }
+      };
     }
     return {
       value: strategy.apy * 100,

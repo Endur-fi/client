@@ -100,7 +100,7 @@ const DefiHoldings: React.FC = () => {
       },
       {
         dapp: "haiko",
-        holdings: parseInt(userHaikoBalance.value.toString()),
+        holdings: parseInt(userHaikoBalance.value.toString(), 10),
         fill: chartConfig.haiko.color,
       },
       {
@@ -112,6 +112,7 @@ const DefiHoldings: React.FC = () => {
         dapp: "strkfarm",
         holdings: parseInt(
           strkfarmPosi.data.xSTRKAmount.toEtherToFixedDecimals(2),
+          10,
         ),
         fill: chartConfig.strkfarm.color,
       },

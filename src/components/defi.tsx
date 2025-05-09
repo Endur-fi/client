@@ -33,7 +33,7 @@ export const protocolConfigs: Partial<Record<SupportedDApp, ProtocolConfig>> = {
     protocolIcon: <Icons.strkfarmLogo className="rounded-full" />,
     protocolName: "STRKFarm",
     badges: [{ type: "Yield Farming", color: "bg-[#E9F3F0] text-[#17876D]" }],
-    description: "Auto compound defi spring rewards on xSTRK",
+    description: "Leveraged xSTRK strategy on Vesu",
     action: {
       type: "lend",
       link: "https://app.strkfarm.com/strategy/xstrk_sensei",
@@ -53,8 +53,14 @@ export const protocolConfigs: Partial<Record<SupportedDApp, ProtocolConfig>> = {
     ],
     protocolIcon: <Icons.strkfarmLogo className="rounded-full" />,
     protocolName: "STRKFarm",
-    badges: [{ type: "Automated Liquidity Pool", color: "bg-[#E9F3F0] text-[#17876D]" }],
-    description: "Auto-managed liquidity vault for Ekubo’s xSTRK/STRK pool. Rebalances range and compounds fees and rewards automatically.",
+    badges: [
+      {
+        type: "Automated Liquidity Pool",
+        color: "bg-[#E9F3F0] text-[#17876D]",
+      },
+    ],
+    description:
+      "Auto-managed liquidity vault for Ekubo’s xSTRK/STRK pool. Rebalances range and compounds fees and rewards automatically.",
     action: {
       type: "pool",
       link: "https://app.strkfarm.xyz/strategy/ekubo_cl_xstrkstrk",

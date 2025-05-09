@@ -11,7 +11,10 @@ import {
   N_XSTRK_C_CONTRACT_ADDRESS,
   N_XSTRK_CONTRACT_ADDRESS,
 } from "@/store/nostra.store";
-import { getEkuboXSTRKSTRKHoldings, getXSTRKSenseiHoldings } from "@/store/strkfarm.store";
+import {
+  getEkuboXSTRKSTRKHoldings,
+  getXSTRKSenseiHoldings,
+} from "@/store/strkfarm.store";
 import {
   getVesuHoldings,
   getVesuxSTRKCollateralWrapper,
@@ -30,25 +33,6 @@ export interface BlockInfo {
     preciseRate: MyNumber;
   };
 }
-
-const originalFetch = global.fetch || require('node-fetch'); // fallback if not on Node 18+
-
-global.fetch = async function (...args) {
-  const [url, options] = args;
-  const method = options?.method || 'GET';
-  const start = Date.now();
-
-  try {
-    const res = await originalFetch(...args);
-    const duration = Date.now() - start;
-    console.log(`[fetch] ${method} ${url} - ${res.status} (${duration}ms)`);
-    return res;
-  } catch (err: any) {
-    const duration = Date.now() - start;
-    console.error(`[fetch] ${method} ${url} - ERROR: ${err.message} (${duration}ms)`);
-    throw err;
-  }
-};
 
 export async function GET(_req: Request, context: any) {
   const { params } = context;
@@ -81,7 +65,11 @@ export async function GET(_req: Request, context: any) {
     const nostraLendingHoldingsProm = getNostraLendingHoldings(addr, blocks);
     const nostraDexHoldingsProm = getNostraDEXHoldings(addr, blocks);
     const xstrkHoldingsProm = getAllXSTRKHoldings(addr, blocks);
-    const strkfarmHoldingsProm = getAllSTRKFarmHoldings(addr, blocks);
+    const strkfarmHoldingsProm = getAllXSTRKSenseiHoldings(addr, blocks);
+    const strkfarmEkuboHoldingsProm = getAllEkuboXSTRKSTRKHoldings(
+      addr,
+      blocks,
+    );
 
     // resolve promises
     const [
@@ -91,6 +79,7 @@ export async function GET(_req: Request, context: any) {
       nostraDexHoldings,
       xstrkHoldings,
       strkfarmHoldings,
+      strkfarmEkuboHoldings,
     ] = await Promise.all([
       vesuHoldingsProm,
       ekuboHoldingsProm,
@@ -98,6 +87,7 @@ export async function GET(_req: Request, context: any) {
       nostraDexHoldingsProm,
       xstrkHoldingsProm,
       strkfarmHoldingsProm,
+      strkfarmEkuboHoldingsProm,
     ]);
 
     const resp = NextResponse.json({
@@ -106,6 +96,7 @@ export async function GET(_req: Request, context: any) {
       nostraLending: nostraLendingHoldings,
       nostraDex: nostraDexHoldings,
       strkfarm: strkfarmHoldings,
+      strkfarmEkubo: strkfarmEkuboHoldings,
       wallet: xstrkHoldings,
       blocks,
       lastUpdated: new Date().toISOString(),
@@ -155,25 +146,32 @@ export async function getAllVesuHoldings(address: string, blocks: BlockInfo[]) {
   );
 }
 
-export async function getAllSTRKFarmHoldings(address: string, blocks: BlockInfo[]) {
+export async function getAllXSTRKSenseiHoldings(
+  address: string,
+  blocks: BlockInfo[],
+) {
   return Promise.all(
     blocks.map(async (block) => {
-      const xSTRKSensei = await retry(getXSTRKSenseiHoldings, [
+      return retry(getXSTRKSenseiHoldings, [
         address,
         getProvider(),
         block.block,
       ]);
+    }),
+  );
+}
 
-      const ekuboXSTRK = await retry(getEkuboXSTRKSTRKHoldings, [
+export async function getAllEkuboXSTRKSTRKHoldings(
+  address: string,
+  blocks: BlockInfo[],
+) {
+  return Promise.all(
+    blocks.map(async (block) => {
+      return retry(getEkuboXSTRKSTRKHoldings, [
         address,
         getProvider(),
         block.block,
       ]);
-
-      return {
-        xSTRKAmount: xSTRKSensei.xSTRKAmount.operate('plus', ekuboXSTRK.xSTRKAmount.toString()),
-        STRKAmount: xSTRKSensei.STRKAmount.operate('plus', ekuboXSTRK.STRKAmount.toString()),
-      }
     }),
   );
 }

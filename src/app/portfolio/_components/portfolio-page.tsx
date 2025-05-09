@@ -128,6 +128,7 @@ const PortfolioPage: React.FC = () => {
           const ekubo: DAppHoldings[] = data.ekubo;
           const wallet: DAppHoldings[] = data.wallet;
           const strkfarm: DAppHoldings[] = data.strkfarm;
+          const strkfarmEkubo: DAppHoldings[] = data.strkfarmEkubo;
 
           setLastUpdated(new Date(data.lastUpdated));
           // assert all arrays are of the same length
@@ -137,7 +138,8 @@ const PortfolioPage: React.FC = () => {
             blocks.length !== nostraDex.length ||
             blocks.length !== ekubo.length ||
             blocks.length !== wallet.length ||
-            blocks.length !== strkfarm.length
+            blocks.length !== strkfarm.length ||
+            blocks.length !== strkfarmEkubo.length
           ) {
             throw new Error("Invalid holdings data");
           }
@@ -157,6 +159,9 @@ const PortfolioPage: React.FC = () => {
               endur: serialisedMyNumberToNumber(wallet[idx].xSTRKAmount as any),
               strkfarm: serialisedMyNumberToNumber(
                 strkfarm[idx].xSTRKAmount as any,
+              ),
+              strkfarmEkubo: serialisedMyNumberToNumber(
+                strkfarmEkubo[idx].xSTRKAmount as any,
               ),
             };
           });
@@ -178,13 +183,15 @@ const PortfolioPage: React.FC = () => {
   const summaryPieChartHoldings = React.useMemo(() => {
     const summary: HoldingInfo[] = [];
     holdings.forEach((holding) => {
+      const strkfarmSum =
+        (holding.strkfarm || 0) + (holding.strkfarmEkubo || 0);
       summary.push({
         date: holding.date,
         nostra: (holding.nostraDex || 0) + (holding.nostraLending || 0),
         vesu: holding.vesu,
         ekubo: holding.ekubo,
         endur: holding.endur,
-        strkfarm: holding.strkfarm,
+        strkfarm: strkfarmSum,
       });
     });
     return summary;
@@ -196,9 +203,12 @@ const PortfolioPage: React.FC = () => {
 
   return (
     <main
-      className={cn("mt-12 flex h-full w-full max-w-[1200px] mx-auto flex-col", {
-        "lg:pl-28": !isPinned,
-      })}
+      className={cn(
+        "mx-auto mt-12 flex h-full w-full max-w-[1200px] flex-col",
+        {
+          "lg:pl-28": !isPinned,
+        },
+      )}
     >
       <h1 className="mb-4 font-poppins text-lg font-semibold text-black lg:text-2xl">
         Your xSTRK Portfolio

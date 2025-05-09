@@ -18,7 +18,9 @@ export async function GET(_req: Request, context: any) {
   }
 
   if (timestampBlockCache[timestamp]) {
-    console.log(`using cache for ${timestamp} => ${timestampBlockCache[timestamp]}`);
+    console.log(
+      `using cache for ${timestamp} => ${timestampBlockCache[timestamp]}`,
+    );
     return NextResponse.json({
       block: timestampBlockCache[timestamp],
     });
@@ -32,7 +34,7 @@ export async function GET(_req: Request, context: any) {
   });
 }
 
-export async function getBlockNumberForTimestamp(
+async function getBlockNumberForTimestamp(
   timestampSeconds: number,
 ): Promise<number> {
   const provider = getProvider();
@@ -42,7 +44,9 @@ export async function getBlockNumberForTimestamp(
   const latestBlockTimestamp = latestBlock.timestamp;
 
   // Check if the timestamp is in the future
-  console.log(`latestBlockTimestamp: ${latestBlockTimestamp}, timestampSeconds: ${timestampSeconds}, block: ${latestBlock.block_number}`);
+  console.log(
+    `latestBlockTimestamp: ${latestBlockTimestamp}, timestampSeconds: ${timestampSeconds}, block: ${latestBlock.block_number}`,
+  );
   if (timestampSeconds > latestBlockTimestamp) {
     throw new Error(
       "Timestamp is in the future. No blocks exist for this timestamp.",

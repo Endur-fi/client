@@ -1,4 +1,3 @@
-import axios from "axios";
 import { NextResponse } from "next/server";
 
 import MyNumber from "@/lib/MyNumber";
@@ -7,7 +6,8 @@ import {
   getAllEkuboHoldings,
   getAllVesuHoldings,
   getAllXSTRKHoldings,
-  getAllSTRKFarmHoldings,
+  getAllXSTRKSenseiHoldings,
+  getAllEkuboXSTRKSTRKHoldings,
   getNostraDEXHoldings,
   getNostraLendingHoldings,
 } from "@/app/api/holdings/[address]/[nDays]/route";
@@ -55,7 +55,11 @@ export async function GET(_req: Request, context: any) {
     const nostraLendingHoldingsProm = getNostraLendingHoldings(addr, blocks);
     const nostraDexHoldingsProm = getNostraDEXHoldings(addr, blocks);
     const xstrkHoldingsProm = getAllXSTRKHoldings(addr, blocks);
-    const strkfarmHoldingsProm = getAllSTRKFarmHoldings(addr, blocks);
+    const strkfarmHoldingsProm = getAllXSTRKSenseiHoldings(addr, blocks);
+    const strkfarmEkuboHoldingsProm = getAllEkuboXSTRKSTRKHoldings(
+      addr,
+      blocks,
+    );
 
     // resolve promises
     const [
@@ -65,13 +69,15 @@ export async function GET(_req: Request, context: any) {
       nostraDexHoldings,
       xstrkHoldings,
       strkfarmHoldings,
+      strkfarmEkuboHoldings,
     ] = await Promise.all([
       vesuHoldingsProm,
       ekuboHoldingsProm,
       nostraLendingHoldingsProm,
       nostraDexHoldingsProm,
       xstrkHoldingsProm,
-      strkfarmHoldingsProm
+      strkfarmHoldingsProm,
+      strkfarmEkuboHoldingsProm,
     ]);
     return NextResponse.json({
       vesu: vesuHoldings,
@@ -80,6 +86,7 @@ export async function GET(_req: Request, context: any) {
       nostraDex: nostraDexHoldings,
       wallet: xstrkHoldings,
       strkfarm: strkfarmHoldings,
+      strkfarmEkubo: strkfarmEkuboHoldings,
       blocks,
       lastUpdated: new Date().toISOString(),
     });
