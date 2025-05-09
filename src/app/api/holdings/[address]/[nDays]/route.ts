@@ -11,6 +11,7 @@ import {
   N_XSTRK_C_CONTRACT_ADDRESS,
   N_XSTRK_CONTRACT_ADDRESS,
 } from "@/store/nostra.store";
+import { getEkuboXSTRKSTRKHoldings, getXSTRKSenseiHoldings } from "@/store/strkfarm.store";
 import {
   getVesuHoldings,
   getVesuxSTRKCollateralWrapper,
@@ -29,6 +30,25 @@ export interface BlockInfo {
     preciseRate: MyNumber;
   };
 }
+
+const originalFetch = global.fetch || require('node-fetch'); // fallback if not on Node 18+
+
+global.fetch = async function (...args) {
+  const [url, options] = args;
+  const method = options?.method || 'GET';
+  const start = Date.now();
+
+  try {
+    const res = await originalFetch(...args);
+    const duration = Date.now() - start;
+    console.log(`[fetch] ${method} ${url} - ${res.status} (${duration}ms)`);
+    return res;
+  } catch (err: any) {
+    const duration = Date.now() - start;
+    console.error(`[fetch] ${method} ${url} - ERROR: ${err.message} (${duration}ms)`);
+    throw err;
+  }
+};
 
 export async function GET(_req: Request, context: any) {
   const { params } = context;
@@ -61,6 +81,7 @@ export async function GET(_req: Request, context: any) {
     const nostraLendingHoldingsProm = getNostraLendingHoldings(addr, blocks);
     const nostraDexHoldingsProm = getNostraDEXHoldings(addr, blocks);
     const xstrkHoldingsProm = getAllXSTRKHoldings(addr, blocks);
+    const strkfarmHoldingsProm = getAllSTRKFarmHoldings(addr, blocks);
 
     // resolve promises
     const [
@@ -69,12 +90,14 @@ export async function GET(_req: Request, context: any) {
       nostraLendingHoldings,
       nostraDexHoldings,
       xstrkHoldings,
+      strkfarmHoldings,
     ] = await Promise.all([
       vesuHoldingsProm,
       ekuboHoldingsProm,
       nostraLendingHoldingsProm,
       nostraDexHoldingsProm,
       xstrkHoldingsProm,
+      strkfarmHoldingsProm,
     ]);
 
     const resp = NextResponse.json({
@@ -82,6 +105,7 @@ export async function GET(_req: Request, context: any) {
       ekubo: ekuboHoldings,
       nostraLending: nostraLendingHoldings,
       nostraDex: nostraDexHoldings,
+      strkfarm: strkfarmHoldings,
       wallet: xstrkHoldings,
       blocks,
       lastUpdated: new Date().toISOString(),
@@ -102,7 +126,7 @@ export async function GET(_req: Request, context: any) {
   }
 }
 
-async function getAllVesuHoldings(address: string, blocks: BlockInfo[]) {
+export async function getAllVesuHoldings(address: string, blocks: BlockInfo[]) {
   return Promise.all(
     blocks.map(async (block) => {
       const justSupply = await retry(getVesuHoldings, [
@@ -131,6 +155,29 @@ async function getAllVesuHoldings(address: string, blocks: BlockInfo[]) {
   );
 }
 
+export async function getAllSTRKFarmHoldings(address: string, blocks: BlockInfo[]) {
+  return Promise.all(
+    blocks.map(async (block) => {
+      const xSTRKSensei = await retry(getXSTRKSenseiHoldings, [
+        address,
+        getProvider(),
+        block.block,
+      ]);
+
+      const ekuboXSTRK = await retry(getEkuboXSTRKSTRKHoldings, [
+        address,
+        getProvider(),
+        block.block,
+      ]);
+
+      return {
+        xSTRKAmount: xSTRKSensei.xSTRKAmount.operate('plus', ekuboXSTRK.xSTRKAmount.toString()),
+        STRKAmount: xSTRKSensei.STRKAmount.operate('plus', ekuboXSTRK.STRKAmount.toString()),
+      }
+    }),
+  );
+}
+
 async function getAllVesuCollateralHoldings(
   address: string,
   blocks: BlockInfo[],
@@ -146,7 +193,10 @@ async function getAllVesuCollateralHoldings(
   );
 }
 
-async function getAllEkuboHoldings(address: string, blocks: BlockInfo[]) {
+export async function getAllEkuboHoldings(
+  address: string,
+  blocks: BlockInfo[],
+) {
   return Promise.all(
     blocks.map(async (block) => {
       return retry(getEkuboHoldings, [address, getProvider(), block.block]);
@@ -161,7 +211,7 @@ async function getAllEkuboHoldings(address: string, blocks: BlockInfo[]) {
  * @param blocks - An array of BlockInfo objects representing the blocks to retrieve holdings from.
  * @returns A promise that resolves to an array of DAppHoldings objects representing the lending holdings.
  */
-async function getNostraLendingHoldings(
+export async function getNostraLendingHoldings(
   address: string,
   blocks: BlockInfo[],
 ): Promise<DAppHoldings[]> {
@@ -198,7 +248,10 @@ async function getNostraLendingHoldings(
   return result;
 }
 
-async function getNostraDEXHoldings(address: string, blocks: BlockInfo[]) {
+export async function getNostraDEXHoldings(
+  address: string,
+  blocks: BlockInfo[],
+) {
   const provider = getProvider();
 
   return Promise.all(
@@ -208,7 +261,10 @@ async function getNostraDEXHoldings(address: string, blocks: BlockInfo[]) {
   );
 }
 
-async function getAllXSTRKHoldings(address: string, blocks: BlockInfo[]) {
+export async function getAllXSTRKHoldings(
+  address: string,
+  blocks: BlockInfo[],
+) {
   return Promise.all(
     blocks.map(async (block) => {
       return retry(getXSTRKHoldings, [address, getProvider(), block.block]);
@@ -216,7 +272,7 @@ async function getAllXSTRKHoldings(address: string, blocks: BlockInfo[]) {
   );
 }
 
-async function retry<T extends (...args: any[]) => Promise<any>>(
+export async function retry<T extends (...args: any[]) => Promise<any>>(
   fn: T,
   args: Parameters<T>,
   retries: number = 3,

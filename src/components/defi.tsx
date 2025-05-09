@@ -34,7 +34,38 @@ export const protocolConfigs: Partial<Record<SupportedDApp, ProtocolConfig>> = {
     protocolName: "STRKFarm",
     badges: [{ type: "Yield Farming", color: "bg-[#E9F3F0] text-[#17876D]" }],
     description: "Auto compound defi spring rewards on xSTRK",
-    action: undefined,
+    action: {
+      type: "lend",
+      link: "https://app.strkfarm.com/strategy/xstrk_sensei",
+      buttonText: "Invest",
+      onClick: () => {
+        MyAnalytics.track(eventNames.OPPORTUNITIES, {
+          protocol: "strkfarm",
+          buttonText: "Invest",
+        });
+      },
+    },
+  },
+  strkfarmEkubo: {
+    tokens: [
+      { icon: <Icons.endurLogo className="size-[22px]" />, name: "xSTRK" },
+      { icon: <Icons.strkLogo className="size-[22px]" />, name: "STRK" },
+    ],
+    protocolIcon: <Icons.strkfarmLogo className="rounded-full" />,
+    protocolName: "STRKFarm",
+    badges: [{ type: "Automated Liquidity Pool", color: "bg-[#E9F3F0] text-[#17876D]" }],
+    description: "Auto-managed liquidity vault for Ekubo’s xSTRK/STRK pool. Rebalances range and compounds fees and rewards automatically.",
+    action: {
+      type: "pool",
+      link: "https://app.strkfarm.xyz/strategy/ekubo_cl_xstrkstrk",
+      buttonText: "Add Liquidity",
+      onClick: () => {
+        MyAnalytics.track(eventNames.OPPORTUNITIES, {
+          protocol: "strkfarmEkubo",
+          buttonText: "Add Liquidity",
+        });
+      },
+    },
   },
   vesu: {
     tokens: [
