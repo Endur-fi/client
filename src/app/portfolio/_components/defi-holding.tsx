@@ -18,6 +18,7 @@ import { userEkuboxSTRKPositions } from "@/store/ekubo.store";
 import { userHaikoBalanceAtom } from "@/store/haiko.store";
 import { userxSTRKNostraBalance } from "@/store/nostra.store";
 import { uservXSTRKBalanceAtom } from "@/store/vesu.store";
+import { getSTRKFarmBalanceAtom } from "@/store/strkfarm.store";
 
 export const chartConfig = {
   // holdings: {
@@ -59,7 +60,7 @@ export const chartConfig = {
     fillColor: "rgba(106, 138, 81, 0.8)",
   },
   strkfarm: {
-    label: "STRKFarm (Soon)",
+    label: "STRKFarm",
     color: "rgba(88, 45, 196, 1)",
     fillColor: "rgba(88, 45, 196, 0.8)",
   },
@@ -75,6 +76,7 @@ const DefiHoldings: React.FC = () => {
   const vxStrkBalance = useAtomValue(uservXSTRKBalanceAtom(undefined));
   const userHaikoBalance = useAtomValue(userHaikoBalanceAtom(undefined));
   const ekuboPosi = useAtomValue(userEkuboxSTRKPositions(undefined));
+  const strkfarmPosi = useAtomValue(getSTRKFarmBalanceAtom(undefined));
   const address = useAtomValue(userAddressAtom);
 
   const { chartData, sumDefiHoldings } = React.useMemo(() => {
@@ -98,7 +100,7 @@ const DefiHoldings: React.FC = () => {
       },
       {
         dapp: "haiko",
-        holdings: parseInt(userHaikoBalance.value.toString(), 2),
+        holdings: parseInt(userHaikoBalance.value.toString()),
         fill: chartConfig.haiko.color,
       },
       {
@@ -108,7 +110,9 @@ const DefiHoldings: React.FC = () => {
       },
       {
         dapp: "strkfarm",
-        holdings: 0,
+        holdings: parseInt(
+          strkfarmPosi.data.xSTRKAmount.toEtherToFixedDecimals(2),
+        ),
         fill: chartConfig.strkfarm.color,
       },
     ].sort((a, b) => b.holdings - a.holdings);
@@ -125,7 +129,7 @@ const DefiHoldings: React.FC = () => {
       output[2].holdings = 5;
     }
     return { chartData: output, sumDefiHoldings };
-  }, [nostraBal, vxStrkBalance, userHaikoBalance, ekuboPosi]);
+  }, [nostraBal, vxStrkBalance, userHaikoBalance, ekuboPosi, strkfarmPosi]);
 
   return (
     <Card className="relative flex h-[500px] w-full shrink-0 flex-col rounded-xl border border-[#AACBC4]/30 bg-[#E3EFEC]/70 bg-white font-poppins lg:h-full lg:w-fit">

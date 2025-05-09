@@ -308,10 +308,43 @@ const nostraLendYieldQueryAtom = atomWithQuery(() => ({
 const strkFarmYieldQueryAtom = atomWithQuery(() => ({
   queryKey: ["strkFarmYield"],
   queryFn: async (): Promise<ProtocolYield> => {
+    const hostname = window.location.origin;
+    const res = await fetch(`${hostname}/strkfarm/api/strategies`);
+    const data = await res.json();
+    const strategies = data.strategies;
+    const xSTRKStrategy = strategies.find(
+      (strategy: any) => strategy.id === "xstrk_sensei",
+    );
     return {
-      value: null,
+      value: xSTRKStrategy.apy * 100,
       isLoading: false,
       error: "Coming soon",
+    };
+  },
+  refetchInterval: 60000,
+}));
+
+const strkFarmEkuboYieldQueryAtom = atomWithQuery(() => ({
+  queryKey: ["strkFarmEkuboYield"],
+  queryFn: async (): Promise<ProtocolYield> => {
+    const hostname = window.location.origin;
+    const res = await fetch(`${hostname}/strkfarm/api/strategies`);
+    const data = await res.json();
+    const strategies = data.strategies;
+    const strategy = strategies.find(
+      (strategy: any) => strategy.id === "ekubo_cl_xstrkstrk",
+    );
+    if (!strategy) {
+      return {
+        value: 0,
+        isLoading: false,
+        error: "Failed to find strategy",
+      }
+    }
+    return {
+      value: strategy.apy * 100,
+      isLoading: false,
+      error: "Failed to fetch APY",
     };
   },
   refetchInterval: 60000,
@@ -404,6 +437,16 @@ export const strkFarmYieldAtom = atom<ProtocolStats>((get) => {
   };
 });
 
+export const strkFarmEkuboYieldAtom = atom<ProtocolStats>((get) => {
+  const { data, error } = get(strkFarmEkuboYieldQueryAtom);
+  return {
+    value: error || !data ? null : data.value,
+    totalSupplied: 0,
+    error,
+    isLoading: !data && !error,
+  };
+});
+
 export const haikoYieldAtom = atom<ProtocolStats>((get) => {
   const response = get(haikoYieldQueryAtom);
   return {
@@ -416,6 +459,7 @@ export const haikoYieldAtom = atom<ProtocolStats>((get) => {
 
 export type SupportedDApp =
   | "strkfarm"
+  | "strkfarmEkubo"
   | "vesu"
   | "avnu"
   | "fibrous"
@@ -438,6 +482,7 @@ export const protocolYieldsAtom = atom<
   Partial<Record<SupportedDApp, ProtocolStats>>
 >((get) => ({
   strkfarm: get(strkFarmYieldAtom),
+  strkfarmEkubo: get(strkFarmEkuboYieldAtom),
   vesu: get(vesuYieldAtom),
   ekubo: get(ekuboYieldAtom),
   nostraDex: get(nostraLPYieldAtom),
