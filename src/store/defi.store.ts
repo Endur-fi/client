@@ -5,6 +5,7 @@ import { AtomFamily } from "jotai/vanilla/utils/atomFamily";
 import { providerAtom, userAddressAtom } from "./common.store";
 import { BlockIdentifier, RpcProvider } from "starknet";
 import { atomFamily } from "jotai/utils";
+import { exchangeRateAtom } from "./lst.store";
 
 interface VesuAPIResponse {
   data: {
@@ -41,9 +42,12 @@ interface EkuboPair {
 }
 
 interface EkuboAPIResponse {
-  strkPrice: number;
-  totalStrk: number;
-  pairs: EkuboPair[];
+  topPools: {
+    fees0_24h: string;
+    fees1_24h: string;
+    tvl0_total: string;
+    tvl1_total: string;
+  }[];
 }
 
 interface NostraLPResponse {
@@ -136,27 +140,51 @@ const vesuYieldQueryAtom = atomWithQuery(() => ({
   refetchInterval: 60000,
 }));
 
-const ekuboYieldQueryAtom = atomWithQuery(() => ({
-  queryKey: ["ekuboYield"],
+const ekuboYieldQueryAtom = atomWithQuery((get) => ({
+  queryKey: ["ekuboYield", get(exchangeRateAtom)],
   queryFn: async (): Promise<ProtocolYield> => {
     try {
       const response = await fetch(
-        "https://mainnet-api.ekubo.org/defi-spring-incentives",
+        "https://starknet-mainnet-api.ekubo.org/pair/0x028d709c875c0ceac3dce7065bec5328186dc89fe254527084d1689910954b0a/0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d/pools",
       );
       const data: EkuboAPIResponse = await response.json();
 
-      const endurPair = findEndurPair(data.pairs);
-
-      if (!endurPair) {
+      if (data.topPools.length === 0) {
+        console.error("No pools found in Ekubo API response");
         return {
           value: null,
           isLoading: false,
-          error: "Endur pair not found",
+          error: "No pools found",
         };
       }
+      const mostLiquidPool = data.topPools.sort((a, b) => {
+        const tvlA = BigInt(a.tvl0_total) + BigInt(a.tvl1_total);
+        const tvlB = BigInt(b.tvl0_total) + BigInt(b.tvl1_total);
+        return Number(tvlB) - Number(tvlA);
+      })[0];
 
+      const xSTRKExchangeRate = get(exchangeRateAtom).rate || 1;
+      const tvlInSTRK =
+        BigInt(Number(mostLiquidPool.tvl0_total) * xSTRKExchangeRate) +
+        BigInt(mostLiquidPool.tvl1_total);
+      const feesInSTRK =
+        BigInt(Number(mostLiquidPool.fees0_24h) * xSTRKExchangeRate) +
+        BigInt(mostLiquidPool.fees1_24h);
+
+      const apy =
+        Number((feesInSTRK * BigInt(365) * BigInt(10000)) / tvlInSTRK) / 100;
+      console.log(
+        "Endur pair:",
+        mostLiquidPool,
+        "APY:",
+        apy,
+        "TVL:",
+        tvlInSTRK,
+        "Fees:",
+        feesInSTRK,
+      );
       return {
-        value: endurPair.currentApr * 100,
+        value: apy,
         isLoading: false,
       };
     } catch (error) {
