@@ -97,6 +97,8 @@ export function getProtocolType(protocolName: string) {
       return "dex";
     case "vesuu":
       return "lend";
+    case "strkfarm":
+      return "strategies";
   }
 }
 
@@ -125,20 +127,32 @@ export const columns: ColumnDef<ProtocolConfig>[] = [
       const dappType = getProtocolType(dappName);
 
       const dexLendOptions = filterValues.filter(
-        (option) => option === "dex" || option === "lend",
+        (option) =>
+          option === "dex" || option === "lend" || option === "strategies",
       ) as string[];
       const dappOptions = filterValues.filter(
         (option) =>
-          option === "ekubo" || option === "nostra" || option === "vesuu",
+          option === "ekubo" ||
+          option === "nostra" ||
+          option === "vesuu" ||
+          option === "strkfarm",
       ) as string[];
 
       const hasDexLendOptions = dexLendOptions.length > 0;
       const hasDappOptions = dappOptions.length > 0;
 
+      console.log("filterValues", {
+        hasDexLendOptions,
+        hasDappOptions,
+        dexLendOptions: dexLendOptions.includes(dappType!),
+        dappOptions: dappOptions.includes(dappName.split(" ")[0]),
+        dappName,
+        dappType,
+      });
       if (hasDexLendOptions && hasDappOptions) {
         return (
           dexLendOptions.includes(dappType!) &&
-          dappOptions.includes(dappName.slice(0, 6))
+          dappOptions.includes(dappName.split(" ")[0])
         );
       }
 
@@ -147,7 +161,7 @@ export const columns: ColumnDef<ProtocolConfig>[] = [
       }
 
       if (hasDappOptions) {
-        return dappOptions.includes(dappName.slice(0, 6));
+        return dappOptions.includes(dappName.split(" ")[0]);
       }
 
       return true;

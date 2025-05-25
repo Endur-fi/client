@@ -29,6 +29,9 @@ export async function GET(_req: Request) {
     apy =
       Number(yearlyMinting.toEtherToFixedDecimals(4)) /
       Number(totalStaked.toEtherToFixedDecimals(4));
+
+    // deduce endur fee
+    apy *= 0.85;
   }
 
   const newApy = (1 + apy / 365) ** 365 - 1;

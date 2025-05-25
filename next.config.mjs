@@ -1,8 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  compiler: {
+  compiler: process.env.NODE_ENV == 'development' ? {} : {
     removeConsole: {
-      exclude: ["error"],
+      exclude: ['error'],
     },
   },
   async redirects() {
@@ -32,8 +32,14 @@ const nextConfig = {
         source: "/x",
         destination: "https://x.com/endurfi",
         permanent: true,
-      },
+      }
     ];
+  },
+  async rewrites() {
+    return [{
+      source: "/strkfarm/:path*",
+      destination: "https://app.strkfarm.com/:path*",
+    }]
   },
   async headers() {
     return [

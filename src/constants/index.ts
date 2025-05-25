@@ -14,6 +14,7 @@ export const WBTC_TOKEN =
 export const xSTRK_TOKEN_MAINNET =
   "0x28d709c875c0ceac3dce7065bec5328186dc89fe254527084d1689910954b0a";
 export const xSTRK_TOKEN_MAINNET_DEPLOYMENT_BLOCK = 929092;
+export const BLOCK_NUMBER_24_NOV_2024 = 925000; // block number at Nov 24 2024 04:17:28
 
 export const STRK_DECIMALS = 18;
 export const REWARD_FEES = 15;
@@ -69,8 +70,8 @@ export function getEndpoint() {
 
 export function getProvider() {
   const rpcUrl =
-    process.env.NEXT_PUBLIC_RPC_URL ||
     process.env.RPC_URL ||
+    process.env.NEXT_PUBLIC_RPC_URL ||
     "https://starknet-mainnet.public.blastapi.io";
 
   return new RpcProvider({
