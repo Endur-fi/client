@@ -109,7 +109,7 @@ const vesuYieldQueryAtom = atomWithQuery(() => ({
       );
       const data: VesuAPIResponse = await response.json();
 
-      const stats = data.data.assets.find((a) => a.symbol == 'xSTRK')?.stats;
+      const stats = data.data.assets.find((a) => a.symbol == "xSTRK")?.stats;
       if (!stats) {
         console.error("No xSTRK stats found in Vesu API response");
         return {
@@ -117,7 +117,7 @@ const vesuYieldQueryAtom = atomWithQuery(() => ({
           totalSupplied: null,
           isLoading: false,
           error: "xSTRK stats not found",
-        }
+        };
       }
       const supplyApy = convertVesuValue(
         stats.supplyApy.value,

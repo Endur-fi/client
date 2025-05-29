@@ -198,14 +198,18 @@ export async function tryCatch<T, E = Error>(
 export function isContractNotDeployed(
   blockIdentifier: BlockIdentifier = "pending",
   deploymentBlock: number,
-  maxBlock?: number
+  maxBlock?: number,
 ) {
   const lowerCondition =
     Number.isInteger(blockIdentifier) &&
     (blockIdentifier as number) < deploymentBlock;
-  
-  const upperCondition = maxBlock && 
-    ((blockIdentifier as number) > maxBlock || blockIdentifier == 'latest' || blockIdentifier == 'pending' || !blockIdentifier);
+
+  const upperCondition =
+    maxBlock &&
+    ((blockIdentifier as number) > maxBlock ||
+      blockIdentifier == "latest" ||
+      blockIdentifier == "pending" ||
+      !blockIdentifier);
 
   return lowerCondition || upperCondition;
 }

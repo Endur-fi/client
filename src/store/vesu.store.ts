@@ -27,13 +27,13 @@ const VESU_XSTRK_ADDRESS_V2 =
   "0x040f67320745980459615f4f3e7dd71002dbe6c68c8249c847c82dbe327b23cb";
 const VESU_XSTRK_ADDRESS_V2_DEPLOYMENT_BLOCK = 1440456;
 
-
 const VESU_ALTERSCOPR_XSTRK_ADDRESS =
   "0x062b16a3c933bd60eddc9630c3d088f0a1e9dcd510fbbf4ff3fb3b6a3839fd8a";
 const VESU_ALTERSCOPR_XSTRK_ADDRESS_DEPLOYMENT_BLOCK = 1197971;
 const VESU_ALTERSCOPR_XSTRK_ADDRESS_MAX_BLOCK = 1440400;
 
-const VESU_ALTERSCOPR_XSTRK_ADDRESS_V2 = '0x020478f0a1b1ef010aa24104ba0e91bf60efcabed02026b75e1d68690809e453'
+const VESU_ALTERSCOPR_XSTRK_ADDRESS_V2 =
+  "0x020478f0a1b1ef010aa24104ba0e91bf60efcabed02026b75e1d68690809e453";
 const VESU_ALTERSCOPR_XSTRK_ADDRESS_V2_DEPLOYMENT_BLOCK = 1440471;
 
 const VESU_RE7_rUSDC_XSTRK_ADDRESS =
@@ -41,8 +41,9 @@ const VESU_RE7_rUSDC_XSTRK_ADDRESS =
 const VESU_RE7_rUSDC_XSTRK_ADDRESS_DEPLOYMENT_BLOCK = 1240391;
 const VESU_RE7_rUSDC_XSTRK_ADDRESS_MAX_BLOCK = 1440400;
 
-const VESU_RE7_rUSDC_XSTRK_ADDRESS_V2 = '0x0318761ecb936a2905306c371c7935d2a6a0fa24493ac7c87be3859a36e2563a';
-const VESU_RE7_rUSDC_XSTRK_ADDRESS_V2_DEPLOYMENT_BLOCK = 1440481; 
+const VESU_RE7_rUSDC_XSTRK_ADDRESS_V2 =
+  "0x0318761ecb936a2905306c371c7935d2a6a0fa24493ac7c87be3859a36e2563a";
+const VESU_RE7_rUSDC_XSTRK_ADDRESS_V2_DEPLOYMENT_BLOCK = 1440481;
 
 const VESU_SINGLETON_ADDRESS =
   "0x02545b2e5d519fc230e9cd781046d3a64e092114f07e44771e0d719d148725ef";
@@ -50,7 +51,7 @@ const VESU_SINGLETON_ADDRESS_DEPLOYMENT_BLOCK = 954847;
 const VESU_SINGLETON_ADDRESS_MAX_BLOCK = 1440400;
 const VESU_SINGLETON_ADDRESS_V2 =
   "0x000d8d6dfec4d33bfb6895de9f3852143a17c6f92fd2a21da3d6924d34870160";
-const VESU_SINGLETON_ADDRESS_V2_DEPLOYMENT_BLOCK = 1440481; 
+const VESU_SINGLETON_ADDRESS_V2_DEPLOYMENT_BLOCK = 1440481;
 
 const getVTokenHoldings = async (
   address: string,
@@ -66,7 +67,7 @@ const getVTokenHoldings = async (
     blockNumber,
     vTokenDeploymentBlock,
     vTokenMaxBlock,
-  )
+  );
   const isV2Deployed = !isContractNotDeployed(
     blockNumber,
     vTokenV2DeploymentBlock,
@@ -198,7 +199,7 @@ export const getVesuxSTRKCollateral = async (
     blockNumber,
     VESU_SINGLETON_ADDRESS_DEPLOYMENT_BLOCK,
     VESU_SINGLETON_ADDRESS_MAX_BLOCK,
-  )
+  );
   const isV2SingletonDeployed = !isContractNotDeployed(
     blockNumber,
     VESU_SINGLETON_ADDRESS_V2_DEPLOYMENT_BLOCK,
@@ -210,13 +211,11 @@ export const getVesuxSTRKCollateral = async (
     };
   }
 
-  const singletonAddress = isV2SingletonDeployed ? VESU_SINGLETON_ADDRESS_V2 : VESU_SINGLETON_ADDRESS; 
+  const singletonAddress = isV2SingletonDeployed
+    ? VESU_SINGLETON_ADDRESS_V2
+    : VESU_SINGLETON_ADDRESS;
   try {
-    const contract = new Contract(
-      vesuSingletonAbi,
-      singletonAddress,
-      provider,
-    );
+    const contract = new Contract(vesuSingletonAbi, singletonAddress, provider);
     const currentPosition: any = await contract.call(
       "position_unsafe",
       [poolId, xSTRK_TOKEN_MAINNET, debtToken, address],

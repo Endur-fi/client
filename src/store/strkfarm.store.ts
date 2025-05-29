@@ -23,14 +23,26 @@ export const getXSTRKSenseiHoldings: DAppHoldingsFn = async (
   blockNumber?: BlockIdentifier,
 ) => {
   console.log("getXSTRKSenseiHoldings::address", { address, blockNumber });
-  if (isContractNotDeployed(blockNumber, XSTRK_SENSEI_DEPLOYMENT_BLOCK, XSTRK_SENSEI_MAX_BLOCK)) {
-    console.log("getXSTRKSenseiHoldings::contract not deployed", { address, blockNumber });
+  if (
+    isContractNotDeployed(
+      blockNumber,
+      XSTRK_SENSEI_DEPLOYMENT_BLOCK,
+      XSTRK_SENSEI_MAX_BLOCK,
+    )
+  ) {
+    console.log("getXSTRKSenseiHoldings::contract not deployed", {
+      address,
+      blockNumber,
+    });
     return {
       xSTRKAmount: MyNumber.fromZero(STRK_DECIMALS),
       STRKAmount: MyNumber.fromZero(STRK_DECIMALS),
     };
   }
-console.log("getXSTRKSenseiHoldings::contract deployed", { address, blockNumber });
+  console.log("getXSTRKSenseiHoldings::contract deployed", {
+    address,
+    blockNumber,
+  });
   try {
     const contract = new Contract(SenseiAbi, XSTRK_SENSEI, provider);
     const info: any = await contract.call("describe_position", [address], {
@@ -52,7 +64,10 @@ console.log("getXSTRKSenseiHoldings::contract deployed", { address, blockNumber 
       STRKAmount: MyNumber.fromZero(STRK_DECIMALS),
     };
   } catch (error) {
-    console.error("getXSTRKSenseiHoldings error:", error, { address, blockNumber });
+    console.error("getXSTRKSenseiHoldings error:", error, {
+      address,
+      blockNumber,
+    });
     return {
       xSTRKAmount: MyNumber.fromZero(STRK_DECIMALS),
       STRKAmount: MyNumber.fromZero(STRK_DECIMALS),
