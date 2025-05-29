@@ -12,6 +12,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { toast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 
 const font = Figtree({ subsets: ["latin-ext"] });
@@ -20,6 +21,72 @@ const CheckEligibility = () => {
   const [showEligibilityModal, setShowEligibilityModal] = React.useState(false);
   const [showClaimModal, setShowClaimModal] = React.useState(false);
   const [showNotEligibleModal, setShowNotEligibleModal] = React.useState(false);
+  const [isLoading, setIsLoading] = React.useState(false);
+
+  const [emailInput, setEmailInput] = React.useState("");
+
+  async function sendEmail(email: string): Promise<boolean> {
+    if (!email) {
+      toast({
+        description: "Email input is required",
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    // basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      toast({
+        description: "Please enter a valid email address",
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const response = await fetch("/api/send-email", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        toast({
+          description: "Email sent successfully! Check your inbox.",
+        });
+        return true;
+      }
+      toast({
+        description: data.error || "Failed to send email",
+        variant: "destructive",
+      });
+      return false;
+    } catch (error) {
+      console.error("Error sending email:", error);
+      toast({
+        description: "Network error. Please try again.",
+        variant: "destructive",
+      });
+      return false;
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  const handleNextClick = async () => {
+    const emailSent = await sendEmail(emailInput);
+    if (emailSent || !emailInput) {
+      setShowEligibilityModal(false);
+      setShowClaimModal(true);
+    }
+  };
 
   return (
     <div>
@@ -59,17 +126,18 @@ const CheckEligibility = () => {
 
           <div className="relative !mt-3 w-full px-2">
             <Input
+              value={emailInput}
+              onChange={(e) => setEmailInput(e.target.value)}
               className="h-12 w-full rounded-md border-0 bg-[#518176] pl-5 pr-24 text-[#DCF6E5] placeholder:text-[#DCF6E5]/80 focus-visible:ring-0"
               placeholder="Enter email"
+              disabled={isLoading}
             />
             <Button
-              onClick={() => {
-                setShowEligibilityModal(false);
-                setShowClaimModal(true);
-              }}
-              className="absolute right-4 top-1/2 -translate-y-1/2 rounded-md bg-[#0D4E3F] px-6 text-sm text-white hover:bg-[#0D4E3F]"
+              onClick={handleNextClick}
+              disabled={isLoading}
+              className="absolute right-4 top-1/2 -translate-y-1/2 rounded-md bg-[#0D4E3F] px-6 text-sm text-white hover:bg-[#0D4E3F] disabled:opacity-50"
             >
-              Next
+              {isLoading ? "Sending..." : "Next"}
             </Button>
           </div>
 
@@ -83,7 +151,8 @@ const CheckEligibility = () => {
               setShowEligibilityModal(false);
               setShowClaimModal(true);
             }}
-            className="mt-1 bg-transparent text-center text-[#DCF6E5]/50 shadow-none transition-all hover:bg-transparent hover:text-[#DCF6E5]"
+            disabled={isLoading}
+            className="mt-1 bg-transparent text-center text-[#DCF6E5]/50 shadow-none transition-all hover:bg-transparent hover:text-[#DCF6E5] disabled:opacity-50"
           >
             Skip
           </Button>
