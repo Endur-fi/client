@@ -21,17 +21,37 @@ import { isContractNotDeployed } from "@/lib/utils";
 const VESU_XSTRK_ADDRESS =
   "0x037ff012710c5175004687bc4d9e4c6e86d6ce5ca6fb6afee72ea02b1208fdb7";
 const VESU_XSTRK_ADDRESS_DEPLOYMENT_BLOCK = 954847;
+const VESU_XSTRK_ADDRESS_MAX_BLOCK = 1440400;
+
+const VESU_XSTRK_ADDRESS_V2 =
+  "0x040f67320745980459615f4f3e7dd71002dbe6c68c8249c847c82dbe327b23cb";
+const VESU_XSTRK_ADDRESS_V2_DEPLOYMENT_BLOCK = 1440456;
 
 const VESU_ALTERSCOPR_XSTRK_ADDRESS =
   "0x062b16a3c933bd60eddc9630c3d088f0a1e9dcd510fbbf4ff3fb3b6a3839fd8a";
 const VESU_ALTERSCOPR_XSTRK_ADDRESS_DEPLOYMENT_BLOCK = 1197971;
+const VESU_ALTERSCOPR_XSTRK_ADDRESS_MAX_BLOCK = 1440400;
+
+const VESU_ALTERSCOPR_XSTRK_ADDRESS_V2 =
+  "0x020478f0a1b1ef010aa24104ba0e91bf60efcabed02026b75e1d68690809e453";
+const VESU_ALTERSCOPR_XSTRK_ADDRESS_V2_DEPLOYMENT_BLOCK = 1440471;
 
 const VESU_RE7_rUSDC_XSTRK_ADDRESS =
   "0x069d2c197680bd60bafe1804239968275a1c85a1cad921809277306634b332b5";
 const VESU_RE7_rUSDC_XSTRK_ADDRESS_DEPLOYMENT_BLOCK = 1240391;
+const VESU_RE7_rUSDC_XSTRK_ADDRESS_MAX_BLOCK = 1440400;
+
+const VESU_RE7_rUSDC_XSTRK_ADDRESS_V2 =
+  "0x0318761ecb936a2905306c371c7935d2a6a0fa24493ac7c87be3859a36e2563a";
+const VESU_RE7_rUSDC_XSTRK_ADDRESS_V2_DEPLOYMENT_BLOCK = 1440481;
 
 const VESU_SINGLETON_ADDRESS =
   "0x02545b2e5d519fc230e9cd781046d3a64e092114f07e44771e0d719d148725ef";
+const VESU_SINGLETON_ADDRESS_DEPLOYMENT_BLOCK = 954847;
+const VESU_SINGLETON_ADDRESS_MAX_BLOCK = 1440400;
+const VESU_SINGLETON_ADDRESS_V2 =
+  "0x000d8d6dfec4d33bfb6895de9f3852143a17c6f92fd2a21da3d6924d34870160";
+const VESU_SINGLETON_ADDRESS_V2_DEPLOYMENT_BLOCK = 1440481;
 
 const getVTokenHoldings = async (
   address: string,
@@ -39,15 +59,29 @@ const getVTokenHoldings = async (
   blockNumber: BlockIdentifier,
   vToken: string,
   vTokenDeploymentBlock: number,
+  vTokenMaxBlock: number,
+  vTokenV2: string,
+  vTokenV2DeploymentBlock: number,
 ) => {
-  if (isContractNotDeployed(blockNumber, vTokenDeploymentBlock)) {
+  const isV1Deployed = !isContractNotDeployed(
+    blockNumber,
+    vTokenDeploymentBlock,
+    vTokenMaxBlock,
+  );
+  const isV2Deployed = !isContractNotDeployed(
+    blockNumber,
+    vTokenV2DeploymentBlock,
+  );
+  if (!isV1Deployed && !isV2Deployed) {
     return {
-      xSTRKAmount: MyNumber.fromZero(),
-      STRKAmount: MyNumber.fromZero(),
+      xSTRKAmount: MyNumber.fromZero(STRK_DECIMALS),
+      STRKAmount: MyNumber.fromZero(STRK_DECIMALS),
     };
   }
 
-  const contract = new Contract(erc4626Abi, vToken, provider);
+  const token = isV2Deployed ? vTokenV2 : vToken;
+
+  const contract = new Contract(erc4626Abi, token, provider);
   const shares = await contract.call("balance_of", [address], {
     blockIdentifier: blockNumber ?? "pending",
   });
@@ -58,14 +92,14 @@ const getVTokenHoldings = async (
 
   console.log(`getVTokenHoldings`, {
     address,
-    vToken,
+    vToken: token,
     blockNumber,
     shares: shares.toString(),
     balance: balance.toString(),
   });
   return {
     xSTRKAmount: new MyNumber(balance.toString(), STRK_DECIMALS),
-    STRKAmount: MyNumber.fromZero(),
+    STRKAmount: MyNumber.fromZero(STRK_DECIMALS),
   };
 };
 
@@ -81,6 +115,9 @@ export const getVesuHoldings: DAppHoldingsFn = async (
       blockNumber ?? "pending",
       VESU_XSTRK_ADDRESS,
       VESU_XSTRK_ADDRESS_DEPLOYMENT_BLOCK,
+      VESU_XSTRK_ADDRESS_MAX_BLOCK,
+      VESU_XSTRK_ADDRESS_V2,
+      VESU_XSTRK_ADDRESS_V2_DEPLOYMENT_BLOCK,
     ),
     getVTokenHoldings(
       address,
@@ -88,6 +125,9 @@ export const getVesuHoldings: DAppHoldingsFn = async (
       blockNumber ?? "pending",
       VESU_ALTERSCOPR_XSTRK_ADDRESS,
       VESU_ALTERSCOPR_XSTRK_ADDRESS_DEPLOYMENT_BLOCK,
+      VESU_ALTERSCOPR_XSTRK_ADDRESS_MAX_BLOCK,
+      VESU_ALTERSCOPR_XSTRK_ADDRESS_V2,
+      VESU_ALTERSCOPR_XSTRK_ADDRESS_V2_DEPLOYMENT_BLOCK,
     ),
     getVTokenHoldings(
       address,
@@ -95,6 +135,9 @@ export const getVesuHoldings: DAppHoldingsFn = async (
       blockNumber ?? "pending",
       VESU_RE7_rUSDC_XSTRK_ADDRESS,
       VESU_RE7_rUSDC_XSTRK_ADDRESS_DEPLOYMENT_BLOCK,
+      VESU_RE7_rUSDC_XSTRK_ADDRESS_MAX_BLOCK,
+      VESU_RE7_rUSDC_XSTRK_ADDRESS_V2,
+      VESU_RE7_rUSDC_XSTRK_ADDRESS_V2_DEPLOYMENT_BLOCK,
     ),
   ];
   const res = await Promise.all(proms);
@@ -108,7 +151,7 @@ export const getVesuHoldings: DAppHoldingsFn = async (
   );
   const balance2 = res.reduce(
     (acc, cur) => acc.operate("plus", cur.STRKAmount.toString()),
-    MyNumber.fromZero(),
+    MyNumber.fromZero(STRK_DECIMALS),
   );
   return {
     xSTRKAmount: balance,
@@ -137,7 +180,7 @@ export const uservXSTRKBalanceAtom: DAppHoldingsAtom = atomFamily(
       return {
         data: {
           xSTRKAmount: xSTRKAmount1.operate("plus", xSTRKAmount2.toString()),
-          STRKAmount: MyNumber.fromZero(),
+          STRKAmount: MyNumber.fromZero(STRK_DECIMALS),
         },
         error,
         isLoading: !data && !error,
@@ -152,18 +195,27 @@ export const getVesuxSTRKCollateral = async (
   debtToken: string,
   blockNumber?: BlockIdentifier,
 ) => {
-  if (isContractNotDeployed(blockNumber, VESU_XSTRK_ADDRESS_DEPLOYMENT_BLOCK)) {
+  const isSingletonDeployed = !isContractNotDeployed(
+    blockNumber,
+    VESU_SINGLETON_ADDRESS_DEPLOYMENT_BLOCK,
+    VESU_SINGLETON_ADDRESS_MAX_BLOCK,
+  );
+  const isV2SingletonDeployed = !isContractNotDeployed(
+    blockNumber,
+    VESU_SINGLETON_ADDRESS_V2_DEPLOYMENT_BLOCK,
+  );
+  if (!isSingletonDeployed && !isV2SingletonDeployed) {
     return {
-      xSTRKAmount: MyNumber.fromZero(),
-      STRKAmount: MyNumber.fromZero(),
+      xSTRKAmount: MyNumber.fromZero(STRK_DECIMALS),
+      STRKAmount: MyNumber.fromZero(STRK_DECIMALS),
     };
   }
+
+  const singletonAddress = isV2SingletonDeployed
+    ? VESU_SINGLETON_ADDRESS_V2
+    : VESU_SINGLETON_ADDRESS;
   try {
-    const contract = new Contract(
-      vesuSingletonAbi,
-      VESU_SINGLETON_ADDRESS,
-      provider,
-    );
+    const contract = new Contract(vesuSingletonAbi, singletonAddress, provider);
     const currentPosition: any = await contract.call(
       "position_unsafe",
       [poolId, xSTRK_TOKEN_MAINNET, debtToken, address],
@@ -180,13 +232,13 @@ export const getVesuxSTRKCollateral = async (
 
     return {
       xSTRKAmount: new MyNumber(currentPosition[1].toString(), STRK_DECIMALS),
-      STRKAmount: MyNumber.fromZero(),
+      STRKAmount: MyNumber.fromZero(STRK_DECIMALS),
     };
   } catch (error) {
     console.error("getVesuxSTRKCollateral", error);
     return {
-      xSTRKAmount: MyNumber.fromZero(),
-      STRKAmount: MyNumber.fromZero(),
+      xSTRKAmount: MyNumber.fromZero(STRK_DECIMALS),
+      STRKAmount: MyNumber.fromZero(STRK_DECIMALS),
     };
   }
 };
@@ -263,7 +315,7 @@ export const getVesuxSTRKCollateralWrapper = (): DAppHoldingsFn => {
       (acc, cur) => acc.operate("plus", cur.xSTRKAmount.toString()),
       new MyNumber("0", STRK_DECIMALS),
     );
-    const sumSTRKAmount = MyNumber.fromZero();
+    const sumSTRKAmount = MyNumber.fromZero(STRK_DECIMALS);
     return {
       xSTRKAmount: sumXSTRKAmount,
       STRKAmount: sumSTRKAmount,

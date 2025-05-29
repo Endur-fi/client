@@ -582,8 +582,7 @@ const Stake: React.FC = () => {
                   className="max-w-60 rounded-md border border-[#03624C] bg-white text-[#03624C]"
                 >
                   This fee applies exclusively to your staking rewards and does
-                  NOT affect your staked amount. You might qualify for a future
-                  fee rebate.{" "}
+                  NOT affect your staked amount.{" "}
                   <Link
                     target="_blank"
                     href={LINKS.ENDUR_VALUE_DISTRUBUTION_BLOG_LINK}
