@@ -1,3 +1,5 @@
+import { useAccount } from "@starknet-react/core";
+import axios from "axios";
 import { Figtree } from "next/font/google";
 import Image from "next/image";
 import React from "react";
@@ -18,14 +20,18 @@ import { cn } from "@/lib/utils";
 const font = Figtree({ subsets: ["latin-ext"] });
 
 const CheckEligibility = () => {
+  const [allocation, setAllocation] = React.useState<string | null>(null);
   const [showEligibilityModal, setShowEligibilityModal] = React.useState(false);
   const [showClaimModal, setShowClaimModal] = React.useState(false);
   const [showNotEligibleModal, setShowNotEligibleModal] = React.useState(false);
   const [isLoading, setIsLoading] = React.useState(false);
-
   const [emailInput, setEmailInput] = React.useState("");
 
-  async function sendEmail(email: string): Promise<boolean> {
+  const { address } = useAccount();
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  const validateEmail = (email: string): boolean => {
     if (!email) {
       toast({
         description: "Email input is required",
@@ -34,8 +40,6 @@ const CheckEligibility = () => {
       return false;
     }
 
-    // basic email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       toast({
         description: "Please enter a valid email address",
@@ -44,41 +48,36 @@ const CheckEligibility = () => {
       return false;
     }
 
+    return true;
+  };
+
+  const sendEmail = async (email: string): Promise<boolean> => {
+    if (!validateEmail(email)) return false;
+
     setIsLoading(true);
 
     try {
-      const response = await fetch("/api/send-email", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email }),
-      });
+      const _res = await axios.post("/api/send-email", { email });
 
-      const data = await response.json();
-
-      if (response.ok) {
-        toast({
-          description: "Email sent successfully! Check your inbox.",
-        });
-        return true;
-      }
       toast({
-        description: data.error || "Failed to send email",
-        variant: "destructive",
+        description: "Email sent successfully! Check your inbox.",
       });
-      return false;
+      return true;
     } catch (error) {
       console.error("Error sending email:", error);
+      const errorMessage = axios.isAxiosError(error)
+        ? error.response?.data?.error || "Failed to send email"
+        : "Network error. Please try again.";
+
       toast({
-        description: "Network error. Please try again.",
+        description: errorMessage,
         variant: "destructive",
       });
       return false;
     } finally {
       setIsLoading(false);
     }
-  }
+  };
 
   const handleNextClick = async () => {
     const emailSent = await sendEmail(emailInput);
@@ -88,15 +87,58 @@ const CheckEligibility = () => {
     }
   };
 
+  const checkEligibility = async () => {
+    if (!address) {
+      toast({
+        description: "Connect your wallet first.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const { data } = await axios.get(
+        `http://localhost:4000/users/${address}`,
+      );
+
+      if (data.success && data.data) {
+        setAllocation(data.data.allocation);
+        if (Number(data.data.allocation) > 0) {
+          setShowEligibilityModal(true);
+        } else {
+          setShowNotEligibleModal(true);
+        }
+      } else if (data.message.includes("not found")) {
+        setShowNotEligibleModal(true);
+      } else {
+        toast({
+          description: "Failed to check eligibility.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Error checking eligibility:", error);
+      toast({
+        description: "Network error. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div>
-      <Dialog
-        open={showEligibilityModal}
-        onOpenChange={setShowEligibilityModal}
-      >
+      <Dialog open={showEligibilityModal}>
         <DialogTrigger asChild>
-          <Button className="bg-[#16876D] hover:bg-[#16876D]">
-            Check eligiblity
+          <Button
+            className="bg-[#16876D] hover:bg-[#16876D]"
+            onClick={checkEligibility}
+            disabled={isLoading}
+          >
+            {isLoading ? "Checking..." : "Check eligibility"}
           </Button>
         </DialogTrigger>
         <DialogContent
@@ -177,7 +219,7 @@ const CheckEligibility = () => {
               />
             </div>
             <DialogTitle className="!mt-8 text-center text-2xl font-semibold text-white">
-              Claimed 250K STRK
+              {allocation ? `Claimed ${allocation} STRK` : "huehue"}
             </DialogTitle>
             <DialogDescription className="text-center text-sm font-normal text-[#DCF6E5]">
               You&apos;ve earned it! Grab your fee rebate rewards now.
@@ -185,14 +227,7 @@ const CheckEligibility = () => {
           </DialogHeader>
 
           <div className="relative !mt-3 flex w-full flex-col items-center justify-center gap-2 px-2">
-            <Button
-              // TODO: remove later
-              onClick={() => {
-                setShowClaimModal(false);
-                setShowNotEligibleModal(true);
-              }}
-              className="h-12 w-full rounded-md bg-[#518176] text-white hover:bg-[#518176]/90"
-            >
+            <Button className="h-12 w-full rounded-md bg-[#518176] text-white hover:bg-[#518176]/90">
               Claim Rewards
             </Button>
             <Button
@@ -237,7 +272,6 @@ const CheckEligibility = () => {
             <Button
               onClick={() => {
                 setShowNotEligibleModal(false);
-                setShowClaimModal(true);
               }}
               className="h-12 w-full rounded-md bg-[#518176] text-white hover:bg-[#518176]/90"
             >
