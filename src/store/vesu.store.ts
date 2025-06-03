@@ -234,8 +234,12 @@ export const getVesuxSTRKCollateral = async (
       xSTRKAmount: new MyNumber(currentPosition[1].toString(), STRK_DECIMALS),
       STRKAmount: MyNumber.fromZero(STRK_DECIMALS),
     };
-  } catch (error) {
-    console.error("getVesuxSTRKCollateral", error);
+  } catch (error: any) {
+    if (error.message.includes('unknown-pool')) {
+      // do nothing, its ok, dont log
+    } else {
+      console.error("getVesuxSTRKCollateral", error);
+    }
     return {
       xSTRKAmount: MyNumber.fromZero(STRK_DECIMALS),
       STRKAmount: MyNumber.fromZero(STRK_DECIMALS),

@@ -18,6 +18,8 @@ export const EKUBO_POSITION_DEPLOYMENT_BLOCK = 165388;
 
 Decimal.set({ precision: 78 });
 
+const ekuboPositionsCache: Record<string, any> = {};
+
 export const getEkuboHoldings: DAppHoldingsFn = async (
   address: string,
   provider: RpcProvider,
@@ -26,15 +28,24 @@ export const getEkuboHoldings: DAppHoldingsFn = async (
   let xSTRKAmount = MyNumber.fromEther("0", 18);
   let STRKAmount = MyNumber.fromEther("0", 18);
 
-  const res = await axios.get(
-    `https://mainnet-api.ekubo.org/positions/${address}`,
-    {
-      headers: {
-        Host: "mainnet-api.ekubo.org",
+  let res: any = ekuboPositionsCache[address];
+  if (!res) {
+    const resp = await axios.get(
+      `https://mainnet-api.ekubo.org/positions/${address}`,
+      {
+        headers: {
+          Host: "mainnet-api.ekubo.org",
+        },
       },
-    },
-    // `https://mainnet-api.ekubo.org/positions/0x067138f4b11ac7757e39ee65814d7a714841586e2aa714ce4ececf38874af245`,
-  );
+      // `https://mainnet-api.ekubo.org/positions/0x067138f4b11ac7757e39ee65814d7a714841586e2aa714ce4ececf38874af245`,
+    );
+    if (resp?.data) {
+      res = resp.data;
+      ekuboPositionsCache[address] = res; // Cache the result
+    } else {
+      throw new Error("Failed to fetch Ekubo positions data");
+    }
+  }
 
   if (isContractNotDeployed(blockNumber, EKUBO_POSITION_DEPLOYMENT_BLOCK)) {
     return {
