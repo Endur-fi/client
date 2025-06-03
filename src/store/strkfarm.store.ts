@@ -11,7 +11,6 @@ import { atomFamily } from "jotai/utils";
 const XSTRK_SENSEI =
   "0x07023a5cadc8a5db80e4f0fde6b330cbd3c17bbbf9cb145cbabd7bd5e6fb7b0b";
 const XSTRK_SENSEI_DEPLOYMENT_BLOCK = 1053807;
-const XSTRK_SENSEI_MAX_BLOCK = 1439949;
 
 const EKUBO_XSTRK_STRK =
   "0x01f083b98674bc21effee29ef443a00c7b9a500fd92cf30341a3da12c73f2324";
@@ -27,7 +26,6 @@ export const getXSTRKSenseiHoldings: DAppHoldingsFn = async (
     isContractNotDeployed(
       blockNumber,
       XSTRK_SENSEI_DEPLOYMENT_BLOCK,
-      XSTRK_SENSEI_MAX_BLOCK,
     )
   ) {
     console.log("getXSTRKSenseiHoldings::contract not deployed", {

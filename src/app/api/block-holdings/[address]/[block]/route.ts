@@ -29,15 +29,6 @@ export async function GET(_req: Request, context: any) {
   const addr = params.address;
   const blockNumber = Number(params.block);
 
-  // get blocks to use for the chart
-  const host = process.env.HOSTNAME ?? "http://localhost:3000";
-
-  if (!host) {
-    return NextResponse.json({
-      error: "Invalid host",
-    });
-  }
-
   try {
     const blocks = [
       {

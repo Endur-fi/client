@@ -124,8 +124,14 @@ export const getNostraDexHoldings: DAppHoldingsFn = async (
   const balance = await contract.call("balance_of", [address], {
     blockIdentifier: blockNumber ?? "latest",
   });
-  const totalSupply = await contract.call("total_supply");
-  const getReserves: any = await contract.call("get_reserves");
+
+  const totalSupply = await contract.call("total_supply", [], {
+    blockIdentifier: blockNumber ?? "latest",
+  });
+
+  const getReserves: any = await contract.call("get_reserves", [], {
+    blockIdentifier: blockNumber ?? "latest",
+  });
 
   const balanceStr = new MyNumber(
     balance.toString(),

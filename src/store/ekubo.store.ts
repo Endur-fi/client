@@ -31,7 +31,7 @@ export const getEkuboHoldings: DAppHoldingsFn = async (
   let res: any = ekuboPositionsCache[address];
   if (!res) {
     const resp = await axios.get(
-      `https://mainnet-api.ekubo.org/positions/${address}`,
+      `https://mainnet-api.ekubo.org/positions/${address}?showClosed=true`,
       {
         headers: {
           Host: "mainnet-api.ekubo.org",
@@ -61,7 +61,7 @@ export const getEkuboHoldings: DAppHoldingsFn = async (
   );
 
   if (res?.data) {
-    const filteredData = res?.data?.data?.filter(
+    const filteredData = res?.data?.filter(
       (position: any) =>
         position.pool_key.token0 === XSTRK_ADDRESS ||
         position.pool_key.token1 === XSTRK_ADDRESS,

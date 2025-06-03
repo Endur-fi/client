@@ -6,6 +6,7 @@ import erc4626Abi from "@/abi/erc4626.abi.json";
 import vesuSingletonAbi from "@/abi/vesu.singleton.abi.json";
 import {
   ETH_TOKEN,
+  RUSDC,
   STRK_DECIMALS,
   STRK_TOKEN,
   USDC_TOKEN,
@@ -79,26 +80,37 @@ const getVTokenHoldings = async (
     };
   }
 
-  const token = isV2Deployed ? vTokenV2 : vToken;
+  const vTokens = isV2Deployed ? [vToken, vTokenV2] : [vToken];
+  const balances = Promise.all(vTokens.map(async (token) => {
+    const contract = new Contract(erc4626Abi, token, provider);
+    const shares = await contract.call("balance_of", [address], {
+      blockIdentifier: blockNumber ?? "pending",
+    });
+    
+    const assetsToken = isV2Deployed ? vTokenV2 : vToken;
+    const contractV2 = new Contract(erc4626Abi, assetsToken, provider);
+    const balance = await contractV2.call("convert_to_assets", [shares], {
+      blockIdentifier: blockNumber ?? "pending",
+    });
 
-  const contract = new Contract(erc4626Abi, token, provider);
-  const shares = await contract.call("balance_of", [address], {
-    blockIdentifier: blockNumber ?? "pending",
-  });
+    console.log(`getVTokenHoldings`, {
+      address,
+      vToken: token,
+      blockNumber,
+      shares: shares.toString(),
+      balance: balance.toString(),
+    });
 
-  const balance = await contract.call("convert_to_assets", [shares], {
-    blockIdentifier: blockNumber ?? "pending",
-  });
+    return balance.toString();
+  }));
 
-  console.log(`getVTokenHoldings`, {
-    address,
-    vToken: token,
-    blockNumber,
-    shares: shares.toString(),
-    balance: balance.toString(),
+  const result = await balances;
+  let balance = new MyNumber("0", STRK_DECIMALS);
+  result.forEach((bal) => {
+    balance = balance.operate("plus", bal);
   });
   return {
-    xSTRKAmount: new MyNumber(balance.toString(), STRK_DECIMALS),
+    xSTRKAmount: balance,
     STRKAmount: MyNumber.fromZero(STRK_DECIMALS),
   };
 };
@@ -193,6 +205,7 @@ export const getVesuxSTRKCollateral = async (
   provider: any,
   poolId: string,
   debtToken: string,
+  poolDeploymentBlock: number,
   blockNumber?: BlockIdentifier,
 ) => {
   const isSingletonDeployed = !isContractNotDeployed(
@@ -204,7 +217,14 @@ export const getVesuxSTRKCollateral = async (
     blockNumber,
     VESU_SINGLETON_ADDRESS_V2_DEPLOYMENT_BLOCK,
   );
-  if (!isSingletonDeployed && !isV2SingletonDeployed) {
+
+  // Check if the pool is deployed
+  const isPoolDeployed = !isContractNotDeployed(
+    blockNumber,
+    poolDeploymentBlock,
+  );
+
+  if ((!isSingletonDeployed && !isV2SingletonDeployed) || !isPoolDeployed) {
     return {
       xSTRKAmount: MyNumber.fromZero(STRK_DECIMALS),
       STRKAmount: MyNumber.fromZero(STRK_DECIMALS),
@@ -249,8 +269,14 @@ export const getVesuxSTRKCollateral = async (
 
 export const RE7_XSTRK_POOL_ID =
   "0x52fb52363939c3aa848f8f4ac28f0a51379f8d1b971d8444de25fbd77d8f161";
+const RE7_XSTRK_DEPLOYMENT_BLOCK = 954847;
 export const ALTERSCOPE_XSTRK_POOL_ID =
   "0x27f2bb7fb0e232befc5aa865ee27ef82839d5fad3e6ec1de598d0fab438cb56";
+const ALTERSCOPE_XSTRK_POOL_ID_DEPLOYMENT_BLOCK = 1197971;
+
+export const RE7_rUSDC_POOL_ID = '0x3de03fafe6120a3d21dc77e101de62e165b2cdfe84d12540853bd962b970f99';
+const RE7_rUSDC_DEPLOYMENT_BLOCK = 1240391;
+
 
 export const RE7_XSTRK_POOL_DEBT_STRK = STRK_TOKEN;
 
@@ -266,6 +292,17 @@ export const getVesuxSTRKCollateralWrapper = (): DAppHoldingsFn => {
       provider,
       RE7_XSTRK_POOL_ID,
       RE7_XSTRK_POOL_DEBT_STRK,
+      RE7_XSTRK_DEPLOYMENT_BLOCK,
+      blockNumber,
+    );
+
+    // Re7 rUSDC
+    const output2 = getVesuxSTRKCollateral(
+      address,
+      provider,
+      RE7_XSTRK_POOL_ID,
+      RUSDC,
+      RE7_rUSDC_DEPLOYMENT_BLOCK,
       blockNumber,
     );
 
@@ -275,6 +312,7 @@ export const getVesuxSTRKCollateralWrapper = (): DAppHoldingsFn => {
       provider,
       ALTERSCOPE_XSTRK_POOL_ID,
       WBTC_TOKEN,
+      ALTERSCOPE_XSTRK_POOL_ID_DEPLOYMENT_BLOCK,
       blockNumber,
     );
     const alterScopeETH = getVesuxSTRKCollateral(
@@ -282,6 +320,7 @@ export const getVesuxSTRKCollateralWrapper = (): DAppHoldingsFn => {
       provider,
       ALTERSCOPE_XSTRK_POOL_ID,
       ETH_TOKEN,
+      ALTERSCOPE_XSTRK_POOL_ID_DEPLOYMENT_BLOCK,
       blockNumber,
     );
     const alterScopeUSDC = getVesuxSTRKCollateral(
@@ -289,6 +328,7 @@ export const getVesuxSTRKCollateralWrapper = (): DAppHoldingsFn => {
       provider,
       ALTERSCOPE_XSTRK_POOL_ID,
       USDC_TOKEN,
+      ALTERSCOPE_XSTRK_POOL_ID_DEPLOYMENT_BLOCK,
       blockNumber,
     );
     const alterScopeUSDT = getVesuxSTRKCollateral(
@@ -296,6 +336,7 @@ export const getVesuxSTRKCollateralWrapper = (): DAppHoldingsFn => {
       provider,
       ALTERSCOPE_XSTRK_POOL_ID,
       USDT_TOKEN,
+      ALTERSCOPE_XSTRK_POOL_ID_DEPLOYMENT_BLOCK,
       blockNumber,
     );
     const alterScopeSTRK = getVesuxSTRKCollateral(
@@ -303,12 +344,14 @@ export const getVesuxSTRKCollateralWrapper = (): DAppHoldingsFn => {
       provider,
       ALTERSCOPE_XSTRK_POOL_ID,
       STRK_TOKEN,
+      ALTERSCOPE_XSTRK_POOL_ID_DEPLOYMENT_BLOCK,
       blockNumber,
     );
     // ? add more pools here and update in below promise.all
 
     const result = await Promise.all([
       output1,
+      output2,
       alterScopeBTC,
       alterScopeETH,
       alterScopeUSDC,
