@@ -21,12 +21,7 @@ export const getXSTRKSenseiHoldings: DAppHoldingsFn = async (
   provider: any,
   blockNumber?: BlockIdentifier,
 ) => {
-  if (
-    isContractNotDeployed(
-      blockNumber,
-      XSTRK_SENSEI_DEPLOYMENT_BLOCK,
-    )
-  ) {
+  if (isContractNotDeployed(blockNumber, XSTRK_SENSEI_DEPLOYMENT_BLOCK)) {
     return {
       xSTRKAmount: MyNumber.fromZero(STRK_DECIMALS),
       STRKAmount: MyNumber.fromZero(STRK_DECIMALS),

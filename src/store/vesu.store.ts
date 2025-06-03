@@ -81,20 +81,22 @@ const getVTokenHoldings = async (
   }
 
   const vTokens = isV2Deployed ? [vToken, vTokenV2] : [vToken];
-  const balances = Promise.all(vTokens.map(async (token) => {
-    const contract = new Contract(erc4626Abi, token, provider);
-    const shares = await contract.call("balance_of", [address], {
-      blockIdentifier: blockNumber ?? "pending",
-    });
-    
-    const assetsToken = isV2Deployed ? vTokenV2 : vToken;
-    const contractV2 = new Contract(erc4626Abi, assetsToken, provider);
-    const balance = await contractV2.call("convert_to_assets", [shares], {
-      blockIdentifier: blockNumber ?? "pending",
-    });
+  const balances = Promise.all(
+    vTokens.map(async (token) => {
+      const contract = new Contract(erc4626Abi, token, provider);
+      const shares = await contract.call("balance_of", [address], {
+        blockIdentifier: blockNumber ?? "pending",
+      });
 
-    return balance.toString();
-  }));
+      const assetsToken = isV2Deployed ? vTokenV2 : vToken;
+      const contractV2 = new Contract(erc4626Abi, assetsToken, provider);
+      const balance = await contractV2.call("convert_to_assets", [shares], {
+        blockIdentifier: blockNumber ?? "pending",
+      });
+
+      return balance.toString();
+    }),
+  );
 
   const result = await balances;
   let balance = new MyNumber("0", STRK_DECIMALS);
@@ -243,7 +245,7 @@ export const getVesuxSTRKCollateral = async (
       STRKAmount: MyNumber.fromZero(STRK_DECIMALS),
     };
   } catch (error: any) {
-    if (error.message.includes('unknown-pool')) {
+    if (error.message.includes("unknown-pool")) {
       // do nothing, its ok, dont log
     } else {
       console.error("getVesuxSTRKCollateral", error);
@@ -262,9 +264,9 @@ export const ALTERSCOPE_XSTRK_POOL_ID =
   "0x27f2bb7fb0e232befc5aa865ee27ef82839d5fad3e6ec1de598d0fab438cb56";
 const ALTERSCOPE_XSTRK_POOL_ID_DEPLOYMENT_BLOCK = 1197971;
 
-export const RE7_rUSDC_POOL_ID = '0x3de03fafe6120a3d21dc77e101de62e165b2cdfe84d12540853bd962b970f99';
+export const RE7_rUSDC_POOL_ID =
+  "0x3de03fafe6120a3d21dc77e101de62e165b2cdfe84d12540853bd962b970f99";
 const RE7_rUSDC_DEPLOYMENT_BLOCK = 1240391;
-
 
 export const RE7_XSTRK_POOL_DEBT_STRK = STRK_TOKEN;
 
