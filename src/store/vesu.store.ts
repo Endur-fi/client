@@ -93,14 +93,6 @@ const getVTokenHoldings = async (
       blockIdentifier: blockNumber ?? "pending",
     });
 
-    console.log(`getVTokenHoldings`, {
-      address,
-      vToken: token,
-      blockNumber,
-      shares: shares.toString(),
-      balance: balance.toString(),
-    });
-
     return balance.toString();
   }));
 
@@ -153,10 +145,6 @@ export const getVesuHoldings: DAppHoldingsFn = async (
     ),
   ];
   const res = await Promise.all(proms);
-  console.log(
-    `getVesuHoldings2`,
-    res.map((r) => r.xSTRKAmount.toString()),
-  );
   const balance = res.reduce(
     (acc, cur) => acc.operate("plus", cur.xSTRKAmount.toString()),
     new MyNumber("0", STRK_DECIMALS),

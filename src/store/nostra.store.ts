@@ -153,10 +153,10 @@ export const getNostraDexHoldings: DAppHoldingsFn = async (
     STRK_DECIMALS,
   ).toEtherStr();
 
-  const xSTRKTokenBal =
+  const xSTRKTokenBal = Number(totalSupplyStr) == 0 ? 0 :
     (Number(balanceStr) / Number(totalSupplyStr)) * Number(getReserves0Str);
 
-  const STRKTokenBal =
+  const STRKTokenBal = Number(totalSupplyStr) == 0 ? 0 :
     (Number(balanceStr) / Number(totalSupplyStr)) * Number(getReserves1Str);
 
   return {

@@ -11,6 +11,7 @@ import {
   getNostraDEXHoldings,
   getNostraLendingHoldings,
 } from "@/app/api/holdings/[address]/[nDays]/route";
+import { DAppHoldings } from "@/store/defi.store";
 
 export const revalidate = 3600 * 6;
 
@@ -70,6 +71,10 @@ export async function GET(_req: Request, context: any) {
       strkfarmHoldingsProm,
       strkfarmEkuboHoldingsProm,
     ]);
+    const dummy: DAppHoldings[] = [{
+      xSTRKAmount: MyNumber.fromZero(18),
+      STRKAmount: MyNumber.fromZero(18),
+    }]
     return NextResponse.json({
       vesu: vesuHoldings,
       ekubo: ekuboHoldings,
