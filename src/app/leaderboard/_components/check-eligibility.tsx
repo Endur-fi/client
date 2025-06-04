@@ -2,7 +2,7 @@ import { useAccount } from "@starknet-react/core";
 import axios from "axios";
 import { Figtree } from "next/font/google";
 import Image from "next/image";
-import React from "react";
+import React, { useCallback, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -14,98 +14,330 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { GET_USER_COMPLETE_DETAILS } from "@/constants/queries";
 import { toast } from "@/hooks/use-toast";
-import apolloClient from "@/lib/apollo-client";
 import { cn } from "@/lib/utils";
 
 const font = Figtree({ subsets: ["latin-ext"] });
 
-interface UserDetails {
+// Constants
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+export interface UserCompleteDetails {
+  user_address: string;
+  points: {
+    total_points: bigint;
+    regular_points: bigint;
+    bonus_points: bigint;
+    referrer_points: bigint;
+  };
   allocation: string;
+  activity: {
+    first_activity_date?: Date;
+    last_activity_date?: Date;
+    total_deposits: number;
+    total_withdrawals: number;
+  };
+  eligibility: {
+    early_user_bonus: {
+      eligible: boolean;
+      points_before_cutoff?: bigint;
+      bonus_awarded?: bigint;
+      cutoff_date: Date;
+    };
+    six_month_bonus: {
+      eligible: boolean;
+      minimum_amount?: bigint;
+      bonus_awarded?: bigint;
+      period: {
+        start_date: Date;
+        end_date: Date;
+      };
+    };
+    referral_bonus: {
+      eligible: boolean;
+      is_referred_user: boolean;
+      referrer_address?: string;
+      bonus_awarded?: bigint;
+    };
+  };
+  tags: {
+    early_adopter: boolean;
+  };
 }
 
 type ModalType = "subscribe" | "claim" | "notEligible" | null;
 
-const CheckEligibility = () => {
-  const [allocation, setAllocation] = React.useState<string | null>(null);
-  const [activeModal, setActiveModal] = React.useState<ModalType>(null);
-  const [isLoading, setIsLoading] = React.useState(false);
-  const [emailInput, setEmailInput] = React.useState("");
-  const [isEligible, setIsEligible] = React.useState(false);
+interface CheckEligibilityProps {
+  userCompleteInfo: UserCompleteDetails | null;
+}
+
+interface EligibilityState {
+  allocation: string | null;
+  activeModal: ModalType;
+  isLoading: boolean;
+  emailInput: string;
+  isEligible: boolean;
+}
+
+// Utility functions
+const validateEmail = (email: string): boolean => {
+  if (!email) {
+    toast({
+      description: "Email input is required",
+      variant: "destructive",
+    });
+    return false;
+  }
+
+  if (!EMAIL_REGEX.test(email)) {
+    toast({
+      description: "Please enter a valid email address",
+      variant: "destructive",
+    });
+    return false;
+  }
+
+  return true;
+};
+
+const sendEmailRequest = async (email: string): Promise<boolean> => {
+  try {
+    await axios.post("/api/send-email", { email });
+    toast({
+      description: "Email sent successfully! Check your inbox.",
+    });
+    return true;
+  } catch (error) {
+    console.error("Error sending email:", error);
+    const errorMessage = axios.isAxiosError(error)
+      ? error.response?.data?.error || "Failed to send email"
+      : "Network error. Please try again.";
+
+    toast({
+      description: errorMessage,
+      variant: "destructive",
+    });
+    return false;
+  }
+};
+
+// Modal Components
+const EligibilityModal = React.memo(
+  ({
+    emailInput,
+    isLoading,
+    onEmailChange,
+    onNext,
+    onSkip,
+  }: {
+    emailInput: string;
+    isLoading: boolean;
+    onEmailChange: (email: string) => void;
+    onNext: () => void;
+    onSkip: () => void;
+  }) => (
+    <DialogContent
+      hideCloseIcon
+      className={cn(
+        font.className,
+        "border-0 bg-[#0C4E3F] px-3 pb-8 pt-12 sm:max-w-[480px] md:px-16",
+      )}
+    >
+      <DialogHeader>
+        <div className="flex w-full items-center justify-center">
+          <Image
+            src="/leaderboard/eligibility_illustration.svg"
+            width={316}
+            height={271}
+            alt="eligibility illustration"
+          />
+        </div>
+        <DialogTitle className="!mt-8 text-center text-2xl font-semibold text-white">
+          Stay Updated with Endur
+        </DialogTitle>
+        <DialogDescription className="text-center text-sm font-normal text-[#DCF6E5]">
+          Get notified when claims open, new product updates, and upcoming
+          programs
+        </DialogDescription>
+      </DialogHeader>
+
+      <div className="relative !mt-3 w-full px-2">
+        <Input
+          value={emailInput}
+          onChange={(e) => onEmailChange(e.target.value)}
+          className="h-12 w-full rounded-md border-0 bg-[#518176] pl-5 pr-24 text-[#DCF6E5] placeholder:text-[#DCF6E5]/80 focus-visible:ring-0"
+          placeholder="Enter email"
+          disabled={isLoading}
+        />
+        <Button
+          onClick={onNext}
+          disabled={isLoading}
+          className="absolute right-4 top-1/2 -translate-y-1/2 rounded-md bg-[#0D4E3F] px-6 text-sm text-white hover:bg-[#0D4E3F] disabled:opacity-50"
+        >
+          {isLoading ? "Sending..." : "Next"}
+        </Button>
+      </div>
+
+      <p className="px-4 text-center text-xs text-[#DCF6E5]">
+        We respect your privacy - no spam, no sharing data with third parties,
+        ever. Just meaningful updates. You can unsubscribe anytime.
+      </p>
+
+      <Button
+        onClick={onSkip}
+        disabled={isLoading}
+        className="mt-1 bg-transparent text-center text-[#DCF6E5]/50 shadow-none transition-all hover:bg-transparent hover:text-[#DCF6E5] disabled:opacity-50"
+      >
+        Skip
+      </Button>
+    </DialogContent>
+  ),
+);
+EligibilityModal.displayName = "EligibilityModal";
+
+const ClaimModal = React.memo(
+  ({
+    allocation,
+    onBack,
+  }: {
+    allocation: string | null;
+    onBack: () => void;
+  }) => (
+    <DialogContent
+      hideCloseIcon
+      className={cn(
+        font.className,
+        "border-0 bg-[#0C4E3F] px-3 pb-8 pt-12 sm:max-w-[480px] md:px-16",
+      )}
+    >
+      <DialogHeader>
+        <div className="flex w-full items-center justify-center">
+          <Image
+            src="/leaderboard/claim_illustration.svg"
+            width={266}
+            height={290}
+            alt="claim illustration"
+          />
+        </div>
+        <DialogTitle className="!mt-8 text-center text-2xl font-semibold text-white">
+          {allocation ? `Claimed ${allocation} STRK` : "Claim Rewards"}
+        </DialogTitle>
+        <DialogDescription className="text-center text-sm font-normal text-[#DCF6E5]">
+          You&apos;ve earned it! Grab your fee rebate rewards now.
+        </DialogDescription>
+      </DialogHeader>
+
+      <div className="relative !mt-3 flex w-full flex-col items-center justify-center gap-2 px-2">
+        <Button className="h-12 w-full rounded-md bg-[#518176] text-white hover:bg-[#518176]/90">
+          Claim Rewards
+        </Button>
+        <Button
+          onClick={onBack}
+          className="h-10 rounded-md bg-transparent px-6 text-sm text-[#DCF6E5]/50 shadow-none transition-all hover:bg-transparent hover:text-[#DCF6E5]"
+        >
+          Back
+        </Button>
+      </div>
+    </DialogContent>
+  ),
+);
+ClaimModal.displayName = "ClaimModal";
+
+const NotEligibleModal = React.memo(({ onBack }: { onBack: () => void }) => (
+  <DialogContent
+    hideCloseIcon
+    className={cn(
+      font.className,
+      "border-0 bg-[#0C4E3F] px-3 pb-8 pt-12 sm:max-w-[480px] md:px-16",
+    )}
+  >
+    <DialogHeader>
+      <div className="flex w-full items-center justify-center">
+        <Image
+          src="/leaderboard/not_eligible_illustration.svg"
+          width={340}
+          height={357}
+          alt="not eligible illustration"
+        />
+      </div>
+      <DialogTitle className="!mt-8 text-center text-2xl font-semibold text-white">
+        Not Eligible :(
+      </DialogTitle>
+    </DialogHeader>
+
+    <div className="relative !mt-3 flex w-full flex-col items-center justify-center gap-2 px-2">
+      <Button
+        onClick={onBack}
+        className="h-12 w-full rounded-md bg-[#518176] text-white hover:bg-[#518176]/90"
+      >
+        Back
+      </Button>
+    </div>
+  </DialogContent>
+));
+NotEligibleModal.displayName = "NotEligibleModal";
+
+const CheckEligibility: React.FC<CheckEligibilityProps> = ({
+  userCompleteInfo,
+}) => {
+  const [state, setState] = useState<EligibilityState>({
+    allocation: null,
+    activeModal: null,
+    isLoading: false,
+    emailInput: "",
+    isEligible: false,
+  });
 
   const { address } = useAccount();
 
-  // email validation regex
-  const emailRegex = React.useMemo(() => /^[^\s@]+@[^\s@]+\.[^\s@]+$/, []);
+  const handleEmailChange = useCallback((email: string) => {
+    setState((prev) => ({ ...prev, emailInput: email }));
+  }, []);
 
-  const validateEmail = React.useCallback(
-    (email: string): boolean => {
-      if (!email) {
-        toast({
-          description: "Email input is required",
-          variant: "destructive",
-        });
-        return false;
-      }
-
-      if (!emailRegex.test(email)) {
-        toast({
-          description: "Please enter a valid email address",
-          variant: "destructive",
-        });
-        return false;
-      }
-
-      return true;
-    },
-    [emailRegex],
-  );
-
-  const sendEmail = React.useCallback(
+  const handleEmailSend = useCallback(
     async (email: string): Promise<boolean> => {
       if (!validateEmail(email)) return false;
 
-      setIsLoading(true);
+      setState((prev) => ({ ...prev, isLoading: true }));
 
       try {
-        await axios.post("/api/send-email", { email });
-
-        toast({
-          description: "Email sent successfully! Check your inbox.",
-        });
-        return true;
-      } catch (error) {
-        console.error("Error sending email:", error);
-        const errorMessage = axios.isAxiosError(error)
-          ? error.response?.data?.error || "Failed to send email"
-          : "Network error. Please try again.";
-
-        toast({
-          description: errorMessage,
-          variant: "destructive",
-        });
-        return false;
+        return await sendEmailRequest(email);
       } finally {
-        setIsLoading(false);
+        setState((prev) => ({ ...prev, isLoading: false }));
       }
     },
-    [validateEmail],
+    [],
   );
 
-  const handleNextClick = React.useCallback(async () => {
-    const emailSent = await sendEmail(emailInput);
-    if (emailSent || !emailInput) {
-      setEmailInput("");
-      if (isEligible) {
-        setActiveModal("claim");
-      } else {
-        setActiveModal("notEligible");
-      }
-    }
-  }, [emailInput, isEligible, sendEmail]);
+  const handleNext = useCallback(async () => {
+    const { emailInput, isEligible } = state;
 
-  const checkEligibility = React.useCallback(async () => {
+    let emailSent = true;
+    if (emailInput) {
+      emailSent = await handleEmailSend(emailInput);
+    }
+
+    if (emailSent) {
+      setState((prev) => ({
+        ...prev,
+        emailInput: "",
+        activeModal: isEligible ? "claim" : "notEligible",
+      }));
+    }
+  }, [state.emailInput, state.isEligible, handleEmailSend]);
+
+  const handleSkip = useCallback(() => {
+    setState((prev) => ({
+      ...prev,
+      activeModal: prev.isEligible ? "claim" : "notEligible",
+    }));
+  }, []);
+
+  const handleBack = useCallback(() => {
+    setState((prev) => ({ ...prev, activeModal: "subscribe" }));
+  }, []);
+
+  const checkEligibility = useCallback(() => {
     if (!address) {
       toast({
         description: "Connect your wallet first.",
@@ -114,215 +346,74 @@ const CheckEligibility = () => {
       return;
     }
 
-    setIsLoading(true);
+    setState((prev) => ({ ...prev, isLoading: true }));
 
     try {
-      const { data } = await apolloClient.query({
-        query: GET_USER_COMPLETE_DETAILS,
-        variables: {
-          userAddress: address,
-        },
-      });
+      const allocation = userCompleteInfo?.allocation || null;
+      const isEligible = allocation ? Number(allocation) > 0 : false;
 
-      const result: UserDetails | null = data?.getUserCompleteDetails;
-
-      if (result) {
-        setAllocation(result.allocation);
-        const eligible = Number(result.allocation) > 0;
-        setIsEligible(eligible);
-        setActiveModal("subscribe");
-      } else {
-        setIsEligible(false);
-        setActiveModal("subscribe");
-      }
+      setState((prev) => ({
+        ...prev,
+        allocation,
+        isEligible,
+        activeModal: "subscribe",
+        isLoading: false,
+      }));
     } catch (error) {
       console.error("Error checking eligibility:", error);
       toast({
         description: "Network error. Please try again.",
         variant: "destructive",
       });
-    } finally {
-      setIsLoading(false);
+      setState((prev) => ({ ...prev, isLoading: false }));
     }
-  }, [address]);
+  }, [address, userCompleteInfo?.allocation]);
 
-  const handleSkip = React.useCallback(() => {
-    if (isEligible) {
-      setActiveModal("claim");
-    } else {
-      setActiveModal("notEligible");
-    }
-  }, [isEligible]);
-
-  const EligibilityModal = React.useMemo(
-    () => (
-      <DialogContent
-        hideCloseIcon
-        className={cn(
-          font.className,
-          "border-0 bg-[#0C4E3F] px-3 pb-8 pt-12 sm:max-w-[480px] md:px-16",
-        )}
-      >
-        <DialogHeader>
-          <div className="flex w-full items-center justify-center">
-            <Image
-              src="/leaderboard/eligibility_illustration.svg"
-              width={316}
-              height={271}
-              alt="eligibility illustration"
-            />
-          </div>
-          <DialogTitle className="!mt-8 text-center text-2xl font-semibold text-white">
-            Stay Updated with Endur
-          </DialogTitle>
-          <DialogDescription className="text-center text-sm font-normal text-[#DCF6E5]">
-            Get notified when claims open, new product updates, and upcoming
-            programs
-          </DialogDescription>
-        </DialogHeader>
-
-        <div className="relative !mt-3 w-full px-2">
-          <Input
-            value={emailInput}
-            onChange={(e) => setEmailInput(e.target.value)}
-            className="h-12 w-full rounded-md border-0 bg-[#518176] pl-5 pr-24 text-[#DCF6E5] placeholder:text-[#DCF6E5]/80 focus-visible:ring-0"
-            placeholder="Enter email"
-            disabled={isLoading}
-          />
-          <Button
-            onClick={handleNextClick}
-            disabled={isLoading}
-            className="absolute right-4 top-1/2 -translate-y-1/2 rounded-md bg-[#0D4E3F] px-6 text-sm text-white hover:bg-[#0D4E3F] disabled:opacity-50"
-          >
-            {isLoading ? "Sending..." : "Next"}
-          </Button>
-        </div>
-
-        <p className="px-4 text-center text-xs text-[#DCF6E5]">
-          We respect your privacy - no spam, no sharing data with third parties,
-          ever. Just meaningful updates. You can unsubscribe anytime.
-        </p>
-
-        <Button
-          onClick={handleSkip}
-          disabled={isLoading}
-          className="mt-1 bg-transparent text-center text-[#DCF6E5]/50 shadow-none transition-all hover:bg-transparent hover:text-[#DCF6E5] disabled:opacity-50"
-        >
-          Skip
-        </Button>
-      </DialogContent>
-    ),
-    [emailInput, isLoading, handleNextClick, handleSkip],
-  );
-
-  const ClaimModal = React.useMemo(
-    () => (
-      <DialogContent
-        hideCloseIcon
-        className={cn(
-          font.className,
-          "border-0 bg-[#0C4E3F] px-3 pb-8 pt-12 sm:max-w-[480px] md:px-16",
-        )}
-      >
-        <DialogHeader>
-          <div className="flex w-full items-center justify-center">
-            <Image
-              src="/leaderboard/claim_illustration.svg"
-              width={266}
-              height={290}
-              alt="claim illustration"
-            />
-          </div>
-          <DialogTitle className="!mt-8 text-center text-2xl font-semibold text-white">
-            {allocation ? `Claimed ${allocation} STRK` : "Claim Rewards"}
-          </DialogTitle>
-          <DialogDescription className="text-center text-sm font-normal text-[#DCF6E5]">
-            You&apos;ve earned it! Grab your fee rebate rewards now.
-          </DialogDescription>
-        </DialogHeader>
-
-        <div className="relative !mt-3 flex w-full flex-col items-center justify-center gap-2 px-2">
-          <Button className="h-12 w-full rounded-md bg-[#518176] text-white hover:bg-[#518176]/90">
-            Claim Rewards
-          </Button>
-          <Button
-            onClick={() => setActiveModal("subscribe")}
-            className="h-10 rounded-md bg-transparent px-6 text-sm text-[#DCF6E5]/50 shadow-none transition-all hover:bg-transparent hover:text-[#DCF6E5]"
-          >
-            Back
-          </Button>
-        </div>
-      </DialogContent>
-    ),
-    [allocation],
-  );
-
-  const NotEligibleModal = React.useMemo(
-    () => (
-      <DialogContent
-        hideCloseIcon
-        className={cn(
-          font.className,
-          "border-0 bg-[#0C4E3F] px-3 pb-8 pt-12 sm:max-w-[480px] md:px-16",
-        )}
-      >
-        <DialogHeader>
-          <div className="flex w-full items-center justify-center">
-            <Image
-              src="/leaderboard/not_eligible_illustration.svg"
-              width={340}
-              height={357}
-              alt="not eligible illustration"
-            />
-          </div>
-          <DialogTitle className="!mt-8 text-center text-2xl font-semibold text-white">
-            Not Eligible :(
-          </DialogTitle>
-        </DialogHeader>
-
-        <div className="relative !mt-3 flex w-full flex-col items-center justify-center gap-2 px-2">
-          <Button
-            onClick={() => setActiveModal("subscribe")}
-            className="h-12 w-full rounded-md bg-[#518176] text-white hover:bg-[#518176]/90"
-          >
-            Back
-          </Button>
-        </div>
-      </DialogContent>
-    ),
-    [],
-  );
+  const closeModal = useCallback(() => {
+    setState((prev) => ({ ...prev, activeModal: null }));
+  }, []);
 
   return (
     <div>
       <Dialog
-        open={activeModal === "subscribe"}
-        onOpenChange={(open) => setActiveModal(open ? "subscribe" : null)}
+        open={state.activeModal === "subscribe"}
+        onOpenChange={(open) =>
+          setState((prev) => ({
+            ...prev,
+            activeModal: open ? "subscribe" : null,
+          }))
+        }
       >
         <DialogTrigger asChild>
           <Button
             className="bg-[#16876D] hover:bg-[#16876D]"
             onClick={checkEligibility}
-            disabled={isLoading}
+            disabled={state.isLoading}
           >
-            {isLoading ? "Checking..." : "Check eligibility"}
+            {state.isLoading ? "Checking..." : "Check eligibility"}
           </Button>
         </DialogTrigger>
-        {EligibilityModal}
+        <EligibilityModal
+          emailInput={state.emailInput}
+          isLoading={state.isLoading}
+          onEmailChange={handleEmailChange}
+          onNext={handleNext}
+          onSkip={handleSkip}
+        />
       </Dialog>
 
       <Dialog
-        open={activeModal === "claim"}
-        onOpenChange={(open) => setActiveModal(open ? "claim" : null)}
+        open={state.activeModal === "claim"}
+        onOpenChange={(open) => !open && closeModal()}
       >
-        {ClaimModal}
+        <ClaimModal allocation={state.allocation} onBack={handleBack} />
       </Dialog>
 
       <Dialog
-        open={activeModal === "notEligible"}
-        onOpenChange={(open) => setActiveModal(open ? "notEligible" : null)}
+        open={state.activeModal === "notEligible"}
+        onOpenChange={(open) => !open && closeModal()}
       >
-        {NotEligibleModal}
+        <NotEligibleModal onBack={handleBack} />
       </Dialog>
     </div>
   );
