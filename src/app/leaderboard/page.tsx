@@ -63,6 +63,17 @@ interface LeaderboardState {
   userCompleteInfo: UserCompleteDetails | null;
 }
 
+interface LeaderboardCache {
+  data: SizeColumn[];
+  timestamp: number;
+  totalUsers: number | null;
+  currentUserInfo: CurrentUserInfo;
+  userCompleteInfo: UserCompleteDetails | null;
+}
+
+const CACHE_EXPIRY_MS = 6 * 60 * 60 * 1000; // 6 hours in milliseconds
+let leaderboardCache: LeaderboardCache | null = null;
+
 const useLeaderboardData = () => {
   const [state, setState] = React.useState<LeaderboardState>({
     data: [],
@@ -79,6 +90,23 @@ const useLeaderboardData = () => {
   const fetchUsersData = React.useCallback(
     async (isRefresh = false) => {
       try {
+        if (
+          !isRefresh &&
+          leaderboardCache &&
+          Date.now() - leaderboardCache.timestamp < CACHE_EXPIRY_MS
+        ) {
+          setState({
+            data: leaderboardCache.data,
+            loading: { initial: false, refresh: false },
+            error: null,
+            lastFetch: leaderboardCache.timestamp,
+            totalUsers: leaderboardCache.totalUsers,
+            currentUserInfo: leaderboardCache.currentUserInfo,
+            userCompleteInfo: leaderboardCache.userCompleteInfo,
+          });
+          return;
+        }
+
         setState((prev) => ({
           ...prev,
           loading: {
@@ -97,7 +125,7 @@ const useLeaderboardData = () => {
                 limit: PAGINATION_LIMIT,
               },
             },
-            fetchPolicy: isRefresh ? "network-only" : "cache-first",
+            fetchPolicy: "network-only", // fetch fresh data when we bypass cache
           }),
           address
             ? apolloClient.query({
@@ -141,8 +169,16 @@ const useLeaderboardData = () => {
             : null,
         };
 
-        setState((prev) => ({
-          ...prev,
+        // update cache
+        leaderboardCache = {
+          data: transformedData,
+          timestamp: Date.now(),
+          totalUsers: apiResponse.summary.total_users,
+          currentUserInfo,
+          userCompleteInfo: currentUserData,
+        };
+
+        setState({
           data: transformedData,
           loading: { initial: false, refresh: false },
           error: null,
@@ -150,7 +186,7 @@ const useLeaderboardData = () => {
           totalUsers: apiResponse.summary.total_users,
           currentUserInfo,
           userCompleteInfo: currentUserData,
-        }));
+        });
       } catch (err) {
         console.error("Error fetching users data:", err);
         const errorMessage =
