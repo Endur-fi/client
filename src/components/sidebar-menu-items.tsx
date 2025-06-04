@@ -8,6 +8,7 @@ import { LINKS } from "@/constants";
 import { cn } from "@/lib/utils";
 
 import { ChartColumnDecreasingIcon } from "./ui/chart-column-decreasing";
+import { ChartSplineIcon } from "./ui/chart-spline";
 import { FlameIcon } from "./ui/flame";
 import { GaugeIcon } from "./ui/gauge";
 import { HandCoinsIcon } from "./ui/hand-coins";
@@ -24,6 +25,8 @@ const SidebarMenuItems = () => {
   const [triggerDashboardIconAnimation, setTriggerDashboardIconAnimation] =
     React.useState(false);
   const [triggerPortfolioIconAnimation, setTriggerPortfolioIconAnimation] =
+    React.useState(false);
+  const [triggerLeaderboardIconAnimation, setTriggerLeaderboardIconAnimation] =
     React.useState(false);
 
   const { open } = useSidebar();
@@ -154,6 +157,34 @@ const SidebarMenuItems = () => {
               className="-ml-0.5 size-5"
             />
             {open && "Portfolio"}
+          </Link>
+        </SidebarMenuButton>
+      </SidebarMenuItem>
+
+      <SidebarMenuItem>
+        <SidebarMenuButton
+          asChild
+          className={cn("transition-all hover:bg-[#17876D] hover:text-white", {
+            "bg-[#17876D] text-white": pathname === "/leaderboard",
+          })}
+          onMouseEnter={() =>
+            pathname !== "/leaderboard" &&
+            setTriggerLeaderboardIconAnimation(true)
+          }
+          onMouseLeave={() =>
+            pathname !== "/leaderboard" &&
+            setTriggerLeaderboardIconAnimation(false)
+          }
+        >
+          <Link
+            href="/leaderboard"
+            className="flex cursor-pointer flex-row items-center gap-2 text-nowrap rounded-md text-base font-semibold text-[#03624C] transition-all"
+          >
+            <ChartSplineIcon
+              triggerAnimation={triggerLeaderboardIconAnimation}
+              className="size-5"
+            />
+            {open && "Leaderboard"}
           </Link>
         </SidebarMenuButton>
       </SidebarMenuItem>
