@@ -105,8 +105,7 @@ const FeeSection = () => (
         content={
           <>
             This fee applies exclusively to your staking rewards and does NOT
-            affect your staked amount. You might qualify for a future fee
-            rebate.{" "}
+            affect your staked amount.{" "}
             <Link
               target="_blank"
               href={LINKS.ENDUR_VALUE_DISTRUBUTION_BLOG_LINK}

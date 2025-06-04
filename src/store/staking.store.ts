@@ -51,6 +51,9 @@ export const snAPYAtom = atom((get) => {
     value =
       Number(yearlyMintRes.value.toEtherToFixedDecimals(4)) /
       Number(totalStakedRes.value.toEtherToFixedDecimals(4));
+
+    // deduce endur fee
+    value *= 0.85;
   }
 
   const newValue = (1 + value / 365) ** 365 - 1;
