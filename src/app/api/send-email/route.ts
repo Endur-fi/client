@@ -41,76 +41,73 @@ export async function POST(request: NextRequest) {
         },
       ],
       subject: "Welcome to Endur - Stay Updated!",
-      htmlContent: `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <style>
-            body { 
-              font-family: Arial, sans-serif; 
-              line-height: 1.6; 
-              color: #333; 
-              margin: 0;
-              padding: 0;
-            }
-            .container { 
-              max-width: 600px; 
-              margin: 0 auto; 
-              background-color: #ffffff;
-            }
-            .header { 
-              background-color: #0C4E3F; 
-              color: white; 
-              padding: 30px 20px; 
-              text-align: center; 
-            }
-            .content { 
-              padding: 30px 20px; 
-              background-color: #f9f9f9; 
-            }
-            .footer { 
-              padding: 20px; 
-              text-align: center; 
-              font-size: 12px; 
-              color: #666; 
-              background-color: #ffffff;
-            }
-            h1 { margin: 0; font-size: 24px; }
-            h2 { color: #0C4E3F; margin-top: 0; }
-            ul { padding-left: 20px; }
-            li { margin-bottom: 8px; }
-          </style>
-        </head>
-        <body>
-          <div class="container">
-            <div class="header">
-              <h1>Welcome to Endur!</h1>
-            </div>
-            <div class="content">
-              <h2>Thank you for staying updated with us!</h2>
-              <p>You'll be the first to know about:</p>
-              <ul>
-                <li>When claims open</li>
-                <li>New product updates</li>
-                <li>Upcoming programs</li>
-              </ul>
-              <p>We respect your privacy and will never share your data with third parties.</p>
-            </div>
-            <div class="footer">
-              <p>You can unsubscribe at any time by replying to this email.</p>
-            </div>
-          </div>
-        </body>
-        </html>
-      `,
+      // htmlContent: `
+      //   <!DOCTYPE html>
+      //   <html>
+      //   <head>
+      //     <style>
+      //       body {
+      //         font-family: Arial, sans-serif;
+      //         line-height: 1.6;
+      //         color: #333;
+      //         margin: 0;
+      //         padding: 0;
+      //       }
+      //       .container {
+      //         max-width: 600px;
+      //         margin: 0 auto;
+      //         background-color: #ffffff;
+      //       }
+      //       .header {
+      //         background-color: #0C4E3F;
+      //         color: white;
+      //         padding: 30px 20px;
+      //         text-align: center;
+      //       }
+      //       .content {
+      //         padding: 30px 20px;
+      //         background-color: #f9f9f9;
+      //       }
+      //       .footer {
+      //         padding: 20px;
+      //         text-align: center;
+      //         font-size: 12px;
+      //         color: #666;
+      //         background-color: #ffffff;
+      //       }
+      //       h1 { margin: 0; font-size: 24px; }
+      //       h2 { color: #0C4E3F; margin-top: 0; }
+      //       ul { padding-left: 20px; }
+      //       li { margin-bottom: 8px; }
+      //     </style>
+      //   </head>
+      //   <body>
+      //     <div class="container">
+      //       <div class="header">
+      //         <h1>Welcome to Endur!</h1>
+      //       </div>
+      //       <div class="content">
+      //         <h2>Thank you for staying updated with us!</h2>
+      //         <p>You'll be the first to know about:</p>
+      //         <ul>
+      //           <li>When claims open</li>
+      //           <li>New product updates</li>
+      //           <li>Upcoming programs</li>
+      //         </ul>
+      //         <p>We respect your privacy and will never share your data with third parties.</p>
+      //       </div>
+      //       <div class="footer">
+      //         <p>You can unsubscribe at any time by replying to this email.</p>
+      //       </div>
+      //     </div>
+      //   </body>
+      //   </html>
+      // `,
       replyTo: {
         email: senderEmail,
         name: "Endur Team",
       },
-      headers: {
-        "X-Campaign": "eligibility-signup",
-        "X-Source": "eligibility-modal",
-      },
+      templateId: 2,
     };
 
     // send email using Brevo REST API
@@ -119,6 +116,8 @@ export async function POST(request: NextRequest) {
       emailPayload,
       {
         headers: {
+          "X-Campaign": "eligibility-signup",
+          "X-Source": "eligibility-modal",
           "Content-Type": "application/json",
           "api-key": apiKey,
         },
