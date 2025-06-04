@@ -1,10 +1,13 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  compiler: process.env.NODE_ENV == 'development' ? {} : {
-    removeConsole: {
-      exclude: ['error'],
-    },
-  },
+  compiler:
+    process.env.NODE_ENV === "development"
+      ? {}
+      : {
+          removeConsole: {
+            exclude: ["error"],
+          },
+        },
   async redirects() {
     return [
       {
@@ -32,14 +35,16 @@ const nextConfig = {
         source: "/x",
         destination: "https://x.com/endurfi",
         permanent: true,
-      }
+      },
     ];
   },
   async rewrites() {
-    return [{
-      source: "/strkfarm/:path*",
-      destination: "https://app.strkfarm.com/:path*",
-    }]
+    return [
+      {
+        source: "/strkfarm/:path*",
+        destination: "https://app.strkfarm.com/:path*",
+      },
+    ];
   },
   async headers() {
     return [

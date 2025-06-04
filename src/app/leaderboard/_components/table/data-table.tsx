@@ -26,7 +26,6 @@ import {
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 import { useAccount } from "@starknet-react/core";
-import { SizeColumn } from "./columns";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -65,14 +64,7 @@ export function DataTable<TData, TValue>({
     table.setPageSize(10);
   }, [data, table]);
 
-  const isAddressInData = React.useMemo(() => {
-    return data.some((item) => {
-      const itemAddress = (item as SizeColumn).address;
-      return (
-        itemAddress && itemAddress.toLowerCase() === address?.toLowerCase()
-      );
-    });
-  }, [data, address]);
+  const currentPage = table.getState().pagination.pageIndex + 1;
 
   return (
     <div>
@@ -154,7 +146,7 @@ export function DataTable<TData, TValue>({
                       })}
                       key={cell.id}
                     >
-                      {idx === 0 && i === 0 && isAddressInData && (
+                      {idx === 0 && i === 0 && currentPage === 1 && (
                         <div className="absolute left-1/2 top-1/2 z-0 h-8 w-[98%] -translate-x-1/2 -translate-y-1/2 rounded-md bg-[#F4F2F2]"></div>
                       )}
                       <div className="sticky z-10">
@@ -162,7 +154,7 @@ export function DataTable<TData, TValue>({
                           cell.column.columnDef.cell,
                           cell.getContext(),
                         )}
-                        {idx === 0 && i === 0 && isAddressInData && (
+                        {idx === 0 && i === 0 && currentPage === 1 && (
                           <Badge className="absolute mb-1 ml-2 h-4 text-nowrap bg-[#16876D] text-[10px] leading-[1] text-white">
                             your rank
                           </Badge>
