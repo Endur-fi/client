@@ -96,9 +96,14 @@ const CheckEligibility = () => {
   const handleNextClick = React.useCallback(async () => {
     const emailSent = await sendEmail(emailInput);
     if (emailSent || !emailInput) {
-      setActiveModal("claim");
+      setEmailInput("");
+      if (isEligible) {
+        setActiveModal("claim");
+      } else {
+        setActiveModal("notEligible");
+      }
     }
-  }, [emailInput, sendEmail]);
+  }, [emailInput, isEligible, sendEmail]);
 
   const checkEligibility = React.useCallback(async () => {
     if (!address) {
