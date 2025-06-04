@@ -23,8 +23,8 @@ export default class MyNumber {
     }
   }
 
-  static fromZero() {
-    return new MyNumber("0", 0);
+  static fromZero(decimals: number = 0) {
+    return new MyNumber("0", decimals);
   }
 
   toString() {

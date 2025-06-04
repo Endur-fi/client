@@ -10,12 +10,14 @@ import MultiSelect, { type Option } from "./multi-select";
 const typeOptions: Option[] = [
   { value: "dex", label: "Dex" },
   { value: "lend", label: "Lend" },
+  { value: "strategies", label: "Strategies" },
 ];
 
 const protocolOptions: Option[] = [
   { value: "ekubo", label: "Ekubo" },
   { value: "nostra", label: "Nostra" },
   { value: "vesuu", label: "Vesu" },
+  { value: "strkfarm", label: "STRKFarm" },
 ];
 
 export interface DataFiltersProps {
