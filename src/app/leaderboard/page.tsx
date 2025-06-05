@@ -127,7 +127,7 @@ const useLeaderboardData = () => {
                 },
               })
             : Promise.resolve({
-                data: { getUserCompleteDetailsApiResponse: null },
+                data: { getUserCompleteDetails: null },
               }),
         ]);
 
@@ -145,7 +145,7 @@ const useLeaderboardData = () => {
 
         const currentUserData: UserCompleteDetailsApiResponse | null =
           currentUserResult.status === "fulfilled"
-            ? currentUserResult.value.data?.getUserCompleteDetailsApiResponse
+            ? currentUserResult.value.data?.getUserCompleteDetails
             : null;
 
         const transformedData: SizeColumn[] = apiResponse.users.map(
