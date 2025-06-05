@@ -2,7 +2,7 @@ import { useAccount } from "@starknet-react/core";
 import axios from "axios";
 import { Figtree } from "next/font/google";
 import Image from "next/image";
-import React, { useCallback, useState } from "react";
+import React from "react";
 
 import { Button } from "@/components/ui/button";
 import {
