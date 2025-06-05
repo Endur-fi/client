@@ -319,7 +319,7 @@ const Leaderboard: React.FC = () => {
 
   const containerClasses = React.useMemo(
     () =>
-      cn("mt-10 w-full", {
+      cn("mt-2 lg:mt-10 w-full", {
         "lg:pl-28": !isPinned,
       }),
     [isPinned],

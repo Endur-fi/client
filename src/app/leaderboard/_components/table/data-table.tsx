@@ -1,5 +1,6 @@
 "use client";
 
+import { useAccount } from "@starknet-react/core";
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -41,6 +42,8 @@ export function DataTable<TData, TValue>({
     [],
   );
   const [sorting, setSorting] = React.useState<SortingState>([]);
+
+  const { address } = useAccount();
 
   const table = useReactTable({
     data,
@@ -118,19 +121,19 @@ export function DataTable<TData, TValue>({
           >
             <div className="sticky z-10">
               {flexRender(cell.column.columnDef.cell, cell.getContext())}
-              {isFirstCell && isFirstRowOnFirstPage && idx === 0 && (
-                <Badge className="absolute mb-1 ml-2 h-4 bg-[#16876D] text-[10px] leading-[1] text-white">
+              {isFirstCell && isFirstRowOnFirstPage && address && idx === 0 && (
+                <Badge className="absolute mb-1 ml-2 h-4 text-nowrap bg-[#16876D] text-[10px] leading-[1] text-white">
                   your rank
                 </Badge>
               )}
             </div>
-            {isFirstCell && isFirstRowOnFirstPage && idx === 0 && (
+            {isFirstCell && isFirstRowOnFirstPage && address && idx === 0 && (
               <div className="absolute left-1/2 top-1/2 z-0 h-8 w-[98%] -translate-x-1/2 -translate-y-1/2 rounded-md bg-[#F4F2F2]" />
             )}
           </TableCell>
         );
       }),
-    [isFirstRowOnFirstPage, table.getRowModel().rows.length],
+    [isFirstRowOnFirstPage, table.getRowModel().rows.length, address],
   );
 
   return (

@@ -263,7 +263,7 @@ NotEligibleModal.displayName = "NotEligibleModal";
 const CheckEligibility: React.FC<CheckEligibilityProps> = ({
   userCompleteInfo,
 }) => {
-  const [state, setState] = useState<EligibilityState>({
+  const [state, setState] = React.useState<EligibilityState>({
     allocation: null,
     activeModal: null,
     isLoading: false,
@@ -273,11 +273,11 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
 
   const { address } = useAccount();
 
-  const handleEmailChange = useCallback((email: string) => {
+  const handleEmailChange = React.useCallback((email: string) => {
     setState((prev) => ({ ...prev, emailInput: email }));
   }, []);
 
-  const handleEmailSend = useCallback(
+  const handleEmailSend = React.useCallback(
     async (email: string): Promise<boolean> => {
       if (!validateEmail(email)) return false;
 
@@ -292,7 +292,7 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
     [],
   );
 
-  const handleNext = useCallback(async () => {
+  const handleNext = React.useCallback(async () => {
     const { emailInput, isEligible } = state;
 
     let emailSent = true;
@@ -309,18 +309,18 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
     }
   }, [state.emailInput, state.isEligible, handleEmailSend]);
 
-  const handleSkip = useCallback(() => {
+  const handleSkip = React.useCallback(() => {
     setState((prev) => ({
       ...prev,
       activeModal: prev.isEligible ? "claim" : "notEligible",
     }));
   }, []);
 
-  const handleClose = useCallback(() => {
+  const handleClose = React.useCallback(() => {
     setState((prev) => ({ ...prev, activeModal: null, allocation: null }));
   }, []);
 
-  const checkEligibility = useCallback(() => {
+  const checkEligibility = React.useCallback(() => {
     if (!address) {
       toast({
         description: "Connect your wallet first.",
@@ -352,7 +352,7 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
     }
   }, [address, userCompleteInfo?.allocation]);
 
-  const closeModal = useCallback(() => {
+  const closeModal = React.useCallback(() => {
     setState((prev) => ({ ...prev, activeModal: null }));
   }, []);
 
