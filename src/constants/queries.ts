@@ -3,15 +3,15 @@ import { gql } from "@apollo/client";
 export const GET_ALL_USERS_WITH_DETAILS = gql`
   query GetAllUsersWithDetails($options: PaginationOptionsInput) {
     getAllUsersWithDetails(options: $options) {
+      users {
+        user_address
+        total_points
+      }
       pagination {
         page
         limit
         total
         totalPages
-      }
-      users {
-        user_address
-        total_points
       }
       summary {
         total_users

@@ -1,5 +1,6 @@
-import { isMainnet } from "@/constants";
 import { ApolloClient, DefaultOptions, InMemoryCache } from "@apollo/client";
+
+import { isMainnet } from "@/constants";
 
 const defaultOptions: DefaultOptions = {
   watchQuery: {

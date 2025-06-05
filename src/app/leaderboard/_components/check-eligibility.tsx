@@ -15,14 +15,14 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/hooks/use-toast";
-import { cn } from "@/lib/utils";
+import { cn, formatNumberWithCommas } from "@/lib/utils";
 
 const font = Figtree({ subsets: ["latin-ext"] });
 
 // Constants
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-export interface UserCompleteDetails {
+export interface UserCompleteDetailsApiResponse {
   user_address: string;
   points: {
     total_points: bigint;
@@ -31,35 +31,6 @@ export interface UserCompleteDetails {
     referrer_points: bigint;
   };
   allocation: string;
-  activity: {
-    first_activity_date?: Date;
-    last_activity_date?: Date;
-    total_deposits: number;
-    total_withdrawals: number;
-  };
-  eligibility: {
-    early_user_bonus: {
-      eligible: boolean;
-      points_before_cutoff?: bigint;
-      bonus_awarded?: bigint;
-      cutoff_date: Date;
-    };
-    six_month_bonus: {
-      eligible: boolean;
-      minimum_amount?: bigint;
-      bonus_awarded?: bigint;
-      period: {
-        start_date: Date;
-        end_date: Date;
-      };
-    };
-    referral_bonus: {
-      eligible: boolean;
-      is_referred_user: boolean;
-      referrer_address?: string;
-      bonus_awarded?: bigint;
-    };
-  };
   tags: {
     early_adopter: boolean;
   };
@@ -68,7 +39,7 @@ export interface UserCompleteDetails {
 type ModalType = "subscribe" | "claim" | "notEligible" | null;
 
 interface CheckEligibilityProps {
-  userCompleteInfo: UserCompleteDetails | null;
+  userCompleteInfo: UserCompleteDetailsApiResponse | null;
 }
 
 interface EligibilityState {
@@ -198,10 +169,10 @@ EligibilityModal.displayName = "EligibilityModal";
 const ClaimModal = React.memo(
   ({
     allocation,
-    onBack,
+    onClose,
   }: {
     allocation: string | null;
-    onBack: () => void;
+    onClose: () => void;
   }) => (
     <DialogContent
       hideCloseIcon
@@ -220,25 +191,34 @@ const ClaimModal = React.memo(
           />
         </div>
         <DialogTitle className="!mt-8 text-center text-2xl font-semibold text-white">
-          {allocation ? `Reward ${allocation} STRK` : "Claim Rewards"}
+          {allocation
+            ? `Reward ${formatNumberWithCommas(allocation)} STRK`
+            : "Claim Rewards"}
         </DialogTitle>
         {/* <DialogDescription className="text-center text-sm font-normal text-[#DCF6E5]">
           You&apos;ve earned it! Grab your fee rebate rewards now.
         </DialogDescription> */}
         <DialogDescription className="text-center text-sm font-normal text-[#DCF6E5]">
-          If you have any concerns, please fill this <a href="" className="underline">form</a>.
+          If you have any concerns, please fill this{" "}
+          <a href="" className="underline">
+            form
+          </a>
+          .
         </DialogDescription>
       </DialogHeader>
 
       <div className="relative !mt-3 flex w-full flex-col items-center justify-center gap-2 px-2">
-        <Button className="h-12 w-full rounded-md bg-[#518176] text-white hover:bg-[#518176]/90" disabled={true}>
+        <Button
+          className="h-12 w-full rounded-md bg-[#518176] text-white hover:bg-[#518176]/90"
+          disabled={true}
+        >
           Claims open after 22nd Jun, 2025
         </Button>
         <Button
-          onClick={onBack}
+          onClick={onClose}
           className="h-10 rounded-md bg-transparent px-6 text-sm text-[#DCF6E5]/50 shadow-none transition-all hover:bg-transparent hover:text-[#DCF6E5]"
         >
-          Back
+          Close
         </Button>
       </div>
     </DialogContent>
@@ -246,7 +226,7 @@ const ClaimModal = React.memo(
 );
 ClaimModal.displayName = "ClaimModal";
 
-const NotEligibleModal = React.memo(({ onBack }: { onBack: () => void }) => (
+const NotEligibleModal = React.memo(({ onClose }: { onClose: () => void }) => (
   <DialogContent
     hideCloseIcon
     className={cn(
@@ -270,10 +250,10 @@ const NotEligibleModal = React.memo(({ onBack }: { onBack: () => void }) => (
 
     <div className="relative !mt-3 flex w-full flex-col items-center justify-center gap-2 px-2">
       <Button
-        onClick={onBack}
+        onClick={onClose}
         className="h-12 w-full rounded-md bg-[#518176] text-white hover:bg-[#518176]/90"
       >
-        Back
+        Close
       </Button>
     </div>
   </DialogContent>
@@ -283,7 +263,7 @@ NotEligibleModal.displayName = "NotEligibleModal";
 const CheckEligibility: React.FC<CheckEligibilityProps> = ({
   userCompleteInfo,
 }) => {
-  const [state, setState] = useState<EligibilityState>({
+  const [state, setState] = React.useState<EligibilityState>({
     allocation: null,
     activeModal: null,
     isLoading: false,
@@ -293,11 +273,11 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
 
   const { address } = useAccount();
 
-  const handleEmailChange = useCallback((email: string) => {
+  const handleEmailChange = React.useCallback((email: string) => {
     setState((prev) => ({ ...prev, emailInput: email }));
   }, []);
 
-  const handleEmailSend = useCallback(
+  const handleEmailSend = React.useCallback(
     async (email: string): Promise<boolean> => {
       if (!validateEmail(email)) return false;
 
@@ -312,7 +292,7 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
     [],
   );
 
-  const handleNext = useCallback(async () => {
+  const handleNext = React.useCallback(async () => {
     const { emailInput, isEligible } = state;
 
     let emailSent = true;
@@ -329,18 +309,18 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
     }
   }, [state.emailInput, state.isEligible, handleEmailSend]);
 
-  const handleSkip = useCallback(() => {
+  const handleSkip = React.useCallback(() => {
     setState((prev) => ({
       ...prev,
       activeModal: prev.isEligible ? "claim" : "notEligible",
     }));
   }, []);
 
-  const handleBack = useCallback(() => {
-    setState((prev) => ({ ...prev, activeModal: "subscribe" }));
+  const handleClose = React.useCallback(() => {
+    setState((prev) => ({ ...prev, activeModal: null, allocation: null }));
   }, []);
 
-  const checkEligibility = useCallback(() => {
+  const checkEligibility = React.useCallback(() => {
     if (!address) {
       toast({
         description: "Connect your wallet first.",
@@ -372,7 +352,7 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
     }
   }, [address, userCompleteInfo?.allocation]);
 
-  const closeModal = useCallback(() => {
+  const closeModal = React.useCallback(() => {
     setState((prev) => ({ ...prev, activeModal: null }));
   }, []);
 
@@ -409,14 +389,14 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
         open={state.activeModal === "claim"}
         onOpenChange={(open) => !open && closeModal()}
       >
-        <ClaimModal allocation={state.allocation} onBack={handleBack} />
+        <ClaimModal allocation={state.allocation} onClose={handleClose} />
       </Dialog>
 
       <Dialog
         open={state.activeModal === "notEligible"}
         onOpenChange={(open) => !open && closeModal()}
       >
-        <NotEligibleModal onBack={handleBack} />
+        <NotEligibleModal onClose={handleClose} />
       </Dialog>
     </div>
   );

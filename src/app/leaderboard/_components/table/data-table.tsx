@@ -1,5 +1,6 @@
 "use client";
 
+import { useAccount } from "@starknet-react/core";
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -11,7 +12,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import * as React from "react";
+import React from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -25,7 +26,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
-import { useAccount } from "@starknet-react/core";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -50,21 +50,91 @@ export function DataTable<TData, TValue>({
     columns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
-    onColumnFiltersChange: setColumnFilters,
     getFilteredRowModel: getFilteredRowModel(),
-    onSortingChange: setSorting,
     getSortedRowModel: getSortedRowModel(),
+    onColumnFiltersChange: setColumnFilters,
+    onSortingChange: setSorting,
+    initialState: {
+      pagination: {
+        pageSize: 10,
+      },
+    },
     state: {
       columnFilters,
       sorting,
     },
   });
 
-  React.useEffect(() => {
-    table.setPageSize(10);
-  }, [data, table]);
-
   const currentPage = table.getState().pagination.pageIndex + 1;
+  const isFirstRowOnFirstPage = React.useMemo(
+    () => currentPage === 1,
+    [currentPage],
+  );
+
+  const handleSearchChange = React.useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      table.getColumn(searchKey!)?.setFilterValue(event.target.value);
+    },
+    [searchKey, table],
+  );
+
+  const renderHeaderCell = React.useCallback(
+    (headerGroup: { headers: any[] }) =>
+      headerGroup.headers.map((header, i) => (
+        <TableHead key={header.id} className="p-0">
+          <div
+            className={cn(
+              "flex h-full items-center justify-start border-t border-[#17876D]/50 bg-[#17876D]/20 px-8 text-left text-xs font-normal text-black",
+              {
+                "rounded-tl-lg border-l border-t border-[#17876D]/50": i === 0,
+                "pl-10": i === 3,
+                "justify-end rounded-tr-lg border-r border-t border-[#17876D]/50 pr-20":
+                  i === headerGroup.headers.length - 1,
+              },
+            )}
+          >
+            <span className="shrink-0 text-sm">
+              {!header.isPlaceholder &&
+                flexRender(header.column.columnDef.header, header.getContext())}
+            </span>
+          </div>
+        </TableHead>
+      )),
+    [],
+  );
+
+  const renderRowCell = React.useCallback(
+    (row: any, idx: number) =>
+      row.getVisibleCells().map((cell: any, i: number) => {
+        const isFirstCell = i === 0;
+        const isLastCell = i === row.getVisibleCells().length - 1;
+        const isLastRow = idx === table.getRowModel().rows.length - 1;
+
+        return (
+          <TableCell
+            className={cn("px-8", {
+              "pl-16": i === 2,
+              "rounded-bl-lg": isFirstCell && isLastRow,
+              "rounded-br-lg": isLastCell && isLastRow,
+            })}
+            key={cell.id}
+          >
+            <div className="sticky z-10">
+              {flexRender(cell.column.columnDef.cell, cell.getContext())}
+              {isFirstCell && isFirstRowOnFirstPage && address && idx === 0 && (
+                <Badge className="absolute mb-1 ml-2 h-4 text-nowrap bg-[#16876D] text-[10px] leading-[1] text-white">
+                  your rank
+                </Badge>
+              )}
+            </div>
+            {isFirstCell && isFirstRowOnFirstPage && address && idx === 0 && (
+              <div className="absolute left-1/2 top-1/2 z-0 h-8 w-[98%] -translate-x-1/2 -translate-y-1/2 rounded-md bg-[#F4F2F2]" />
+            )}
+          </TableCell>
+        );
+      }),
+    [isFirstRowOnFirstPage, table.getRowModel().rows.length, address],
+  );
 
   return (
     <div>
@@ -75,9 +145,7 @@ export function DataTable<TData, TValue>({
             value={
               (table.getColumn(searchKey)?.getFilterValue() as string) ?? ""
             }
-            onChange={(event) =>
-              table.getColumn(searchKey)?.setFilterValue(event.target.value)
-            }
+            onChange={handleSearchChange}
             className="max-w-sm"
           />
         </div>
@@ -91,33 +159,7 @@ export function DataTable<TData, TValue>({
                 key={headerGroup.id}
                 className="border-b-0 hover:bg-inherit"
               >
-                {headerGroup.headers.map((header, i) => {
-                  return (
-                    <TableHead key={header.id} className="p-0">
-                      <div
-                        className={cn(
-                          "flex h-full items-center justify-start border-t border-[#17876D]/50 bg-[#17876D]/20 px-8 text-left text-xs font-normal text-black",
-                          {
-                            "rounded-tl-lg border-l border-t border-[#17876D]/50":
-                              i === 0,
-                            "pl-10": i === 3,
-                            "justify-end rounded-tr-lg border-r border-t border-[#17876D]/50 pr-20":
-                              i === headerGroup.headers.length - 1,
-                          },
-                        )}
-                      >
-                        <span className="shrink-0 text-sm">
-                          {header.isPlaceholder
-                            ? null
-                            : flexRender(
-                                header.column.columnDef.header,
-                                header.getContext(),
-                              )}
-                        </span>
-                      </div>
-                    </TableHead>
-                  );
-                })}
+                {renderHeaderCell(headerGroup)}
               </TableRow>
             ))}
           </TableHeader>
@@ -133,35 +175,7 @@ export function DataTable<TData, TValue>({
                     "relative bg-white": idx === 0,
                   })}
                 >
-                  {row.getVisibleCells().map((cell, i) => (
-                    <TableCell
-                      className={cn("px-8", {
-                        "pl-16": i === 2,
-                        "rounded-bl-lg":
-                          i === 0 &&
-                          idx === table.getRowModel().rows.length - 1,
-                        "rounded-br-lg":
-                          i === row.getVisibleCells().length - 1 &&
-                          idx === table.getRowModel().rows.length - 1,
-                      })}
-                      key={cell.id}
-                    >
-                      {idx === 0 && i === 0 && currentPage === 1 && (
-                        <div className="absolute left-1/2 top-1/2 z-0 h-8 w-[98%] -translate-x-1/2 -translate-y-1/2 rounded-md bg-[#F4F2F2]"></div>
-                      )}
-                      <div className="sticky z-10">
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext(),
-                        )}
-                        {idx === 0 && i === 0 && currentPage === 1 && (
-                          <Badge className="absolute mb-1 ml-2 h-4 text-nowrap bg-[#16876D] text-[10px] leading-[1] text-white">
-                            your rank
-                          </Badge>
-                        )}
-                      </div>
-                    </TableCell>
-                  ))}
+                  {renderRowCell(row, idx)}
                 </TableRow>
               ))
             ) : (
