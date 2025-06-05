@@ -11,7 +11,6 @@ import { atomFamily } from "jotai/utils";
 const XSTRK_SENSEI =
   "0x07023a5cadc8a5db80e4f0fde6b330cbd3c17bbbf9cb145cbabd7bd5e6fb7b0b";
 const XSTRK_SENSEI_DEPLOYMENT_BLOCK = 1053807;
-const XSTRK_SENSEI_MAX_BLOCK = 1439949;
 
 const EKUBO_XSTRK_STRK =
   "0x01f083b98674bc21effee29ef443a00c7b9a500fd92cf30341a3da12c73f2324";
@@ -22,38 +21,18 @@ export const getXSTRKSenseiHoldings: DAppHoldingsFn = async (
   provider: any,
   blockNumber?: BlockIdentifier,
 ) => {
-  console.log("getXSTRKSenseiHoldings::address", { address, blockNumber });
-  if (
-    isContractNotDeployed(
-      blockNumber,
-      XSTRK_SENSEI_DEPLOYMENT_BLOCK,
-      XSTRK_SENSEI_MAX_BLOCK,
-    )
-  ) {
-    console.log("getXSTRKSenseiHoldings::contract not deployed", {
-      address,
-      blockNumber,
-    });
+  if (isContractNotDeployed(blockNumber, XSTRK_SENSEI_DEPLOYMENT_BLOCK)) {
     return {
       xSTRKAmount: MyNumber.fromZero(STRK_DECIMALS),
       STRKAmount: MyNumber.fromZero(STRK_DECIMALS),
     };
   }
-  console.log("getXSTRKSenseiHoldings::contract deployed", {
-    address,
-    blockNumber,
-  });
   try {
     const contract = new Contract(SenseiAbi, XSTRK_SENSEI, provider);
     const info: any = await contract.call("describe_position", [address], {
       blockIdentifier: blockNumber ?? "pending",
     });
     const holdings = info["1"];
-    console.log(
-      "getXSTRKSenseiHoldings::info",
-      holdings.deposit2.toString(),
-      holdings,
-    );
     // const strkAmount = new MyNumber(holdings.estimated_size.toString(), STRK_DECIMALS);
     // const totalAssets = await getTotalAssetsByBlock();
     // const totalSupply = await getTotalSupplyByBlock();
@@ -64,10 +43,6 @@ export const getXSTRKSenseiHoldings: DAppHoldingsFn = async (
       STRKAmount: MyNumber.fromZero(STRK_DECIMALS),
     };
   } catch (error) {
-    console.error("getXSTRKSenseiHoldings error:", error, {
-      address,
-      blockNumber,
-    });
     return {
       xSTRKAmount: MyNumber.fromZero(STRK_DECIMALS),
       STRKAmount: MyNumber.fromZero(STRK_DECIMALS),
@@ -96,7 +71,6 @@ export const getEkuboXSTRKSTRKHoldings: DAppHoldingsFn = async (
   });
   const xSTRKHolings = info.amount0;
   const STRKHolings = info.amount1;
-  console.log("getEkuboXSTRKSTRKHoldings::info", xSTRKHolings, STRKHolings);
   // const strkAmount = new MyNumber(holdings.estimated_size.toString(), STRK_DECIMALS);
   // const totalAssets = await getTotalAssetsByBlock();
   // const totalSupply = await getTotalSupplyByBlock();
@@ -140,18 +114,6 @@ export const getSTRKFarmBalanceAtom: DAppHoldingsAtom = atomFamily(
         );
       }
 
-      console.log(
-        "getSTRKFarmBalanceAtom",
-        data?.STRKAmount.toString(),
-        data?.xSTRKAmount.toString(),
-        data2?.STRKAmount.toString(),
-        data2?.xSTRKAmount.toString(),
-      );
-      console.log(
-        "getSTRKFarmBalanceAtom2",
-        xSTRKAmount.toString(),
-        STRKAmount.toString(),
-      );
       return {
         data: {
           xSTRKAmount,

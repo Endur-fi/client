@@ -548,11 +548,6 @@ export type DAppHoldingsFn = (
   blockNumber?: BlockIdentifier,
 ) => Promise<DAppHoldings>;
 
-export const tempProvider = atom(
-  new RpcProvider({
-    nodeUrl: "https://sn-mainnet.public.blastapi.io",
-  }),
-);
 /**
  * @description Returns an AtomFamily of DAppHoldings
  * @dev This function is used to create an AtomFamily of DAppHoldings in a

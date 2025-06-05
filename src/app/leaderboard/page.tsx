@@ -254,7 +254,7 @@ const AnnouncementBanner = React.memo(
         />
       </div>
 
-      <div className="flex w-full flex-col items-center justify-between gap-3 pb-3 sm:flex-row">
+      <div className="flex w-full flex-col items-center justify-between gap-3 sm:flex-row">
         <div className="flex flex-col items-center gap-0.5 text-white sm:items-start">
           <p className="text-center text-base font-bold md:text-xl">
             Claim Your Fee Rebate Rewards

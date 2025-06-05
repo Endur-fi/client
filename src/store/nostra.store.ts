@@ -124,8 +124,14 @@ export const getNostraDexHoldings: DAppHoldingsFn = async (
   const balance = await contract.call("balance_of", [address], {
     blockIdentifier: blockNumber ?? "latest",
   });
-  const totalSupply = await contract.call("total_supply");
-  const getReserves: any = await contract.call("get_reserves");
+
+  const totalSupply = await contract.call("total_supply", [], {
+    blockIdentifier: blockNumber ?? "latest",
+  });
+
+  const getReserves: any = await contract.call("get_reserves", [], {
+    blockIdentifier: blockNumber ?? "latest",
+  });
 
   const balanceStr = new MyNumber(
     balance.toString(),
@@ -148,10 +154,14 @@ export const getNostraDexHoldings: DAppHoldingsFn = async (
   ).toEtherStr();
 
   const xSTRKTokenBal =
-    (Number(balanceStr) / Number(totalSupplyStr)) * Number(getReserves0Str);
+    Number(totalSupplyStr) == 0
+      ? 0
+      : (Number(balanceStr) / Number(totalSupplyStr)) * Number(getReserves0Str);
 
   const STRKTokenBal =
-    (Number(balanceStr) / Number(totalSupplyStr)) * Number(getReserves1Str);
+    Number(totalSupplyStr) == 0
+      ? 0
+      : (Number(balanceStr) / Number(totalSupplyStr)) * Number(getReserves1Str);
 
   return {
     xSTRKAmount: MyNumber.fromEther(xSTRKTokenBal.toFixed(8), STRK_DECIMALS),

@@ -128,7 +128,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         success: true,
-        message: "Email sent successfully",
+        message: "Endur's email subscription activated",
         messageId: response.data.messageId,
       },
       { status: 200 },

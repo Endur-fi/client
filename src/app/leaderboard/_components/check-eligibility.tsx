@@ -75,7 +75,7 @@ const sendEmailRequest = async (email: string): Promise<boolean> => {
   try {
     await axios.post("/api/send-email", { email });
     toast({
-      description: "Email sent successfully! Check your inbox.",
+      description: "Endur's email subscription activated",
     });
     return true;
   } catch (error) {
@@ -192,17 +192,27 @@ const ClaimModal = React.memo(
         </div>
         <DialogTitle className="!mt-8 text-center text-2xl font-semibold text-white">
           {allocation
-            ? `Claimed ${formatNumberWithCommas(allocation)} STRK`
+            ? `Reward ${formatNumberWithCommas(allocation)} STRK`
             : "Claim Rewards"}
         </DialogTitle>
-        <DialogDescription className="text-center text-sm font-normal text-[#DCF6E5]">
+        {/* <DialogDescription className="text-center text-sm font-normal text-[#DCF6E5]">
           You&apos;ve earned it! Grab your fee rebate rewards now.
+        </DialogDescription> */}
+        <DialogDescription className="text-center text-sm font-normal text-[#DCF6E5]">
+          If you have any concerns, please fill this{" "}
+          <a href="" className="underline">
+            form
+          </a>
+          .
         </DialogDescription>
       </DialogHeader>
 
       <div className="relative !mt-3 flex w-full flex-col items-center justify-center gap-2 px-2">
-        <Button className="h-12 w-full rounded-md bg-[#518176] text-white hover:bg-[#518176]/90">
-          Claim Rewards
+        <Button
+          className="h-12 w-full rounded-md bg-[#518176] text-white hover:bg-[#518176]/90"
+          disabled={true}
+        >
+          Claims open after 22nd Jun, 2025
         </Button>
         <Button
           onClick={onClose}
