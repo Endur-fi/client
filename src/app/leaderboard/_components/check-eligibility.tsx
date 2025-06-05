@@ -71,9 +71,12 @@ const validateEmail = (email: string): boolean => {
   return true;
 };
 
-const sendEmailRequest = async (email: string): Promise<boolean> => {
+const sendEmailRequest = async (
+  email: string,
+  address: string,
+): Promise<boolean> => {
   try {
-    await axios.post("/api/send-email", { email });
+    await axios.post("/api/send-email", { email, address });
     toast({
       description: "Endur's email subscription activated",
     });
@@ -278,13 +281,13 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
   }, []);
 
   const handleEmailSend = React.useCallback(
-    async (email: string): Promise<boolean> => {
+    async (email: string, address: string): Promise<boolean> => {
       if (!validateEmail(email)) return false;
 
       setState((prev) => ({ ...prev, isLoading: true }));
 
       try {
-        return await sendEmailRequest(email);
+        return await sendEmailRequest(email, address);
       } finally {
         setState((prev) => ({ ...prev, isLoading: false }));
       }
@@ -296,8 +299,17 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
     const { emailInput, isEligible } = state;
 
     let emailSent = true;
+
+    if (!address) {
+      toast({
+        description: "Connect your wallet first.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (emailInput) {
-      emailSent = await handleEmailSend(emailInput);
+      emailSent = await handleEmailSend(emailInput, address);
     }
 
     if (emailSent) {
