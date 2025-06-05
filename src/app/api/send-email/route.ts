@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
 
     const emailPayload = {
       sender: {
-        name: "Endur Team",
+        name: "Endur.fi",
         email: senderEmail,
       },
       to: [
@@ -104,8 +104,8 @@ export async function POST(request: NextRequest) {
       //   </html>
       // `,
       replyTo: {
-        email: senderEmail,
-        name: "Endur Team",
+        email: "akira@endur.fi",
+        name: "Akira | Endur",
       },
       templateId: 2,
     };

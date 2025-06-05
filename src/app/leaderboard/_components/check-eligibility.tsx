@@ -198,13 +198,13 @@ const ClaimModal = React.memo(
         {/* <DialogDescription className="text-center text-sm font-normal text-[#DCF6E5]">
           You&apos;ve earned it! Grab your fee rebate rewards now.
         </DialogDescription> */}
-        <DialogDescription className="text-center text-sm font-normal text-[#DCF6E5]">
+        {/* <DialogDescription className="text-center text-sm font-normal text-[#DCF6E5]">
           If you have any concerns, please fill this{" "}
           <a href="" className="underline">
             form
           </a>
           .
-        </DialogDescription>
+        </DialogDescription> */}
       </DialogHeader>
 
       <div className="relative !mt-3 flex w-full flex-col items-center justify-center gap-2 px-2">
