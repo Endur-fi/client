@@ -13,26 +13,18 @@ import apolloClient from "@/lib/apollo-client";
 import { cn } from "@/lib/utils";
 
 import CheckEligibility, {
-  UserCompleteDetails,
+  UserCompleteDetailsApiResponse,
 } from "./_components/check-eligibility";
 import { columns, type SizeColumn } from "./_components/table/columns";
 import { DataTable } from "./_components/table/data-table";
 
 const PAGINATION_LIMIT = 100;
 
-interface ApiUser {
-  user_address: string;
-  total_points: string;
-  regular_points: string;
-  bonus_points: string;
-  referrer_points: string;
-  allocation?: string;
-  first_activity_date?: string;
-  last_activity_date?: string;
-}
-
-interface ApiResponse {
-  users: ApiUser[];
+interface AllUsersApiResponse {
+  users: {
+    user_address: string;
+    total_points: string;
+  }[];
   pagination: {
     page: number;
     limit: number;
@@ -60,7 +52,7 @@ interface LeaderboardState {
   lastFetch: number | null;
   totalUsers: number | null;
   currentUserInfo: CurrentUserInfo;
-  userCompleteInfo: UserCompleteDetails | null;
+  userCompleteInfo: UserCompleteDetailsApiResponse | null;
 }
 
 interface LeaderboardCache {
@@ -68,7 +60,7 @@ interface LeaderboardCache {
   timestamp: number;
   totalUsers: number | null;
   currentUserInfo: CurrentUserInfo;
-  userCompleteInfo: UserCompleteDetails | null;
+  userCompleteInfo: UserCompleteDetailsApiResponse | null;
 }
 
 const CACHE_EXPIRY_MS = 6 * 60 * 60 * 1000; // 6 hours in milliseconds
@@ -134,7 +126,9 @@ const useLeaderboardData = () => {
                   userAddress: address,
                 },
               })
-            : Promise.resolve({ data: { getUserCompleteDetails: null } }),
+            : Promise.resolve({
+                data: { getUserCompleteDetailsApiResponse: null },
+              }),
         ]);
 
         if (usersResult.status === "rejected") {
@@ -143,15 +137,15 @@ const useLeaderboardData = () => {
           );
         }
 
-        const apiResponse: ApiResponse =
+        const apiResponse: AllUsersApiResponse =
           usersResult.value.data?.getAllUsersWithDetails;
         if (!apiResponse?.users) {
           throw new Error("Invalid response format");
         }
 
-        const currentUserData: UserCompleteDetails | null =
+        const currentUserData: UserCompleteDetailsApiResponse | null =
           currentUserResult.status === "fulfilled"
-            ? currentUserResult.value.data?.getUserCompleteDetails
+            ? currentUserResult.value.data?.getUserCompleteDetailsApiResponse
             : null;
 
         const transformedData: SizeColumn[] = apiResponse.users.map(
@@ -237,7 +231,7 @@ const AnnouncementBanner = React.memo(
   ({
     userCompleteInfo,
   }: {
-    userCompleteInfo: UserCompleteDetails | null;
+    userCompleteInfo: UserCompleteDetailsApiResponse | null;
     currentUserInfo: CurrentUserInfo;
   }) => (
     <div className="mt-6 flex flex-col items-center gap-3 rounded-md bg-[#0D4E3F] px-6 py-3 text-2xl font-normal tracking-[-1%] text-white md:flex-row">
@@ -303,9 +297,8 @@ const Leaderboard: React.FC = () => {
   const leaderboardData = React.useMemo(() => {
     if (!address || allUsers.length === 0) return allUsers;
 
-    const normalizedAddress = address.toLowerCase();
     const existingUserIndex = allUsers.findIndex(
-      (user) => user.address.toLowerCase() === normalizedAddress,
+      (user) => user.address.toLowerCase() === address,
     );
 
     if (existingUserIndex !== -1) {
@@ -326,7 +319,7 @@ const Leaderboard: React.FC = () => {
 
   const containerClasses = React.useMemo(
     () =>
-      cn("mt-2 w-full", {
+      cn("mt-10 w-full", {
         "lg:pl-28": !isPinned,
       }),
     [isPinned],
