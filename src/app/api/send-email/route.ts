@@ -80,9 +80,9 @@ export async function POST(request: NextRequest) {
         ADDRESS: standariseAddress(address),
       },
       updateEnabled: false,
-      email: email,
+      email,
       ext_id: standariseAddress(address), // unique identifier for the contact
-      listIds: [5] // Subscribers-Endur list
+      listIds: [5], // Subscribers-Endur list
     };
 
     try {

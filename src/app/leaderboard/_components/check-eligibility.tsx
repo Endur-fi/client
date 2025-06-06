@@ -130,8 +130,7 @@ const EligibilityModal = React.memo(
           Stay Updated with Endur
         </DialogTitle>
         <DialogDescription className="text-center text-sm font-normal text-[#DCF6E5]">
-          Get notified when claims open, product updates, and upcoming
-          programs
+          Get notified when claims open, product updates, and upcoming programs
         </DialogDescription>
       </DialogHeader>
 
@@ -255,9 +254,9 @@ const NotEligibleModal = React.memo(({ onClose }: { onClose: () => void }) => (
       <DialogTitle className="!mt-8 text-center text-2xl font-semibold text-white">
         Not Eligible :(
       </DialogTitle>
-       <DialogDescription className="text-center text-sm font-normal text-[#DCF6E5]">
-          But keep holding xSTRK from now and earn future points
-        </DialogDescription>
+      <DialogDescription className="text-center text-sm font-normal text-[#DCF6E5]">
+        But keep holding xSTRK from now and earn future points
+      </DialogDescription>
     </DialogHeader>
 
     <div className="relative !mt-3 flex w-full flex-col items-center justify-center gap-2 px-2">
@@ -274,7 +273,7 @@ NotEligibleModal.displayName = "NotEligibleModal";
 
 const CheckEligibility: React.FC<CheckEligibilityProps> = ({
   userCompleteInfo,
-  isLoading
+  isLoading,
 }) => {
   const [state, setState] = React.useState<EligibilityState>({
     allocation: null,
@@ -296,7 +295,6 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
       try {
         return await sendEmailRequest(email, address);
       } finally {
-
       }
     },
     [],
