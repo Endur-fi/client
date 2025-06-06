@@ -122,14 +122,11 @@ export function DataTable<TData, TValue>({
             <div className="sticky z-10">
               {flexRender(cell.column.columnDef.cell, cell.getContext())}
               {isFirstCell && isFirstRowOnFirstPage && address && idx === 0 && (
-                <Badge className="absolute mb-1 ml-2 h-4 text-nowrap bg-[#16876D] text-[10px] leading-[1] text-white">
+                <Badge className="lg:ml-1 mb-1 h-4 text-nowrap bg-[#16876D] text-[10px] leading-[1] text-white">
                   your rank
                 </Badge>
               )}
             </div>
-            {isFirstCell && isFirstRowOnFirstPage && address && idx === 0 && (
-              <div className="absolute left-1/2 top-1/2 z-0 h-8 w-[98%] -translate-x-1/2 -translate-y-1/2 rounded-md bg-[#F4F2F2]" />
-            )}
           </TableCell>
         );
       }),

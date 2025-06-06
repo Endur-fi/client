@@ -38,8 +38,10 @@ interface AllUsersApiResponse {
 }
 
 interface CurrentUserInfo {
+  address: string,
   points: string;
   rank: number | null;
+  isLoading: boolean;
 }
 
 interface LeaderboardState {
@@ -73,7 +75,7 @@ const useLeaderboardData = () => {
     error: null,
     lastFetch: null,
     totalUsers: null,
-    currentUserInfo: { points: "0", rank: null },
+    currentUserInfo: { points: "0", rank: null, address: '', isLoading: false },
     userCompleteInfo: null,
   });
 
@@ -85,6 +87,8 @@ const useLeaderboardData = () => {
         if (
           !isRefresh &&
           leaderboardCache &&
+          // refresh, even if address changes
+          leaderboardCache.currentUserInfo.address == address &&
           Date.now() - leaderboardCache.timestamp < CACHE_EXPIRY_MS
         ) {
           setState({
@@ -104,6 +108,10 @@ const useLeaderboardData = () => {
           loading: {
             initial: !isRefresh && prev.data.length === 0,
             refresh: isRefresh,
+          },
+          currentUserInfo: {
+            ...prev.currentUserInfo,
+            isLoading: true,
           },
           error: null,
         }));
@@ -158,6 +166,8 @@ const useLeaderboardData = () => {
 
         const currentUserInfo: CurrentUserInfo = {
           points: currentUserData?.points.total_points.toString() || "0",
+          address: address || "",
+          isLoading: false,
           rank: apiResponse.summary.total_users
             ? apiResponse.summary.total_users + 1
             : null,
@@ -192,6 +202,10 @@ const useLeaderboardData = () => {
           ...prev,
           loading: { initial: false, refresh: false },
           error: errorMessage,
+          currentUserInfo: {
+            ...prev.currentUserInfo,
+            isLoading: false,
+          }
         }));
       }
     },
@@ -230,6 +244,7 @@ ErrorDisplay.displayName = "ErrorDisplay";
 const AnnouncementBanner = React.memo(
   ({
     userCompleteInfo,
+    currentUserInfo
   }: {
     userCompleteInfo: UserCompleteDetailsApiResponse | null;
     currentUserInfo: CurrentUserInfo;
@@ -257,13 +272,13 @@ const AnnouncementBanner = React.memo(
       <div className="flex w-full flex-col items-center justify-between gap-3 sm:flex-row">
         <div className="flex flex-col items-center gap-0.5 text-white sm:items-start">
           <p className="text-center text-base font-bold md:text-xl">
-            Claim Your Fee Rebate Rewards
+            Check Your Fee Rebate Rewards
           </p>
           <p className="text-center text-sm font-normal text-white/80 md:text-base">
-            You&apos;ve earned rewards based on your activity.
+            Early adopters may have earned fee rebates. <a href="" className="underline">Learn more.</a>
           </p>
         </div>
-        <CheckEligibility userCompleteInfo={userCompleteInfo} />
+        <CheckEligibility userCompleteInfo={userCompleteInfo} isLoading={currentUserInfo.isLoading} />
       </div>
     </div>
   ),
@@ -319,7 +334,7 @@ const Leaderboard: React.FC = () => {
 
   const containerClasses = React.useMemo(
     () =>
-      cn("mt-2 lg:mt-10 w-full", {
+      cn("mt-2 lg:mt-10 w-full max-w-[1200px]", {
         "lg:pl-28": !isPinned,
       }),
     [isPinned],
@@ -355,8 +370,7 @@ const Leaderboard: React.FC = () => {
 
       <div className="mt-1">
         <p className="text-sm text-[#021B1A]">
-          Your position on the leaderboard is based on the total amount
-          you&apos;ve staked on Endur. Learn more in the docs.
+          Your position on the leaderboard based on your xSTRK holding activity. Points updated daily. <a href="" className="underline">More Info.</a>
         </p>
 
         <AnnouncementBanner

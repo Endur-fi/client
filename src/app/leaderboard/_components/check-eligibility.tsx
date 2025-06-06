@@ -40,12 +40,12 @@ type ModalType = "subscribe" | "claim" | "notEligible" | null;
 
 interface CheckEligibilityProps {
   userCompleteInfo: UserCompleteDetailsApiResponse | null;
+  isLoading: boolean;
 }
 
 interface EligibilityState {
   allocation: string | null;
   activeModal: ModalType;
-  isLoading: boolean;
   emailInput: string;
   isEligible: boolean;
 }
@@ -130,7 +130,7 @@ const EligibilityModal = React.memo(
           Stay Updated with Endur
         </DialogTitle>
         <DialogDescription className="text-center text-sm font-normal text-[#DCF6E5]">
-          Get notified when claims open, new product updates, and upcoming
+          Get notified when claims open, product updates, and upcoming
           programs
         </DialogDescription>
       </DialogHeader>
@@ -142,6 +142,12 @@ const EligibilityModal = React.memo(
           className="h-12 w-full rounded-md border-0 bg-[#518176] pl-5 pr-24 text-[#DCF6E5] placeholder:text-[#DCF6E5]/80 focus-visible:ring-0"
           placeholder="Enter email"
           disabled={isLoading}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              onNext();
+            }
+          }}
         />
         <Button
           onClick={onNext}
@@ -195,7 +201,7 @@ const ClaimModal = React.memo(
         </div>
         <DialogTitle className="!mt-8 text-center text-2xl font-semibold text-white">
           {allocation
-            ? `Reward ${formatNumberWithCommas(allocation)} STRK`
+            ? `Reward ${formatNumberWithCommas(allocation)} xSTRK`
             : "Claim Rewards"}
         </DialogTitle>
         {/* <DialogDescription className="text-center text-sm font-normal text-[#DCF6E5]">
@@ -249,6 +255,9 @@ const NotEligibleModal = React.memo(({ onClose }: { onClose: () => void }) => (
       <DialogTitle className="!mt-8 text-center text-2xl font-semibold text-white">
         Not Eligible :(
       </DialogTitle>
+       <DialogDescription className="text-center text-sm font-normal text-[#DCF6E5]">
+          But keep holding xSTRK from now and earn future points
+        </DialogDescription>
     </DialogHeader>
 
     <div className="relative !mt-3 flex w-full flex-col items-center justify-center gap-2 px-2">
@@ -265,11 +274,11 @@ NotEligibleModal.displayName = "NotEligibleModal";
 
 const CheckEligibility: React.FC<CheckEligibilityProps> = ({
   userCompleteInfo,
+  isLoading
 }) => {
   const [state, setState] = React.useState<EligibilityState>({
     allocation: null,
     activeModal: null,
-    isLoading: false,
     emailInput: "",
     isEligible: false,
   });
@@ -284,12 +293,10 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
     async (email: string, address: string): Promise<boolean> => {
       if (!validateEmail(email)) return false;
 
-      setState((prev) => ({ ...prev, isLoading: true }));
-
       try {
         return await sendEmailRequest(email, address);
       } finally {
-        setState((prev) => ({ ...prev, isLoading: false }));
+
       }
     },
     [],
@@ -383,14 +390,14 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
           <Button
             className="bg-[#16876D] hover:bg-[#16876D]"
             onClick={checkEligibility}
-            disabled={state.isLoading}
+            disabled={isLoading}
           >
-            {state.isLoading ? "Checking..." : "Check eligibility"}
+            {isLoading ? "Checking..." : "Check eligibility"}
           </Button>
         </DialogTrigger>
         <EligibilityModal
           emailInput={state.emailInput}
-          isLoading={state.isLoading}
+          isLoading={isLoading}
           onEmailChange={handleEmailChange}
           onNext={handleNext}
           onSkip={handleSkip}

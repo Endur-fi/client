@@ -77,9 +77,12 @@ export async function POST(request: NextRequest) {
     const contactPayload = {
       attributes: {
         FIRSTNAME: standariseAddress(address), // using FIRSTNAME attribute for address cuz somehow custom attributes are not working
+        ADDRESS: standariseAddress(address),
       },
       updateEnabled: false,
       email: email,
+      ext_id: standariseAddress(address), // unique identifier for the contact
+      listIds: [5] // Subscribers-Endur list
     };
 
     try {
