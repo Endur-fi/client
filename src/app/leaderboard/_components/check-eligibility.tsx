@@ -307,7 +307,6 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
     if (!address) {
       toast({
         description: "Connect your wallet first.",
-        variant: "destructive",
       });
       return;
     }
@@ -355,7 +354,6 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
     if (!address) {
       toast({
         description: "Connect your wallet first.",
-        variant: "destructive",
       });
       return;
     }
