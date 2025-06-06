@@ -5,10 +5,12 @@ import Image from "next/image";
 import React from "react";
 
 import { useSidebar } from "@/components/ui/sidebar";
+import { LEADERBOARD_ANALYTICS_EVENTS } from "@/constants";
 import {
   GET_ALL_USERS_WITH_DETAILS,
   GET_USER_COMPLETE_DETAILS,
 } from "@/constants/queries";
+import { MyAnalytics } from "@/lib/analytics";
 import apolloClient from "@/lib/apollo-client";
 import { cn } from "@/lib/utils";
 
@@ -314,6 +316,14 @@ const Leaderboard: React.FC = () => {
   React.useEffect(() => {
     fetchUsersData();
   }, [fetchUsersData]);
+
+  React.useEffect(() => {
+    MyAnalytics.track(LEADERBOARD_ANALYTICS_EVENTS.LEADERBOARD_PAGE_VIEW, {
+      userAddress: address || "anonymous",
+      timestamp: Date.now(),
+      isWalletConnected: !!address,
+    });
+  }, [address]);
 
   const leaderboardData = React.useMemo(() => {
     if (!address || allUsers.length === 0) return allUsers;
