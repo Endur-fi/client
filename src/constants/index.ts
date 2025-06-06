@@ -125,3 +125,11 @@ export function convertTimeString(timeString: string): string {
 export const convertToPlainObject = (data: any) => {
   return JSON.parse(JSON.stringify(data));
 };
+
+export const LEADERBOARD_ANALYTICS_EVENTS = {
+  LEADERBOARD_PAGE_VIEW: "leaderboard_page_view",
+  ELIGIBILITY_CHECK_CLICKED: "eligibility_check_clicked",
+  ELIGIBILITY_RESULT: "eligibility_result",
+  EMAIL_SUBMITTED: "email_submitted",
+  EMAIL_SKIP_CLICKED: "email_skip_clicked",
+} as const;

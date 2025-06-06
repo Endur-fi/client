@@ -14,7 +14,9 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { LEADERBOARD_ANALYTICS_EVENTS } from "@/constants";
 import { toast } from "@/hooks/use-toast";
+import { MyAnalytics } from "@/lib/analytics";
 import { cn, formatNumberWithCommas } from "@/lib/utils";
 
 const font = Figtree({ subsets: ["latin-ext"] });
@@ -130,8 +132,7 @@ const EligibilityModal = React.memo(
           Stay Updated with Endur
         </DialogTitle>
         <DialogDescription className="text-center text-sm font-normal text-[#DCF6E5]">
-          Get notified when claims open, product updates, and upcoming
-          programs
+          Get notified when claims open, product updates, and upcoming programs
         </DialogDescription>
       </DialogHeader>
 
@@ -253,11 +254,11 @@ const NotEligibleModal = React.memo(({ onClose }: { onClose: () => void }) => (
         />
       </div>
       <DialogTitle className="!mt-8 text-center text-2xl font-semibold text-white">
-        Not Eligible :(
+        Not Eligible
       </DialogTitle>
-       <DialogDescription className="text-center text-sm font-normal text-[#DCF6E5]">
-          But keep holding xSTRK from now and earn future points
-        </DialogDescription>
+      <DialogDescription className="text-center text-sm font-normal text-[#DCF6E5]">
+        But keep holding xSTRK from now and earn future points
+      </DialogDescription>
     </DialogHeader>
 
     <div className="relative !mt-3 flex w-full flex-col items-center justify-center gap-2 px-2">
@@ -274,7 +275,7 @@ NotEligibleModal.displayName = "NotEligibleModal";
 
 const CheckEligibility: React.FC<CheckEligibilityProps> = ({
   userCompleteInfo,
-  isLoading
+  isLoading,
 }) => {
   const [state, setState] = React.useState<EligibilityState>({
     allocation: null,
@@ -293,11 +294,7 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
     async (email: string, address: string): Promise<boolean> => {
       if (!validateEmail(email)) return false;
 
-      try {
-        return await sendEmailRequest(email, address);
-      } finally {
-
-      }
+      return await sendEmailRequest(email, address);
     },
     [],
   );
@@ -320,20 +317,35 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
     }
 
     if (emailSent) {
+      MyAnalytics.track(LEADERBOARD_ANALYTICS_EVENTS.EMAIL_SUBMITTED, {
+        userAddress: address,
+        email: emailInput,
+        timestamp: Date.now(),
+        isEligible,
+      });
+
       setState((prev) => ({
         ...prev,
         emailInput: "",
         activeModal: isEligible ? "claim" : "notEligible",
       }));
     }
-  }, [state.emailInput, state.isEligible, handleEmailSend]);
+  }, [state, address, handleEmailSend]);
 
   const handleSkip = React.useCallback(() => {
+    if (address) {
+      MyAnalytics.track(LEADERBOARD_ANALYTICS_EVENTS.EMAIL_SKIP_CLICKED, {
+        userAddress: address,
+        timestamp: Date.now(),
+        isEligible: state.isEligible,
+      });
+    }
+
     setState((prev) => ({
       ...prev,
       activeModal: prev.isEligible ? "claim" : "notEligible",
     }));
-  }, []);
+  }, [address, state.isEligible]);
 
   const handleClose = React.useCallback(() => {
     setState((prev) => ({ ...prev, activeModal: null, allocation: null }));
@@ -348,11 +360,24 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
       return;
     }
 
+    // Track eligibility check clicked
+    MyAnalytics.track(LEADERBOARD_ANALYTICS_EVENTS.ELIGIBILITY_CHECK_CLICKED, {
+      userAddress: address,
+      timestamp: Date.now(),
+    });
+
     setState((prev) => ({ ...prev, isLoading: true }));
 
     try {
       const allocation = userCompleteInfo?.allocation || null;
       const isEligible = allocation ? Number(allocation) > 0 : false;
+
+      // Track eligibility result
+      MyAnalytics.track(LEADERBOARD_ANALYTICS_EVENTS.ELIGIBILITY_RESULT, {
+        userAddress: address,
+        isEligible,
+        timestamp: Date.now(),
+      });
 
       setState((prev) => ({
         ...prev,
@@ -369,7 +394,7 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
       });
       setState((prev) => ({ ...prev, isLoading: false }));
     }
-  }, [address, userCompleteInfo?.allocation]);
+  }, [address, userCompleteInfo]);
 
   const closeModal = React.useCallback(() => {
     setState((prev) => ({ ...prev, activeModal: null }));

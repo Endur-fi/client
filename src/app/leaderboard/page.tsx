@@ -5,10 +5,12 @@ import Image from "next/image";
 import React from "react";
 
 import { useSidebar } from "@/components/ui/sidebar";
+import { LEADERBOARD_ANALYTICS_EVENTS } from "@/constants";
 import {
   GET_ALL_USERS_WITH_DETAILS,
   GET_USER_COMPLETE_DETAILS,
 } from "@/constants/queries";
+import { MyAnalytics } from "@/lib/analytics";
 import apolloClient from "@/lib/apollo-client";
 import { cn } from "@/lib/utils";
 
@@ -38,7 +40,7 @@ interface AllUsersApiResponse {
 }
 
 interface CurrentUserInfo {
-  address: string,
+  address: string;
   points: string;
   rank: number | null;
   isLoading: boolean;
@@ -75,7 +77,7 @@ const useLeaderboardData = () => {
     error: null,
     lastFetch: null,
     totalUsers: null,
-    currentUserInfo: { points: "0", rank: null, address: '', isLoading: false },
+    currentUserInfo: { points: "0", rank: null, address: "", isLoading: false },
     userCompleteInfo: null,
   });
 
@@ -205,7 +207,7 @@ const useLeaderboardData = () => {
           currentUserInfo: {
             ...prev.currentUserInfo,
             isLoading: false,
-          }
+          },
         }));
       }
     },
@@ -244,7 +246,7 @@ ErrorDisplay.displayName = "ErrorDisplay";
 const AnnouncementBanner = React.memo(
   ({
     userCompleteInfo,
-    currentUserInfo
+    currentUserInfo,
   }: {
     userCompleteInfo: UserCompleteDetailsApiResponse | null;
     currentUserInfo: CurrentUserInfo;
@@ -275,10 +277,16 @@ const AnnouncementBanner = React.memo(
             Check Your Fee Rebate Rewards
           </p>
           <p className="text-center text-sm font-normal text-white/80 md:text-base">
-            Early adopters may have earned fee rebates. <a href="" className="underline">Learn more.</a>
+            Early adopters may have earned fee rebates.{" "}
+            <a href="" className="underline">
+              Learn more.
+            </a>
           </p>
         </div>
-        <CheckEligibility userCompleteInfo={userCompleteInfo} isLoading={currentUserInfo.isLoading} />
+        <CheckEligibility
+          userCompleteInfo={userCompleteInfo}
+          isLoading={currentUserInfo.isLoading}
+        />
       </div>
     </div>
   ),
@@ -308,6 +316,14 @@ const Leaderboard: React.FC = () => {
   React.useEffect(() => {
     fetchUsersData();
   }, [fetchUsersData]);
+
+  React.useEffect(() => {
+    MyAnalytics.track(LEADERBOARD_ANALYTICS_EVENTS.LEADERBOARD_PAGE_VIEW, {
+      userAddress: address || "anonymous",
+      timestamp: Date.now(),
+      isWalletConnected: !!address,
+    });
+  }, [address]);
 
   const leaderboardData = React.useMemo(() => {
     if (!address || allUsers.length === 0) return allUsers;
@@ -370,7 +386,11 @@ const Leaderboard: React.FC = () => {
 
       <div className="mt-1">
         <p className="text-sm text-[#021B1A]">
-          Your position on the leaderboard based on your xSTRK holding activity. Points updated daily. <a href="" className="underline">More Info.</a>
+          Your position on the leaderboard based on your xSTRK holding activity.
+          Points updated daily.{" "}
+          <a href="" className="underline">
+            More Info.
+          </a>
         </p>
 
         <AnnouncementBanner
