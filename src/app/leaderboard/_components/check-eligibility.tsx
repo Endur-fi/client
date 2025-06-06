@@ -329,6 +329,12 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
   }, [state, address, handleEmailSend]);
 
   const handleSkip = React.useCallback(() => {
+    if (!address) {
+      return toast({
+        description: "Connect your wallet first.",
+      });
+    }
+
     if (address) {
       MyAnalytics.track(LEADERBOARD_ANALYTICS_EVENTS.EMAIL_SKIP_CLICKED, {
         userAddress: address,
