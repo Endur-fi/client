@@ -57,7 +57,6 @@ const validateEmail = (email: string): boolean => {
   if (!email) {
     toast({
       description: "Email input is required",
-      variant: "destructive",
     });
     return false;
   }
@@ -65,7 +64,6 @@ const validateEmail = (email: string): boolean => {
   if (!EMAIL_REGEX.test(email)) {
     toast({
       description: "Please enter a valid email address",
-      variant: "destructive",
     });
     return false;
   }
@@ -91,7 +89,6 @@ const sendEmailRequest = async (
 
     toast({
       description: errorMessage,
-      variant: "destructive",
     });
     return false;
   }
@@ -388,7 +385,6 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
       console.error("Error checking eligibility:", error);
       toast({
         description: "Network error. Please try again.",
-        variant: "destructive",
       });
       setState((prev) => ({ ...prev, isLoading: false }));
     }
