@@ -1,12 +1,21 @@
 import axios from "axios";
 import { NextRequest, NextResponse } from "next/server";
 
+import { standariseAddress } from "@/lib/utils";
+
 export async function POST(request: NextRequest) {
   try {
-    const { email } = await request.json();
+    const { email, address } = await request.json();
 
     if (!email) {
       return NextResponse.json({ error: "Email is required" }, { status: 400 });
+    }
+
+    if (!address) {
+      return NextResponse.json(
+        { error: "Address is required" },
+        { status: 400 },
+      );
     }
 
     // validate email format
@@ -41,68 +50,6 @@ export async function POST(request: NextRequest) {
         },
       ],
       subject: "Welcome to Endur - Stay Updated!",
-      // htmlContent: `
-      //   <!DOCTYPE html>
-      //   <html>
-      //   <head>
-      //     <style>
-      //       body {
-      //         font-family: Arial, sans-serif;
-      //         line-height: 1.6;
-      //         color: #333;
-      //         margin: 0;
-      //         padding: 0;
-      //       }
-      //       .container {
-      //         max-width: 600px;
-      //         margin: 0 auto;
-      //         background-color: #ffffff;
-      //       }
-      //       .header {
-      //         background-color: #0C4E3F;
-      //         color: white;
-      //         padding: 30px 20px;
-      //         text-align: center;
-      //       }
-      //       .content {
-      //         padding: 30px 20px;
-      //         background-color: #f9f9f9;
-      //       }
-      //       .footer {
-      //         padding: 20px;
-      //         text-align: center;
-      //         font-size: 12px;
-      //         color: #666;
-      //         background-color: #ffffff;
-      //       }
-      //       h1 { margin: 0; font-size: 24px; }
-      //       h2 { color: #0C4E3F; margin-top: 0; }
-      //       ul { padding-left: 20px; }
-      //       li { margin-bottom: 8px; }
-      //     </style>
-      //   </head>
-      //   <body>
-      //     <div class="container">
-      //       <div class="header">
-      //         <h1>Welcome to Endur!</h1>
-      //       </div>
-      //       <div class="content">
-      //         <h2>Thank you for staying updated with us!</h2>
-      //         <p>You'll be the first to know about:</p>
-      //         <ul>
-      //           <li>When claims open</li>
-      //           <li>New product updates</li>
-      //           <li>Upcoming programs</li>
-      //         </ul>
-      //         <p>We respect your privacy and will never share your data with third parties.</p>
-      //       </div>
-      //       <div class="footer">
-      //         <p>You can unsubscribe at any time by replying to this email.</p>
-      //       </div>
-      //     </div>
-      //   </body>
-      //   </html>
-      // `,
       replyTo: {
         email: "akira@endur.fi",
         name: "Akira | Endur",
@@ -111,7 +58,7 @@ export async function POST(request: NextRequest) {
     };
 
     // send email using Brevo REST API
-    const response = await axios.post(
+    const emailResponse = await axios.post(
       "https://api.brevo.com/v3/smtp/email",
       emailPayload,
       {
@@ -124,15 +71,57 @@ export async function POST(request: NextRequest) {
       },
     );
 
-    console.log("Email sent successfully:", response.data);
-    return NextResponse.json(
-      {
-        success: true,
-        message: "Endur's email subscription activated",
-        messageId: response.data.messageId,
+    console.log("Email sent successfully:", emailResponse.data);
+
+    // create contact in Brevo after successful email send
+    const contactPayload = {
+      attributes: {
+        FIRSTNAME: standariseAddress(address), // using FIRSTNAME attribute for address cuz somehow custom attributes are not working
       },
-      { status: 200 },
-    );
+      updateEnabled: false,
+      email: email,
+    };
+
+    try {
+      const contactResponse = await axios.post(
+        "https://api.brevo.com/v3/contacts",
+        contactPayload,
+        {
+          headers: {
+            accept: "application/json",
+            "content-type": "application/json",
+            "api-key": apiKey,
+          },
+        },
+      );
+
+      console.log("Contact created successfully:", contactResponse.data);
+
+      return NextResponse.json(
+        {
+          success: true,
+          message: "Endur's email subscription activated and contact created",
+          messageId: emailResponse.data.messageId,
+          contactId: contactResponse.data.id,
+        },
+        { status: 200 },
+      );
+    } catch (contactError) {
+      console.error("Error creating contact:", contactError);
+
+      // still return success for email, but note contact creation issue
+      return NextResponse.json(
+        {
+          success: true,
+          message: "Email sent successfully, but contact creation failed",
+          messageId: emailResponse.data.messageId,
+          contactError: axios.isAxiosError(contactError)
+            ? contactError.response?.data?.message || contactError.message
+            : "Unknown contact creation error",
+        },
+        { status: 200 },
+      );
+    }
   } catch (error) {
     console.error("Error sending email:", error);
 
