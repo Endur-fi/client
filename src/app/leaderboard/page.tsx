@@ -1,7 +1,6 @@
 "use client";
 
 import { useAccount } from "@starknet-react/core";
-import Image from "next/image";
 import React from "react";
 
 import { useSidebar } from "@/components/ui/sidebar";
@@ -14,9 +13,7 @@ import { MyAnalytics } from "@/lib/analytics";
 import apolloClient from "@/lib/apollo-client";
 import { cn } from "@/lib/utils";
 
-import CheckEligibility, {
-  UserCompleteDetailsApiResponse,
-} from "./_components/check-eligibility";
+import { UserCompleteDetailsApiResponse } from "./_components/check-eligibility";
 import { columns, type SizeColumn } from "./_components/table/columns";
 import { DataTable } from "./_components/table/data-table";
 
