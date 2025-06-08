@@ -34,7 +34,7 @@ Decimal.set({ precision: 78 });
 //   }
 //   // return {};
 // }
-// const ekuboPositionsCache: Record<string, any> = loadFromCache();
+const ekuboPositionsCache: Record<string, any> = {};
 
 export const getEkuboHoldings: DAppHoldingsFn = async (
   address: string,
@@ -44,33 +44,33 @@ export const getEkuboHoldings: DAppHoldingsFn = async (
   let xSTRKAmount = MyNumber.fromEther("0", 18);
   let STRKAmount = MyNumber.fromEther("0", 18);
 
-  // let res: any = ekuboPositionsCache[address];
-  // if (!res) {
-  const resp = await axios.get(
-    `https://mainnet-api.ekubo.org/positions/${address}?showClosed=true`,
-    {
-      headers: {
-        Host: "mainnet-api.ekubo.org",
+  let res: any = ekuboPositionsCache[address];
+  if (!res) {
+    const resp = await axios.get(
+      `https://mainnet-api.ekubo.org/positions/${address}?showClosed=true`,
+      {
+        headers: {
+          Host: "mainnet-api.ekubo.org",
+        },
       },
-    },
-    // `https://mainnet-api.ekubo.org/positions/0x067138f4b11ac7757e39ee65814d7a714841586e2aa714ce4ececf38874af245`,
-  );
-  // if (resp?.data) {
-  const res = resp.data;
-  //     ekuboPositionsCache[address] = res; // Cache the result
-  //     if (typeof window === "undefined") {
-  //       // If running in a Node.js environment, write to file
-  //       // This is useful for caching in server-side environments
-  //       // but should not be used in client-side code
-  //       // eslint-disable-next-line
-  //       const fs = require("fs");
-  //       const { writeFileSync } = fs;
-  //       writeFileSync(`./ekubo_positions.json`, JSON.stringify(ekuboPositionsCache, null, 2));
-  //     }
-  //   } else {
-  //     throw new Error("Failed to fetch Ekubo positions data");
-  //   }
-  // }
+      // `https://mainnet-api.ekubo.org/positions/0x067138f4b11ac7757e39ee65814d7a714841586e2aa714ce4ececf38874af245`,
+    );
+    if (resp?.data) {
+      res = resp.data;
+      ekuboPositionsCache[address] = res; // Cache the result
+      if (typeof window === "undefined") {
+        // // If running in a Node.js environment, write to file
+        // // This is useful for caching in server-side environments
+        // // but should not be used in client-side code
+        // // eslint-disable-next-line
+        // const fs = require("fs");
+        // const { writeFileSync } = fs;
+        // writeFileSync(`./ekubo_positions.json`, JSON.stringify(ekuboPositionsCache, null, 2));
+      }
+    } else {
+      throw new Error("Failed to fetch Ekubo positions data");
+    }
+  }
 
   if (isContractNotDeployed(blockNumber, EKUBO_POSITION_DEPLOYMENT_BLOCK)) {
     return {
