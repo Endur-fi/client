@@ -11,6 +11,7 @@ import { snAPYAtom } from "@/store/staking.store";
 import { uservXSTRKBalanceAtom } from "@/store/vesu.store";
 import { strkPriceAtom } from "@/store/common.store";
 import { getSTRKFarmBalanceAtom } from "@/store/strkfarm.store";
+import { userOpusBalanceAtom } from "@/store/opus.store";
 
 export const totalXSTRKAcrossDefiHoldingsAtom = atom((get) => {
   const vesuBalance = get(uservXSTRKBalanceAtom(undefined));
@@ -18,13 +19,15 @@ export const totalXSTRKAcrossDefiHoldingsAtom = atom((get) => {
   const nostraBalance = get(userxSTRKNostraBalance(undefined));
   const ekuboBalance = get(userEkuboxSTRKPositions(undefined));
   const xstrkBalance = get(userXSTRKBalanceAtom);
+  const opusBalance = get(userOpusBalanceAtom(undefined));
   const strkfarmXSTRKBalance = get(getSTRKFarmBalanceAtom(undefined));
   const value =
     Number(vesuBalance.data.xSTRKAmount.toEtherToFixedDecimals(2)) +
     Number(nostraBalance.data.xSTRKAmount.toEtherToFixedDecimals(2)) +
     Number(ekuboBalance.data.xSTRKAmount.toEtherToFixedDecimals(2)) +
     Number(xstrkBalance.value.toEtherToFixedDecimals(2)) +
-    Number(strkfarmXSTRKBalance.data.xSTRKAmount.toEtherToFixedDecimals(2));
+    Number(strkfarmXSTRKBalance.data.xSTRKAmount.toEtherToFixedDecimals(2)) +
+    Number(opusBalance.data.xSTRKAmount.toEtherToFixedDecimals(2));
   if (Number.isNaN(value)) {
     return 0;
   }

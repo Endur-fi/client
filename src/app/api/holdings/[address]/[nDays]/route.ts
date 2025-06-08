@@ -11,6 +11,7 @@ import {
   N_XSTRK_C_CONTRACT_ADDRESS,
   N_XSTRK_CONTRACT_ADDRESS,
 } from "@/store/nostra.store";
+import { getOpusHoldings } from "@/store/opus.store";
 import {
   getEkuboXSTRKSTRKHoldings,
   getXSTRKSenseiHoldings,
@@ -70,8 +71,10 @@ export async function GET(_req: Request, context: any) {
       addr,
       blocks,
     );
+    const opusHoldingsProm = getAllOpusHoldings(addr, blocks);
 
     // resolve promises
+    // ADD_NEW_PROTOCOL
     const [
       vesuHoldings,
       ekuboHoldings,
@@ -80,6 +83,7 @@ export async function GET(_req: Request, context: any) {
       xstrkHoldings,
       strkfarmHoldings,
       strkfarmEkuboHoldings,
+      opusHoldings,
     ] = await Promise.all([
       vesuHoldingsProm,
       ekuboHoldingsProm,
@@ -88,6 +92,7 @@ export async function GET(_req: Request, context: any) {
       xstrkHoldingsProm,
       strkfarmHoldingsProm,
       strkfarmEkuboHoldingsProm,
+      opusHoldingsProm,
     ]);
 
     const resp = NextResponse.json({
@@ -98,6 +103,7 @@ export async function GET(_req: Request, context: any) {
       strkfarm: strkfarmHoldings,
       strkfarmEkubo: strkfarmEkuboHoldings,
       wallet: xstrkHoldings,
+      opus: opusHoldings,
       blocks,
       lastUpdated: new Date().toISOString(),
     });
@@ -115,6 +121,19 @@ export async function GET(_req: Request, context: any) {
       { status: 500 },
     );
   }
+}
+
+//
+// ADD_NEW_PROTOCOL
+//
+
+export async function getAllOpusHoldings(address: string, blocks: BlockInfo[]) {
+  // Opus holdings are not implemented yet
+  return Promise.all(
+    blocks.map(async (block) => {
+      return getOpusHoldings(address, getProvider(), block.block);
+    }),
+  );
 }
 
 export async function getAllVesuHoldings(address: string, blocks: BlockInfo[]) {

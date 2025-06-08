@@ -10,6 +10,7 @@ import {
   getAllEkuboXSTRKSTRKHoldings,
   getNostraDEXHoldings,
   getNostraLendingHoldings,
+  getAllOpusHoldings,
 } from "@/app/api/holdings/[address]/[nDays]/route";
 import { DAppHoldings } from "@/store/defi.store";
 
@@ -52,6 +53,7 @@ export async function GET(_req: Request, context: any) {
       addr,
       blocks,
     );
+    const opusHoldingsProm = getAllOpusHoldings(addr, blocks);
 
     // resolve promises
     const [
@@ -62,6 +64,7 @@ export async function GET(_req: Request, context: any) {
       xstrkHoldings,
       strkfarmHoldings,
       strkfarmEkuboHoldings,
+      opusHoldings,
     ] = await Promise.all([
       vesuHoldingsProm,
       ekuboHoldingsProm,
@@ -70,6 +73,7 @@ export async function GET(_req: Request, context: any) {
       xstrkHoldingsProm,
       strkfarmHoldingsProm,
       strkfarmEkuboHoldingsProm,
+      opusHoldingsProm,
     ]);
     const dummy: DAppHoldings[] = [
       {
@@ -85,6 +89,7 @@ export async function GET(_req: Request, context: any) {
       wallet: xstrkHoldings,
       strkfarm: strkfarmHoldings,
       strkfarmEkubo: strkfarmEkuboHoldings,
+      opus: opusHoldings,
       blocks,
       lastUpdated: new Date().toISOString(),
     });

@@ -129,6 +129,7 @@ const PortfolioPage: React.FC = () => {
           const wallet: DAppHoldings[] = data.wallet;
           const strkfarm: DAppHoldings[] = data.strkfarm;
           const strkfarmEkubo: DAppHoldings[] = data.strkfarmEkubo;
+          const opus: DAppHoldings[] = data.opus;
 
           setLastUpdated(new Date(data.lastUpdated));
           // assert all arrays are of the same length
@@ -139,7 +140,8 @@ const PortfolioPage: React.FC = () => {
             blocks.length !== ekubo.length ||
             blocks.length !== wallet.length ||
             blocks.length !== strkfarm.length ||
-            blocks.length !== strkfarmEkubo.length
+            blocks.length !== strkfarmEkubo.length ||
+            blocks.length !== opus.length
           ) {
             throw new Error("Invalid holdings data");
           }
@@ -163,6 +165,7 @@ const PortfolioPage: React.FC = () => {
               strkfarmEkubo: serialisedMyNumberToNumber(
                 strkfarmEkubo[idx].xSTRKAmount as any,
               ),
+              opus: serialisedMyNumberToNumber(opus[idx].xSTRKAmount as any),
             };
           });
           holdings.sort(
@@ -180,6 +183,7 @@ const PortfolioPage: React.FC = () => {
 
   // merging common dapps
   // to avoid too much splitting on chart, we merge some parts of dapps
+  // ADD_NEW_PROTOCOL
   const summaryPieChartHoldings = React.useMemo(() => {
     const summary: HoldingInfo[] = [];
     holdings.forEach((holding) => {
@@ -192,6 +196,7 @@ const PortfolioPage: React.FC = () => {
         ekubo: holding.ekubo,
         endur: holding.endur,
         strkfarm: strkfarmSum,
+        opus: holding.opus,
       });
     });
     return summary;

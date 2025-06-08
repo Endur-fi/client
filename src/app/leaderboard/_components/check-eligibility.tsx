@@ -30,7 +30,6 @@ export interface UserCompleteDetailsApiResponse {
     total_points: bigint;
     regular_points: bigint;
     bonus_points: bigint;
-    referrer_points: bigint;
   };
   allocation: string;
   tags: {

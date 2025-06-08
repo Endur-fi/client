@@ -29,7 +29,6 @@ export const GET_USER_COMPLETE_DETAILS = gql`
         total_points
         regular_points
         bonus_points
-        referrer_points
       }
       allocation
       tags {
