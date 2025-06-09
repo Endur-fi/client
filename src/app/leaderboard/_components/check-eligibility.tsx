@@ -26,6 +26,7 @@ const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export interface UserCompleteDetailsApiResponse {
   user_address: string;
+  rank: number;
   points: {
     total_points: bigint;
     regular_points: bigint;

@@ -167,9 +167,9 @@ const useLeaderboardData = () => {
           points: currentUserData?.points.total_points.toString() || "0",
           address: address || "",
           isLoading: false,
-          rank: apiResponse.summary.total_users
+          rank: currentUserData ? currentUserData.rank : (apiResponse.summary.total_users
             ? apiResponse.summary.total_users + 1
-            : null,
+            : null),
         };
 
         // update cache
@@ -344,7 +344,7 @@ const Leaderboard: React.FC = () => {
       score: currentUserInfo.points,
     };
     return [currentUserData, ...allUsers];
-  }, [address, allUsers, currentUserInfo.points, currentUserInfo.rank]);
+  }, [address, allUsers, currentUserInfo.points, currentUserInfo]);
 
   const containerClasses = React.useMemo(
     () =>
