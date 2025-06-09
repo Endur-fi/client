@@ -43,6 +43,7 @@ import {
 } from "@/components/ui/tooltip";
 import {
   getEndpoint,
+  IS_PAUSED,
   LINKS,
   LST_ADDRRESS,
   NOSTRA_iXSTRK_ADDRESS,
@@ -623,14 +624,17 @@ const Stake: React.FC = () => {
               !form.getValues("stakeAmount") ||
               isNaN(Number(form.getValues("stakeAmount"))) ||
               Number(form.getValues("stakeAmount")) <= 0 ||
-              !!form.formState.errors.stakeAmount
+              !!form.formState.errors.stakeAmount ||
+              IS_PAUSED
             }
             onClick={form.handleSubmit(onSubmit)}
             className="w-full rounded-2xl bg-[#17876D] py-6 text-sm font-semibold text-white hover:bg-[#17876D] disabled:bg-[#03624C4D] disabled:text-[#17876D] disabled:opacity-90"
           >
-            {selectedPlatform === "none"
-              ? "Stake STRK"
-              : `Stake & Lend on ${selectedPlatform === "vesu" ? "Vesu" : "Nostra"}`}
+            {IS_PAUSED
+              ? "Paused"
+              : selectedPlatform === "none"
+                ? "Stake STRK"
+                : `Stake & Lend on ${selectedPlatform === "vesu" ? "Vesu" : "Nostra"}`}
           </Button>
         )}
       </div>

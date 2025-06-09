@@ -12,6 +12,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { IS_PAUSED } from "@/constants";
 import { cn } from "@/lib/utils";
 import { isMerryChristmasAtom, tabsAtom } from "@/store/merry.store";
 
@@ -62,10 +63,24 @@ const Tabs = () => {
 
   return (
     <div
-      className={cn("z-30 flex h-full flex-col items-center", {
+      className={cn("relative z-30 flex h-full flex-col items-center", {
         "lg:-ml-56": isPinned,
       })}
     >
+      {IS_PAUSED && (
+        <div className="-top-[3.25rem] mt-2 w-fit text-balance rounded-lg border border-amber-600 bg-amber-200 px-5 py-2 text-center text-sm text-yellow-700 lg:absolute lg:mt-0">
+          Endur is currently undergoing a scheduled upgrade to support Staking
+          V2.{" "}
+          <Link
+            href="/"
+            target="_blank"
+            className="text-blue-500 transition-all hover:underline"
+          >
+            Learn more
+          </Link>
+        </div>
+      )}
+
       <div
         className={cn("mt-6 w-full max-w-xl lg:mt-0", {
           "mb-7 xl:mb-0": !isMerry,
@@ -73,7 +88,7 @@ const Tabs = () => {
           // "mb-7 lg:mb-7": isMerry && activeTab === "withdraw",
         })}
       >
-        <div className="mt-7 flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3 lg:mt-7">
           <div className="flex items-center gap-2">
             <Icons.strkLogo className="size-8" />
             <h1 className="text-xl font-bold text-black">Stake STRK</h1>
