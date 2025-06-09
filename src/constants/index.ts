@@ -10,6 +10,8 @@ export const USDT_TOKEN =
   "0x068f5c6a61780768455de69077e07e89787839bf8166decfbf92b645209c0fb8";
 export const WBTC_TOKEN =
   "0x03fe2b97c1fd336e750087d68b9b867997fd64a2661ff3ca5a7c771641e8e7ac";
+export const RUSDC =
+  "0x02019e47a0bc54ea6b4853c6123ffc8158ea3ae2af4166928b0de6e89f06de6c";
 
 export const xSTRK_TOKEN_MAINNET =
   "0x28d709c875c0ceac3dce7065bec5328186dc89fe254527084d1689910954b0a";
@@ -123,3 +125,11 @@ export function convertTimeString(timeString: string): string {
 export const convertToPlainObject = (data: any) => {
   return JSON.parse(JSON.stringify(data));
 };
+
+export const LEADERBOARD_ANALYTICS_EVENTS = {
+  LEADERBOARD_PAGE_VIEW: "leaderboard_page_view",
+  ELIGIBILITY_CHECK_CLICKED: "eligibility_check_clicked",
+  ELIGIBILITY_RESULT: "eligibility_result",
+  EMAIL_SUBMITTED: "email_submitted",
+  EMAIL_SKIP_CLICKED: "email_skip_clicked",
+} as const;

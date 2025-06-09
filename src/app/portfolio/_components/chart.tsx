@@ -101,6 +101,7 @@ export function Chart({
     // sum the values to lower value protocols
     // to create a stacked area chart
     const areaData = filteredData.map((item) => {
+      // ADD_DAPP_HERE
       const data: (typeof filteredData)[0] = {
         date: item.date,
         nostraLending: 0,
@@ -108,6 +109,7 @@ export function Chart({
         ekubo: 0,
         vesu: 0,
         endur: 0,
+        opus: 0,
       };
       let sum = 0;
       for (const protocol of protocolValues) {

@@ -19,6 +19,7 @@ import { userHaikoBalanceAtom } from "@/store/haiko.store";
 import { userxSTRKNostraBalance } from "@/store/nostra.store";
 import { uservXSTRKBalanceAtom } from "@/store/vesu.store";
 import { getSTRKFarmBalanceAtom } from "@/store/strkfarm.store";
+import { userOpusBalanceAtom } from "@/store/opus.store";
 
 export const chartConfig = {
   // holdings: {
@@ -49,15 +50,10 @@ export const chartConfig = {
     color: "rgba(212, 207, 72, 1)",
     fillColor: "rgba(212, 207, 72, 0.8)",
   },
-  haiko: {
-    label: "Haiko (Soon)",
-    color: "#19799c", // rgba(25, 121, 156, 1)
-    fillColor: "rgba(25, 121, 156, 0.8)",
-  },
   opus: {
-    label: "Opus (Soon)",
+    label: "Opus",
     color: "rgba(106, 138, 81, 1)", // rgba(106, 138, 81, 1)
-    fillColor: "rgba(106, 138, 81, 0.8)",
+    fillColor: "rgba(106, 138, 81, 1)",
   },
   strkfarm: {
     label: "STRKFarm",
@@ -72,14 +68,17 @@ export const chartConfig = {
 } satisfies ChartConfig;
 
 const DefiHoldings: React.FC = () => {
+  // ADD_DAPP_HERE Add new dApps here
   const nostraBal = useAtomValue(userxSTRKNostraBalance(undefined));
   const vxStrkBalance = useAtomValue(uservXSTRKBalanceAtom(undefined));
   const userHaikoBalance = useAtomValue(userHaikoBalanceAtom(undefined));
   const ekuboPosi = useAtomValue(userEkuboxSTRKPositions(undefined));
   const strkfarmPosi = useAtomValue(getSTRKFarmBalanceAtom(undefined));
+  const opusBalance = useAtomValue(userOpusBalanceAtom(undefined));
   const address = useAtomValue(userAddressAtom);
 
   const { chartData, sumDefiHoldings } = React.useMemo(() => {
+    // ADD_DAPP_HERE Add in this list
     const output = [
       {
         dapp: "nostra",
@@ -99,22 +98,19 @@ const DefiHoldings: React.FC = () => {
         fill: chartConfig.vesu.color,
       },
       {
-        dapp: "haiko",
-        holdings: parseInt(userHaikoBalance.value.toString(), 10),
-        fill: chartConfig.haiko.color,
-      },
-      {
-        dapp: "opus",
-        holdings: 0,
-        fill: chartConfig.opus.color,
-      },
-      {
         dapp: "strkfarm",
         holdings: parseInt(
           strkfarmPosi.data.xSTRKAmount.toEtherToFixedDecimals(2),
           10,
         ),
         fill: chartConfig.strkfarm.color,
+      },
+      {
+        dapp: "opus",
+        holdings: parseInt(
+          opusBalance.data.xSTRKAmount.toEtherToFixedDecimals(2),
+          10,
+        ),
       },
     ].sort((a, b) => b.holdings - a.holdings);
 
@@ -130,7 +126,15 @@ const DefiHoldings: React.FC = () => {
       output[2].holdings = 5;
     }
     return { chartData: output, sumDefiHoldings };
-  }, [nostraBal, vxStrkBalance, userHaikoBalance, ekuboPosi, strkfarmPosi]);
+    // ADD_DAPP_HERE - in this list
+  }, [
+    nostraBal,
+    vxStrkBalance,
+    userHaikoBalance,
+    ekuboPosi,
+    strkfarmPosi,
+    opusBalance,
+  ]);
 
   return (
     <Card className="relative flex h-[500px] w-full shrink-0 flex-col rounded-xl border border-[#AACBC4]/30 bg-[#E3EFEC]/70 bg-white font-poppins lg:h-full lg:w-fit">

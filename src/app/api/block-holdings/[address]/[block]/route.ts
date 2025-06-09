@@ -10,7 +10,9 @@ import {
   getAllEkuboXSTRKSTRKHoldings,
   getNostraDEXHoldings,
   getNostraLendingHoldings,
+  getAllOpusHoldings,
 } from "@/app/api/holdings/[address]/[nDays]/route";
+import { DAppHoldings } from "@/store/defi.store";
 
 export const revalidate = 3600 * 6;
 
@@ -28,15 +30,6 @@ export async function GET(_req: Request, context: any) {
   const { params } = context;
   const addr = params.address;
   const blockNumber = Number(params.block);
-
-  // get blocks to use for the chart
-  const host = process.env.HOSTNAME ?? "http://localhost:3000";
-
-  if (!host) {
-    return NextResponse.json({
-      error: "Invalid host",
-    });
-  }
 
   try {
     const blocks = [
@@ -60,6 +53,7 @@ export async function GET(_req: Request, context: any) {
       addr,
       blocks,
     );
+    const opusHoldingsProm = getAllOpusHoldings(addr, blocks);
 
     // resolve promises
     const [
@@ -70,6 +64,7 @@ export async function GET(_req: Request, context: any) {
       xstrkHoldings,
       strkfarmHoldings,
       strkfarmEkuboHoldings,
+      opusHoldings,
     ] = await Promise.all([
       vesuHoldingsProm,
       ekuboHoldingsProm,
@@ -78,7 +73,14 @@ export async function GET(_req: Request, context: any) {
       xstrkHoldingsProm,
       strkfarmHoldingsProm,
       strkfarmEkuboHoldingsProm,
+      opusHoldingsProm,
     ]);
+    const dummy: DAppHoldings[] = [
+      {
+        xSTRKAmount: MyNumber.fromZero(18),
+        STRKAmount: MyNumber.fromZero(18),
+      },
+    ];
     return NextResponse.json({
       vesu: vesuHoldings,
       ekubo: ekuboHoldings,
@@ -87,6 +89,7 @@ export async function GET(_req: Request, context: any) {
       wallet: xstrkHoldings,
       strkfarm: strkfarmHoldings,
       strkfarmEkubo: strkfarmEkuboHoldings,
+      opus: opusHoldings,
       blocks,
       lastUpdated: new Date().toISOString(),
     });
