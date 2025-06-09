@@ -167,9 +167,11 @@ const useLeaderboardData = () => {
           points: currentUserData?.points.total_points.toString() || "0",
           address: address || "",
           isLoading: false,
-          rank: currentUserData ? currentUserData.rank : (apiResponse.summary.total_users
-            ? apiResponse.summary.total_users + 1
-            : null),
+          rank: currentUserData
+            ? currentUserData.rank
+            : apiResponse.summary.total_users
+              ? apiResponse.summary.total_users + 1
+              : null,
         };
 
         // update cache
