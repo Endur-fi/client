@@ -18,23 +18,23 @@ export const EKUBO_POSITION_DEPLOYMENT_BLOCK = 165388;
 
 Decimal.set({ precision: 78 });
 
-// function loadFromCache() {
-//   if (typeof window !== "undefined") {
-//     // If running in a browser, we cannot use fs
-//     return {};
-//   // eslint-disable-next-line
-//   } else {
-//     // eslint-disable-next-line
-//     const fs = require("fs");
-//     const { existsSync, readFileSync, writeFileSync } = fs;
-//     if (!existsSync(`./ekubo_positions.json`)) {
-//       return {};
-//     }
-//     return JSON.parse(readFileSync(`./ekubo_positions.json`, "utf8"));
-//   }
-//   // return {};
-// }
-const ekuboPositionsCache: Record<string, any> = {};
+function loadFromCache() {
+  if (typeof window !== "undefined") {
+    // If running in a browser, we cannot use fs
+    return {};
+  // eslint-disable-next-line
+  } else {
+    // eslint-disable-next-line
+    const fs = require("fs");
+    const { existsSync, readFileSync, writeFileSync } = fs;
+    if (!existsSync(`./ekubo_positions.json`)) {
+      return {};
+    }
+    return JSON.parse(readFileSync(`./ekubo_positions.json`, "utf8"));
+  }
+  // return {};
+}
+const ekuboPositionsCache: Record<string, any> = loadFromCache();
 
 export const getEkuboHoldings: DAppHoldingsFn = async (
   address: string,
@@ -59,13 +59,13 @@ export const getEkuboHoldings: DAppHoldingsFn = async (
       res = resp.data;
       ekuboPositionsCache[address] = res; // Cache the result
       if (typeof window === "undefined") {
-        // // If running in a Node.js environment, write to file
-        // // This is useful for caching in server-side environments
-        // // but should not be used in client-side code
-        // // eslint-disable-next-line
-        // const fs = require("fs");
-        // const { writeFileSync } = fs;
-        // writeFileSync(`./ekubo_positions.json`, JSON.stringify(ekuboPositionsCache, null, 2));
+        // If running in a Node.js environment, write to file
+        // This is useful for caching in server-side environments
+        // but should not be used in client-side code
+        // eslint-disable-next-line
+        const fs = require("fs");
+        const { writeFileSync } = fs;
+        writeFileSync(`./ekubo_positions.json`, JSON.stringify(ekuboPositionsCache, null, 2));
       }
     } else {
       throw new Error("Failed to fetch Ekubo positions data");
