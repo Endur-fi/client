@@ -388,7 +388,7 @@ const Leaderboard: React.FC = () => {
         <p className="text-sm text-[#021B1A]">
           Your position on the leaderboard based on your xSTRK holding activity.
           Points updated daily.{" "}
-          <a href="https://blog.endur.fi/points?showSharer=true" target="_blank" className="underline">
+          <a href="https://blog.endur.fi/points?utm_source=leaderboard-page&utm_medium=website" target="_blank" className="underline">
             More Info.
           </a>
         </p>
