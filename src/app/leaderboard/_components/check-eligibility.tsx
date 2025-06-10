@@ -205,13 +205,9 @@ const ClaimModal = React.memo(
         {/* <DialogDescription className="text-center text-sm font-normal text-[#DCF6E5]">
           You&apos;ve earned it! Grab your fee rebate rewards now.
         </DialogDescription> */}
-        {/* <DialogDescription className="text-center text-sm font-normal text-[#DCF6E5]">
-          If you have any concerns, please fill this{" "}
-          <a href="" className="underline">
-            form
-          </a>
-          .
-        </DialogDescription> */}
+        <DialogDescription className="text-center text-sm font-normal text-[#DCF6E5]">
+          Please report any issues before 22nd Jun, 2025 in our <a href="http://endur.fi/tg" className="underline">Official TG group</a>.
+        </DialogDescription>
       </DialogHeader>
 
       <div className="relative !mt-3 flex w-full flex-col items-center justify-center gap-2 px-2">
@@ -219,7 +215,7 @@ const ClaimModal = React.memo(
           className="h-12 w-full rounded-md bg-[#518176] text-white hover:bg-[#518176]/90"
           disabled={true}
         >
-          Claims open after 22nd Jun, 2025
+          Claims open after 30th Jun, 2025
         </Button>
         <Button
           onClick={onClose}
@@ -254,7 +250,7 @@ const NotEligibleModal = React.memo(({ onClose }: { onClose: () => void }) => (
         Not Eligible
       </DialogTitle>
       <DialogDescription className="text-center text-sm font-normal text-[#DCF6E5]">
-        But keep holding xSTRK from now and earn future points
+        Keep holding xSTRK for now and earn future points
       </DialogDescription>
     </DialogHeader>
 
@@ -265,6 +261,9 @@ const NotEligibleModal = React.memo(({ onClose }: { onClose: () => void }) => (
       >
         Close
       </Button>
+      <DialogDescription className="text-center text-sm font-normal text-[#DCF6E5]">
+          Please report any issues before 22nd Jun, 2025 in our <a href="http://endur.fi/tg" className="underline">Official TG group</a>.
+        </DialogDescription>
     </div>
   </DialogContent>
 ));
