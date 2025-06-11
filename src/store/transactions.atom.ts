@@ -1,14 +1,11 @@
-import { gql } from "@apollo/client";
-import { Getter, Setter, atom } from "jotai";
-import { atomWithQuery } from "jotai-tanstack-query";
+import { atom, Getter, Setter } from "jotai";
 import { TransactionExecutionStatus } from "starknet";
 
-import apolloClient from "@/lib/apollo-client";
 import MyNumber from "@/lib/MyNumber";
-import { capitalize, standariseAddress } from "@/lib/utils";
+import { capitalize } from "@/lib/utils";
 
 import { getProvider } from "@/constants";
-import { createAtomWithStorage, userAddressAtom } from "./common.store";
+import { createAtomWithStorage } from "./common.store";
 
 export interface StrategyTxProps {
   strategyId: string;
@@ -33,58 +30,6 @@ export interface TxHistory {
     __typename: "Investment_flows";
   }[];
 }
-
-const withdrawLogsAtomWithQuery = atomWithQuery((get) => {
-  return {
-    queryKey: ["withdraw-logs"],
-    queryFn: async ({ _queryKey }: any) => {
-      const address: string | undefined = get(userAddressAtom);
-
-      if (!address) return null;
-
-      try {
-        const { data } = await apolloClient.query({
-          query: gql`
-            query Withdraw_queues($where: Withdraw_queueWhereInput) {
-              withdraw_queues(where: $where) {
-                amount_strk
-                request_id
-                receiver
-                is_claimed
-                claim_time
-                timestamp
-                tx_hash
-              }
-            }
-          `,
-          variables: {
-            where: {
-              receiver: {
-                equals: standariseAddress(address),
-              },
-            },
-          },
-        });
-
-        return data?.withdraw_queues;
-      } catch (error) {
-        console.error("GraphQL Error:", error);
-        throw error;
-      }
-    },
-    refetchInterval: 30000,
-  };
-});
-
-export const withdrawLogsAtom = atom((get) => {
-  const { data, error } = get(withdrawLogsAtomWithQuery);
-
-  return {
-    value: error || !data ? [] : data,
-    error,
-    isLoading: !data && !error,
-  };
-});
 
 export const newTxsAtom = atom<TransactionInfo[]>([]);
 
