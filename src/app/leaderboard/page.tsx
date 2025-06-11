@@ -13,9 +13,10 @@ import { MyAnalytics } from "@/lib/analytics";
 import apolloClient from "@/lib/apollo-client";
 import { cn } from "@/lib/utils";
 
-import { UserCompleteDetailsApiResponse } from "./_components/check-eligibility";
+import CheckEligibility, { UserCompleteDetailsApiResponse } from "./_components/check-eligibility";
 import { columns, type SizeColumn } from "./_components/table/columns";
 import { DataTable } from "./_components/table/data-table";
+import Image from "next/image";
 
 const PAGINATION_LIMIT = 100;
 
@@ -250,45 +251,45 @@ const AnnouncementBanner = React.memo(
     userCompleteInfo: UserCompleteDetailsApiResponse | null;
     currentUserInfo: CurrentUserInfo;
   }) => (
-    <></>
-    // <div className="mt-6 flex flex-col items-center gap-3 rounded-md bg-[#0D4E3F] px-6 py-3 text-2xl font-normal tracking-[-1%] text-white md:flex-row">
-    //   <div className="flex items-center gap-4">
-    //     <Image
-    //       src="/leaderboard/announce_sm.svg"
-    //       width={78}
-    //       height={64}
-    //       alt="leaderboard_announce_sm"
-    //       className="md:hidden"
-    //       priority
-    //     />
-    //     <Image
-    //       src="/leaderboard/announce.svg"
-    //       width={78}
-    //       height={64}
-    //       alt="leaderboard_announce"
-    //       className="hidden md:block"
-    //       priority
-    //     />
-    //   </div>
+    // <></>
+    <div className="mt-6 flex flex-col items-center gap-3 rounded-md bg-[#0D4E3F] px-6 py-3 text-2xl font-normal tracking-[-1%] text-white md:flex-row">
+      <div className="flex items-center gap-4">
+        <Image
+          src="/leaderboard/announce_sm.svg"
+          width={78}
+          height={64}
+          alt="leaderboard_announce_sm"
+          className="md:hidden"
+          priority
+        />
+        <Image
+          src="/leaderboard/announce.svg"
+          width={78}
+          height={64}
+          alt="leaderboard_announce"
+          className="hidden md:block"
+          priority
+        />
+      </div>
 
-    //   <div className="flex w-full flex-col items-center justify-between gap-3 sm:flex-row">
-    //     <div className="flex flex-col items-center gap-0.5 text-white sm:items-start">
-    //       <p className="text-center text-base font-bold md:text-xl">
-    //         Check Your Fee Rebate Rewards
-    //       </p>
-    //       <p className="text-center text-sm font-normal text-white/80 md:text-base">
-    //         Early adopters may have earned fee rebates.{" "}
-    //         <a href="" className="underline">
-    //           Learn more.
-    //         </a>
-    //       </p>
-    //     </div>
-    //     <CheckEligibility
-    //       userCompleteInfo={userCompleteInfo}
-    //       isLoading={currentUserInfo.isLoading}
-    //     />
-    //   </div>
-    // </div>
+      <div className="flex w-full flex-col items-center justify-between gap-3 sm:flex-row">
+        <div className="flex flex-col items-center gap-0.5 text-white sm:items-start">
+          <p className="text-center text-base font-bold md:text-xl">
+            Check Your Fee Rebate Rewards
+          </p>
+          <p className="text-center text-sm font-normal text-white/80 md:text-base">
+            Early adopters may have earned fee rebates.{" "}
+            <a href="" className="underline">
+              Learn more.
+            </a>
+          </p>
+        </div>
+        <CheckEligibility
+          userCompleteInfo={userCompleteInfo}
+          isLoading={currentUserInfo.isLoading}
+        />
+      </div>
+    </div>
   ),
 );
 AnnouncementBanner.displayName = "AnnouncementBanner";
