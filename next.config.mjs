@@ -32,7 +32,7 @@ const nextConfig = {
         permanent: true,
       },
       {
-        source: "/rebate",
+        source: "/early",
         destination: "/leaderboard",
         permanent: true,
       },
