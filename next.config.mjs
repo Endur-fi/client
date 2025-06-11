@@ -32,6 +32,11 @@ const nextConfig = {
         permanent: true,
       },
       {
+        source: "/rebate",
+        destination: "/leaderboard",
+        permanent: true,
+      },
+      {
         source: "/x",
         destination: "https://x.com/endurfi",
         permanent: true,
