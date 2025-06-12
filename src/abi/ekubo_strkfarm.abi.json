@@ -1,12 +1,12 @@
 [
   {
-    "type": "impl",
     "name": "ExternalImpl",
+    "type": "impl",
     "interface_name": "strkfarm_contracts::strategies::cl_vault::interface::IClVault"
   },
   {
-    "type": "struct",
     "name": "core::integer::u256",
+    "type": "struct",
     "members": [
       {
         "name": "low",
@@ -19,8 +19,8 @@
     ]
   },
   {
-    "type": "struct",
     "name": "strkfarm_contracts::strategies::cl_vault::interface::MyPosition",
+    "type": "struct",
     "members": [
       {
         "name": "liquidity",
@@ -37,8 +37,8 @@
     ]
   },
   {
-    "type": "enum",
     "name": "core::bool",
+    "type": "enum",
     "variants": [
       {
         "name": "False",
@@ -51,8 +51,8 @@
     ]
   },
   {
-    "type": "struct",
     "name": "ekubo::types::i129::i129",
+    "type": "struct",
     "members": [
       {
         "name": "mag",
@@ -65,8 +65,8 @@
     ]
   },
   {
-    "type": "struct",
     "name": "strkfarm_contracts::interfaces::IEkuboCore::Bounds",
+    "type": "struct",
     "members": [
       {
         "name": "lower",
@@ -79,8 +79,8 @@
     ]
   },
   {
-    "type": "struct",
     "name": "strkfarm_contracts::interfaces::IEkuboCore::PositionKey",
+    "type": "struct",
     "members": [
       {
         "name": "salt",
@@ -97,8 +97,8 @@
     ]
   },
   {
-    "type": "struct",
     "name": "ekubo::types::fees_per_liquidity::FeesPerLiquidity",
+    "type": "struct",
     "members": [
       {
         "name": "value0",
@@ -111,8 +111,8 @@
     ]
   },
   {
-    "type": "struct",
     "name": "ekubo::types::position::Position",
+    "type": "struct",
     "members": [
       {
         "name": "liquidity",
@@ -125,8 +125,8 @@
     ]
   },
   {
-    "type": "struct",
     "name": "strkfarm_contracts::interfaces::IEkuboDistributor::Claim",
+    "type": "struct",
     "members": [
       {
         "name": "id",
@@ -143,8 +143,8 @@
     ]
   },
   {
-    "type": "struct",
     "name": "core::array::Span::<core::felt252>",
+    "type": "struct",
     "members": [
       {
         "name": "snapshot",
@@ -153,8 +153,8 @@
     ]
   },
   {
-    "type": "struct",
     "name": "strkfarm_contracts::components::swap::Route",
+    "type": "struct",
     "members": [
       {
         "name": "token_from",
@@ -179,8 +179,8 @@
     ]
   },
   {
-    "type": "struct",
     "name": "strkfarm_contracts::components::swap::AvnuMultiRouteSwap",
+    "type": "struct",
     "members": [
       {
         "name": "token_from_address",
@@ -221,8 +221,8 @@
     ]
   },
   {
-    "type": "struct",
     "name": "strkfarm_contracts::interfaces::IEkuboCore::PoolKey",
+    "type": "struct",
     "members": [
       {
         "name": "token0",
@@ -247,8 +247,8 @@
     ]
   },
   {
-    "type": "struct",
     "name": "strkfarm_contracts::strategies::cl_vault::interface::FeeSettings",
+    "type": "struct",
     "members": [
       {
         "name": "fee_bps",
@@ -261,8 +261,8 @@
     ]
   },
   {
-    "type": "struct",
     "name": "strkfarm_contracts::strategies::cl_vault::interface::ClSettings",
+    "type": "struct",
     "members": [
       {
         "name": "ekubo_positions_contract",
@@ -299,12 +299,12 @@
     ]
   },
   {
-    "type": "interface",
     "name": "strkfarm_contracts::strategies::cl_vault::interface::IClVault",
+    "type": "interface",
     "items": [
       {
-        "type": "function",
         "name": "deposit",
+        "type": "function",
         "inputs": [
           {
             "name": "amount0",
@@ -327,8 +327,8 @@
         "state_mutability": "external"
       },
       {
-        "type": "function",
         "name": "withdraw",
+        "type": "function",
         "inputs": [
           {
             "name": "shares",
@@ -347,8 +347,8 @@
         "state_mutability": "external"
       },
       {
-        "type": "function",
         "name": "convert_to_shares",
+        "type": "function",
         "inputs": [
           {
             "name": "amount0",
@@ -367,8 +367,8 @@
         "state_mutability": "view"
       },
       {
-        "type": "function",
         "name": "convert_to_assets",
+        "type": "function",
         "inputs": [
           {
             "name": "shares",
@@ -383,8 +383,8 @@
         "state_mutability": "view"
       },
       {
-        "type": "function",
         "name": "total_liquidity",
+        "type": "function",
         "inputs": [],
         "outputs": [
           {
@@ -394,8 +394,8 @@
         "state_mutability": "view"
       },
       {
-        "type": "function",
         "name": "get_position_key",
+        "type": "function",
         "inputs": [],
         "outputs": [
           {
@@ -405,8 +405,8 @@
         "state_mutability": "view"
       },
       {
-        "type": "function",
         "name": "get_position",
+        "type": "function",
         "inputs": [],
         "outputs": [
           {
@@ -416,15 +416,15 @@
         "state_mutability": "view"
       },
       {
-        "type": "function",
         "name": "handle_fees",
+        "type": "function",
         "inputs": [],
         "outputs": [],
         "state_mutability": "external"
       },
       {
-        "type": "function",
         "name": "harvest",
+        "type": "function",
         "inputs": [
           {
             "name": "rewardsContract",
@@ -451,8 +451,8 @@
         "state_mutability": "external"
       },
       {
-        "type": "function",
         "name": "get_settings",
+        "type": "function",
         "inputs": [],
         "outputs": [
           {
@@ -462,8 +462,8 @@
         "state_mutability": "view"
       },
       {
-        "type": "function",
         "name": "handle_unused",
+        "type": "function",
         "inputs": [
           {
             "name": "swap_params",
@@ -474,8 +474,8 @@
         "state_mutability": "external"
       },
       {
-        "type": "function",
         "name": "rebalance",
+        "type": "function",
         "inputs": [
           {
             "name": "new_bounds",
@@ -490,8 +490,8 @@
         "state_mutability": "external"
       },
       {
-        "type": "function",
         "name": "set_settings",
+        "type": "function",
         "inputs": [
           {
             "name": "fee_settings",
@@ -502,8 +502,8 @@
         "state_mutability": "external"
       },
       {
-        "type": "function",
         "name": "set_incentives_off",
+        "type": "function",
         "inputs": [],
         "outputs": [],
         "state_mutability": "external"
@@ -511,13 +511,13 @@
     ]
   },
   {
-    "type": "impl",
     "name": "VesuERC20Impl",
+    "type": "impl",
     "interface_name": "openzeppelin_token::erc20::interface::IERC20Mixin"
   },
   {
-    "type": "struct",
     "name": "core::byte_array::ByteArray",
+    "type": "struct",
     "members": [
       {
         "name": "data",
@@ -534,12 +534,12 @@
     ]
   },
   {
-    "type": "interface",
     "name": "openzeppelin_token::erc20::interface::IERC20Mixin",
+    "type": "interface",
     "items": [
       {
-        "type": "function",
         "name": "total_supply",
+        "type": "function",
         "inputs": [],
         "outputs": [
           {
@@ -549,8 +549,8 @@
         "state_mutability": "view"
       },
       {
-        "type": "function",
         "name": "balance_of",
+        "type": "function",
         "inputs": [
           {
             "name": "account",
@@ -565,8 +565,8 @@
         "state_mutability": "view"
       },
       {
-        "type": "function",
         "name": "allowance",
+        "type": "function",
         "inputs": [
           {
             "name": "owner",
@@ -585,8 +585,8 @@
         "state_mutability": "view"
       },
       {
-        "type": "function",
         "name": "transfer",
+        "type": "function",
         "inputs": [
           {
             "name": "recipient",
@@ -605,8 +605,8 @@
         "state_mutability": "external"
       },
       {
-        "type": "function",
         "name": "transfer_from",
+        "type": "function",
         "inputs": [
           {
             "name": "sender",
@@ -629,8 +629,8 @@
         "state_mutability": "external"
       },
       {
-        "type": "function",
         "name": "approve",
+        "type": "function",
         "inputs": [
           {
             "name": "spender",
@@ -649,8 +649,8 @@
         "state_mutability": "external"
       },
       {
-        "type": "function",
         "name": "name",
+        "type": "function",
         "inputs": [],
         "outputs": [
           {
@@ -660,8 +660,8 @@
         "state_mutability": "view"
       },
       {
-        "type": "function",
         "name": "symbol",
+        "type": "function",
         "inputs": [],
         "outputs": [
           {
@@ -671,8 +671,8 @@
         "state_mutability": "view"
       },
       {
-        "type": "function",
         "name": "decimals",
+        "type": "function",
         "inputs": [],
         "outputs": [
           {
@@ -682,8 +682,8 @@
         "state_mutability": "view"
       },
       {
-        "type": "function",
         "name": "totalSupply",
+        "type": "function",
         "inputs": [],
         "outputs": [
           {
@@ -693,8 +693,8 @@
         "state_mutability": "view"
       },
       {
-        "type": "function",
         "name": "balanceOf",
+        "type": "function",
         "inputs": [
           {
             "name": "account",
@@ -709,8 +709,8 @@
         "state_mutability": "view"
       },
       {
-        "type": "function",
         "name": "transferFrom",
+        "type": "function",
         "inputs": [
           {
             "name": "sender",
@@ -735,13 +735,13 @@
     ]
   },
   {
-    "type": "impl",
     "name": "RewardShareImpl",
+    "type": "impl",
     "interface_name": "strkfarm_contracts::components::harvester::reward_shares::IRewardShare"
   },
   {
-    "type": "struct",
     "name": "strkfarm_contracts::components::harvester::reward_shares::UserRewardsInfo",
+    "type": "struct",
     "members": [
       {
         "name": "pending_round_points",
@@ -762,8 +762,8 @@
     ]
   },
   {
-    "type": "struct",
     "name": "strkfarm_contracts::components::harvester::reward_shares::RewardsInfo",
+    "type": "struct",
     "members": [
       {
         "name": "amount",
@@ -784,12 +784,12 @@
     ]
   },
   {
-    "type": "interface",
     "name": "strkfarm_contracts::components::harvester::reward_shares::IRewardShare",
+    "type": "interface",
     "items": [
       {
-        "type": "function",
         "name": "get_user_reward_info",
+        "type": "function",
         "inputs": [
           {
             "name": "user",
@@ -804,8 +804,8 @@
         "state_mutability": "view"
       },
       {
-        "type": "function",
         "name": "get_rewards_info",
+        "type": "function",
         "inputs": [
           {
             "name": "index",
@@ -820,8 +820,8 @@
         "state_mutability": "view"
       },
       {
-        "type": "function",
         "name": "get_total_rewards",
+        "type": "function",
         "inputs": [],
         "outputs": [
           {
@@ -831,8 +831,8 @@
         "state_mutability": "view"
       },
       {
-        "type": "function",
         "name": "get_total_unminted_shares",
+        "type": "function",
         "inputs": [],
         "outputs": [
           {
@@ -842,8 +842,8 @@
         "state_mutability": "view"
       },
       {
-        "type": "function",
         "name": "get_additional_shares",
+        "type": "function",
         "inputs": [
           {
             "name": "user",
@@ -860,17 +860,17 @@
     ]
   },
   {
-    "type": "impl",
     "name": "CommonCompImpl",
+    "type": "impl",
     "interface_name": "strkfarm_contracts::interfaces::common::ICommon"
   },
   {
-    "type": "interface",
     "name": "strkfarm_contracts::interfaces::common::ICommon",
+    "type": "interface",
     "items": [
       {
-        "type": "function",
         "name": "upgrade",
+        "type": "function",
         "inputs": [
           {
             "name": "new_class",
@@ -881,22 +881,22 @@
         "state_mutability": "external"
       },
       {
-        "type": "function",
         "name": "pause",
+        "type": "function",
         "inputs": [],
         "outputs": [],
         "state_mutability": "external"
       },
       {
-        "type": "function",
         "name": "unpause",
+        "type": "function",
         "inputs": [],
         "outputs": [],
         "state_mutability": "external"
       },
       {
-        "type": "function",
         "name": "is_paused",
+        "type": "function",
         "inputs": [],
         "outputs": [
           {
@@ -906,8 +906,8 @@
         "state_mutability": "view"
       },
       {
-        "type": "function",
         "name": "access_control",
+        "type": "function",
         "inputs": [],
         "outputs": [
           {
@@ -919,8 +919,8 @@
     ]
   },
   {
-    "type": "constructor",
     "name": "constructor",
+    "type": "constructor",
     "inputs": [
       {
         "name": "name",
@@ -965,466 +965,466 @@
     ]
   },
   {
-    "type": "event",
+    "kind": "enum",
     "name": "openzeppelin_security::reentrancyguard::ReentrancyGuardComponent::Event",
-    "kind": "enum",
+    "type": "event",
     "variants": []
   },
   {
-    "type": "event",
+    "kind": "struct",
     "name": "openzeppelin_token::erc20::erc20::ERC20Component::Transfer",
-    "kind": "struct",
+    "type": "event",
     "members": [
       {
+        "kind": "key",
         "name": "from",
-        "type": "core::starknet::contract_address::ContractAddress",
-        "kind": "key"
+        "type": "core::starknet::contract_address::ContractAddress"
       },
       {
+        "kind": "key",
         "name": "to",
-        "type": "core::starknet::contract_address::ContractAddress",
-        "kind": "key"
+        "type": "core::starknet::contract_address::ContractAddress"
       },
       {
+        "kind": "data",
         "name": "value",
-        "type": "core::integer::u256",
-        "kind": "data"
+        "type": "core::integer::u256"
       }
     ]
   },
   {
-    "type": "event",
+    "kind": "struct",
     "name": "openzeppelin_token::erc20::erc20::ERC20Component::Approval",
-    "kind": "struct",
+    "type": "event",
     "members": [
       {
+        "kind": "key",
         "name": "owner",
-        "type": "core::starknet::contract_address::ContractAddress",
-        "kind": "key"
+        "type": "core::starknet::contract_address::ContractAddress"
       },
       {
+        "kind": "key",
         "name": "spender",
-        "type": "core::starknet::contract_address::ContractAddress",
-        "kind": "key"
+        "type": "core::starknet::contract_address::ContractAddress"
       },
       {
+        "kind": "data",
         "name": "value",
-        "type": "core::integer::u256",
-        "kind": "data"
+        "type": "core::integer::u256"
       }
     ]
   },
   {
-    "type": "event",
+    "kind": "enum",
     "name": "openzeppelin_token::erc20::erc20::ERC20Component::Event",
-    "kind": "enum",
+    "type": "event",
     "variants": [
       {
+        "kind": "nested",
         "name": "Transfer",
-        "type": "openzeppelin_token::erc20::erc20::ERC20Component::Transfer",
-        "kind": "nested"
+        "type": "openzeppelin_token::erc20::erc20::ERC20Component::Transfer"
       },
       {
+        "kind": "nested",
         "name": "Approval",
-        "type": "openzeppelin_token::erc20::erc20::ERC20Component::Approval",
-        "kind": "nested"
+        "type": "openzeppelin_token::erc20::erc20::ERC20Component::Approval"
       }
     ]
   },
   {
-    "type": "event",
+    "kind": "enum",
     "name": "openzeppelin_introspection::src5::SRC5Component::Event",
-    "kind": "enum",
+    "type": "event",
     "variants": []
   },
   {
-    "type": "event",
+    "kind": "struct",
     "name": "openzeppelin_upgrades::upgradeable::UpgradeableComponent::Upgraded",
-    "kind": "struct",
+    "type": "event",
     "members": [
       {
+        "kind": "data",
         "name": "class_hash",
-        "type": "core::starknet::class_hash::ClassHash",
-        "kind": "data"
+        "type": "core::starknet::class_hash::ClassHash"
       }
     ]
   },
   {
-    "type": "event",
+    "kind": "enum",
     "name": "openzeppelin_upgrades::upgradeable::UpgradeableComponent::Event",
-    "kind": "enum",
+    "type": "event",
     "variants": [
       {
+        "kind": "nested",
         "name": "Upgraded",
-        "type": "openzeppelin_upgrades::upgradeable::UpgradeableComponent::Upgraded",
-        "kind": "nested"
+        "type": "openzeppelin_upgrades::upgradeable::UpgradeableComponent::Upgraded"
       }
     ]
   },
   {
-    "type": "event",
+    "kind": "struct",
     "name": "openzeppelin_security::pausable::PausableComponent::Paused",
-    "kind": "struct",
+    "type": "event",
     "members": [
       {
+        "kind": "data",
         "name": "account",
-        "type": "core::starknet::contract_address::ContractAddress",
-        "kind": "data"
+        "type": "core::starknet::contract_address::ContractAddress"
       }
     ]
   },
   {
-    "type": "event",
+    "kind": "struct",
     "name": "openzeppelin_security::pausable::PausableComponent::Unpaused",
-    "kind": "struct",
+    "type": "event",
     "members": [
       {
+        "kind": "data",
         "name": "account",
-        "type": "core::starknet::contract_address::ContractAddress",
-        "kind": "data"
+        "type": "core::starknet::contract_address::ContractAddress"
       }
     ]
   },
   {
-    "type": "event",
-    "name": "openzeppelin_security::pausable::PausableComponent::Event",
     "kind": "enum",
+    "name": "openzeppelin_security::pausable::PausableComponent::Event",
+    "type": "event",
     "variants": [
       {
+        "kind": "nested",
         "name": "Paused",
-        "type": "openzeppelin_security::pausable::PausableComponent::Paused",
-        "kind": "nested"
+        "type": "openzeppelin_security::pausable::PausableComponent::Paused"
       },
       {
+        "kind": "nested",
         "name": "Unpaused",
-        "type": "openzeppelin_security::pausable::PausableComponent::Unpaused",
-        "kind": "nested"
+        "type": "openzeppelin_security::pausable::PausableComponent::Unpaused"
       }
     ]
   },
   {
-    "type": "event",
-    "name": "strkfarm_contracts::components::common::CommonComp::Event",
     "kind": "enum",
+    "name": "strkfarm_contracts::components::common::CommonComp::Event",
+    "type": "event",
     "variants": []
   },
   {
-    "type": "event",
+    "kind": "struct",
     "name": "strkfarm_contracts::components::harvester::reward_shares::RewardShareComponent::Rewards",
-    "kind": "struct",
+    "type": "event",
     "members": [
       {
+        "kind": "data",
         "name": "index",
-        "type": "core::integer::u32",
-        "kind": "data"
+        "type": "core::integer::u32"
       },
       {
+        "kind": "data",
         "name": "info",
-        "type": "strkfarm_contracts::components::harvester::reward_shares::RewardsInfo",
-        "kind": "data"
+        "type": "strkfarm_contracts::components::harvester::reward_shares::RewardsInfo"
       },
       {
+        "kind": "data",
         "name": "total_reward_shares",
-        "type": "core::integer::u128",
-        "kind": "data"
+        "type": "core::integer::u128"
       },
       {
+        "kind": "data",
         "name": "timestamp",
-        "type": "core::integer::u64",
-        "kind": "data"
+        "type": "core::integer::u64"
       }
     ]
   },
   {
-    "type": "event",
+    "kind": "struct",
     "name": "strkfarm_contracts::components::harvester::reward_shares::RewardShareComponent::UserRewards",
-    "kind": "struct",
+    "type": "event",
     "members": [
       {
+        "kind": "key",
         "name": "user",
-        "type": "core::starknet::contract_address::ContractAddress",
-        "kind": "key"
+        "type": "core::starknet::contract_address::ContractAddress"
       },
       {
+        "kind": "data",
         "name": "info",
-        "type": "strkfarm_contracts::components::harvester::reward_shares::UserRewardsInfo",
-        "kind": "data"
+        "type": "strkfarm_contracts::components::harvester::reward_shares::UserRewardsInfo"
       },
       {
+        "kind": "data",
         "name": "total_reward_shares",
-        "type": "core::integer::u128",
-        "kind": "data"
+        "type": "core::integer::u128"
       },
       {
+        "kind": "data",
         "name": "timestamp",
-        "type": "core::integer::u64",
-        "kind": "data"
+        "type": "core::integer::u64"
       }
     ]
   },
   {
-    "type": "event",
+    "kind": "enum",
     "name": "strkfarm_contracts::components::harvester::reward_shares::RewardShareComponent::Event",
-    "kind": "enum",
+    "type": "event",
     "variants": [
       {
+        "kind": "nested",
         "name": "Rewards",
-        "type": "strkfarm_contracts::components::harvester::reward_shares::RewardShareComponent::Rewards",
-        "kind": "nested"
+        "type": "strkfarm_contracts::components::harvester::reward_shares::RewardShareComponent::Rewards"
       },
       {
+        "kind": "nested",
         "name": "UserRewards",
-        "type": "strkfarm_contracts::components::harvester::reward_shares::RewardShareComponent::UserRewards",
-        "kind": "nested"
+        "type": "strkfarm_contracts::components::harvester::reward_shares::RewardShareComponent::UserRewards"
       }
     ]
   },
   {
-    "type": "event",
+    "kind": "struct",
     "name": "strkfarm_contracts::strategies::cl_vault::cl_vault::ConcLiquidityVault::Deposit",
-    "kind": "struct",
+    "type": "event",
     "members": [
       {
+        "kind": "key",
         "name": "sender",
-        "type": "core::starknet::contract_address::ContractAddress",
-        "kind": "key"
+        "type": "core::starknet::contract_address::ContractAddress"
       },
       {
+        "kind": "key",
         "name": "owner",
-        "type": "core::starknet::contract_address::ContractAddress",
-        "kind": "key"
+        "type": "core::starknet::contract_address::ContractAddress"
       },
       {
+        "kind": "data",
         "name": "assets",
-        "type": "core::integer::u256",
-        "kind": "data"
+        "type": "core::integer::u256"
       },
       {
+        "kind": "data",
         "name": "shares",
-        "type": "core::integer::u256",
-        "kind": "data"
+        "type": "core::integer::u256"
       }
     ]
   },
   {
-    "type": "event",
+    "kind": "struct",
     "name": "strkfarm_contracts::strategies::cl_vault::cl_vault::ConcLiquidityVault::Withdraw",
-    "kind": "struct",
+    "type": "event",
     "members": [
       {
+        "kind": "key",
         "name": "sender",
-        "type": "core::starknet::contract_address::ContractAddress",
-        "kind": "key"
+        "type": "core::starknet::contract_address::ContractAddress"
       },
       {
+        "kind": "key",
         "name": "receiver",
-        "type": "core::starknet::contract_address::ContractAddress",
-        "kind": "key"
+        "type": "core::starknet::contract_address::ContractAddress"
       },
       {
+        "kind": "key",
         "name": "owner",
-        "type": "core::starknet::contract_address::ContractAddress",
-        "kind": "key"
+        "type": "core::starknet::contract_address::ContractAddress"
       },
       {
+        "kind": "data",
         "name": "assets",
-        "type": "core::integer::u256",
-        "kind": "data"
+        "type": "core::integer::u256"
       },
       {
+        "kind": "data",
         "name": "shares",
-        "type": "core::integer::u256",
-        "kind": "data"
+        "type": "core::integer::u256"
       }
     ]
   },
   {
-    "type": "event",
+    "kind": "struct",
     "name": "strkfarm_contracts::strategies::cl_vault::cl_vault::ConcLiquidityVault::Rebalance",
-    "kind": "struct",
+    "type": "event",
     "members": [
       {
+        "kind": "data",
         "name": "old_bounds",
-        "type": "strkfarm_contracts::interfaces::IEkuboCore::Bounds",
-        "kind": "data"
+        "type": "strkfarm_contracts::interfaces::IEkuboCore::Bounds"
       },
       {
+        "kind": "data",
         "name": "old_liquidity",
-        "type": "core::integer::u256",
-        "kind": "data"
+        "type": "core::integer::u256"
       },
       {
+        "kind": "data",
         "name": "new_bounds",
-        "type": "strkfarm_contracts::interfaces::IEkuboCore::Bounds",
-        "kind": "data"
+        "type": "strkfarm_contracts::interfaces::IEkuboCore::Bounds"
       },
       {
+        "kind": "data",
         "name": "new_liquidity",
-        "type": "core::integer::u256",
-        "kind": "data"
+        "type": "core::integer::u256"
       }
     ]
   },
   {
-    "type": "event",
+    "kind": "struct",
     "name": "strkfarm_contracts::strategies::cl_vault::cl_vault::ConcLiquidityVault::HandleFees",
-    "kind": "struct",
+    "type": "event",
     "members": [
       {
+        "kind": "data",
         "name": "token0_addr",
-        "type": "core::starknet::contract_address::ContractAddress",
-        "kind": "data"
+        "type": "core::starknet::contract_address::ContractAddress"
       },
       {
+        "kind": "data",
         "name": "token0_origin_bal",
-        "type": "core::integer::u256",
-        "kind": "data"
+        "type": "core::integer::u256"
       },
       {
+        "kind": "data",
         "name": "token0_deposited",
-        "type": "core::integer::u256",
-        "kind": "data"
+        "type": "core::integer::u256"
       },
       {
+        "kind": "data",
         "name": "token1_addr",
-        "type": "core::starknet::contract_address::ContractAddress",
-        "kind": "data"
+        "type": "core::starknet::contract_address::ContractAddress"
       },
       {
+        "kind": "data",
         "name": "token1_origin_bal",
-        "type": "core::integer::u256",
-        "kind": "data"
+        "type": "core::integer::u256"
       },
       {
+        "kind": "data",
         "name": "token1_deposited",
-        "type": "core::integer::u256",
-        "kind": "data"
+        "type": "core::integer::u256"
       }
     ]
   },
   {
-    "type": "event",
+    "kind": "struct",
     "name": "strkfarm_contracts::strategies::cl_vault::interface::FeeSettings",
-    "kind": "struct",
+    "type": "event",
     "members": [
       {
+        "kind": "data",
         "name": "fee_bps",
-        "type": "core::integer::u256",
-        "kind": "data"
+        "type": "core::integer::u256"
       },
       {
+        "kind": "data",
         "name": "fee_collector",
-        "type": "core::starknet::contract_address::ContractAddress",
-        "kind": "data"
+        "type": "core::starknet::contract_address::ContractAddress"
       }
     ]
   },
   {
-    "type": "event",
-    "name": "strkfarm_contracts::strategies::cl_vault::cl_vault::ConcLiquidityVault::HarvestEvent",
     "kind": "struct",
+    "name": "strkfarm_contracts::strategies::cl_vault::cl_vault::ConcLiquidityVault::HarvestEvent",
+    "type": "event",
     "members": [
       {
+        "kind": "key",
         "name": "rewardToken",
-        "type": "core::starknet::contract_address::ContractAddress",
-        "kind": "key"
+        "type": "core::starknet::contract_address::ContractAddress"
       },
       {
+        "kind": "data",
         "name": "rewardAmount",
-        "type": "core::integer::u256",
-        "kind": "data"
+        "type": "core::integer::u256"
       },
       {
+        "kind": "key",
         "name": "token0",
-        "type": "core::starknet::contract_address::ContractAddress",
-        "kind": "key"
+        "type": "core::starknet::contract_address::ContractAddress"
       },
       {
+        "kind": "data",
         "name": "token0Amount",
-        "type": "core::integer::u256",
-        "kind": "data"
+        "type": "core::integer::u256"
       },
       {
+        "kind": "key",
         "name": "token1",
-        "type": "core::starknet::contract_address::ContractAddress",
-        "kind": "key"
+        "type": "core::starknet::contract_address::ContractAddress"
       },
       {
+        "kind": "data",
         "name": "token1Amount",
-        "type": "core::integer::u256",
-        "kind": "data"
+        "type": "core::integer::u256"
       }
     ]
   },
   {
-    "type": "event",
-    "name": "strkfarm_contracts::strategies::cl_vault::cl_vault::ConcLiquidityVault::Event",
     "kind": "enum",
+    "name": "strkfarm_contracts::strategies::cl_vault::cl_vault::ConcLiquidityVault::Event",
+    "type": "event",
     "variants": [
       {
+        "kind": "flat",
         "name": "ReentrancyGuardEvent",
-        "type": "openzeppelin_security::reentrancyguard::ReentrancyGuardComponent::Event",
-        "kind": "flat"
+        "type": "openzeppelin_security::reentrancyguard::ReentrancyGuardComponent::Event"
       },
       {
+        "kind": "flat",
         "name": "ERC20Event",
-        "type": "openzeppelin_token::erc20::erc20::ERC20Component::Event",
-        "kind": "flat"
+        "type": "openzeppelin_token::erc20::erc20::ERC20Component::Event"
       },
       {
+        "kind": "flat",
         "name": "SRC5Event",
-        "type": "openzeppelin_introspection::src5::SRC5Component::Event",
-        "kind": "flat"
+        "type": "openzeppelin_introspection::src5::SRC5Component::Event"
       },
       {
+        "kind": "flat",
         "name": "UpgradeableEvent",
-        "type": "openzeppelin_upgrades::upgradeable::UpgradeableComponent::Event",
-        "kind": "flat"
+        "type": "openzeppelin_upgrades::upgradeable::UpgradeableComponent::Event"
       },
       {
+        "kind": "flat",
         "name": "PausableEvent",
-        "type": "openzeppelin_security::pausable::PausableComponent::Event",
-        "kind": "flat"
+        "type": "openzeppelin_security::pausable::PausableComponent::Event"
       },
       {
+        "kind": "flat",
         "name": "CommonCompEvent",
-        "type": "strkfarm_contracts::components::common::CommonComp::Event",
-        "kind": "flat"
+        "type": "strkfarm_contracts::components::common::CommonComp::Event"
       },
       {
+        "kind": "flat",
         "name": "RewardShareEvent",
-        "type": "strkfarm_contracts::components::harvester::reward_shares::RewardShareComponent::Event",
-        "kind": "flat"
+        "type": "strkfarm_contracts::components::harvester::reward_shares::RewardShareComponent::Event"
       },
       {
+        "kind": "nested",
         "name": "Deposit",
-        "type": "strkfarm_contracts::strategies::cl_vault::cl_vault::ConcLiquidityVault::Deposit",
-        "kind": "nested"
+        "type": "strkfarm_contracts::strategies::cl_vault::cl_vault::ConcLiquidityVault::Deposit"
       },
       {
+        "kind": "nested",
         "name": "Withdraw",
-        "type": "strkfarm_contracts::strategies::cl_vault::cl_vault::ConcLiquidityVault::Withdraw",
-        "kind": "nested"
+        "type": "strkfarm_contracts::strategies::cl_vault::cl_vault::ConcLiquidityVault::Withdraw"
       },
       {
+        "kind": "nested",
         "name": "Rebalance",
-        "type": "strkfarm_contracts::strategies::cl_vault::cl_vault::ConcLiquidityVault::Rebalance",
-        "kind": "nested"
+        "type": "strkfarm_contracts::strategies::cl_vault::cl_vault::ConcLiquidityVault::Rebalance"
       },
       {
+        "kind": "nested",
         "name": "HandleFees",
-        "type": "strkfarm_contracts::strategies::cl_vault::cl_vault::ConcLiquidityVault::HandleFees",
-        "kind": "nested"
+        "type": "strkfarm_contracts::strategies::cl_vault::cl_vault::ConcLiquidityVault::HandleFees"
       },
       {
+        "kind": "nested",
         "name": "FeeSettings",
-        "type": "strkfarm_contracts::strategies::cl_vault::interface::FeeSettings",
-        "kind": "nested"
+        "type": "strkfarm_contracts::strategies::cl_vault::interface::FeeSettings"
       },
       {
+        "kind": "nested",
         "name": "Harvest",
-        "type": "strkfarm_contracts::strategies::cl_vault::cl_vault::ConcLiquidityVault::HarvestEvent",
-        "kind": "nested"
+        "type": "strkfarm_contracts::strategies::cl_vault::cl_vault::ConcLiquidityVault::HarvestEvent"
       }
     ]
   }

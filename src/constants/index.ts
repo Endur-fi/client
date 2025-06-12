@@ -1,3 +1,5 @@
+import MyNumber from "@/lib/MyNumber";
+import { standariseAddress } from "@/lib/utils";
 import { constants, RpcProvider } from "starknet";
 
 export const STRK_TOKEN =
@@ -27,6 +29,8 @@ export const RECEPIEINT_FEE_ADDRESS =
 export const STRK_ORACLE_CONTRACT =
   "0x7ca92dce6e5f7f81f6c393c647b5c0c266e7663088351a4bd34ee9f88569de5";
 
+export const IS_PAUSED = process.env.NEXT_PUBLIC_IS_PAUSED === "true";
+
 export const LST_ADDRRESS = process.env
   .NEXT_PUBLIC_LST_ADDRESS as `0x${string}`;
 
@@ -52,6 +56,10 @@ export const VESU_vXSTRK_ADDRESS =
   "0x040f67320745980459615f4f3e7dd71002dbe6c68c8249c847c82dbe327b23cb";
 export const NOSTRA_iXSTRK_ADDRESS =
   "0x04d1125a716f547a0b69413c0098e811da3b799d173429c95da4290a00c139f7";
+export const EKUBO_STRKFARM_VAULT_ADDRESS =
+  "0x01f083b98674bc21effee29ef443a00c7b9a500fd92cf30341a3da12c73f2324";
+export const AVNU_ADDRESS =
+  "0x04270219d365d6b017231b52e92b3fb5d7c8378b05e9abc97724537a80e93b0f";
 
 export const NETWORK =
   process.env.NEXT_PUBLIC_CHAIN_ID === "SN_SEPOLIA"
@@ -133,3 +141,54 @@ export const LEADERBOARD_ANALYTICS_EVENTS = {
   EMAIL_SUBMITTED: "email_submitted",
   EMAIL_SKIP_CLICKED: "email_skip_clicked",
 } as const;
+
+export const LOGOS = {
+  STRK: "/logo.svg",
+  xSTRK: "/logo.svg",
+};
+
+export interface TokenInfo {
+  token: string;
+  decimals: number;
+  displayDecimals: number;
+  address?: string;
+  name: string;
+  symbol: string;
+  logo: any;
+  minAmount: MyNumber;
+  maxAmount: MyNumber;
+  stepAmount: MyNumber;
+  ekuboPriceKey?: string;
+  isERC4626: boolean;
+}
+
+export const TOKENS: TokenInfo[] = [
+  {
+    token: standariseAddress(
+      "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+    ),
+    name: "STRK",
+    symbol: "STRK",
+    decimals: 18,
+    displayDecimals: 2,
+    logo: LOGOS.STRK,
+    minAmount: MyNumber.fromEther("10", 18),
+    maxAmount: MyNumber.fromEther("10000", 18),
+    stepAmount: MyNumber.fromEther("10", 18),
+    isERC4626: false,
+  },
+  {
+    token: standariseAddress(
+      "0x28d709c875c0ceac3dce7065bec5328186dc89fe254527084d1689910954b0a",
+    ),
+    name: "xSTRK",
+    symbol: "xSTRK",
+    decimals: 18,
+    displayDecimals: 2,
+    logo: LOGOS.xSTRK,
+    minAmount: MyNumber.fromEther("10", 18),
+    maxAmount: MyNumber.fromEther("10000", 18),
+    stepAmount: MyNumber.fromEther("10", 18),
+    isERC4626: false,
+  },
+];

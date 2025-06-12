@@ -3,7 +3,7 @@ import { clsx, type ClassValue } from "clsx";
 import { BlockIdentifier, Contract, num, RpcProvider } from "starknet";
 import { twMerge } from "tailwind-merge";
 
-import { STRK_ORACLE_CONTRACT } from "@/constants";
+import { STRK_ORACLE_CONTRACT, TOKENS } from "@/constants";
 import { toast } from "@/hooks/use-toast";
 
 import OracleAbi from "../abi/oracle.abi.json";
@@ -17,13 +17,17 @@ export function shortAddress(_address: string, startChars = 4, endChars = 4) {
   return truncate(x, startChars, endChars);
 }
 
-export function formatNumber(num: number | string, decimals?: number): string {
+export function formatNumber(
+  num: number | string,
+  decimals?: number,
+  caps = false,
+): string {
   const numberValue = typeof num === "string" ? Number(num) : num;
 
   if (numberValue >= 1_000_000) {
-    return `${(numberValue / 1_000_000).toFixed(decimals ?? 2)}m`;
+    return `${(numberValue / 1_000_000).toFixed(decimals ?? 2)}${caps ? "M" : "m"}`;
   } else if (numberValue >= 1_000) {
-    return `${(numberValue / 1_000).toFixed(decimals ?? 2)}k`;
+    return `${(numberValue / 1_000).toFixed(decimals ?? 2)}${caps ? "K" : "k"}`;
   }
   return `${numberValue.toFixed(decimals ?? 2)}`;
 }
@@ -207,8 +211,8 @@ export function isContractNotDeployed(
   const upperCondition =
     maxBlock &&
     ((blockIdentifier as number) > maxBlock ||
-      blockIdentifier == "latest" ||
-      blockIdentifier == "pending" ||
+      blockIdentifier === "latest" ||
+      blockIdentifier === "pending" ||
       !blockIdentifier);
 
   return lowerCondition || upperCondition;
@@ -227,4 +231,14 @@ export function formatHumanFriendlyDateTime(
   };
 
   return new Intl.DateTimeFormat(locale, options).format(date);
+}
+
+export function getTokenInfoFromName(tokenName: string) {
+  const info = TOKENS.find(
+    (t) => t.name.toLowerCase() === tokenName.toLowerCase(),
+  );
+  if (!info) {
+    throw new Error(`Token not found: ${tokenName}`);
+  }
+  return info;
 }

@@ -7,6 +7,16 @@ import {
   useBalance,
   useSendTransaction,
 } from "@starknet-react/core";
+import {
+  ContractAddr,
+  type DualActionAmount,
+  EkuboCLVault,
+  EkuboCLVaultStrategies,
+  getMainnetConfig,
+  Global,
+  PricerFromApi,
+  Web3Number,
+} from "@strkfarm/sdk";
 import { useAtomValue } from "jotai";
 import { ChevronDown, Info } from "lucide-react";
 import { Figtree } from "next/font/google";
@@ -16,9 +26,10 @@ import React from "react";
 import { useForm } from "react-hook-form";
 import { TwitterShareButton } from "react-share";
 import { Call, Contract } from "starknet";
-
 import * as z from "zod";
 
+import avnuAbi from "@/abi/avnu.abi.json";
+import ekuboStrkfarmAbi from "@/abi/ekubo_strkfarm.abi.json";
 import erc4626Abi from "@/abi/erc4626.abi.json";
 import ixstrkAbi from "@/abi/ixstrk.abi.json";
 import vxstrkAbi from "@/abi/vxstrk.abi.json";
@@ -42,11 +53,16 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import {
+  AVNU_ADDRESS,
+  EKUBO_STRKFARM_VAULT_ADDRESS,
   getEndpoint,
+  IS_PAUSED,
   LINKS,
   LST_ADDRRESS,
   NOSTRA_iXSTRK_ADDRESS,
+  RECEPIEINT_FEE_ADDRESS,
   REWARD_FEES,
+  STRK_DECIMALS,
   STRK_TOKEN,
   VESU_vXSTRK_ADDRESS,
 } from "@/constants";
@@ -55,7 +71,12 @@ import { useTransactionHandler } from "@/hooks/use-transactions";
 import { useWalletConnection } from "@/hooks/use-wallet-connection";
 import { MyAnalytics } from "@/lib/analytics";
 import MyNumber from "@/lib/MyNumber";
-import { cn, eventNames, formatNumberWithCommas } from "@/lib/utils";
+import {
+  cn,
+  eventNames,
+  formatNumberWithCommas,
+  getTokenInfoFromName,
+} from "@/lib/utils";
 import LSTService from "@/services/lst";
 import { providerAtom } from "@/store/common.store";
 import { protocolYieldsAtom } from "@/store/defi.store";
@@ -83,11 +104,30 @@ const formSchema = z.object({
 
 export type FormValues = z.infer<typeof formSchema>;
 
-export type Platform = "none" | "vesu" | "nostraLending";
+export type Platform = "none" | "vesu" | "nostraLending" | "strkfarmEkubo";
 
 const PLATFORMS = {
   VESU: "vesu",
   NOSTRA: "nostraLending",
+  STRKFARM_EKUBO: "strkfarmEkubo",
+} as const;
+
+const PLATFORM_CONFIG = {
+  vesu: {
+    name: "Vesu",
+    icon: <Icons.vesuLogo className="h-6 w-6 rounded-full" />,
+    key: "vesu" as const,
+  },
+  nostraLending: {
+    name: "Nostra",
+    icon: <Icons.nostraLogo className="h-6 w-6" />,
+    key: "nostraLending" as const,
+  },
+  strkfarmEkubo: {
+    name: "STRKFarm's Ekubo xSTRK/STRK Vault",
+    icon: <Icons.strkfarmLogo className="size-6" />,
+    key: "strkfarmEkubo" as const,
+  },
 } as const;
 
 const Stake: React.FC = () => {
@@ -129,31 +169,6 @@ const Stake: React.FC = () => {
   const { sendAsync, data, isPending, error } = useSendTransaction({});
 
   const { handleTransaction } = useTransactionHandler();
-
-  const getPlatformYield = (platform: Platform) => {
-    if (platform === "none") return 0;
-    const key = platform === "vesu" ? "vesu" : "nostraLending";
-    return yields[key]?.value ?? 0;
-  };
-
-  const sortedPlatforms = React.useMemo(() => {
-    return Object.values(PLATFORMS).sort((a, b) => {
-      const totalSuppliedA = yields[a]?.totalSupplied || 0;
-      const totalSuppliedB = yields[b]?.totalSupplied || 0;
-      return totalSuppliedB - totalSuppliedA;
-    });
-  }, [yields]);
-
-  React.useEffect(() => {
-    handleTransaction("STAKE", {
-      form,
-      address: address ?? "",
-      data: data ?? { transaction_hash: "" },
-      error: error ?? { name: "" },
-      isPending,
-      setShowShareModal,
-    });
-  }, [data?.transaction_hash, form, isPending]);
 
   const handleQuickStakePrice = (percentage: number) => {
     if (!address) {
@@ -269,6 +284,8 @@ const Stake: React.FC = () => {
       calls.push(call2);
     }
 
+    if (selectedPlatform === "strkfarmEkubo") calls.splice(0, calls.length);
+
     if (selectedPlatform !== "none") {
       const lstContract = new Contract(erc4626Abi, LST_ADDRRESS);
 
@@ -289,6 +306,114 @@ const Stake: React.FC = () => {
           address,
         ]);
         calls.push(approveCall, lendingCall);
+      } else if (selectedPlatform === "strkfarmEkubo") {
+        const config = getMainnetConfig();
+        const pricer = new PricerFromApi(config, await Global.getTokens());
+        const clVault = new EkuboCLVault(
+          config,
+          pricer,
+          EkuboCLVaultStrategies[0],
+        );
+
+        const strkTokenInfo = getTokenInfoFromName("STRK");
+        const xStrkTokenInfo = getTokenInfoFromName("xSTRK");
+
+        const poolKey = await clVault.getPoolKey();
+        const bounds = await clVault.getCurrentBounds();
+
+        const input: DualActionAmount = {
+          token0: {
+            amount: Web3Number.fromWei("0", STRK_DECIMALS),
+            tokenInfo: {
+              ...xStrkTokenInfo,
+              address: ContractAddr.from(xStrkTokenInfo.token),
+            },
+          },
+          token1: {
+            amount: Web3Number.fromWei(strkAmount.toString(), STRK_DECIMALS),
+            tokenInfo: {
+              ...strkTokenInfo,
+              address: ContractAddr.from(strkTokenInfo.token),
+            },
+          },
+        };
+
+        const output = await clVault.getSwapInfoGivenAmounts(
+          poolKey,
+          input.token0.amount,
+          input.token1.amount,
+          bounds,
+        );
+
+        console.log("output:", output);
+
+        const strkToSwap = MyNumber.from(output.token_from_amount, 18); // STRK to swap
+        const expectedXStrk = MyNumber.from(output.token_to_amount, 18); // expected xSTRK from swap
+        const remainingStrk = strkAmount.subtract(strkToSwap); // remaining STRK after swap
+
+        console.log("STRK to swap:", strkToSwap.toEtherStr());
+        console.log("expected xSTRK from swap:", expectedXStrk.toEtherStr());
+        console.log("remaining STRK:", remainingStrk.toEtherStr());
+
+        const avnuContract = new Contract(avnuAbi, AVNU_ADDRESS);
+        const strkContract = new Contract(erc4626Abi, STRK_TOKEN);
+
+        const approveStrkAvnuCall = strkContract.populate("approve", [
+          AVNU_ADDRESS,
+          strkToSwap,
+        ]);
+
+        console.log(output.routes, "output.routes");
+
+        const routes = {
+          sell_token: output.routes[0].token_from,
+          buy_token: output.routes[0].token_to,
+          exchange_address: output.routes[0].exchange_address,
+          percent: output.routes[0].percent,
+          additional_swap_params: output.routes[0].additional_swap_params,
+        };
+
+        // swap STRK to xSTRK call
+        const swapCall = avnuContract.populate("multi_route_swap", [
+          STRK_TOKEN,
+          strkToSwap,
+          LST_ADDRRESS,
+          expectedXStrk,
+          expectedXStrk,
+          address,
+          BigInt(3),
+          RECEPIEINT_FEE_ADDRESS,
+          [routes],
+        ]);
+
+        const strkFarmContract = new Contract(
+          ekuboStrkfarmAbi,
+          EKUBO_STRKFARM_VAULT_ADDRESS,
+        );
+
+        const approveStrkToVault = strkFarmContract.populate("approve", [
+          EKUBO_STRKFARM_VAULT_ADDRESS,
+          remainingStrk.toString(),
+        ]);
+
+        const approveXStrkToVault = strkFarmContract.populate("approve", [
+          EKUBO_STRKFARM_VAULT_ADDRESS,
+          expectedXStrk.toString(),
+        ]);
+
+        const depositToVault = strkFarmContract.populate("deposit", [
+          remainingStrk.toString(),
+          expectedXStrk.toString(),
+          address,
+        ]);
+
+        calls.push(
+          approveStrkAvnuCall,
+          swapCall,
+          approveStrkToVault,
+          approveXStrkToVault,
+          depositToVault,
+        );
       } else {
         const nostraContract = new Contract(ixstrkAbi, NOSTRA_iXSTRK_ADDRESS);
         const lendingCall = nostraContract.populate("mint", [
@@ -301,6 +426,126 @@ const Stake: React.FC = () => {
 
     await sendAsync(calls);
   };
+
+  const getPlatformYield = (platform: Platform) => {
+    if (platform === "none") return 0;
+    const key =
+      platform === "vesu"
+        ? "vesu"
+        : platform === "strkfarmEkubo"
+          ? "strkfarmEkubo"
+          : "nostraLending";
+    return yields[key]?.value ?? 0;
+  };
+
+  const sortPlatforms = (platforms: string[], yields: any) => {
+    const regularPlatforms = platforms.filter(
+      (p) => p !== PLATFORMS.STRKFARM_EKUBO,
+    );
+    const strkfarmPlatform = platforms.find(
+      (p) => p === PLATFORMS.STRKFARM_EKUBO,
+    );
+
+    const sortedRegular = regularPlatforms.sort((a, b) => {
+      const apyA = yields[a]?.value || 0;
+      const apyB = yields[b]?.value || 0;
+      return apyB - apyA;
+    });
+
+    if (!strkfarmPlatform) return sortedRegular;
+
+    const strkfarmAPY = yields[PLATFORMS.STRKFARM_EKUBO]?.value || 0;
+    const highestRegularAPY =
+      sortedRegular.length > 0 ? yields[sortedRegular[0]]?.value || 0 : 0;
+
+    if (strkfarmAPY >= highestRegularAPY) {
+      return [strkfarmPlatform, ...sortedRegular];
+    }
+    const insertIndex = sortedRegular.findIndex(
+      (platform) => (yields[platform]?.value || 0) < strkfarmAPY,
+    );
+
+    if (insertIndex === -1) {
+      return [...sortedRegular, strkfarmPlatform];
+    }
+    return [
+      ...sortedRegular.slice(0, insertIndex),
+      strkfarmPlatform,
+      ...sortedRegular.slice(insertIndex),
+    ];
+  };
+
+  const sortedPlatforms = React.useMemo(() => {
+    const allPlatforms = Object.values(PLATFORMS);
+    return sortPlatforms(allPlatforms, yields);
+  }, [yields]);
+
+  const PlatformList: React.FC<{
+    sortedPlatforms: string[];
+    yields: any;
+    apy: { value: number };
+    selectedPlatform: Platform;
+    setSelectedPlatform: (platform: Platform) => void;
+  }> = ({
+    sortedPlatforms,
+    yields,
+    apy,
+    selectedPlatform,
+    setSelectedPlatform,
+  }) => {
+    return (
+      <div className="flex flex-wrap items-center gap-2">
+        {sortedPlatforms.map((platform) => {
+          const config = getPlatformConfig(platform);
+          const yieldData = getYieldData(platform, yields);
+
+          if (!config) {
+            console.warn(`Platform configuration missing for: ${platform}`);
+            return null;
+          }
+
+          return (
+            <PlatformCard
+              key={platform}
+              name={config.name}
+              icon={config.icon}
+              apy={yieldData?.value ?? 0}
+              baseApy={apy.value}
+              xstrkLent={yieldData?.totalSupplied ?? 0}
+              isSelected={selectedPlatform === platform}
+              onClick={() =>
+                setSelectedPlatform(
+                  selectedPlatform === platform
+                    ? "none"
+                    : (platform as Platform),
+                )
+              }
+            />
+          );
+        })}
+      </div>
+    );
+  };
+
+  const getPlatformConfig = (platform: string) => {
+    return PLATFORM_CONFIG[platform as keyof typeof PLATFORM_CONFIG];
+  };
+
+  const getYieldData = (platform: string, yields: any) => {
+    const config = getPlatformConfig(platform);
+    return config ? yields[config.key] : null;
+  };
+
+  React.useEffect(() => {
+    handleTransaction("STAKE", {
+      form,
+      address: address ?? "",
+      data: data ?? { transaction_hash: "" },
+      error: error ?? { name: "" },
+      isPending,
+      setShowShareModal,
+    });
+  }, [data?.transaction_hash, form, isPending]);
 
   return (
     <div className="relative h-full w-full">
@@ -463,36 +708,14 @@ const Stake: React.FC = () => {
             </TooltipProvider>
           </div>
           <CollapsibleContent className="mt-2">
-            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-              {sortedPlatforms.map((platform) => {
-                const platformKey =
-                  platform === "vesu" ? "vesu" : ("nostraLending" as const);
-                const yieldData = yields[platformKey];
-                return (
-                  <PlatformCard
-                    key={platform}
-                    name={platform === "vesu" ? "Vesu" : "Nostra"}
-                    icon={
-                      platform === "vesu" ? (
-                        <Icons.vesuLogo className="h-6 w-6 rounded-full" />
-                      ) : (
-                        <Icons.nostraLogo className="h-6 w-6" />
-                      )
-                    }
-                    apy={yieldData?.value ?? 0}
-                    baseApy={apy.value}
-                    xstrkLent={yieldData?.totalSupplied ?? 0}
-                    isSelected={selectedPlatform === platform}
-                    onClick={() =>
-                      setSelectedPlatform(
-                        selectedPlatform === platform
-                          ? "none"
-                          : (platform as Platform),
-                      )
-                    }
-                  />
-                );
-              })}
+            <div className="flex flex-wrap items-center gap-2">
+              <PlatformList
+                sortedPlatforms={sortedPlatforms}
+                yields={yields}
+                apy={apy}
+                selectedPlatform={selectedPlatform}
+                setSelectedPlatform={setSelectedPlatform}
+              />
             </div>
           </CollapsibleContent>
         </Collapsible>
@@ -623,14 +846,17 @@ const Stake: React.FC = () => {
               !form.getValues("stakeAmount") ||
               isNaN(Number(form.getValues("stakeAmount"))) ||
               Number(form.getValues("stakeAmount")) <= 0 ||
-              !!form.formState.errors.stakeAmount
+              !!form.formState.errors.stakeAmount ||
+              IS_PAUSED
             }
             onClick={form.handleSubmit(onSubmit)}
             className="w-full rounded-2xl bg-[#17876D] py-6 text-sm font-semibold text-white hover:bg-[#17876D] disabled:bg-[#03624C4D] disabled:text-[#17876D] disabled:opacity-90"
           >
-            {selectedPlatform === "none"
-              ? "Stake STRK"
-              : `Stake & Lend on ${selectedPlatform === "vesu" ? "Vesu" : "Nostra"}`}
+            {IS_PAUSED
+              ? "Paused"
+              : selectedPlatform === "none"
+                ? "Stake STRK"
+                : `Stake & Lend on ${selectedPlatform === "vesu" ? "Vesu" : selectedPlatform === "strkfarmEkubo" ? "Ekubo" : "Nostra"}`}
           </Button>
         )}
       </div>

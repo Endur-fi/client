@@ -1,5 +1,6 @@
 import BigNumber from "bignumber.js";
 import { ethers } from "ethers";
+import { type BigNumberish } from "starknet";
 const customInspectSymbol = Symbol.for("nodejs.util.inspect.custom");
 
 export default class MyNumber {
@@ -25,6 +26,49 @@ export default class MyNumber {
 
   static fromZero(decimals: number = 0) {
     return new MyNumber("0", decimals);
+  }
+
+  /**
+   * Create MyNumber from hex split format (high/low 64-bit parts)
+   * @param hexSplit Object with high and low BigNumberish values
+   * @param decimals Number of decimal places
+   * @returns MyNumber instance
+   */
+  static fromHexSplit(
+    hexSplit: { high: BigNumberish; low: BigNumberish },
+    decimals: number,
+  ) {
+    try {
+      const highBigInt = BigInt(hexSplit.high);
+      const lowBigInt = BigInt(hexSplit.low);
+
+      const totalBigInt = (highBigInt << BigInt(64)) + lowBigInt;
+
+      return new MyNumber(totalBigInt.toString(), decimals);
+    } catch (e) {
+      console.error("fromHexSplit", e, hexSplit, decimals);
+      throw e;
+    }
+  }
+
+  /**
+   * Create MyNumber from various input formats
+   * @param input Can be string, number, or hex split object
+   * @param decimals Number of decimal places
+   * @returns MyNumber instance
+   */
+  static from(
+    input: string | number | { high: BigNumberish; low: BigNumberish },
+    decimals: number,
+  ) {
+    if (
+      typeof input === "object" &&
+      input.high !== undefined &&
+      input.low !== undefined
+    ) {
+      return MyNumber.fromHexSplit(input, decimals);
+    }
+    return new MyNumber(input.toString(), decimals);
   }
 
   toString() {
