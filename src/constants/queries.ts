@@ -25,6 +25,7 @@ export const GET_USER_COMPLETE_DETAILS = gql`
   query GetUserCompleteDetails($userAddress: String!) {
     getUserCompleteDetails(userAddress: $userAddress) {
       user_address
+      rank
       points {
         total_points
         regular_points
