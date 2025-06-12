@@ -1,7 +1,8 @@
-import { LST_ADDRRESS, RECEPIEINT_FEE_ADDRESS, STRK_TOKEN } from "@/constants";
-import { Quote, QuoteRequest, fetchQuotes, executeSwap } from "@avnu/avnu-sdk";
-import { AccountInterface } from "starknet";
+import { Quote, QuoteRequest, executeSwap, fetchQuotes } from "@avnu/avnu-sdk";
 import QuickLRU from "quick-lru";
+import { AccountInterface } from "starknet";
+
+import { LST_ADDRRESS, RECEPIEINT_FEE_ADDRESS, STRK_TOKEN } from "@/constants";
 
 const quoteCache = new QuickLRU<string, Quote[]>({
   maxSize: 1000,
@@ -11,6 +12,7 @@ const quoteCache = new QuickLRU<string, Quote[]>({
 export async function getAvnuQuotes(
   amount: string,
   takerAddress: string,
+  reverse: boolean = false,
 ): Promise<Quote[]> {
   const cacheKey = `${amount}-${takerAddress}`;
 
@@ -21,8 +23,8 @@ export async function getAvnuQuotes(
 
   try {
     const params: QuoteRequest = {
-      sellTokenAddress: LST_ADDRRESS,
-      buyTokenAddress: STRK_TOKEN,
+      sellTokenAddress: reverse ? STRK_TOKEN : LST_ADDRRESS,
+      buyTokenAddress: reverse ? LST_ADDRRESS : STRK_TOKEN,
       sellAmount: BigInt(Math.floor(Number(amount) * 1e18)),
       takerAddress,
       size: 1,

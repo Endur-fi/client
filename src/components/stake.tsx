@@ -7,7 +7,16 @@ import {
   useBalance,
   useSendTransaction,
 } from "@starknet-react/core";
-
+import {
+  ContractAddr,
+  type DualActionAmount,
+  EkuboCLVault,
+  EkuboCLVaultStrategies,
+  getMainnetConfig,
+  Global,
+  PricerFromApi,
+  Web3Number,
+} from "@strkfarm/sdk";
 import { useAtomValue } from "jotai";
 import { ChevronDown, Info } from "lucide-react";
 import { Figtree } from "next/font/google";
@@ -19,6 +28,7 @@ import { TwitterShareButton } from "react-share";
 import { Call, Contract } from "starknet";
 import * as z from "zod";
 
+import avnuAbi from "@/abi/avnu.abi.json";
 import ekuboStrkfarmAbi from "@/abi/ekubo_strkfarm.abi.json";
 import erc4626Abi from "@/abi/erc4626.abi.json";
 import ixstrkAbi from "@/abi/ixstrk.abi.json";
@@ -43,12 +53,16 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import {
+  AVNU_ADDRESS,
+  EKUBO_STRKFARM_VAULT_ADDRESS,
   getEndpoint,
   IS_PAUSED,
   LINKS,
   LST_ADDRRESS,
   NOSTRA_iXSTRK_ADDRESS,
+  RECEPIEINT_FEE_ADDRESS,
   REWARD_FEES,
+  STRK_DECIMALS,
   STRK_TOKEN,
   VESU_vXSTRK_ADDRESS,
 } from "@/constants";
@@ -57,7 +71,12 @@ import { useTransactionHandler } from "@/hooks/use-transactions";
 import { useWalletConnection } from "@/hooks/use-wallet-connection";
 import { MyAnalytics } from "@/lib/analytics";
 import MyNumber from "@/lib/MyNumber";
-import { cn, eventNames, formatNumberWithCommas } from "@/lib/utils";
+import {
+  cn,
+  eventNames,
+  formatNumberWithCommas,
+  getTokenInfoFromName,
+} from "@/lib/utils";
 import LSTService from "@/services/lst";
 import { providerAtom } from "@/store/common.store";
 import { protocolYieldsAtom } from "@/store/defi.store";
@@ -265,15 +284,15 @@ const Stake: React.FC = () => {
       calls.push(call2);
     }
 
+    if (selectedPlatform === "strkfarmEkubo") calls.splice(0, calls.length);
+
     if (selectedPlatform !== "none") {
       const lstContract = new Contract(erc4626Abi, LST_ADDRRESS);
 
       const lendingAddress =
         selectedPlatform === "vesu"
           ? VESU_vXSTRK_ADDRESS
-          : selectedPlatform === "strkfarmEkubo"
-            ? "" // TODO: update the address
-            : NOSTRA_iXSTRK_ADDRESS;
+          : NOSTRA_iXSTRK_ADDRESS;
 
       const approveCall = lstContract.populate("approve", [
         lendingAddress,
@@ -288,38 +307,113 @@ const Stake: React.FC = () => {
         ]);
         calls.push(approveCall, lendingCall);
       } else if (selectedPlatform === "strkfarmEkubo") {
-        // const config = getMainnetConfig();
-        // const pricer = new PricerFromApi(config, await Global.getTokens());
-        // const clVault = new EkuboCLVault(
-        //   config,
-        //   pricer,
-        //   EkuboCLVaultStrategies[0],
-        // );
+        const config = getMainnetConfig();
+        const pricer = new PricerFromApi(config, await Global.getTokens());
+        const clVault = new EkuboCLVault(
+          config,
+          pricer,
+          EkuboCLVaultStrategies[0],
+        );
 
-        // const input: DualActionAmount = {
-        //   token0: {
-        //     amount: Web3Number.fromWei('0', 18),
-        //     tokenInfo: {
-        //       name: 'STRK',
-        //       symbol: 'STRK',
-        //       address: STRK_TOKEN,
-        //     },
-        //   },
-        //   token1: {
-        //     amount: strkAmount,
-        //     tokenInfo: 0,
-        //   },
-        // };
+        const strkTokenInfo = getTokenInfoFromName("STRK");
+        const xStrkTokenInfo = getTokenInfoFromName("xSTRK");
 
-        // const output = await clVault.matchInputAmounts(input);
+        const poolKey = await clVault.getPoolKey();
+        const bounds = await clVault.getCurrentBounds();
 
-        // TODO: update the address
-        const strkFarmEkuboContract = new Contract(ekuboStrkfarmAbi, "");
-        const lendingCall = strkFarmEkuboContract.populate("deposit", [
-          xstrkAmount,
+        const input: DualActionAmount = {
+          token0: {
+            amount: Web3Number.fromWei("0", STRK_DECIMALS),
+            tokenInfo: {
+              ...xStrkTokenInfo,
+              address: ContractAddr.from(xStrkTokenInfo.token),
+            },
+          },
+          token1: {
+            amount: Web3Number.fromWei(strkAmount.toString(), STRK_DECIMALS),
+            tokenInfo: {
+              ...strkTokenInfo,
+              address: ContractAddr.from(strkTokenInfo.token),
+            },
+          },
+        };
+
+        const output = await clVault.getSwapInfoGivenAmounts(
+          poolKey,
+          input.token0.amount,
+          input.token1.amount,
+          bounds,
+        );
+
+        console.log("output:", output);
+
+        const strkToSwap = MyNumber.from(output.token_from_amount, 18); // STRK to swap
+        const expectedXStrk = MyNumber.from(output.token_to_amount, 18); // expected xSTRK from swap
+        const remainingStrk = strkAmount.subtract(strkToSwap); // remaining STRK after swap
+
+        console.log("STRK to swap:", strkToSwap.toEtherStr());
+        console.log("expected xSTRK from swap:", expectedXStrk.toEtherStr());
+        console.log("remaining STRK:", remainingStrk.toEtherStr());
+
+        const avnuContract = new Contract(avnuAbi, AVNU_ADDRESS);
+        const strkContract = new Contract(erc4626Abi, STRK_TOKEN);
+
+        const approveStrkAvnuCall = strkContract.populate("approve", [
+          AVNU_ADDRESS,
+          strkToSwap,
+        ]);
+
+        console.log(output.routes, "output.routes");
+
+        const routes = {
+          sell_token: output.routes[0].token_from,
+          buy_token: output.routes[0].token_to,
+          exchange_address: output.routes[0].exchange_address,
+          percent: output.routes[0].percent,
+          additional_swap_params: output.routes[0].additional_swap_params,
+        };
+
+        // swap STRK to xSTRK call
+        const swapCall = avnuContract.populate("multi_route_swap", [
+          STRK_TOKEN,
+          strkToSwap,
+          LST_ADDRRESS,
+          expectedXStrk,
+          expectedXStrk,
+          address,
+          BigInt(3),
+          RECEPIEINT_FEE_ADDRESS,
+          [routes],
+        ]);
+
+        const strkFarmContract = new Contract(
+          ekuboStrkfarmAbi,
+          EKUBO_STRKFARM_VAULT_ADDRESS,
+        );
+
+        const approveStrkToVault = strkFarmContract.populate("approve", [
+          EKUBO_STRKFARM_VAULT_ADDRESS,
+          remainingStrk.toString(),
+        ]);
+
+        const approveXStrkToVault = strkFarmContract.populate("approve", [
+          EKUBO_STRKFARM_VAULT_ADDRESS,
+          expectedXStrk.toString(),
+        ]);
+
+        const depositToVault = strkFarmContract.populate("deposit", [
+          remainingStrk.toString(),
+          expectedXStrk.toString(),
           address,
         ]);
-        calls.push(approveCall, lendingCall);
+
+        calls.push(
+          approveStrkAvnuCall,
+          swapCall,
+          approveStrkToVault,
+          approveXStrkToVault,
+          depositToVault,
+        );
       } else {
         const nostraContract = new Contract(ixstrkAbi, NOSTRA_iXSTRK_ADDRESS);
         const lendingCall = nostraContract.populate("mint", [
@@ -762,7 +856,7 @@ const Stake: React.FC = () => {
               ? "Paused"
               : selectedPlatform === "none"
                 ? "Stake STRK"
-                : `Stake & Lend on ${selectedPlatform === "vesu" ? "Vesu" : "Nostra"}`}
+                : `Stake & Lend on ${selectedPlatform === "vesu" ? "Vesu" : selectedPlatform === "strkfarmEkubo" ? "Ekubo" : "Nostra"}`}
           </Button>
         )}
       </div>
