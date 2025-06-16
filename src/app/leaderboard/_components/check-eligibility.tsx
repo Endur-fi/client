@@ -6,6 +6,7 @@ import { Figtree } from "next/font/google";
 import Image from "next/image";
 import Link from "next/link";
 import React from "react";
+import { TwitterShareButton } from "react-share";
 
 import { Icons } from "@/components/Icons";
 import { Button } from "@/components/ui/button";
@@ -22,8 +23,7 @@ import { Progress } from "@/components/ui/progress";
 import { getEndpoint, LEADERBOARD_ANALYTICS_EVENTS } from "@/constants";
 import { toast } from "@/hooks/use-toast";
 import { MyAnalytics } from "@/lib/analytics";
-import { cn, formatNumberWithCommas } from "@/lib/utils";
-import { TwitterShareButton } from "react-share";
+import { cn, formatNumberWithCommas, validateEmail } from "@/lib/utils";
 
 const font = Figtree({ subsets: ["latin-ext"] });
 
@@ -299,7 +299,10 @@ const TwitterFollowModal = React.memo<{
             className="h-12 w-full rounded-md bg-white text-[#0C4E3F] hover:bg-white hover:text-[#0C4E3F]"
           >
             {isFollowClicked ? (
-              <Loader2 className="size-4 animate-spin" />
+              <div className="flex items-center justify-center gap-2">
+                <Loader2 className="size-4 animate-spin" />
+                redirecting...
+              </div>
             ) : (
               "Follow us on X"
             )}
@@ -523,6 +526,9 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
     setState((prev) => ({ ...prev, isSubmitting: true }));
 
     try {
+      if (!validateEmail(state.emailInput))
+        return toast({ description: "Invalid email format" });
+
       const emailSent = await sendEmailRequest(state.emailInput, address);
 
       if (emailSent) {
