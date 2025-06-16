@@ -1,6 +1,5 @@
 /* eslint-disable no-spaced-func */
 import { useAccount } from "@starknet-react/core";
-import axios from "axios";
 import { Gift, Loader2 } from "lucide-react";
 import { Figtree } from "next/font/google";
 import Image from "next/image";
@@ -23,6 +22,7 @@ import { Progress } from "@/components/ui/progress";
 import { getEndpoint, LEADERBOARD_ANALYTICS_EVENTS } from "@/constants";
 import { toast } from "@/hooks/use-toast";
 import { MyAnalytics } from "@/lib/analytics";
+import { checkSubscription, subscribeUser } from "@/lib/api";
 import { cn, formatNumberWithCommas, validateEmail } from "@/lib/utils";
 
 const font = Figtree({ subsets: ["latin-ext"] });
@@ -72,28 +72,6 @@ interface EligibilityState {
   isFollowClicked: boolean;
   isFollowed: boolean;
 }
-
-const sendEmailRequest = async (
-  email: string,
-  address: string,
-): Promise<boolean> => {
-  try {
-    await axios.post("/api/send-email", { email, address });
-    toast({
-      title: "Email Saved",
-      description:
-        "We'll keep you updated on your rewards and exclusive surprise. ",
-    });
-    return true;
-  } catch (error) {
-    console.error("Error sending email:", error);
-    const errorMessage = axios.isAxiosError(error)
-      ? error.response?.data?.error || "Failed to send email"
-      : "Network error. Please try again.";
-    toast({ description: errorMessage });
-    return false;
-  }
-};
 
 const trackAnalytics = (event: string, data: Record<string, any>) => {
   MyAnalytics.track(event, { ...data, timestamp: Date.now() });
@@ -507,7 +485,6 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
   const { address } = useAccount();
   const eligibilityData = useEligibilityData(userCompleteInfo?.allocation);
 
-  // Handlers
   const handleEmailChange = React.useCallback((email: string) => {
     setState((prev) => ({ ...prev, emailInput: email }));
   }, []);
@@ -526,24 +503,41 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
     setState((prev) => ({ ...prev, isSubmitting: true }));
 
     try {
-      if (!validateEmail(state.emailInput))
-        return toast({ description: "Invalid email format" });
-
-      const emailSent = await sendEmailRequest(state.emailInput, address);
-
-      if (emailSent) {
-        trackAnalytics(LEADERBOARD_ANALYTICS_EVENTS.EMAIL_SUBMITTED, {
-          userAddress: address,
-          email: state.emailInput,
-          isEligible: state.isEligible,
-        });
+      if (!validateEmail(state.emailInput)) {
+        toast({ description: "Invalid email format" });
+        return;
       }
+
+      const subscriptionStatus = await checkSubscription(state.emailInput);
+
+      if (!subscriptionStatus.isSubscribed) {
+        const subscriptionResult = await subscribeUser(
+          state.emailInput,
+          address,
+        );
+        if (!subscriptionResult.success) {
+          toast({ description: "Failed to subscribe. Please try again." });
+          return;
+        }
+      }
+
+      trackAnalytics(LEADERBOARD_ANALYTICS_EVENTS.EMAIL_SUBMITTED, {
+        userAddress: address,
+        email: state.emailInput,
+        isEligible: state.isEligible,
+        wasAlreadySubscribed: subscriptionStatus.isSubscribed,
+      });
 
       setState((prev) => ({
         ...prev,
         emailInput: "",
         activeModal: "twitterFollow",
       }));
+    } catch (error) {
+      console.error("Error in subscription flow:", error);
+      toast({
+        description: "Error processing your request. Please try again.",
+      });
     } finally {
       setState((prev) => ({ ...prev, isSubmitting: false }));
     }
