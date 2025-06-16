@@ -82,7 +82,8 @@ export async function POST(request: NextRequest) {
       updateEnabled: false,
       email,
       ext_id: standariseAddress(address), // unique identifier for the contact
-      listIds: [5], // Subscribers-Endur list
+      // TODO: change listId before pushing
+      listIds: [7], // Subscribers-Endur list
     };
 
     try {
