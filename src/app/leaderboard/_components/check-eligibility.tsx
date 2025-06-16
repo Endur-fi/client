@@ -14,14 +14,16 @@ import {
   DialogContent,
   DialogDescription,
   DialogHeader,
+  DialogOverlay,
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
-import { LEADERBOARD_ANALYTICS_EVENTS } from "@/constants";
+import { getEndpoint, LEADERBOARD_ANALYTICS_EVENTS } from "@/constants";
 import { toast } from "@/hooks/use-toast";
 import { MyAnalytics } from "@/lib/analytics";
 import { cn, formatNumberWithCommas } from "@/lib/utils";
+import { TwitterShareButton } from "react-share";
 
 const font = Figtree({ subsets: ["latin-ext"] });
 
@@ -77,7 +79,11 @@ const sendEmailRequest = async (
 ): Promise<boolean> => {
   try {
     await axios.post("/api/send-email", { email, address });
-    toast({ description: "Endur's email subscription activated" });
+    toast({
+      title: "Email Saved",
+      description:
+        "We'll keep you updated on your rewards and exclusive surprise. ",
+    });
     return true;
   } catch (error) {
     console.error("Error sending email:", error);
@@ -97,14 +103,14 @@ const ProgressHeader = React.memo<{
   step: string;
   percentage: number;
 }>(({ step, percentage }) => (
-  <div className="absolute -top-[5.8rem] left-[-30px] w-full sm:w-[478px]">
+  <div className="absolute -top-[5.8rem] left-0 w-full sm:left-[-30px] sm:w-[478px]">
     <div className="flex w-full flex-col items-center">
       <div className="flex w-full flex-col items-center gap-2">
         <p className="flex w-full items-center justify-between">
           <span className="text-xs text-white">{step}</span>
           <span className="text-xs text-white">{percentage}%</span>
         </p>
-        <Progress value={percentage} className="h-2.5 bg-[#C6D7D4]" />
+        <Progress value={percentage} className="h-2.5 bg-[#C6D8D4]" />
       </div>
     </div>
   </div>
@@ -112,8 +118,8 @@ const ProgressHeader = React.memo<{
 ProgressHeader.displayName = "ProgressHeader";
 
 const DisclaimerText = React.memo(() => (
-  <DialogDescription className="mt-3 text-center text-sm font-normal text-amber-500">
-    Please report any issues before {DEADLINE_DATE} in our{" "}
+  <DialogDescription className="mt-4 text-center text-sm font-normal text-amber-500">
+    Please report any issues before {DEADLINE_DATE} in our <br />{" "}
     <a href={TELEGRAM_LINK} className="underline">
       Official TG group
     </a>
@@ -126,26 +132,28 @@ const RewardSummary = React.memo<{
   showBonus?: boolean;
   isFollowed?: boolean;
 }>(({ showBonus = false, isFollowed = false }) => (
-  <div className="!mt-5 w-full rounded-lg bg-[#17876D]/30 px-4 py-3">
-    <p className="text-base font-bold text-white">
-      {showBonus ? "Rewards Claimed" : "Reward Summary"}
-    </p>
-    <div className="mt-2 flex items-center justify-between text-sm text-white">
-      <p className="flex items-center gap-1.5">
-        <Icons.feeRebateIcon className="text-[#DFDFEC]" />
-        Fee Rebates
+  <div className="px-2">
+    <div className="!mt-5 w-full rounded-lg bg-[#17876D]/30 px-4 py-3">
+      <p className="text-base font-bold text-white">
+        {showBonus ? "Rewards Claimed" : "Reward Summary"}
       </p>
-      <span className="font-semibold">{FEE_REBATE_AMOUNT}</span>
-    </div>
-    {showBonus && (
       <div className="mt-2 flex items-center justify-between text-sm text-white">
         <p className="flex items-center gap-1.5">
-          <Icons.sparklingStar className="size-4 text-[#DFDFEC]" />
-          Bonus Points
+          <Icons.feeRebateIcon className="text-[#DFDFEC]" />
+          Fee Rebates
         </p>
-        <span className="font-semibold">{BONUS_POINTS.toLocaleString()}</span>
+        <span className="font-semibold">{FEE_REBATE_AMOUNT}</span>
       </div>
-    )}
+      {showBonus && (
+        <div className="mt-2 flex items-center justify-between text-sm text-white">
+          <p className="flex items-center gap-1.5">
+            <Icons.sparklingStar className="size-4 text-[#DFDFEC]" />
+            Bonus Points
+          </p>
+          <span className="font-semibold">{BONUS_POINTS.toLocaleString()}</span>
+        </div>
+      )}
+    </div>
     {!showBonus && (
       <div className="!mt-6 w-full space-y-2 text-sm text-white">
         <div className="flex w-full items-center gap-2">
@@ -323,7 +331,7 @@ const ClaimModal = React.memo<{
     )}
   >
     <div className="relative w-full">
-      <ProgressHeader step="Step 3 of 3" percentage={100} />
+      <ProgressHeader step="Step 3 of 3" percentage={67} />
 
       <DialogHeader>
         <div className="flex w-full items-center justify-center">
@@ -443,9 +451,21 @@ const TwitterShareModal = React.memo<{ onClose: () => void }>(({ onClose }) => (
       </DialogHeader>
 
       <div className="relative !mt-6 flex w-full flex-col items-center justify-center gap-2 px-2">
-        <Button className="h-12 w-full rounded-md bg-white text-[#0C4E3F] hover:bg-white hover:text-[#0C4E3F]">
+        <TwitterShareButton
+          url={getEndpoint()}
+          title={`I just claimed my rewards on Endur.fi! 🎉\n\nCheck your eligibility and join the leaderboard: ${getEndpoint()}`}
+          related={["endurfi", "strkfarm", "karnotxyz"]}
+          style={{
+            height: "44px",
+            width: "100%",
+            borderRadius: "8px",
+            backgroundColor: "white",
+            color: "#0C4E3F",
+            fontWeight: "500",
+          }}
+        >
           Share on X
-        </Button>
+        </TwitterShareButton>
         <Button
           onClick={onClose}
           className="h-10 w-full rounded-md bg-transparent px-6 text-sm text-[#DCF6E5]/50 shadow-none transition-all hover:bg-transparent hover:text-[#DCF6E5]"
@@ -601,6 +621,7 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
         open={state.activeModal === "subscribe"}
         onOpenChange={closeModal}
       >
+        <DialogOverlay className="bg-white/20 backdrop-blur-sm" />
         <EligibilityModal
           emailInput={state.emailInput}
           isSubmitting={state.isSubmitting}
@@ -613,6 +634,7 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
         open={state.activeModal === "twitterFollow"}
         onOpenChange={closeModal}
       >
+        <DialogOverlay className="bg-white/20 backdrop-blur-sm" />
         <TwitterFollowModal
           onContinue={goToClaim}
           onFollow={handleTwitterFollow}
@@ -621,6 +643,7 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
       </Dialog>
 
       <Dialog open={state.activeModal === "claim"} onOpenChange={closeModal}>
+        <DialogOverlay className="bg-white/20 backdrop-blur-sm" />
         <ClaimModal
           allocation={state.allocation}
           onBack={goToTwitterFollow}
@@ -633,6 +656,7 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
         open={state.activeModal === "notEligible"}
         onOpenChange={closeModal}
       >
+        <DialogOverlay className="bg-white/20 backdrop-blur-sm" />
         <NotEligibleModal onClose={closeModal} />
       </Dialog>
 
@@ -640,6 +664,7 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
         open={state.activeModal === "twitterShare"}
         onOpenChange={closeModal}
       >
+        <DialogOverlay className="bg-white/20 backdrop-blur-sm" />
         <TwitterShareModal onClose={closeModal} />
       </Dialog>
     </>
