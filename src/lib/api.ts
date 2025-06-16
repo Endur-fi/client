@@ -1,8 +1,8 @@
 import axios from "axios";
 
-export const checkSubscription = async (email: string) => {
+export const checkSubscription = async (address: string) => {
   try {
-    const response = await axios.post("/api/check-subscription", { email });
+    const response = await axios.post("/api/check-subscription", { address });
     return response.data;
   } catch (error) {
     console.error("Error checking subscription:", error);

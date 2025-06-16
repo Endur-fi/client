@@ -23,7 +23,12 @@ import { getEndpoint, LEADERBOARD_ANALYTICS_EVENTS } from "@/constants";
 import { toast } from "@/hooks/use-toast";
 import { MyAnalytics } from "@/lib/analytics";
 import { checkSubscription, subscribeUser } from "@/lib/api";
-import { cn, formatNumberWithCommas, validateEmail } from "@/lib/utils";
+import {
+  cn,
+  formatNumberWithCommas,
+  standariseAddress,
+  validateEmail,
+} from "@/lib/utils";
 
 const font = Figtree({ subsets: ["latin-ext"] });
 
@@ -160,75 +165,98 @@ const EligibilityModal = React.memo<{
   isSubmitting: boolean;
   onEmailChange: (email: string) => void;
   onNext: () => void;
-}>(({ emailInput, isSubmitting, onEmailChange, onNext }) => (
-  <DialogContent
-    hideCloseIcon
-    className={cn(
-      font.className,
-      "border-0 bg-[#0C4E3F] px-3 pb-8 pt-12 sm:max-w-[480px] md:px-8",
-    )}
-  >
-    <div className="relative w-full">
-      <ProgressHeader step="Step 1 of 3" percentage={33} />
-
-      <DialogHeader>
-        <div className="flex w-full items-center justify-center">
-          <Image
-            src="/leaderboard/eligibility_illustration.svg"
-            width={316}
-            height={271}
-            alt="eligibility illustration"
-          />
-        </div>
-        <DialogTitle className="!mt-8 text-center text-3xl font-semibold text-white">
-          Subscribe to Endur
-        </DialogTitle>
-        <DialogDescription className="!mt-2 text-center text-sm font-normal text-[#DCF6E5]">
-          Receive product updates, transaction updates <br /> and future rewards
-        </DialogDescription>
-      </DialogHeader>
-
-      <div className="!mt-6 flex w-full flex-col items-center gap-4 px-2">
+  userExists: boolean;
+  checkingUser: boolean;
+}>(
+  ({
+    emailInput,
+    isSubmitting,
+    onEmailChange,
+    onNext,
+    userExists,
+    checkingUser,
+  }) => {
+    return (
+      <DialogContent
+        hideCloseIcon
+        className={cn(
+          font.className,
+          "border-0 bg-[#0C4E3F] px-3 pb-8 pt-12 sm:max-w-[480px] md:px-8",
+        )}
+      >
         <div className="relative w-full">
-          <Input
-            value={emailInput}
-            onChange={(e) => onEmailChange(e.target.value)}
-            className="peer/my-input h-11 w-full rounded-lg border-[#F1F7F6]/80 bg-transparent pl-12 pr-24 font-normal text-[#DCF6E5] placeholder:text-white/50 focus:bg-[#083B30] focus-visible:ring-0 active:bg-[#083B30]"
-            placeholder="Enter.your.email@example.com"
-            disabled={isSubmitting}
-            onKeyDown={(e) =>
-              e.key === "Enter" && (e.preventDefault(), onNext())
-            }
-          />
-          <Icons.email2 className="absolute left-3 top-1/2 size-6 -translate-y-1/2 !text-white/50 peer-focus/my-input:!text-white peer-active/my-input:text-white" />
-        </div>
+          <ProgressHeader step="Step 1 of 3" percentage={33} />
 
-        <Button
-          onClick={onNext}
-          disabled={isSubmitting || !emailInput}
-          className={cn(
-            "h-12 w-full rounded-md bg-white px-6 text-sm text-black transition-all hover:bg-white hover:text-black disabled:bg-[#F1F7F6]/30 disabled:text-white disabled:opacity-100",
-            {
-              "disabled:bg-white disabled:text-black disabled:opacity-50":
-                isSubmitting,
-            },
-          )}
-        >
-          {isSubmitting ? "Sending..." : "Continue to rewards"}
-        </Button>
-      </div>
+          <DialogHeader>
+            <div className="flex w-full items-center justify-center">
+              <Image
+                src="/leaderboard/eligibility_illustration.svg"
+                width={316}
+                height={271}
+                alt="eligibility illustration"
+              />
+            </div>
+            <DialogTitle className="!mt-8 text-center text-3xl font-semibold text-white">
+              Subscribe to Endur
+            </DialogTitle>
+            <DialogDescription className="!mt-2 text-center text-sm font-normal text-[#DCF6E5]">
+              Receive product updates, transaction updates <br /> and future
+              rewards
+            </DialogDescription>
+          </DialogHeader>
 
-      <div className="mt-7 px-2">
-        <div className="flex w-full items-start justify-center gap-2 rounded-lg bg-[#E3EFEC]/5 px-4 py-4 text-sm">
-          <Icons.shield className="mt-1 size-6 text-[#2ACF83]" />
-          <p className="text-sm text-white/80">
-            Your email is secure and will only be used for reward notifications
-          </p>
+          <div className="!mt-6 flex w-full flex-col items-center gap-4 px-2">
+            {!userExists && (
+              <div className="relative w-full">
+                <Input
+                  value={emailInput}
+                  onChange={(e) => onEmailChange(e.target.value)}
+                  className="peer/my-input h-11 w-full rounded-lg border-[#F1F7F6]/80 bg-transparent pl-12 pr-24 font-normal text-[#DCF6E5] placeholder:text-white/50 focus:bg-[#083B30] focus-visible:ring-0 active:bg-[#083B30]"
+                  placeholder="Enter.your.email@example.com"
+                  disabled={isSubmitting}
+                  onKeyDown={(e) =>
+                    e.key === "Enter" && (e.preventDefault(), onNext())
+                  }
+                />
+                <Icons.email2 className="absolute left-3 top-1/2 size-6 -translate-y-1/2 !text-white/50 peer-focus/my-input:!text-white peer-active/my-input:text-white" />
+              </div>
+            )}
+
+            <Button
+              onClick={onNext}
+              disabled={isSubmitting || (checkingUser && !userExists)}
+              className={cn(
+                "h-12 w-full rounded-md bg-white px-6 text-sm text-black transition-all hover:bg-white hover:text-black disabled:bg-[#F1F7F6]/30 disabled:text-white disabled:opacity-100",
+                {
+                  "disabled:bg-white disabled:text-black disabled:opacity-50":
+                    isSubmitting,
+                },
+              )}
+            >
+              {checkingUser
+                ? "Checking..."
+                : isSubmitting
+                  ? "Sending..."
+                  : userExists
+                    ? "Already subscribed"
+                    : "Continue to rewards"}
+            </Button>
+          </div>
+
+          <div className="mt-7 px-2">
+            <div className="flex w-full items-start justify-center gap-2 rounded-lg bg-[#E3EFEC]/5 px-4 py-4 text-sm">
+              <Icons.shield className="mt-1 size-6 text-[#2ACF83]" />
+              <p className="text-sm text-white/80">
+                Your email is secure and will only be used for reward
+                notifications
+              </p>
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
-  </DialogContent>
-));
+      </DialogContent>
+    );
+  },
+);
 EligibilityModal.displayName = "EligibilityModal";
 
 const TwitterFollowModal = React.memo<{
@@ -482,6 +510,9 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
     isFollowed: false,
   });
 
+  const [userExists, setUserExists] = React.useState(false);
+  const [checkingUser, setCheckingUser] = React.useState(false);
+
   const { address } = useAccount();
   const eligibilityData = useEligibilityData(userCompleteInfo?.allocation);
 
@@ -493,6 +524,14 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
     if (!address) {
       toast({ description: "Connect your wallet first." });
       return;
+    }
+
+    if (userExists) {
+      return setState((prev) => ({
+        ...prev,
+        emailInput: "",
+        activeModal: "twitterFollow",
+      }));
     }
 
     if (!state.emailInput) {
@@ -541,7 +580,7 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
     } finally {
       setState((prev) => ({ ...prev, isSubmitting: false }));
     }
-  }, [address, state.emailInput, state.isEligible]);
+  }, [address, state.emailInput, state.isEligible, userExists]);
 
   const handleTwitterFollow = React.useCallback(() => {
     setState((prev) => ({ ...prev, isFollowClicked: true }));
@@ -607,6 +646,29 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
     setState((prev) => ({ ...prev, activeModal: "twitterShare" }));
   }, []);
 
+  React.useEffect(() => {
+    const checkUser = async () => {
+      if (address) {
+        setCheckingUser(true);
+        try {
+          const response = await checkSubscription(standariseAddress(address));
+          setUserExists(response.isSubscribed);
+        } catch (error) {
+          console.error("Error checking user:", error);
+          setUserExists(false);
+        } finally {
+          setCheckingUser(false);
+        }
+      }
+    };
+
+    const timer = setTimeout(() => {
+      checkUser();
+    }, 500); // debounce for 500ms
+
+    return () => clearTimeout(timer);
+  }, [address]);
+
   return (
     <>
       <Button
@@ -627,6 +689,8 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
           isSubmitting={state.isSubmitting}
           onEmailChange={handleEmailChange}
           onNext={handleNext}
+          userExists={userExists}
+          checkingUser={checkingUser}
         />
       </Dialog>
 

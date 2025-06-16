@@ -3,17 +3,11 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
   try {
-    const { email } = await request.json();
+    const { address } = await request.json();
 
-    if (!email) {
-      return NextResponse.json({ error: "Email is required" }, { status: 400 });
-    }
-
-    // validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
+    if (!address) {
       return NextResponse.json(
-        { error: "Invalid email format" },
+        { error: "address is required" },
         { status: 400 },
       );
     }
@@ -28,9 +22,9 @@ export async function POST(request: NextRequest) {
     }
 
     const response = await axios.get(
-      `https://api.brevo.com/v3/contacts/${encodeURIComponent(email)}`,
+      `https://api.brevo.com/v3/contacts/${address}`,
       {
-        params: { identifierType: "email_id" },
+        params: { identifierType: "ext_id" },
         headers: {
           accept: "application/json",
           "api-key": apiKey,
