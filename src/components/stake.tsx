@@ -104,11 +104,11 @@ const PLATFORM_CONFIG = {
     icon: <Icons.nostraLogo className="h-6 w-6" />,
     key: "nostraLending" as const,
   },
-  strkfarmEkubo: {
-    name: "STRKFarm's Ekubo xSTRK/STRK Vault",
-    icon: <Icons.strkfarmLogo className="size-6" />,
-    key: "strkfarmEkubo" as const,
-  },
+  // strkfarmEkubo: {
+  //   name: "STRKFarm's Ekubo xSTRK/STRK Vault",
+  //   icon: <Icons.strkfarmLogo className="size-6" />,
+  //   key: "strkfarmEkubo" as const,
+  // },
 } as const;
 
 const Stake: React.FC = () => {
@@ -400,7 +400,7 @@ const Stake: React.FC = () => {
     setSelectedPlatform,
   }) => {
     return (
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="flex items-center gap-2 w-full">
         {sortedPlatforms.map((platform) => {
           const config = getPlatformConfig(platform);
           const yieldData = getYieldData(platform, yields);
