@@ -27,6 +27,8 @@ export const RECEPIEINT_FEE_ADDRESS =
 export const STRK_ORACLE_CONTRACT =
   "0x7ca92dce6e5f7f81f6c393c647b5c0c266e7663088351a4bd34ee9f88569de5";
 
+export const IS_PAUSED = process.env.NEXT_PUBLIC_IS_PAUSED === "true";
+
 export const LST_ADDRRESS = process.env
   .NEXT_PUBLIC_LST_ADDRESS as `0x${string}`;
 

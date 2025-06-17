@@ -1,6 +1,7 @@
 import React from "react";
-import { cn } from "@/lib/utils";
+
 import { Card } from "@/components/ui/card";
+import { cn, formatNumber } from "@/lib/utils";
 
 interface PlatformCardProps {
   name: string;
@@ -25,11 +26,14 @@ export function PlatformCard({
     <Card
       onClick={onClick}
       className={cn(
-        "group relative cursor-pointer border p-3 transition-all duration-200",
+        "group relative w-[49.2%] cursor-pointer border p-3 transition-all duration-200",
         "bg-white/50 hover:bg-white",
         "border-gray-100 hover:border-[#17876D]",
         "shadow-sm hover:shadow",
         isSelected && "!border-[#17876D] !bg-white !shadow",
+        {
+          "!w-full py-3": name.includes("STRKFarm"),
+        },
       )}
     >
       <div className="flex items-center justify-between">
@@ -88,8 +92,8 @@ export function PlatformCard({
               isSelected && "text-[#03624C]",
             )}
           >
-            {xstrkLent ? (
-              `${(xstrkLent / 1e6).toFixed(2)}M`
+            {typeof xstrkLent === "number" ? (
+              `${formatNumber(xstrkLent, 2, true)}`
             ) : (
               <span className="inline-block h-5 w-12 animate-pulse rounded bg-gray-200" />
             )}

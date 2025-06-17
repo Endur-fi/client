@@ -1,11 +1,12 @@
 import MyNumber from "@/lib/MyNumber";
 import { Atom, atom } from "jotai";
 import { atomWithQuery } from "jotai-tanstack-query";
-import { AtomFamily } from "jotai/vanilla/utils/atomFamily";
-import { providerAtom, userAddressAtom } from "./common.store";
-import { BlockIdentifier, RpcProvider } from "starknet";
 import { atomFamily } from "jotai/utils";
+import { AtomFamily } from "jotai/vanilla/utils/atomFamily";
+import { BlockIdentifier, RpcProvider } from "starknet";
+import { providerAtom, strkPriceAtom, userAddressAtom } from "./common.store";
 import { exchangeRateAtom } from "./lst.store";
+import { snAPYAtom } from "./staking.store";
 
 interface VesuAPIResponse {
   data: {
@@ -109,7 +110,7 @@ const vesuYieldQueryAtom = atomWithQuery(() => ({
       );
       const data: VesuAPIResponse = await response.json();
 
-      const stats = data.data.assets.find((a) => a.symbol == "xSTRK")?.stats;
+      const stats = data.data.assets.find((a) => a.symbol === "xSTRK")?.stats;
       if (!stats) {
         console.error("No xSTRK stats found in Vesu API response");
         return {
@@ -362,7 +363,7 @@ const strkFarmYieldQueryAtom = atomWithQuery(() => ({
   refetchInterval: 60000,
 }));
 
-const strkFarmEkuboYieldQueryAtom = atomWithQuery(() => ({
+const strkFarmEkuboYieldQueryAtom = atomWithQuery((get) => ({
   queryKey: ["strkFarmEkuboYield"],
   queryFn: async (): Promise<ProtocolYield> => {
     const hostname = window.location.origin;
@@ -372,6 +373,7 @@ const strkFarmEkuboYieldQueryAtom = atomWithQuery(() => ({
     const strategy = strategies.find(
       (strategy: any) => strategy.id === "ekubo_cl_xstrkstrk",
     );
+
     if (!strategy) {
       return {
         value: 0,
@@ -379,9 +381,26 @@ const strkFarmEkuboYieldQueryAtom = atomWithQuery(() => ({
         error: "Failed to find strategy",
       };
     }
+
+    const { data: price, isLoading } = get(strkPriceAtom);
+    const { value: baseApy } = get(snAPYAtom);
+
+    if (!price) {
+      return {
+        value: 0,
+        isLoading: false,
+        error: "Failed to fetch STRK price",
+      };
+    }
+
+    const totalSupplied = strategy.tvlUsd / price;
+
+    const apy = strategy.apy - baseApy;
+
     return {
-      value: strategy.apy * 100,
-      isLoading: false,
+      value: apy * 100,
+      totalSupplied: totalSupplied ?? 0,
+      isLoading,
       error: "Failed to fetch APY",
     };
   },
@@ -477,9 +496,10 @@ export const strkFarmYieldAtom = atom<ProtocolStats>((get) => {
 
 export const strkFarmEkuboYieldAtom = atom<ProtocolStats>((get) => {
   const { data, error } = get(strkFarmEkuboYieldQueryAtom);
+
   return {
     value: error || !data ? null : data.value,
-    totalSupplied: 0,
+    totalSupplied: error || !data ? 0 : (data.totalSupplied ?? 0),
     error,
     isLoading: !data && !error,
   };

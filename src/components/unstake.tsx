@@ -21,7 +21,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { getProvider, LINKS, REWARD_FEES } from "@/constants";
+import { getProvider, IS_PAUSED, LINKS, REWARD_FEES } from "@/constants";
 import { toast } from "@/hooks/use-toast";
 import { useTransactionHandler } from "@/hooks/use-transactions";
 import { useWalletConnection } from "@/hooks/use-wallet-connection";
@@ -622,10 +622,11 @@ const Unstake = () => {
                 onClick={form.handleSubmit(onSubmit)}
                 disabled={
                   Number(form.getValues("unstakeAmount")) <= 0 ||
-                  isNaN(Number(form.getValues("unstakeAmount")))
+                  isNaN(Number(form.getValues("unstakeAmount"))) ||
+                  IS_PAUSED
                 }
               >
-                Unstake via Endur
+                {IS_PAUSED ? "Paused" : "Unstake via Endur"}
               </StyledButton>
             )}
           </div>
@@ -678,10 +679,13 @@ const Unstake = () => {
                   Number(form.getValues("unstakeAmount")) <= 0 ||
                   isNaN(Number(form.getValues("unstakeAmount"))) ||
                   avnuLoading ||
-                  !avnuQuote
+                  !avnuQuote ||
+                  IS_PAUSED
                 }
               >
-                {avnuLoading ? (
+                {IS_PAUSED ? (
+                  "Paused"
+                ) : avnuLoading ? (
                   <span className="flex items-center gap-2">
                     {/* <Icons.loader className="size-4 animate-spin" /> */}
                     {form.getValues("unstakeAmount")
