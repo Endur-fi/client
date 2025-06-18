@@ -1,7 +1,6 @@
 /* eslint-disable no-spaced-func */
 
 import { useAccount } from "@starknet-react/core";
-import { useAtomValue } from "jotai";
 import { Gift, Loader2 } from "lucide-react";
 import { Figtree } from "next/font/google";
 import Image from "next/image";
@@ -30,11 +29,9 @@ import apolloClient from "@/lib/apollo-client";
 import {
   cn,
   formatNumberWithCommas,
-  getSTRKPrice,
   standariseAddress,
   validateEmail,
 } from "@/lib/utils";
-import { exchangeRateAtom } from "@/store/lst.store";
 
 const font = Figtree({ subsets: ["latin-ext"] });
 const IS_FEE_REBATES_REWARDS_PAUSED =
@@ -121,41 +118,6 @@ const useUserSubscriptionCheck = (address: string | undefined) => {
   return { userExists, checkingUser };
 };
 
-const useXSTRKPrice = (allocation: string | null) => {
-  const [xstrkPrice, setXstrkPrice] = React.useState(0);
-  const [isLoading, setIsLoading] = React.useState(true);
-  const exchangeRate = useAtomValue(exchangeRateAtom);
-
-  const calculatedAmount = React.useMemo(() => {
-    if (!allocation || !xstrkPrice || isLoading) return null;
-    const allocationNum = Number(allocation);
-    if (isNaN(allocationNum) || allocationNum <= 0) return null;
-    return (xstrkPrice * allocationNum).toFixed(2);
-  }, [allocation, xstrkPrice, isLoading]);
-
-  React.useEffect(() => {
-    if (!exchangeRate?.rate || exchangeRate.rate <= 0) return;
-
-    const fetchPrice = async () => {
-      try {
-        setIsLoading(true);
-        const strkPrice = await getSTRKPrice();
-        const calculatedXstrkPrice = strkPrice * exchangeRate.rate;
-        setXstrkPrice(calculatedXstrkPrice);
-      } catch (error) {
-        console.error("Error fetching STRK price:", error);
-        setXstrkPrice(0);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchPrice();
-  }, [exchangeRate?.rate]);
-
-  return { calculatedAmount, isLoading };
-};
-
 const ProgressHeader = React.memo<{ step: string; percentage: number }>(
   ({ step, percentage }) => (
     <div className="absolute -top-[5.8rem] left-0 w-full sm:left-[-30px] sm:w-[478px]">
@@ -189,8 +151,6 @@ const RewardSummary = React.memo<{
   isFollowed?: boolean;
   allocation: string | null;
 }>(({ showBonus = false, isFollowed = false, allocation }) => {
-  const { calculatedAmount, isLoading } = useXSTRKPrice(allocation);
-
   return (
     <div className="px-2">
       <div className="!mt-5 w-full rounded-lg bg-[#17876D]/30 px-4 py-3">
@@ -203,13 +163,7 @@ const RewardSummary = React.memo<{
             Fee Rebates
           </p>
           <span className="font-semibold">
-            {isLoading ? (
-              <span className="animate-pulse">Loading...</span>
-            ) : calculatedAmount ? (
-              `$${calculatedAmount}`
-            ) : (
-              "N/A"
-            )}
+            {Number(allocation).toFixed(2)} xSTRK
           </span>
         </div>
         {showBonus && (
@@ -673,32 +627,49 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
 
       if (res.data?.addPointsToUser?.success) {
         toast({
-          description: `You have earned ${formatNumberWithCommas(BONUS_POINTS)} points for following us on X!`,
+          description: `You have earned ${formatNumberWithCommas(BONUS_POINTS, 0)} points for following us on X!`,
         });
-      } else {
+
+        return setTimeout(() => {
+          setState((prev) => ({
+            ...prev,
+            isFollowClicked: false,
+            isFollowed: true,
+            activeModal: state.isEligible ? "claim" : "notEligible",
+          }));
+
+          if (address) {
+            trackAnalytics(
+              LEADERBOARD_ANALYTICS_EVENTS.TWITTER_FOLLOW_CLICKED,
+              {
+                userAddress: address,
+              },
+            );
+          }
+        }, TWITTER_FOLLOW_DELAY);
+      }
+
+      if (
+        res.data?.addPointsToUser?.message.includes(
+          "bonus points already awarded",
+        ) &&
+        !res.data?.addPointsToUser?.success
+      ) {
         toast({
-          description: "Failed to update user points. Please try again.",
+          description: `${BONUS_POINTS} bonus points already awarded to you!`,
         });
       }
     } catch (error) {
       console.error("Error updating user points:", error);
       toast({ description: "Failed to update user points. Please try again." });
-    }
-
-    setTimeout(() => {
+    } finally {
       setState((prev) => ({
         ...prev,
         isFollowClicked: false,
         isFollowed: true,
         activeModal: state.isEligible ? "claim" : "notEligible",
       }));
-
-      if (address) {
-        trackAnalytics(LEADERBOARD_ANALYTICS_EVENTS.TWITTER_FOLLOW_CLICKED, {
-          userAddress: address,
-        });
-      }
-    }, TWITTER_FOLLOW_DELAY);
+    }
   }, [state.isEligible, address]);
 
   const checkEligibility = React.useCallback(() => {
