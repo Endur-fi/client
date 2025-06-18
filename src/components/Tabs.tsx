@@ -12,6 +12,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { IS_PAUSED } from "@/constants";
 import { cn } from "@/lib/utils";
 import { isMerryChristmasAtom, tabsAtom } from "@/store/merry.store";
 
@@ -61,162 +62,178 @@ const Tabs = () => {
   }
 
   return (
-    <div
-      className={cn("z-30 flex h-full flex-col items-center", {
-        "lg:-ml-56": isPinned,
-      })}
-    >
+    <div className="relative h-full">
       <div
-        className={cn("mt-6 w-full max-w-xl lg:mt-0", {
-          "mb-7 xl:mb-0": !isMerry,
-          // "mb-7 lg:mb-12": isMerry,
-          // "mb-7 lg:mb-7": isMerry && activeTab === "withdraw",
+        className={cn("z-30 flex h-full flex-col items-center", {
+          "lg:-ml-56": isPinned,
         })}
       >
-        <div className="mt-7 flex flex-wrap items-center gap-3">
-          <div className="flex items-center gap-2">
-            <Icons.strkLogo className="size-8" />
-            <h1 className="text-xl font-bold text-black">Stake STRK</h1>
+        {IS_PAUSED && (
+          <div className="-top-[3.25rem] mt-2 w-fit text-balance rounded-lg border border-amber-600 bg-amber-200 px-5 py-2 text-center text-sm text-yellow-700 lg:absolute lg:mt-0">
+            Endur is currently undergoing a scheduled upgrade to support Staking
+            V2.{" "}
+            <Link
+              href="https://x.com/endurfi/status/1934622982250639733"
+              target="_blank"
+              className="text-blue-500 transition-all hover:underline"
+            >
+              Learn more
+            </Link>
           </div>
-          <Link
-            href="https://endur.fi/audit"
-            target="_blank"
-            className="flex w-fit items-center gap-1 rounded-full border border-[#17876D33] bg-[#17876D1A] px-3 py-1 transition-opacity hover:opacity-80 md:mt-0"
-          >
-            <Icons.shield className="size-3.5 text-[#17876D]" />
-            <span className="text-xs text-[#17876D]">Secure and audited</span>
-          </Link>
+        )}
+
+        <div
+          className={cn("mt-6 w-full max-w-xl lg:mt-0", {
+            "mb-7 xl:mb-0": !isMerry,
+            // "mb-7 lg:mb-12": isMerry,
+            // "mb-7 lg:mb-7": isMerry && activeTab === "withdraw",
+          })}
+        >
+          <div className="flex flex-wrap items-center gap-3 lg:mt-7">
+            <div className="flex items-center gap-2">
+              <Icons.strkLogo className="size-8" />
+              <h1 className="text-xl font-bold text-black">Stake STRK</h1>
+            </div>
+            <Link
+              href="https://endur.fi/audit"
+              target="_blank"
+              className="flex w-fit items-center gap-1 rounded-full border border-[#17876D33] bg-[#17876D1A] px-3 py-1 transition-opacity hover:opacity-80 md:mt-0"
+            >
+              <Icons.shield className="size-3.5 text-[#17876D]" />
+              <span className="text-xs text-[#17876D]">Secure and audited</span>
+            </Link>
+          </div>
+
+          <p className="mt-2 text-sm text-[#8D9C9C]">
+            Convert your STRK into xSTRK to earn staking rewards and participate
+            in DeFi opportunities across the Starknet ecosystem.
+          </p>
         </div>
 
-        <p className="mt-2 text-sm text-[#8D9C9C]">
-          Convert your STRK into xSTRK to earn staking rewards and participate
-          in DeFi opportunities across the Starknet ecosystem.
-        </p>
-      </div>
-
-      <div
-        className={cn(
-          "mt-6 min-h-[31.5rem] w-full max-w-xl rounded-xl bg-white shadow-xl lg:h-fit lg:pb-5",
-        )}
-      >
-        <ShadCNTabs
-          onValueChange={(value) => setActiveTab(value)}
-          value={activeTab}
-          defaultValue="stake"
-          className="col-span-2 h-full w-full lg:mt-0"
+        <div
+          className={cn(
+            "mt-6 min-h-[31.5rem] w-full max-w-xl rounded-xl bg-white shadow-xl lg:h-fit lg:pb-5",
+          )}
         >
-          <TabsList
+          <ShadCNTabs
+            onValueChange={(value) => setActiveTab(value)}
+            value={activeTab}
+            defaultValue="stake"
+            className="col-span-2 h-full w-full lg:mt-0"
+          >
+            <TabsList
+              className={cn(
+                "flex w-full items-center justify-start rounded-none border-b bg-transparent px-3 pb-5 pt-5 lg:pt-8",
+                {
+                  // "lg:pt-10": activeTab !== "withdraw" && isMerry,
+                },
+              )}
+            >
+              <TabsTrigger
+                value="stake"
+                className="group relative rounded-none border-none bg-transparent pl-0 text-sm font-medium text-[#8D9C9C] focus-visible:ring-0 focus-visible:ring-offset-0 data-[state=active]:border-t-0 data-[state=active]:shadow-none lg:pl-3 lg:text-base"
+              >
+                Stake
+                <div className="absolute -bottom-[7.5px] left-0 hidden h-[2px] w-10 rounded-full bg-black group-data-[state=active]:flex lg:-bottom-[5.5px] lg:left-3" />
+              </TabsTrigger>
+              <TabsTrigger
+                value="unstake"
+                className="group relative rounded-none border-none bg-transparent text-sm font-medium text-[#8D9C9C] focus-visible:ring-0 focus-visible:ring-offset-0 data-[state=active]:border-t-0 data-[state=active]:shadow-none lg:text-base"
+              >
+                Unstake
+                <div className="absolute -bottom-[7.5px] left-3 hidden h-[2px] w-[3.3rem] rounded-full bg-black group-data-[state=active]:flex lg:-bottom-[5.5px] lg:left-3.5" />
+              </TabsTrigger>
+              <TabsTrigger
+                value="withdraw"
+                className="group relative rounded-none border-none bg-transparent text-sm font-medium text-[#8D9C9C] focus-visible:ring-0 focus-visible:ring-offset-0 data-[state=active]:border-t-0 data-[state=active]:shadow-none lg:text-base"
+              >
+                Withdraw log
+                <TooltipProvider delayDuration={0}>
+                  <Tooltip>
+                    <TooltipTrigger className="ml-1" tabIndex={-1} asChild>
+                      <Info className="size-3 text-[#3F6870] lg:text-[#8D9C9C]" />
+                    </TooltipTrigger>
+                    <TooltipContent
+                      side="right"
+                      className="max-w-[13rem] rounded-md border border-[#03624C] bg-white text-[#03624C]"
+                    >
+                      Learn more about withdraw logs{" "}
+                      <Link
+                        target="_blank"
+                        href="https://docs.endur.fi/docs/concepts/withdraw-log"
+                        className="text-blue-600 underline"
+                      >
+                        here
+                      </Link>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+                <div className="absolute -bottom-[7.5px] left-3 hidden h-[2px] w-[5rem] rounded-full bg-black group-data-[state=active]:flex lg:-bottom-[5.5px] lg:left-[16px]" />
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent
+              value="stake"
+              className="h-full pb-3 focus-visible:ring-0 focus-visible:ring-offset-0 lg:pb-0"
+            >
+              <Stake />
+            </TabsContent>
+
+            <TabsContent
+              value="unstake"
+              className="h-full pb-3 focus-visible:ring-0 focus-visible:ring-offset-0 lg:pb-0"
+            >
+              <Unstake />
+            </TabsContent>
+
+            <TabsContent
+              value="withdraw"
+              className="h-full focus-visible:ring-0 focus-visible:ring-offset-0"
+            >
+              <WithdrawLog />
+            </TabsContent>
+          </ShadCNTabs>
+        </div>
+
+        {(activeTab === "unstake" || activeTab === "stake") && (
+          <div
             className={cn(
-              "flex w-full items-center justify-start rounded-none border-b bg-transparent px-3 pb-5 pt-5 lg:pt-8",
+              "mb-2 mt-5 flex max-w-xl items-center rounded-md bg-[#FFC4664D] py-3 pl-4 pr-3 text-xs text-[#D69733] lg:mb-4 lg:text-sm",
               {
-                // "lg:pt-10": activeTab !== "withdraw" && isMerry,
+                "bg-[#C0D5CE69] text-[#134c3d9e]": activeTab === "stake",
               },
             )}
           >
-            <TabsTrigger
-              value="stake"
-              className="group relative rounded-none border-none bg-transparent pl-0 text-sm font-medium text-[#8D9C9C] focus-visible:ring-0 focus-visible:ring-offset-0 data-[state=active]:border-t-0 data-[state=active]:shadow-none lg:pl-3 lg:text-base"
-            >
-              Stake
-              <div className="absolute -bottom-[7.5px] left-0 hidden h-[2px] w-10 rounded-full bg-black group-data-[state=active]:flex lg:-bottom-[5.5px] lg:left-3" />
-            </TabsTrigger>
-            <TabsTrigger
-              value="unstake"
-              className="group relative rounded-none border-none bg-transparent text-sm font-medium text-[#8D9C9C] focus-visible:ring-0 focus-visible:ring-offset-0 data-[state=active]:border-t-0 data-[state=active]:shadow-none lg:text-base"
-            >
-              Unstake
-              <div className="absolute -bottom-[7.5px] left-3 hidden h-[2px] w-[3.3rem] rounded-full bg-black group-data-[state=active]:flex lg:-bottom-[5.5px] lg:left-3.5" />
-            </TabsTrigger>
-            <TabsTrigger
-              value="withdraw"
-              className="group relative rounded-none border-none bg-transparent text-sm font-medium text-[#8D9C9C] focus-visible:ring-0 focus-visible:ring-offset-0 data-[state=active]:border-t-0 data-[state=active]:shadow-none lg:text-base"
-            >
-              Withdraw log
-              <TooltipProvider delayDuration={0}>
-                <Tooltip>
-                  <TooltipTrigger className="ml-1" tabIndex={-1} asChild>
-                    <Info className="size-3 text-[#3F6870] lg:text-[#8D9C9C]" />
-                  </TooltipTrigger>
-                  <TooltipContent
-                    side="right"
-                    className="max-w-[13rem] rounded-md border border-[#03624C] bg-white text-[#03624C]"
-                  >
-                    Learn more about withdraw logs{" "}
-                    <Link
-                      target="_blank"
-                      href="https://docs.endur.fi/docs/concepts/withdraw-log"
-                      className="text-blue-600 underline"
-                    >
-                      here
-                    </Link>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-              <div className="absolute -bottom-[7.5px] left-3 hidden h-[2px] w-[5rem] rounded-full bg-black group-data-[state=active]:flex lg:-bottom-[5.5px] lg:left-[16px]" />
-            </TabsTrigger>
-          </TabsList>
+            <span className="mr-3 flex size-4 shrink-0 items-center justify-center rounded-full text-xl lg:size-6">
+              {activeTab === "unstake" ? "⚠️" : <Info />}
+            </span>
+            {getMessage()}
+          </div>
+        )}
 
-          <TabsContent
-            value="stake"
-            className="h-full pb-3 focus-visible:ring-0 focus-visible:ring-offset-0 lg:pb-0"
-          >
-            <Stake />
-          </TabsContent>
-
-          <TabsContent
-            value="unstake"
-            className="h-full pb-3 focus-visible:ring-0 focus-visible:ring-offset-0 lg:pb-0"
-          >
-            <Unstake />
-          </TabsContent>
-
-          <TabsContent
-            value="withdraw"
-            className="h-full focus-visible:ring-0 focus-visible:ring-offset-0"
-          >
-            <WithdrawLog />
-          </TabsContent>
-        </ShadCNTabs>
-      </div>
-
-      {(activeTab === "unstake" || activeTab === "stake") && (
-        <div
+        <p
           className={cn(
-            "mb-2 mt-5 flex max-w-xl items-center rounded-md bg-[#FFC4664D] py-3 pl-4 pr-3 text-xs text-[#D69733] lg:mb-4 lg:text-sm",
-            {
-              "bg-[#C0D5CE69] text-[#134c3d9e]": activeTab === "stake",
-            },
+            "mt-4 flex items-center text-xs text-[#707D7D] lg:mb-1 lg:mt-auto lg:text-sm",
           )}
         >
-          <span className="mr-3 flex size-4 shrink-0 items-center justify-center rounded-full text-xl lg:size-6">
-            {activeTab === "unstake" ? "⚠️" : <Info />}
-          </span>
-          {getMessage()}
-        </div>
-      )}
-
-      <p
-        className={cn(
-          "mt-4 flex items-center text-xs text-[#707D7D] lg:mb-1 lg:mt-auto lg:text-sm",
-        )}
-      >
-        Made with 💚 by{" "}
-        <Link
-          href="https://strkfarm.com"
-          target="_blank"
-          className="mx-1 cursor-pointer font-semibold hover:underline"
-        >
-          STRKFarm
-        </Link>{" "}
-        and{" "}
-        <Link
-          href="https://karnot.xyz"
-          target="_blank"
-          className="mx-1 cursor-pointer font-semibold hover:underline"
-        >
-          Karnot
-        </Link>
-      </p>
+          Made with 💚 by{" "}
+          <Link
+            href="https://strkfarm.com"
+            target="_blank"
+            className="mx-1 cursor-pointer font-semibold hover:underline"
+          >
+            STRKFarm
+          </Link>{" "}
+          and{" "}
+          <Link
+            href="https://karnot.xyz"
+            target="_blank"
+            className="mx-1 cursor-pointer font-semibold hover:underline"
+          >
+            Karnot
+          </Link>
+        </p>
+      </div>
     </div>
   );
 };

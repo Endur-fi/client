@@ -17,13 +17,17 @@ export function shortAddress(_address: string, startChars = 4, endChars = 4) {
   return truncate(x, startChars, endChars);
 }
 
-export function formatNumber(num: number | string, decimals?: number): string {
+export function formatNumber(
+  num: number | string,
+  decimals?: number,
+  caps = false,
+): string {
   const numberValue = typeof num === "string" ? Number(num) : num;
 
   if (numberValue >= 1_000_000) {
-    return `${(numberValue / 1_000_000).toFixed(decimals ?? 2)}m`;
+    return `${(numberValue / 1_000_000).toFixed(decimals ?? 2)}${caps ? "M" : "m"}`;
   } else if (numberValue >= 1_000) {
-    return `${(numberValue / 1_000).toFixed(decimals ?? 2)}k`;
+    return `${(numberValue / 1_000).toFixed(decimals ?? 2)}${caps ? "K" : "k"}`;
   }
   return `${numberValue.toFixed(decimals ?? 2)}`;
 }
@@ -207,8 +211,8 @@ export function isContractNotDeployed(
   const upperCondition =
     maxBlock &&
     ((blockIdentifier as number) > maxBlock ||
-      blockIdentifier == "latest" ||
-      blockIdentifier == "pending" ||
+      blockIdentifier === "latest" ||
+      blockIdentifier === "pending" ||
       !blockIdentifier);
 
   return lowerCondition || upperCondition;
