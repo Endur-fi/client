@@ -90,7 +90,7 @@ const useLeaderboardData = () => {
           !isRefresh &&
           leaderboardCache &&
           // refresh, even if address changes
-          leaderboardCache.currentUserInfo.address == address &&
+          leaderboardCache.currentUserInfo.address === address &&
           Date.now() - leaderboardCache.timestamp < CACHE_EXPIRY_MS
         ) {
           setState({
@@ -281,7 +281,11 @@ const AnnouncementBanner = React.memo(
           </p>
           <p className="text-center text-sm font-normal text-white/80 md:text-base">
             Early adopters may have earned fee rebates.{" "}
-            <a href="https://x.com/endurfi/status/1932785841564487770" target="_blank" className="underline">
+            <a
+              href="https://x.com/endurfi/status/1932785841564487770"
+              target="_blank"
+              className="underline"
+            >
               Learn more.
             </a>
           </p>
