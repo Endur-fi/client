@@ -142,7 +142,7 @@ export function DataTable<TData, TValue>({
                       {
                         "lg:absolute":
                           userCompleteDetails.points.early_adopter_points > 0 &&
-                          userCompleteDetails.points.follow_bonus_points < 0,
+                          userCompleteDetails.points.follow_bonus_points <= 0,
                         "xl:absolute":
                           userCompleteDetails.points.early_adopter_points > 0 &&
                           userCompleteDetails.points.follow_bonus_points > 0,

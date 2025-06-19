@@ -630,15 +630,15 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
       });
 
       if (res.data?.addPointsToUser?.success) {
-        toast({
-          description: `You have earned ${formatNumberWithCommas(BONUS_POINTS, 0)} points for following us on X!`,
-        });
-
         await apolloClient.refetchQueries({
           include: [GET_USER_COMPLETE_DETAILS],
         });
 
         return setTimeout(() => {
+          toast({
+            description: `You have earned ${formatNumberWithCommas(BONUS_POINTS, 0)} points for following us on X!`,
+          });
+
           setState((prev) => ({
             ...prev,
             isFollowClicked: false,
