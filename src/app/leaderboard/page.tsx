@@ -412,7 +412,11 @@ const Leaderboard: React.FC = () => {
 
       <div className="mt-6">
         {allUsers.length > 0 ? (
-          <DataTable columns={columns} data={leaderboardData} />
+          <DataTable
+            columns={columns}
+            data={leaderboardData}
+            userCompleteDetails={userCompleteInfo}
+          />
         ) : (
           <EmptyState />
         )}

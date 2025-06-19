@@ -22,6 +22,7 @@ import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { getEndpoint, LEADERBOARD_ANALYTICS_EVENTS } from "@/constants";
 import { UPDATE_USER_POINTS } from "@/constants/mutations";
+import { GET_USER_COMPLETE_DETAILS } from "@/constants/queries";
 import { toast } from "@/hooks/use-toast";
 import { MyAnalytics } from "@/lib/analytics";
 import { checkSubscription, subscribeUser } from "@/lib/api";
@@ -49,6 +50,9 @@ export interface UserCompleteDetailsApiResponse {
     total_points: bigint;
     regular_points: bigint;
     bonus_points: bigint;
+    early_adopter_points: bigint;
+    follow_bonus_points: bigint;
+    dex_bonus_points: bigint;
   };
   allocation: string;
   tags: {
@@ -630,6 +634,10 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
           description: `You have earned ${formatNumberWithCommas(BONUS_POINTS, 0)} points for following us on X!`,
         });
 
+        await apolloClient.refetchQueries({
+          include: [GET_USER_COMPLETE_DETAILS],
+        });
+
         return setTimeout(() => {
           setState((prev) => ({
             ...prev,
@@ -656,19 +664,19 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
         !res.data?.addPointsToUser?.success
       ) {
         toast({
-          description: `${BONUS_POINTS} bonus points already awarded to you!`,
+          description: `Bonus points are already awarded to you`,
         });
       }
-    } catch (error) {
-      console.error("Error updating user points:", error);
-      toast({ description: "Failed to update user points. Please try again." });
-    } finally {
+
       setState((prev) => ({
         ...prev,
         isFollowClicked: false,
         isFollowed: true,
         activeModal: state.isEligible ? "claim" : "notEligible",
       }));
+    } catch (error) {
+      console.error("Error updating user points:", error);
+      toast({ description: "Failed to update user points. Please try again." });
     }
   }, [state.isEligible, address]);
 

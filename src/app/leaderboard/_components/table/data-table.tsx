@@ -25,18 +25,22 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { cn } from "@/lib/utils";
+import { cn, formatNumberWithCommas } from "@/lib/utils";
+
+import { type UserCompleteDetailsApiResponse } from "../check-eligibility";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
   searchKey?: string;
+  userCompleteDetails: UserCompleteDetailsApiResponse | null;
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
   searchKey,
+  userCompleteDetails,
 }: DataTableProps<TData, TValue>) {
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     [],
@@ -107,6 +111,7 @@ export function DataTable<TData, TValue>({
     (row: any, idx: number) =>
       row.getVisibleCells().map((cell: any, i: number) => {
         const isFirstCell = i === 0;
+        const isSecondCell = i === 1;
         const isLastCell = i === row.getVisibleCells().length - 1;
         const isLastRow = idx === table.getRowModel().rows.length - 1;
 
@@ -122,15 +127,63 @@ export function DataTable<TData, TValue>({
             <div className="sticky z-10">
               {flexRender(cell.column.columnDef.cell, cell.getContext())}
               {isFirstCell && isFirstRowOnFirstPage && address && idx === 0 && (
-                <Badge className="mb-1 h-4 text-nowrap bg-[#16876D] text-[10px] leading-[1] text-white lg:ml-1">
+                <Badge className="h-5 text-nowrap bg-[#16876D] text-[10px] leading-[1] text-white hover:bg-[#16876D] sm:ml-2">
                   your rank
                 </Badge>
               )}
+              {userCompleteDetails &&
+                isSecondCell &&
+                isFirstRowOnFirstPage &&
+                address &&
+                idx === 0 && (
+                  <div
+                    className={cn(
+                      "left-[9.35rem] top-0 z-10 mb-1 flex items-center gap-2",
+                      {
+                        "lg:absolute":
+                          userCompleteDetails.points.early_adopter_points > 0 &&
+                          userCompleteDetails.points.follow_bonus_points < 0,
+                        "xl:absolute":
+                          userCompleteDetails.points.early_adopter_points > 0 &&
+                          userCompleteDetails.points.follow_bonus_points > 0,
+                      },
+                    )}
+                  >
+                    {userCompleteDetails.tags.early_adopter &&
+                      userCompleteDetails.points.early_adopter_points > 0 && (
+                        <Badge className="h-5 text-nowrap bg-[#16876D] text-[10px] leading-[1] text-white hover:bg-[#16876D]">
+                          {"Early adopter bonus: "}
+                          {formatNumberWithCommas(
+                            userCompleteDetails.points.early_adopter_points.toString(),
+                            0,
+                          )}
+                        </Badge>
+                      )}
+                    {userCompleteDetails.points.follow_bonus_points > 0 && (
+                      <Badge className="h-5 text-nowrap bg-[#16876D] text-[10px] leading-[1] text-white hover:bg-[#16876D]">
+                        {"Follow bonus: "}
+                        {formatNumberWithCommas(
+                          userCompleteDetails.points.follow_bonus_points.toString(),
+                          0,
+                        )}
+                      </Badge>
+                    )}
+                    {userCompleteDetails.points.dex_bonus_points > 0 && (
+                      <Badge className="h-5 text-nowrap bg-[#16876D] text-[10px] leading-[1] text-white hover:bg-[#16876D]">
+                        {"LP bonus: "}
+                        {formatNumberWithCommas(
+                          userCompleteDetails.points.dex_bonus_points.toString(),
+                          0,
+                        )}
+                      </Badge>
+                    )}
+                  </div>
+                )}
             </div>
           </TableCell>
         );
       }),
-    [isFirstRowOnFirstPage, table.getRowModel().rows.length, address],
+    [table, isFirstRowOnFirstPage, address, userCompleteDetails],
   );
 
   return (
