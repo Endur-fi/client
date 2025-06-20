@@ -232,3 +232,23 @@ export function formatHumanFriendlyDateTime(
 
   return new Intl.DateTimeFormat(locale, options).format(date);
 }
+
+export const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+export const validateEmail = (email: string): boolean => {
+  if (!email) {
+    toast({
+      description: "Email input is required",
+    });
+    return false;
+  }
+
+  if (!EMAIL_REGEX.test(email)) {
+    toast({
+      description: "Please enter a valid email address",
+    });
+    return false;
+  }
+
+  return true;
+};

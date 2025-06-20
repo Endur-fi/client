@@ -30,6 +30,9 @@ export const GET_USER_COMPLETE_DETAILS = gql`
         total_points
         regular_points
         bonus_points
+        early_adopter_points
+        follow_bonus_points
+        dex_bonus_points
       }
       allocation
       tags {
