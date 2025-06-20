@@ -477,57 +477,60 @@ NotEligibleModal.displayName = "NotEligibleModal";
 const TwitterShareModal = React.memo<{
   onClose: () => void;
   allocation: string | null;
-}>(({ onClose, allocation }) => (
-  <DialogContent
-    hideCloseIcon
-    className={cn(
-      font.className,
-      "border-0 bg-[#0C4E3F] px-3 pb-8 pt-12 sm:max-w-[480px] md:px-8",
-    )}
-  >
-    <div className="relative w-full">
-      <ProgressHeader step="Step 3 of 3" percentage={100} />
-      <DialogHeader>
-        <div className="flex w-full items-center justify-center">
-          <Image
-            src="/leaderboard/claim_illustration.svg"
-            width={266}
-            height={290}
-            alt="rewards claimed illustration"
-          />
-        </div>
-        <DialogTitle className="!mt-8 text-center text-3xl font-semibold text-white">
-          Rewards claimed!
-        </DialogTitle>
-        <RewardSummary showBonus allocation={allocation} />
-      </DialogHeader>
+}>(({ onClose, allocation }) => {
+  return (
+    <DialogContent
+      hideCloseIcon
+      className={cn(
+        font.className,
+        "border-0 bg-[#0C4E3F] px-3 pb-8 pt-12 sm:max-w-[480px] md:px-8",
+      )}
+    >
+      <div className="relative w-full">
+        <ProgressHeader step="Step 3 of 3" percentage={100} />
+        <DialogHeader>
+          <div className="flex w-full items-center justify-center">
+            <Image
+              src="/leaderboard/claim_illustration.svg"
+              width={266}
+              height={290}
+              alt="rewards claimed illustration"
+            />
+          </div>
+          <DialogTitle className="!mt-8 text-center text-3xl font-semibold text-white">
+            Rewards claimed!
+          </DialogTitle>
+          <RewardSummary showBonus allocation={allocation} />
+        </DialogHeader>
 
-      <div className="relative !mt-6 flex w-full flex-col items-center justify-center gap-2 px-2">
-        <TwitterShareButton
-          url={getEndpoint()}
-          title={`I just claimed my rewards on Endur.fi! 🎉\n\nCheck your eligibility and join the leaderboard: ${getEndpoint()}`}
-          related={["endurfi", "strkfarm", "karnotxyz"]}
-          style={{
-            height: "44px",
-            width: "100%",
-            borderRadius: "8px",
-            backgroundColor: "white",
-            color: "#0C4E3F",
-            fontWeight: "500",
-          }}
-        >
-          Share on X
-        </TwitterShareButton>
-        <Button
-          onClick={onClose}
-          className="h-10 w-full rounded-md bg-transparent px-6 text-sm text-[#DCF6E5]/50 shadow-none transition-all hover:bg-transparent hover:text-[#DCF6E5]"
-        >
-          Close
-        </Button>
+        <div className="relative !mt-6 flex w-full flex-col items-center justify-center gap-2 px-2">
+          <TwitterShareButton
+            url={`https://local.hemant.mom/leaderboard/${allocation}`}
+            title={`I just claimed my rewards on Endur.fi! 🎉\n\nCheck your eligibility and join the leaderboard: ${getEndpoint()} 
+            `}
+            related={["endurfi", "strkfarm", "karnotxyz"]}
+            style={{
+              height: "44px",
+              width: "100%",
+              borderRadius: "8px",
+              backgroundColor: "white",
+              color: "#0C4E3F",
+              fontWeight: "500",
+            }}
+          >
+            Share on X
+          </TwitterShareButton>
+          <Button
+            onClick={onClose}
+            className="h-10 w-full rounded-md bg-transparent px-6 text-sm text-[#DCF6E5]/50 shadow-none transition-all hover:bg-transparent hover:text-[#DCF6E5]"
+          >
+            Close
+          </Button>
+        </div>
       </div>
-    </div>
-  </DialogContent>
-));
+    </DialogContent>
+  );
+});
 TwitterShareModal.displayName = "TwitterShareModal";
 
 // Main Component
@@ -728,8 +731,50 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
     setState((prev) => ({ ...prev, activeModal: "twitterFollow" }));
   }, []);
 
+  const elementRef = React.useRef(null);
+
+  const [dataUrl, setDataUrl] = React.useState("");
+
+  // const htmlToImageConvert = async () => {
+  //   try {
+  //     const dataUrl = await toPng(elementRef.current, { cacheBust: false });
+  //     const link = document.createElement("a");
+  //     link.download = "my-image-name.png";
+  //     link.href = dataUrl;
+  //     console.log(dataUrl, "dataUrl");
+
+  //     setDataUrl(link.href);
+  //     // link.click();
+  //   } catch (err) {
+  //     console.log(err);
+  //   }
+  // };
+
   return (
     <>
+      {/* <div className="">
+        <TwitterShareButton
+          url={getEndpoint()}
+          title={`I just claimed my rewards on Endur.fi! 🎉\n\nCheck your eligibility and join the leaderboard: ${getEndpoint()} \n
+          
+          ${""}
+
+          `}
+          related={["endurfi", "strkfarm", "karnotxyz"]}
+          resource={dataUrl}
+          style={{
+            height: "44px",
+            width: "100%",
+            borderRadius: "8px",
+            backgroundColor: "white",
+            color: "#0C4E3F",
+            fontWeight: "500",
+          }}
+        >
+          Share on X
+        </TwitterShareButton>
+        <Button onClick={htmlToImageConvert}>convert to image</Button>
+      </div> */}
       <Button
         className="bg-[#16876D] hover:bg-[#16876D]"
         onClick={checkEligibility}
