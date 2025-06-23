@@ -9661,9 +9661,9 @@ export const Icons = {
           width="66.6259"
           height="229.791"
           filterUnits="userSpaceOnUse"
-          color-interpolation-filters="sRGB"
+          colorInterpolationFilters="sRGB"
         >
-          <feFlood flood-opacity="0" result="BackgroundImageFix" />
+          <feFlood floodOpacity="0" result="BackgroundImageFix" />
           <feBlend
             mode="normal"
             in="SourceGraphic"
@@ -9696,9 +9696,9 @@ export const Icons = {
           width="214.574"
           height="64.9649"
           filterUnits="userSpaceOnUse"
-          color-interpolation-filters="sRGB"
+          colorInterpolationFilters="sRGB"
         >
-          <feFlood flood-opacity="0" result="BackgroundImageFix" />
+          <feFlood floodOpacity="0" result="BackgroundImageFix" />
           <feBlend
             mode="normal"
             in="SourceGraphic"
@@ -9732,8 +9732,8 @@ export const Icons = {
           y2="240.304"
           gradientUnits="userSpaceOnUse"
         >
-          <stop stop-color="#9069F0" />
-          <stop offset="1" stop-color="#4A14CD" />
+          <stop stopColor="#9069F0" />
+          <stop offset="1" stopColor="#4A14CD" />
         </linearGradient>
         <radialGradient
           id="paint1_radial_197_2"
@@ -9743,8 +9743,8 @@ export const Icons = {
           gradientUnits="userSpaceOnUse"
           gradientTransform="translate(106.012 -90.6354) rotate(65.9041) scale(474.095 415.357)"
         >
-          <stop offset="0.16987" stop-color="#E3DAFB" />
-          <stop offset="0.84654" stop-color="#5A20E9" stop-opacity="0" />
+          <stop offset="0.16987" stopColor="#E3DAFB" />
+          <stop offset="0.84654" stopColor="#5A20E9" stopOpacity="0" />
         </radialGradient>
       </defs>
     </svg>
@@ -9778,9 +9778,9 @@ export const Icons = {
           width="66.6259"
           height="229.791"
           filterUnits="userSpaceOnUse"
-          color-interpolation-filters="sRGB"
+          colorInterpolationFilters="sRGB"
         >
-          <feFlood flood-opacity="0" result="BackgroundImageFix" />
+          <feFlood floodOpacity="0" result="BackgroundImageFix" />
           <feBlend
             mode="normal"
             in="SourceGraphic"
@@ -9813,9 +9813,9 @@ export const Icons = {
           width="214.574"
           height="64.9649"
           filterUnits="userSpaceOnUse"
-          color-interpolation-filters="sRGB"
+          colorInterpolationFilters="sRGB"
         >
-          <feFlood flood-opacity="0" result="BackgroundImageFix" />
+          <feFlood floodOpacity="0" result="BackgroundImageFix" />
           <feBlend
             mode="normal"
             in="SourceGraphic"
@@ -9849,8 +9849,8 @@ export const Icons = {
           y2="240.304"
           gradientUnits="userSpaceOnUse"
         >
-          <stop stop-color="#9069F0" />
-          <stop offset="1" stop-color="#4A14CD" />
+          <stop stopColor="#9069F0" />
+          <stop offset="1" stopColor="#4A14CD" />
         </linearGradient>
         <radialGradient
           id="paint1_radial_198_20"
@@ -9860,8 +9860,8 @@ export const Icons = {
           gradientUnits="userSpaceOnUse"
           gradientTransform="translate(106.012 -90.6354) rotate(65.9041) scale(474.095 415.357)"
         >
-          <stop offset="0.16987" stop-color="#E3DAFB" />
-          <stop offset="0.84654" stop-color="#5A20E9" stop-opacity="0" />
+          <stop offset="0.16987" stopColor="#E3DAFB" />
+          <stop offset="0.84654" stopColor="#5A20E9" stopOpacity="0" />
         </radialGradient>
       </defs>
     </svg>
