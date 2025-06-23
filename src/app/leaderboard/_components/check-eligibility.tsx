@@ -506,7 +506,7 @@ const TwitterShareModal = React.memo<{
         <div className="relative !mt-6 flex w-full flex-col items-center justify-center gap-2 px-2">
           <TwitterShareButton
             url={`https://local.hemant.mom/leaderboard/${allocation}`}
-            title={`I just claimed my rewards on Endur.fi! 🎉\n\nCheck your eligibility and join the leaderboard: ${getEndpoint()} 
+            title={`I just claimed my rewards on Endur.fi! 🎉\n\nCheck your eligibility and join the leaderboard: ${getEndpoint()}
             `}
             related={["endurfi", "strkfarm", "karnotxyz"]}
             style={{
@@ -731,50 +731,8 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
     setState((prev) => ({ ...prev, activeModal: "twitterFollow" }));
   }, []);
 
-  const elementRef = React.useRef(null);
-
-  const [dataUrl, setDataUrl] = React.useState("");
-
-  // const htmlToImageConvert = async () => {
-  //   try {
-  //     const dataUrl = await toPng(elementRef.current, { cacheBust: false });
-  //     const link = document.createElement("a");
-  //     link.download = "my-image-name.png";
-  //     link.href = dataUrl;
-  //     console.log(dataUrl, "dataUrl");
-
-  //     setDataUrl(link.href);
-  //     // link.click();
-  //   } catch (err) {
-  //     console.log(err);
-  //   }
-  // };
-
   return (
     <>
-      {/* <div className="">
-        <TwitterShareButton
-          url={getEndpoint()}
-          title={`I just claimed my rewards on Endur.fi! 🎉\n\nCheck your eligibility and join the leaderboard: ${getEndpoint()} \n
-          
-          ${""}
-
-          `}
-          related={["endurfi", "strkfarm", "karnotxyz"]}
-          resource={dataUrl}
-          style={{
-            height: "44px",
-            width: "100%",
-            borderRadius: "8px",
-            backgroundColor: "white",
-            color: "#0C4E3F",
-            fontWeight: "500",
-          }}
-        >
-          Share on X
-        </TwitterShareButton>
-        <Button onClick={htmlToImageConvert}>convert to image</Button>
-      </div> */}
       <Button
         className="bg-[#16876D] hover:bg-[#16876D]"
         onClick={checkEligibility}

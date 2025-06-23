@@ -2,8 +2,8 @@ import React from "react";
 
 const SvgSkeleton = () => (
   <svg
-    width="600"
-    height="400"
+    width="1200"
+    height="630"
     viewBox="0 0 1920 1080"
     fill="none"
     xmlns="http://www.w3.org/2000/svg"
@@ -2022,19 +2022,36 @@ const SvgSkeleton = () => (
 
 export const PreviewImage = ({ allocation }: { allocation: string }) => {
   return (
-    <div className="relative h-[350px] w-[600px]">
-      <p className="absolute left-[3%] top-[35%] font-figTree text-3xl font-bold text-[#26D284]">
-        {Number(allocation).toFixed(1)} xSTRK
-      </p>
-      <div className="h-[500px] w-[600px]">
-        {/* <Image
-          src="/leaderboard/endur.png"
-          width={600}
-          height={500}
-          alt="Leaderboard Endurance Reward Share"
-          className="rounded-lg"
-        /> */}
+    <div
+      style={{
+        position: "relative",
+        display: "flex",
+        height: "100%",
+        width: "100%",
+        borderRadius: "12px",
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+        }}
+      >
         <SvgSkeleton />
+
+        <span
+          style={{
+            position: "absolute",
+            left: "2.8%",
+            top: "36.6%",
+            display: "flex",
+            fontFamily: "FigTree, sans-serif",
+            fontSize: "3.4rem",
+            fontWeight: "bold",
+            color: "#26D284",
+          }}
+        >
+          {Number(allocation).toFixed(1)} xSTRK
+        </span>
       </div>
     </div>
   );

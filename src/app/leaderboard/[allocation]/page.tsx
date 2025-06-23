@@ -1,8 +1,8 @@
-import { PreviewImage } from "@/components/preview";
+// import { redirect } from "next/navigation";
 
 function Allocation() {
   // redirect("/leaderboard");
-  return <PreviewImage allocation="2424" />;
+  return <div>hello world</div>;
 }
 
 export default Allocation;
