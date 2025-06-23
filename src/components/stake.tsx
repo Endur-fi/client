@@ -378,8 +378,11 @@ const Stake: React.FC = () => {
           STRK_TOKEN,
           strkToSwap,
           LST_ADDRRESS,
-          expectedXStrk,
-          expectedXStrk,
+          0,
+          expectedXStrk
+            .operate("multipliedBy", 99)
+            .operate("div", 100)
+            .toString(),
           address,
           BigInt(3),
           RECEPIEINT_FEE_ADDRESS,
@@ -391,29 +394,32 @@ const Stake: React.FC = () => {
           EKUBO_STRKFARM_VAULT_ADDRESS,
         );
 
-        const approveStrkToVault = strkFarmContract.populate("approve", [
+        const approveStrkToVault = strkContract.populate("approve", [
           EKUBO_STRKFARM_VAULT_ADDRESS,
           remainingStrk.toString(),
         ]);
 
-        const approveXStrkToVault = strkFarmContract.populate("approve", [
+        const approveXStrkToVault = lstContract.populate("approve", [
           EKUBO_STRKFARM_VAULT_ADDRESS,
           expectedXStrk.toString(),
         ]);
 
         const depositToVault = strkFarmContract.populate("deposit", [
-          remainingStrk.toString(),
           expectedXStrk.toString(),
+          remainingStrk.toString(),
           address,
         ]);
 
-        calls.push(
-          approveStrkAvnuCall,
-          swapCall,
-          approveStrkToVault,
-          approveXStrkToVault,
-          depositToVault,
-        );
+        if (!strkToSwap.isZero()) {
+          calls.push(approveStrkAvnuCall, swapCall);
+        }
+        if (!remainingStrk.isZero()) {
+          calls.push(approveStrkToVault);
+        }
+        if (!expectedXStrk.isZero()) {
+          calls.push(approveXStrkToVault);
+        }
+        calls.push(depositToVault);
       } else {
         const nostraContract = new Contract(ixstrkAbi, NOSTRA_iXSTRK_ADDRESS);
         const lendingCall = nostraContract.populate("mint", [
@@ -504,13 +510,20 @@ const Stake: React.FC = () => {
             return null;
           }
 
+          const yieldApy = yieldData?.value ?? 0;
+          const baseApy = apy.value;
+
+          const netApy = yieldApy + baseApy * 100;
+
+          if (netApy <= 0) return null;
+
           return (
             <PlatformCard
               key={platform}
               name={config.name}
               icon={config.icon}
-              apy={yieldData?.value ?? 0}
-              baseApy={apy.value}
+              apy={yieldApy}
+              baseApy={baseApy}
               xstrkLent={yieldData?.totalSupplied ?? 0}
               isSelected={selectedPlatform === platform}
               onClick={() =>
@@ -708,15 +721,13 @@ const Stake: React.FC = () => {
             </TooltipProvider>
           </div>
           <CollapsibleContent className="mt-2">
-            <div className="flex flex-wrap items-center gap-2">
-              <PlatformList
-                sortedPlatforms={sortedPlatforms}
-                yields={yields}
-                apy={apy}
-                selectedPlatform={selectedPlatform}
-                setSelectedPlatform={setSelectedPlatform}
-              />
-            </div>
+            <PlatformList
+              sortedPlatforms={sortedPlatforms}
+              yields={yields}
+              apy={apy}
+              selectedPlatform={selectedPlatform}
+              setSelectedPlatform={setSelectedPlatform}
+            />
           </CollapsibleContent>
         </Collapsible>
       </div>
