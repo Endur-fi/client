@@ -505,7 +505,7 @@ const TwitterShareModal = React.memo<{
 
         <div className="relative !mt-6 flex w-full flex-col items-center justify-center gap-2 px-2">
           <TwitterShareButton
-            url={`https://local.hemant.mom/leaderboard/${allocation}`}
+            url={`https://staging.endur.fi/leaderboard/${allocation}`}
             title={`I just claimed my rewards on Endur.fi! 🎉\n\nCheck your eligibility and join the leaderboard: ${getEndpoint()}
             `}
             related={["endurfi", "strkfarm", "karnotxyz"]}
