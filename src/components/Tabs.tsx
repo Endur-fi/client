@@ -218,11 +218,11 @@ const Tabs = () => {
         >
           Made with 💚 by{" "}
           <Link
-            href="https://strkfarm.com"
+            href="https://troves.com"
             target="_blank"
             className="mx-1 cursor-pointer font-semibold hover:underline"
           >
-            STRKFarm
+            Troves
           </Link>{" "}
           and{" "}
           <Link

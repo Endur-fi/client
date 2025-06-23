@@ -17,9 +17,9 @@ import { userAddressAtom } from "@/store/common.store";
 import { userEkuboxSTRKPositions } from "@/store/ekubo.store";
 import { userHaikoBalanceAtom } from "@/store/haiko.store";
 import { userxSTRKNostraBalance } from "@/store/nostra.store";
-import { uservXSTRKBalanceAtom } from "@/store/vesu.store";
-import { getSTRKFarmBalanceAtom } from "@/store/strkfarm.store";
 import { userOpusBalanceAtom } from "@/store/opus.store";
+import { getSTRKFarmBalanceAtom } from "@/store/strkfarm.store";
+import { uservXSTRKBalanceAtom } from "@/store/vesu.store";
 
 export const chartConfig = {
   // holdings: {
@@ -56,7 +56,7 @@ export const chartConfig = {
     fillColor: "rgba(106, 138, 81, 1)",
   },
   strkfarm: {
-    label: "STRKFarm",
+    label: "Troves",
     color: "rgba(88, 45, 196, 1)",
     fillColor: "rgba(88, 45, 196, 0.8)",
   },
