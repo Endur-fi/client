@@ -97,7 +97,7 @@ export function getProtocolType(protocolName: string) {
       return "dex";
     case "vesuu":
       return "lend";
-    case "strkfarm":
+    case "troves":
       return "strategies";
   }
 }
@@ -135,7 +135,7 @@ export const columns: ColumnDef<ProtocolConfig>[] = [
           option === "ekubo" ||
           option === "nostra" ||
           option === "vesuu" ||
-          option === "strkfarm",
+          option === "troves",
       ) as string[];
 
       const hasDexLendOptions = dexLendOptions.length > 0;
