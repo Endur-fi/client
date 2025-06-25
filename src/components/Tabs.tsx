@@ -218,11 +218,11 @@ const Tabs = () => {
         >
           Made with 💚 by{" "}
           <Link
-            href="https://troves.com"
+            href="https://unwraplabs.com"
             target="_blank"
             className="mx-1 cursor-pointer font-semibold hover:underline"
           >
-            Troves
+            Unwrap Labs
           </Link>{" "}
           and{" "}
           <Link

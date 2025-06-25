@@ -90,7 +90,7 @@ export type Platform = "none" | "vesu" | "nostraLending" | "strkfarmEkubo";
 const PLATFORMS = {
   VESU: "vesu",
   NOSTRA: "nostraLending",
-  STRKFARM_EKUBO: "strkfarmEkubo",
+  // STRKFARM_EKUBO: "strkfarmEkubo",
 } as const;
 
 const PLATFORM_CONFIG = {
@@ -346,9 +346,11 @@ const Stake: React.FC = () => {
 
   const sortPlatforms = (platforms: string[], yields: any) => {
     const regularPlatforms = platforms.filter(
+      // @ts-ignore
       (p) => p !== PLATFORMS.STRKFARM_EKUBO,
     );
     const strkfarmPlatform = platforms.find(
+      // @ts-ignore
       (p) => p === PLATFORMS.STRKFARM_EKUBO,
     );
 
@@ -360,6 +362,7 @@ const Stake: React.FC = () => {
 
     if (!strkfarmPlatform) return sortedRegular;
 
+    // @ts-ignore
     const strkfarmAPY = yields[PLATFORMS.STRKFARM_EKUBO]?.value || 0;
     const highestRegularAPY =
       sortedRegular.length > 0 ? yields[sortedRegular[0]]?.value || 0 : 0;
