@@ -35,6 +35,8 @@ export const GET_USER_COMPLETE_DETAILS = gql`
         dex_bonus_points
       }
       allocation
+      merkle_root
+      proof
       tags {
         early_adopter
       }

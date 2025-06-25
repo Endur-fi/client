@@ -1,6 +1,6 @@
 /* eslint-disable no-spaced-func */
 
-import { useAccount } from "@starknet-react/core";
+import { useAccount, useSendTransaction } from "@starknet-react/core";
 import { Gift, Loader2 } from "lucide-react";
 import { Figtree } from "next/font/google";
 import Image from "next/image";
@@ -8,6 +8,8 @@ import Link from "next/link";
 import React from "react";
 import { TwitterShareButton } from "react-share";
 
+import erc4626Abi from "@/abi/erc4626.abi.json";
+import merkleAbi from "@/abi/merkle.abi.json";
 import { Icons } from "@/components/Icons";
 import { Button } from "@/components/ui/button";
 import {
@@ -20,19 +22,28 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
-import { getEndpoint, LEADERBOARD_ANALYTICS_EVENTS } from "@/constants";
+import {
+  getEndpoint,
+  getProvider,
+  LEADERBOARD_ANALYTICS_EVENTS,
+  MERKLE_CONTRACT_ADDRESS,
+  STRK_DECIMALS,
+  STRK_TOKEN,
+} from "@/constants";
 import { UPDATE_USER_POINTS } from "@/constants/mutations";
 import { GET_USER_COMPLETE_DETAILS } from "@/constants/queries";
 import { toast } from "@/hooks/use-toast";
 import { MyAnalytics } from "@/lib/analytics";
 import { checkSubscription, subscribeUser } from "@/lib/api";
 import apolloClient from "@/lib/apollo-client";
+import MyNumber from "@/lib/MyNumber";
 import {
   cn,
   formatNumberWithCommas,
   standariseAddress,
   validateEmail,
 } from "@/lib/utils";
+import { Contract, uint256 } from "starknet";
 
 const font = Figtree({ subsets: ["latin-ext"] });
 const IS_FEE_REBATES_REWARDS_PAUSED =
@@ -55,6 +66,8 @@ export interface UserCompleteDetailsApiResponse {
     dex_bonus_points: bigint;
   };
   allocation: string;
+  merkle_root: string;
+  proof: string;
   tags: {
     early_adopter: boolean;
   };
@@ -552,6 +565,8 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
   const eligibilityData = useEligibilityData(userCompleteInfo?.allocation);
   const { userExists, checkingUser } = useUserSubscriptionCheck(address);
 
+  const { sendAsync } = useSendTransaction({});
+
   const handleEmailChange = React.useCallback((email: string) => {
     setState((prev) => ({ ...prev, emailInput: email }));
   }, []);
@@ -723,9 +738,53 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
     }));
   }, [state.isEligible]);
 
-  const goToTwitterShare = React.useCallback(() => {
+  const handleClaim = async () => {
+    if (!address) return;
+
+    const provider = getProvider();
+
+    const strkContract = new Contract(erc4626Abi, STRK_TOKEN);
+
+    const merkleContract = new Contract(
+      merkleAbi,
+      MERKLE_CONTRACT_ADDRESS,
+      provider,
+    );
+
+    const allocation = userCompleteInfo?.allocation;
+    const proofs = userCompleteInfo?.proof
+      ? JSON.parse(userCompleteInfo?.proof)
+      : [];
+
+    if (!allocation || !proofs || proofs.length === 0) {
+      alert("No allocation or proof found.");
+      return;
+    }
+
+    // approve the merkle contract to spend STRK tokens
+    const allocationWei = MyNumber.fromEther(
+      allocation,
+      STRK_DECIMALS,
+    ).toString();
+
+    const approveCall = strkContract.populate("approve", [
+      MERKLE_CONTRACT_ADDRESS,
+      uint256.bnToUint256(allocationWei),
+    ]);
+
+    // call claim with allocation and any proof (use first proof)
+    const claimCall = merkleContract.populate("claim", [
+      allocation.toString(),
+      proofs,
+    ]);
+
+    const claimRes = await sendAsync([approveCall, claimCall]);
+
+    console.log("claim response:", claimRes);
+
+    // if claimed successfully, update the state
     setState((prev) => ({ ...prev, activeModal: "twitterShare" }));
-  }, []);
+  };
 
   const handleSkip = React.useCallback(() => {
     setState((prev) => ({ ...prev, activeModal: "twitterFollow" }));
@@ -774,7 +833,7 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
         <ClaimModal
           allocation={state.allocation}
           onBack={goToTwitterFollow}
-          claimRewards={goToTwitterShare}
+          claimRewards={handleClaim}
           isFollowed={state.isFollowed}
         />
       </Dialog>

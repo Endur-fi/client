@@ -1,5 +1,8 @@
 import { constants, RpcProvider } from "starknet";
 
+export const MERKLE_CONTRACT_ADDRESS =
+  "0x0620325f0dfe1a31b06126af8612fe762f9dcab79960ce23ac734ff93ddf6c64"; // TODO: Replace with mainnet deployed contract address
+
 export const STRK_TOKEN =
   "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d" as const;
 export const ETH_TOKEN =
