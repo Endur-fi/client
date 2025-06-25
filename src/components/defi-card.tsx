@@ -3,8 +3,8 @@ import React from "react";
 
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { cn } from "@/lib/utils";
 import MyNumber from "@/lib/MyNumber";
+import { cn } from "@/lib/utils";
 
 export interface TokenDisplay {
   icon: React.ReactNode;

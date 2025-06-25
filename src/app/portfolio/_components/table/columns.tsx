@@ -33,7 +33,9 @@ export function getPortfolioDAppAsset(row: { original: ProtocolConfig }) {
   return (
     <div className="flex min-w-[280px] items-center gap-4 py-3">
       <div className="flex items-center -space-x-2">
-        {row.original.tokens.map((t, _idx) => t.icon)}
+        {row.original.tokens.map((t, _idx) => (
+          <React.Fragment key={_idx}>{t.icon}</React.Fragment>
+        ))}
       </div>
       <p className="flex flex-col items-start gap-0.5 text-sm text-black/90">
         {row.original.tokens.map((t) => t.name).join("/")}
@@ -97,7 +99,7 @@ export function getProtocolType(protocolName: string) {
       return "dex";
     case "vesuu":
       return "lend";
-    case "strkfarm":
+    case "troves":
       return "strategies";
   }
 }
@@ -135,7 +137,7 @@ export const columns: ColumnDef<ProtocolConfig>[] = [
           option === "ekubo" ||
           option === "nostra" ||
           option === "vesuu" ||
-          option === "strkfarm",
+          option === "troves",
       ) as string[];
 
       const hasDexLendOptions = dexLendOptions.length > 0;

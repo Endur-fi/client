@@ -2,13 +2,14 @@
 
 import { useAccount } from "@starknet-react/core";
 import { useAtomValue } from "jotai";
-import React, { useEffect } from "react";
+import React from "react";
 
 import { BlockInfo } from "@/app/api/holdings/[address]/[nDays]/route";
 import { ProtocolConfig, protocolConfigs } from "@/components/defi";
 import { useSidebar } from "@/components/ui/sidebar";
 import { STRK_DECIMALS } from "@/constants";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { MyAnalytics } from "@/lib/analytics";
 import MyNumber from "@/lib/MyNumber";
 import { cn, formatNumberWithCommas } from "@/lib/utils";
 import {
@@ -28,7 +29,6 @@ import {
   getPortfolioDAppAsset,
 } from "./table/columns";
 import { DataTable } from "./table/data-table";
-import { MyAnalytics } from "@/lib/analytics";
 
 export type HoldingInfo = {
   date: string;
@@ -202,7 +202,7 @@ const PortfolioPage: React.FC = () => {
     return summary;
   }, [holdings]);
 
-  useEffect(() => {
+  React.useEffect(() => {
     MyAnalytics.track("Open Portfolio", {});
   }, []);
 
