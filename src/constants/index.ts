@@ -1,7 +1,10 @@
 import { constants, RpcProvider } from "starknet";
 
-export const MERKLE_CONTRACT_ADDRESS =
-  "0x0620325f0dfe1a31b06126af8612fe762f9dcab79960ce23ac734ff93ddf6c64"; // TODO: Replace with mainnet deployed contract address
+export const MERKLE_CONTRACT_ADDRESS_SEPOLIA =
+  "0x0620325f0dfe1a31b06126af8612fe762f9dcab79960ce23ac734ff93ddf6c64";
+
+export const MERKLE_CONTRACT_ADDRESS_MAINNET =
+  "0x683a3cc80b6035cef7e3d8b2877610804e52ac0da8461e9ead360ff13a36211";
 
 export const STRK_TOKEN =
   "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d" as const;

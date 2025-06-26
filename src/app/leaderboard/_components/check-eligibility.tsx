@@ -7,9 +7,8 @@ import Image from "next/image";
 import Link from "next/link";
 import React from "react";
 import { TwitterShareButton } from "react-share";
-import { Contract, uint256 } from "starknet";
+import { Contract } from "starknet";
 
-import erc4626Abi from "@/abi/erc4626.abi.json";
 import merkleAbi from "@/abi/merkle.abi.json";
 import { Icons } from "@/components/Icons";
 import { Button } from "@/components/ui/button";
@@ -27,8 +26,7 @@ import {
   getEndpoint,
   getProvider,
   LEADERBOARD_ANALYTICS_EVENTS,
-  LST_ADDRRESS,
-  MERKLE_CONTRACT_ADDRESS,
+  MERKLE_CONTRACT_ADDRESS_MAINNET,
   STRK_DECIMALS,
 } from "@/constants";
 import { UPDATE_USER_POINTS } from "@/constants/mutations";
@@ -645,10 +643,9 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
   const contracts = React.useMemo(() => {
     const provider = getProvider();
     return {
-      xSTRKContract: new Contract(erc4626Abi, LST_ADDRRESS),
       merkleContract: new Contract(
         merkleAbi,
-        MERKLE_CONTRACT_ADDRESS,
+        MERKLE_CONTRACT_ADDRESS_MAINNET,
         provider,
       ),
     };
@@ -854,10 +851,10 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
   const handleClaim = React.useCallback(async () => {
     if (!address) return;
 
-    const { xSTRKContract, merkleContract } = contracts;
+    const { merkleContract } = contracts;
 
     const allocation = userCompleteInfo?.allocation;
-    const proofs = userCompleteInfo?.proof
+    const proofs: string[] = userCompleteInfo?.proof
       ? JSON.parse(userCompleteInfo?.proof)
       : [];
 
@@ -867,24 +864,20 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
     }
 
     try {
-      // approve the merkle contract to spend STRK tokens
       const allocationWei = MyNumber.fromEther(
-        allocation,
+        Number(allocation).toString(),
         STRK_DECIMALS,
       ).toString();
 
-      const approveCall = xSTRKContract.populate("approve", [
-        MERKLE_CONTRACT_ADDRESS,
-        uint256.bnToUint256(allocationWei),
-      ]);
+      console.log(proofs, "proofs");
 
       // call claim with allocation and any proof (use first proof)
       const claimCall = merkleContract.populate("claim", [
-        allocation.toString(),
+        allocationWei,
         proofs,
       ]);
 
-      const claimRes = await sendAsync([approveCall, claimCall]);
+      const claimRes = await sendAsync([claimCall]);
 
       console.log("claim response:", claimRes);
 
@@ -925,6 +918,8 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
           address,
         ]);
         const amountInSTRK = Number(res) / 10 ** STRK_DECIMALS;
+
+        console.log(amountInSTRK, "amountInSTRK");
 
         setState((prev) => ({
           ...prev,
