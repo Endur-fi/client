@@ -100,6 +100,8 @@ interface EligibilityState {
   isSubmitting: boolean;
   isFollowClicked: boolean;
   isFollowed: boolean;
+  hasAlreadyClaimed: boolean;
+  isCheckingClaimed: boolean;
 }
 
 interface CheckEligibilityProps {
@@ -626,6 +628,8 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
     isSubmitting: false,
     isFollowClicked: false,
     isFollowed: false,
+    hasAlreadyClaimed: false,
+    isCheckingClaimed: false,
   }));
 
   const { address } = useAccount();
@@ -800,6 +804,11 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
       return;
     }
 
+    if (state.hasAlreadyClaimed) {
+      toast({ description: "You have already claimed your rewards." });
+      return;
+    }
+
     trackAnalyticsCallback(
       LEADERBOARD_ANALYTICS_EVENTS.ELIGIBILITY_CHECK_CLICKED,
       {
@@ -820,7 +829,12 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
       isEligible,
       activeModal: "subscribe",
     }));
-  }, [address, eligibilityData, trackAnalyticsCallback]);
+  }, [
+    address,
+    eligibilityData,
+    trackAnalyticsCallback,
+    state.hasAlreadyClaimed,
+  ]);
 
   const closeModal = React.useCallback(() => {
     setState((prev) => ({ ...prev, activeModal: null }));
@@ -892,14 +906,65 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
     setState((prev) => ({ ...prev, activeModal: "twitterFollow" }));
   }, []);
 
+  React.useEffect(() => {
+    const checkClaimedAmount = async () => {
+      if (!address) {
+        setState((prev) => ({
+          ...prev,
+          hasAlreadyClaimed: false,
+          isCheckingClaimed: false,
+        }));
+        return;
+      }
+
+      setState((prev) => ({ ...prev, isCheckingClaimed: true }));
+
+      try {
+        const { merkleContract } = contracts;
+        const res = await merkleContract.call("amount_already_claimed", [
+          address,
+        ]);
+        const amountInSTRK = Number(res) / 10 ** STRK_DECIMALS;
+
+        setState((prev) => ({
+          ...prev,
+          hasAlreadyClaimed: amountInSTRK > 0,
+          isCheckingClaimed: false,
+        }));
+      } catch (error) {
+        console.error("Error checking claimed amount:", error);
+        setState((prev) => ({
+          ...prev,
+          hasAlreadyClaimed: false,
+          isCheckingClaimed: false,
+        }));
+      }
+    };
+
+    checkClaimedAmount();
+  }, [address, contracts]);
+
+  const buttonState = React.useMemo(() => {
+    if (state.isCheckingClaimed) {
+      return { disabled: true, text: "Checking..." };
+    }
+    if (state.hasAlreadyClaimed) {
+      return { disabled: true, text: "Already claimed" };
+    }
+    if (isLoading) {
+      return { disabled: true, text: "Checking..." };
+    }
+    return { disabled: false, text: "Check eligibility" };
+  }, [state.isCheckingClaimed, state.hasAlreadyClaimed, isLoading]);
+
   return (
     <div>
       <Button
         className="bg-[#16876D] hover:bg-[#16876D]"
         onClick={checkEligibility}
-        disabled={isLoading}
+        disabled={buttonState.disabled}
       >
-        {isLoading ? "Checking..." : "Check eligibility"}
+        {buttonState.text}
       </Button>
 
       <Dialog
