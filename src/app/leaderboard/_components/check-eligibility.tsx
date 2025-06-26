@@ -7,6 +7,7 @@ import Image from "next/image";
 import Link from "next/link";
 import React from "react";
 import { TwitterShareButton } from "react-share";
+import { Contract, uint256 } from "starknet";
 
 import erc4626Abi from "@/abi/erc4626.abi.json";
 import merkleAbi from "@/abi/merkle.abi.json";
@@ -26,9 +27,9 @@ import {
   getEndpoint,
   getProvider,
   LEADERBOARD_ANALYTICS_EVENTS,
+  LST_ADDRRESS,
   MERKLE_CONTRACT_ADDRESS,
   STRK_DECIMALS,
-  STRK_TOKEN,
 } from "@/constants";
 import { UPDATE_USER_POINTS } from "@/constants/mutations";
 import { GET_USER_COMPLETE_DETAILS } from "@/constants/queries";
@@ -43,7 +44,6 @@ import {
   standariseAddress,
   validateEmail,
 } from "@/lib/utils";
-import { Contract, uint256 } from "starknet";
 
 const font = Figtree({ subsets: ["latin-ext"] });
 const IS_FEE_REBATES_REWARDS_PAUSED =
@@ -245,7 +245,7 @@ const EligibilityModal = React.memo<{
       )}
     >
       <div className="relative w-full">
-        <ProgressHeader step="Step 1 of 3" percentage={33} />
+        <ProgressHeader step="Step 1 of 4" percentage={25} />
         <DialogHeader>
           <div className="flex w-full items-center justify-center">
             <Image
@@ -335,7 +335,7 @@ const TwitterFollowModal = React.memo<{
     )}
   >
     <div className="relative w-full">
-      <ProgressHeader step="Step 2 of 3" percentage={67} />
+      <ProgressHeader step="Step 2 of 4" percentage={50} />
       <DialogHeader>
         <div className="flex w-full items-center justify-center">
           <Image
@@ -402,7 +402,7 @@ const ClaimModal = React.memo<{
     )}
   >
     <div className="relative w-full">
-      <ProgressHeader step="Step 3 of 3" percentage={67} />
+      <ProgressHeader step="Step 3 of 4" percentage={75} />
       <DialogHeader>
         <div className="flex w-full items-center justify-center">
           <Image
@@ -500,7 +500,7 @@ const TwitterShareModal = React.memo<{
       )}
     >
       <div className="relative w-full">
-        <ProgressHeader step="Step 3 of 3" percentage={100} />
+        <ProgressHeader step="Step 4 of 4" percentage={100} />
         <DialogHeader>
           <div className="flex w-full items-center justify-center">
             <Image
@@ -743,7 +743,7 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
 
     const provider = getProvider();
 
-    const strkContract = new Contract(erc4626Abi, STRK_TOKEN);
+    const xSTRKContract = new Contract(erc4626Abi, LST_ADDRRESS);
 
     const merkleContract = new Contract(
       merkleAbi,
@@ -767,7 +767,7 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
       STRK_DECIMALS,
     ).toString();
 
-    const approveCall = strkContract.populate("approve", [
+    const approveCall = xSTRKContract.populate("approve", [
       MERKLE_CONTRACT_ADDRESS,
       uint256.bnToUint256(allocationWei),
     ]);
