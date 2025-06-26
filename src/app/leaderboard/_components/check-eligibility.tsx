@@ -46,6 +46,7 @@ import {
 } from "@/lib/utils";
 
 const font = Figtree({ subsets: ["latin-ext"] });
+
 const IS_FEE_REBATES_REWARDS_PAUSED =
   process.env.NEXT_PUBLIC_IS_FEE_REBATES_REWARDS_PAUSED === "true";
 const TELEGRAM_LINK = "http://endur.fi/tg";
@@ -53,6 +54,16 @@ const DEADLINE_DATE = "22nd Jun, 2025";
 const CLAIMS_OPEN_DATE = "30th Jun, 2025";
 const TWITTER_FOLLOW_DELAY = 10000;
 const BONUS_POINTS = 1000;
+
+const MODAL_CONTENT_CLASSES = cn(
+  font.className,
+  "border-0 bg-[#0C4E3F] px-3 pb-8 pt-12 sm:max-w-[480px] md:px-8",
+);
+
+const BUTTON_PRIMARY_CLASSES =
+  "h-12 w-full rounded-md bg-white text-[#0C4E3F] hover:bg-white hover:text-[#0C4E3F]";
+const BUTTON_SECONDARY_CLASSES =
+  "h-10 w-full rounded-md bg-transparent px-6 text-sm text-[#DCF6E5]/50 shadow-none transition-all hover:bg-transparent hover:text-[#DCF6E5]";
 
 export interface UserCompleteDetailsApiResponse {
   user_address: string;
@@ -167,56 +178,69 @@ const RewardSummary = React.memo<{
   showBonus?: boolean;
   isFollowed?: boolean;
   allocation: string | null;
-}>(({ showBonus = false, isFollowed = false, allocation }) => {
-  return (
-    <div className="px-2">
-      <div className="!mt-5 w-full rounded-lg bg-[#17876D]/30 px-4 py-3">
-        <p className="text-base font-bold text-white">
-          {showBonus ? "Rewards Claimed" : "Reward Summary"}
-        </p>
-        <div className="mt-2 flex items-center justify-between text-sm text-white">
-          <p className="flex items-center gap-1.5">
-            <Icons.feeRebateIcon className="text-[#DFDFEC]" />
-            Fee Rebates
+  bonusAlreadyAwarded?: boolean;
+}>(
+  ({
+    showBonus = false,
+    isFollowed = false,
+    allocation,
+    bonusAlreadyAwarded = false,
+  }) => {
+    return (
+      <div className="px-2">
+        <div className="!mt-5 w-full rounded-lg bg-[#17876D]/30 px-4 py-3">
+          <p className="text-base font-bold text-white">
+            {showBonus ? "Rewards Claimed" : "Reward Summary"}
           </p>
-          <span className="font-semibold">
-            {Number(allocation).toFixed(2)} xSTRK
-          </span>
-        </div>
-        {showBonus && (
           <div className="mt-2 flex items-center justify-between text-sm text-white">
             <p className="flex items-center gap-1.5">
-              <Icons.sparklingStar className="size-4 text-[#DFDFEC]" />
-              Bonus Points
+              <Icons.feeRebateIcon className="text-[#DFDFEC]" />
+              Fee Rebates
             </p>
             <span className="font-semibold">
-              {BONUS_POINTS.toLocaleString()}
+              {Number(allocation).toFixed(2)} xSTRK
             </span>
+          </div>
+          {showBonus && (
+            <div className="mt-2 flex items-center justify-between text-sm text-white">
+              <p className="flex items-center gap-1.5">
+                <Icons.sparklingStar className="size-4 text-[#DFDFEC]" />
+                Bonus Points
+              </p>
+              <span className="font-semibold">
+                {BONUS_POINTS.toLocaleString()}
+              </span>
+            </div>
+          )}
+        </div>
+        {!showBonus && (
+          <div className="!mt-6 w-full space-y-2 text-sm text-white">
+            <div className="flex w-full items-center gap-2">
+              <Icons.rightCircle className="text-[#2ACF83]" />
+              Email verified and saved
+            </div>
+            <div className="flex w-full items-center gap-2">
+              {isFollowed || bonusAlreadyAwarded ? (
+                <Icons.rightCircle className="text-[#2ACF83]" />
+              ) : (
+                <Icons.wrongCircle className="text-[#F8623F]" />
+              )}
+              {isFollowed || bonusAlreadyAwarded
+                ? `X account followed - earned bonus ${BONUS_POINTS} points`
+                : `X account not followed - missed bonus ${BONUS_POINTS} points`}
+            </div>
           </div>
         )}
       </div>
-      {!showBonus && (
-        <div className="!mt-6 w-full space-y-2 text-sm text-white">
-          <div className="flex w-full items-center gap-2">
-            <Icons.rightCircle className="text-[#2ACF83]" />
-            Email verified and saved
-          </div>
-          <div className="flex w-full items-center gap-2">
-            {isFollowed ? (
-              <Icons.rightCircle className="text-[#2ACF83]" />
-            ) : (
-              <Icons.wrongCircle className="text-[#F8623F]" />
-            )}
-            {isFollowed
-              ? `X account followed - earned bonus ${BONUS_POINTS} points`
-              : `X account not followed - missed bonus ${BONUS_POINTS} points`}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-});
+    );
+  },
+);
 RewardSummary.displayName = "RewardSummary";
+
+const ModalOverlay = React.memo(() => (
+  <DialogOverlay className="bg-white/20 backdrop-blur-sm" />
+));
+ModalOverlay.displayName = "ModalOverlay";
 
 // Modal Components
 const EligibilityModal = React.memo<{
@@ -237,13 +261,7 @@ const EligibilityModal = React.memo<{
     checkingUser,
     onSkip,
   }) => (
-    <DialogContent
-      hideCloseIcon
-      className={cn(
-        font.className,
-        "border-0 bg-[#0C4E3F] px-3 pb-8 pt-12 sm:max-w-[480px] md:px-8",
-      )}
-    >
+    <DialogContent hideCloseIcon className={MODAL_CONTENT_CLASSES}>
       <div className="relative w-full">
         <ProgressHeader step="Step 1 of 4" percentage={25} />
         <DialogHeader>
@@ -283,13 +301,10 @@ const EligibilityModal = React.memo<{
           <Button
             onClick={onNext}
             disabled={isSubmitting || (checkingUser && !userExists)}
-            className={cn(
-              "h-12 w-full rounded-md bg-white px-6 text-sm text-black transition-all hover:bg-white hover:text-black disabled:bg-[#F1F7F6]/30 disabled:text-white disabled:opacity-100",
-              {
-                "disabled:bg-white disabled:text-black disabled:opacity-50":
-                  isSubmitting,
-              },
-            )}
+            className={cn(BUTTON_PRIMARY_CLASSES, {
+              "disabled:bg-white disabled:text-black disabled:opacity-50":
+                isSubmitting,
+            })}
           >
             {checkingUser
               ? "Checking..."
@@ -301,7 +316,7 @@ const EligibilityModal = React.memo<{
           </Button>
           <Button
             onClick={onSkip}
-            className="h-6 w-full rounded-md bg-transparent px-6 text-sm text-[#DCF6E5]/50 shadow-none transition-all hover:bg-transparent hover:text-[#DCF6E5]"
+            className={cn(BUTTON_SECONDARY_CLASSES, "h-5")}
           >
             Skip
           </Button>
@@ -388,12 +403,62 @@ const TwitterFollowModal = React.memo<{
 ));
 TwitterFollowModal.displayName = "TwitterFollowModal";
 
+const FollowBonusAlreadyAwardedModal = React.memo<{ onContinue: () => void }>(
+  ({ onContinue }) => (
+    <DialogContent
+      hideCloseIcon
+      className={cn(
+        font.className,
+        "border-0 bg-[#0C4E3F] px-3 pb-8 pt-12 sm:max-w-[480px] md:px-8",
+      )}
+    >
+      <div className="relative w-full">
+        <ProgressHeader step="Step 2 of 4" percentage={50} />
+        <DialogHeader>
+          <div className="flex w-full items-center justify-center">
+            <Image
+              src="/leaderboard/twitter_modal.svg"
+              width={266}
+              height={290}
+              alt="twitter follow illustration"
+            />
+          </div>
+          <DialogTitle className="!mt-8 text-center text-3xl font-semibold text-white">
+            Boost your experience
+          </DialogTitle>
+          <DialogDescription className="!mt-2 text-center text-sm font-normal text-[#DCF6E5]">
+            Join our community for exclusive updates and bonus rewards!
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="mt-5 flex w-full items-center justify-center">
+          <Button className="h-10 w-fit cursor-default rounded-md bg-[#17876D]/30 font-dmSans text-base font-semibold text-white shadow-lg hover:bg-[#17876D]/30">
+            <Icons.sparklingStar className="size-12 text-[#FAFAFA]" />
+            {BONUS_POINTS.toLocaleString()} bonus points already awarded !
+          </Button>
+        </div>
+
+        <div className="relative !mt-6 flex w-full flex-col items-center justify-center gap-2 px-2">
+          <Button
+            onClick={onContinue}
+            className="h-10 w-full rounded-md bg-white text-[#0C4E3F] hover:bg-white hover:text-[#0C4E3F]"
+          >
+            Continue to rewards
+          </Button>
+        </div>
+      </div>
+    </DialogContent>
+  ),
+);
+FollowBonusAlreadyAwardedModal.displayName = "FollowBonusAlreadyAwardedModal";
+
 const ClaimModal = React.memo<{
   allocation: string | null;
   onBack: () => void;
   claimRewards: () => void;
   isFollowed: boolean;
-}>(({ allocation, onBack, claimRewards, isFollowed }) => (
+  bonusAlreadyAwarded: boolean;
+}>(({ allocation, onBack, claimRewards, isFollowed, bonusAlreadyAwarded }) => (
   <DialogContent
     hideCloseIcon
     className={cn(
@@ -420,7 +485,11 @@ const ClaimModal = React.memo<{
         <DialogDescription className="text-center text-sm font-normal text-[#DCF6E5]">
           Congratulations! You&apos;ve earned fee rebates and bonus points
         </DialogDescription>
-        <RewardSummary isFollowed={isFollowed} allocation={allocation} />
+        <RewardSummary
+          isFollowed={isFollowed}
+          allocation={allocation}
+          bonusAlreadyAwarded={bonusAlreadyAwarded}
+        />
       </DialogHeader>
 
       <div className="relative !mt-6 flex w-full flex-col items-center justify-center gap-4 px-2">
@@ -437,7 +506,7 @@ const ClaimModal = React.memo<{
             </>
           )}
         </Button>
-        {!isFollowed && (
+        {!isFollowed && !bonusAlreadyAwarded && (
           <Button
             onClick={onBack}
             className="h-12 w-full rounded-md border bg-transparent px-6 text-sm text-[#DCF6E5]/80 shadow-none transition-all hover:bg-transparent hover:text-[#DCF6E5]"
@@ -491,14 +560,16 @@ const TwitterShareModal = React.memo<{
   onClose: () => void;
   allocation: string | null;
 }>(({ onClose, allocation }) => {
+  const shareData = React.useMemo(
+    () => ({
+      url: `https://staging.endur.fi/leaderboard/${allocation}`,
+      title: `I just claimed my rewards on Endur.fi! 🎉\n\nCheck your eligibility and join the leaderboard: ${getEndpoint()}`,
+    }),
+    [allocation],
+  );
+
   return (
-    <DialogContent
-      hideCloseIcon
-      className={cn(
-        font.className,
-        "border-0 bg-[#0C4E3F] px-3 pb-8 pt-12 sm:max-w-[480px] md:px-8",
-      )}
-    >
+    <DialogContent hideCloseIcon className={MODAL_CONTENT_CLASSES}>
       <div className="relative w-full">
         <ProgressHeader step="Step 4 of 4" percentage={100} />
         <DialogHeader>
@@ -518,9 +589,8 @@ const TwitterShareModal = React.memo<{
 
         <div className="relative !mt-6 flex w-full flex-col items-center justify-center gap-2 px-2">
           <TwitterShareButton
-            url={`https://staging.endur.fi/leaderboard/${allocation}`}
-            title={`I just claimed my rewards on Endur.fi! 🎉\n\nCheck your eligibility and join the leaderboard: ${getEndpoint()}
-            `}
+            url={shareData.url}
+            title={shareData.title}
             related={["endurfi", "strkfarm", "karnotxyz"]}
             style={{
               height: "44px",
@@ -533,10 +603,7 @@ const TwitterShareModal = React.memo<{
           >
             Share on X
           </TwitterShareButton>
-          <Button
-            onClick={onClose}
-            className="h-10 w-full rounded-md bg-transparent px-6 text-sm text-[#DCF6E5]/50 shadow-none transition-all hover:bg-transparent hover:text-[#DCF6E5]"
-          >
+          <Button onClick={onClose} className={BUTTON_SECONDARY_CLASSES}>
             Close
           </Button>
         </div>
@@ -551,7 +618,7 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
   userCompleteInfo,
   isLoading,
 }) => {
-  const [state, setState] = React.useState<EligibilityState>({
+  const [state, setState] = React.useState<EligibilityState>(() => ({
     allocation: null,
     activeModal: null,
     emailInput: "",
@@ -559,13 +626,36 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
     isSubmitting: false,
     isFollowClicked: false,
     isFollowed: false,
-  });
+  }));
 
   const { address } = useAccount();
   const eligibilityData = useEligibilityData(userCompleteInfo?.allocation);
   const { userExists, checkingUser } = useUserSubscriptionCheck(address);
-
   const { sendAsync } = useSendTransaction({});
+
+  const bonusAlreadyAwarded = React.useMemo(
+    () => (userCompleteInfo?.points?.follow_bonus_points || 0) > 0,
+    [userCompleteInfo?.points?.follow_bonus_points],
+  );
+
+  const contracts = React.useMemo(() => {
+    const provider = getProvider();
+    return {
+      xSTRKContract: new Contract(erc4626Abi, LST_ADDRRESS),
+      merkleContract: new Contract(
+        merkleAbi,
+        MERKLE_CONTRACT_ADDRESS,
+        provider,
+      ),
+    };
+  }, []);
+
+  const trackAnalyticsCallback = React.useCallback(
+    (event: string, data: Record<string, any>) => {
+      trackAnalytics(event, data);
+    },
+    [],
+  );
 
   const handleEmailChange = React.useCallback((email: string) => {
     setState((prev) => ({ ...prev, emailInput: email }));
@@ -611,7 +701,7 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
         }
       }
 
-      trackAnalytics(LEADERBOARD_ANALYTICS_EVENTS.EMAIL_SUBMITTED, {
+      trackAnalyticsCallback(LEADERBOARD_ANALYTICS_EVENTS.EMAIL_SUBMITTED, {
         userAddress: address,
         email: state.emailInput,
         isEligible: state.isEligible,
@@ -631,7 +721,13 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
     } finally {
       setState((prev) => ({ ...prev, isSubmitting: false }));
     }
-  }, [address, state.emailInput, state.isEligible, userExists]);
+  }, [
+    address,
+    state.emailInput,
+    state.isEligible,
+    userExists,
+    trackAnalyticsCallback,
+  ]);
 
   const handleTwitterFollow = React.useCallback(async () => {
     setState((prev) => ({ ...prev, isFollowClicked: true }));
@@ -665,7 +761,7 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
           }));
 
           if (address) {
-            trackAnalytics(
+            trackAnalyticsCallback(
               LEADERBOARD_ANALYTICS_EVENTS.TWITTER_FOLLOW_CLICKED,
               {
                 userAddress: address,
@@ -696,7 +792,7 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
       console.error("Error updating user points:", error);
       toast({ description: "Failed to update user points. Please try again." });
     }
-  }, [state.isEligible, address]);
+  }, [state.isEligible, address, trackAnalyticsCallback]);
 
   const checkEligibility = React.useCallback(() => {
     if (!address) {
@@ -704,13 +800,16 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
       return;
     }
 
-    trackAnalytics(LEADERBOARD_ANALYTICS_EVENTS.ELIGIBILITY_CHECK_CLICKED, {
-      userAddress: address,
-    });
+    trackAnalyticsCallback(
+      LEADERBOARD_ANALYTICS_EVENTS.ELIGIBILITY_CHECK_CLICKED,
+      {
+        userAddress: address,
+      },
+    );
 
     const { allocation, isEligible } = eligibilityData;
 
-    trackAnalytics(LEADERBOARD_ANALYTICS_EVENTS.ELIGIBILITY_RESULT, {
+    trackAnalyticsCallback(LEADERBOARD_ANALYTICS_EVENTS.ELIGIBILITY_RESULT, {
       userAddress: address,
       isEligible,
     });
@@ -721,7 +820,7 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
       isEligible,
       activeModal: "subscribe",
     }));
-  }, [address, eligibilityData]);
+  }, [address, eligibilityData, trackAnalyticsCallback]);
 
   const closeModal = React.useCallback(() => {
     setState((prev) => ({ ...prev, activeModal: null }));
@@ -738,18 +837,10 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
     }));
   }, [state.isEligible]);
 
-  const handleClaim = async () => {
+  const handleClaim = React.useCallback(async () => {
     if (!address) return;
 
-    const provider = getProvider();
-
-    const xSTRKContract = new Contract(erc4626Abi, LST_ADDRRESS);
-
-    const merkleContract = new Contract(
-      merkleAbi,
-      MERKLE_CONTRACT_ADDRESS,
-      provider,
-    );
+    const { xSTRKContract, merkleContract } = contracts;
 
     const allocation = userCompleteInfo?.allocation;
     const proofs = userCompleteInfo?.proof
@@ -757,41 +848,52 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
       : [];
 
     if (!allocation || !proofs || proofs.length === 0) {
-      alert("No allocation or proof found.");
+      toast({ description: "No allocation or proof found." });
       return;
     }
 
-    // approve the merkle contract to spend STRK tokens
-    const allocationWei = MyNumber.fromEther(
-      allocation,
-      STRK_DECIMALS,
-    ).toString();
+    try {
+      // approve the merkle contract to spend STRK tokens
+      const allocationWei = MyNumber.fromEther(
+        allocation,
+        STRK_DECIMALS,
+      ).toString();
 
-    const approveCall = xSTRKContract.populate("approve", [
-      MERKLE_CONTRACT_ADDRESS,
-      uint256.bnToUint256(allocationWei),
-    ]);
+      const approveCall = xSTRKContract.populate("approve", [
+        MERKLE_CONTRACT_ADDRESS,
+        uint256.bnToUint256(allocationWei),
+      ]);
 
-    // call claim with allocation and any proof (use first proof)
-    const claimCall = merkleContract.populate("claim", [
-      allocation.toString(),
-      proofs,
-    ]);
+      // call claim with allocation and any proof (use first proof)
+      const claimCall = merkleContract.populate("claim", [
+        allocation.toString(),
+        proofs,
+      ]);
 
-    const claimRes = await sendAsync([approveCall, claimCall]);
+      const claimRes = await sendAsync([approveCall, claimCall]);
 
-    console.log("claim response:", claimRes);
+      console.log("claim response:", claimRes);
 
-    // if claimed successfully, update the state
-    setState((prev) => ({ ...prev, activeModal: "twitterShare" }));
-  };
+      // if claimed successfully, update the state
+      setState((prev) => ({ ...prev, activeModal: "twitterShare" }));
+    } catch (error) {
+      console.error("Error claiming rewards:", error);
+      toast({ description: "Failed to claim rewards. Please try again." });
+    }
+  }, [
+    address,
+    contracts,
+    userCompleteInfo?.allocation,
+    userCompleteInfo?.proof,
+    sendAsync,
+  ]);
 
   const handleSkip = React.useCallback(() => {
     setState((prev) => ({ ...prev, activeModal: "twitterFollow" }));
   }, []);
 
   return (
-    <>
+    <div>
       <Button
         className="bg-[#16876D] hover:bg-[#16876D]"
         onClick={checkEligibility}
@@ -804,7 +906,7 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
         open={state.activeModal === "subscribe"}
         onOpenChange={closeModal}
       >
-        <DialogOverlay className="bg-white/20 backdrop-blur-sm" />
+        <ModalOverlay />
         <EligibilityModal
           emailInput={state.emailInput}
           isSubmitting={state.isSubmitting}
@@ -820,21 +922,26 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
         open={state.activeModal === "twitterFollow"}
         onOpenChange={closeModal}
       >
-        <DialogOverlay className="bg-white/20 backdrop-blur-sm" />
-        <TwitterFollowModal
-          onContinue={goToClaim}
-          onFollow={handleTwitterFollow}
-          isFollowClicked={state.isFollowClicked}
-        />
+        <ModalOverlay />
+        {bonusAlreadyAwarded ? (
+          <FollowBonusAlreadyAwardedModal onContinue={goToClaim} />
+        ) : (
+          <TwitterFollowModal
+            onContinue={goToClaim}
+            onFollow={handleTwitterFollow}
+            isFollowClicked={state.isFollowClicked}
+          />
+        )}
       </Dialog>
 
       <Dialog open={state.activeModal === "claim"} onOpenChange={closeModal}>
-        <DialogOverlay className="bg-white/20 backdrop-blur-sm" />
+        <ModalOverlay />
         <ClaimModal
           allocation={state.allocation}
           onBack={goToTwitterFollow}
           claimRewards={handleClaim}
           isFollowed={state.isFollowed}
+          bonusAlreadyAwarded={bonusAlreadyAwarded}
         />
       </Dialog>
 
@@ -842,7 +949,7 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
         open={state.activeModal === "notEligible"}
         onOpenChange={closeModal}
       >
-        <DialogOverlay className="bg-white/20 backdrop-blur-sm" />
+        <ModalOverlay />
         <NotEligibleModal onClose={closeModal} />
       </Dialog>
 
@@ -850,10 +957,10 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
         open={state.activeModal === "twitterShare"}
         onOpenChange={closeModal}
       >
-        <DialogOverlay className="bg-white/20 backdrop-blur-sm" />
+        <ModalOverlay />
         <TwitterShareModal onClose={closeModal} allocation={state.allocation} />
       </Dialog>
-    </>
+    </div>
   );
 };
 
