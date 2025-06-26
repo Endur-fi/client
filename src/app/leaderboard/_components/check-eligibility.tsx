@@ -458,66 +458,82 @@ const ClaimModal = React.memo<{
   claimRewards: () => void;
   isFollowed: boolean;
   bonusAlreadyAwarded: boolean;
-}>(({ allocation, onBack, claimRewards, isFollowed, bonusAlreadyAwarded }) => (
-  <DialogContent
-    hideCloseIcon
-    className={cn(
-      font.className,
-      "border-0 bg-[#0C4E3F] px-3 pb-8 pt-12 sm:max-w-[480px] md:px-8",
-    )}
-  >
-    <div className="relative w-full">
-      <ProgressHeader step="Step 3 of 4" percentage={75} />
-      <DialogHeader>
-        <div className="flex w-full items-center justify-center">
-          <Image
-            src="/leaderboard/claim_illustration.svg"
-            width={266}
-            height={290}
-            alt="claim illustration"
+  isPending: boolean;
+}>(
+  ({
+    allocation,
+    onBack,
+    claimRewards,
+    isFollowed,
+    bonusAlreadyAwarded,
+    isPending,
+  }) => (
+    <DialogContent
+      hideCloseIcon
+      className={cn(
+        font.className,
+        "border-0 bg-[#0C4E3F] px-3 pb-8 pt-12 sm:max-w-[480px] md:px-8",
+      )}
+    >
+      <div className="relative w-full">
+        <ProgressHeader step="Step 3 of 4" percentage={75} />
+        <DialogHeader>
+          <div className="flex w-full items-center justify-center">
+            <Image
+              src="/leaderboard/claim_illustration.svg"
+              width={266}
+              height={290}
+              alt="claim illustration"
+            />
+          </div>
+          <DialogTitle className="!mt-8 text-center text-2xl font-semibold text-white">
+            {allocation
+              ? `Reward ${formatNumberWithCommas(allocation)} xSTRK`
+              : "Your reward is ready"}
+          </DialogTitle>
+          <DialogDescription className="text-center text-sm font-normal text-[#DCF6E5]">
+            Congratulations! You&apos;ve earned fee rebates and bonus points
+          </DialogDescription>
+          <RewardSummary
+            isFollowed={isFollowed}
+            allocation={allocation}
+            bonusAlreadyAwarded={bonusAlreadyAwarded}
           />
-        </div>
-        <DialogTitle className="!mt-8 text-center text-2xl font-semibold text-white">
-          {allocation
-            ? `Reward ${formatNumberWithCommas(allocation)} xSTRK`
-            : "Your reward is ready"}
-        </DialogTitle>
-        <DialogDescription className="text-center text-sm font-normal text-[#DCF6E5]">
-          Congratulations! You&apos;ve earned fee rebates and bonus points
-        </DialogDescription>
-        <RewardSummary
-          isFollowed={isFollowed}
-          allocation={allocation}
-          bonusAlreadyAwarded={bonusAlreadyAwarded}
-        />
-      </DialogHeader>
+        </DialogHeader>
 
-      <div className="relative !mt-6 flex w-full flex-col items-center justify-center gap-4 px-2">
-        <Button
-          onClick={claimRewards}
-          className="h-12 w-full rounded-md bg-white text-[#0C4E3F] hover:bg-white hover:text-[#0C4E3F]"
-          disabled={IS_FEE_REBATES_REWARDS_PAUSED}
-        >
-          {IS_FEE_REBATES_REWARDS_PAUSED ? (
-            `Claims open after ${CLAIMS_OPEN_DATE}`
-          ) : (
-            <>
-              <Gift className="size-5" /> Claim rewards
-            </>
-          )}
-        </Button>
-        {!isFollowed && !bonusAlreadyAwarded && (
+        <div className="relative !mt-6 flex w-full flex-col items-center justify-center gap-4 px-2">
           <Button
-            onClick={onBack}
-            className="h-12 w-full rounded-md border bg-transparent px-6 text-sm text-[#DCF6E5]/80 shadow-none transition-all hover:bg-transparent hover:text-[#DCF6E5]"
+            onClick={claimRewards}
+            className="h-12 w-full rounded-md bg-white text-[#0C4E3F] hover:bg-white hover:text-[#0C4E3F]"
+            disabled={IS_FEE_REBATES_REWARDS_PAUSED || isPending}
           >
-            Go back and earn {BONUS_POINTS.toLocaleString()} points
+            {IS_FEE_REBATES_REWARDS_PAUSED ? (
+              `Claims open after ${CLAIMS_OPEN_DATE}`
+            ) : isPending ? (
+              <div className="flex items-center justify-center gap-2">
+                <Loader2 className="size-4 animate-spin" />
+                Claiming rewards...
+              </div>
+            ) : (
+              <>
+                <Gift className="size-5" /> Claim rewards
+              </>
+            )}
           </Button>
-        )}
+          {!isFollowed && !bonusAlreadyAwarded && (
+            <Button
+              onClick={onBack}
+              disabled={isPending}
+              className="h-12 w-full rounded-md border bg-transparent px-6 text-sm text-[#DCF6E5]/80 shadow-none transition-all hover:bg-transparent hover:text-[#DCF6E5] disabled:opacity-50"
+            >
+              Go back and earn {BONUS_POINTS.toLocaleString()} points
+            </Button>
+          )}
+        </div>
       </div>
-    </div>
-  </DialogContent>
-));
+    </DialogContent>
+  ),
+);
 ClaimModal.displayName = "ClaimModal";
 
 const NotEligibleModal = React.memo<{ onClose: () => void }>(({ onClose }) => (
@@ -633,12 +649,15 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
   const { address } = useAccount();
   const eligibilityData = useEligibilityData(userCompleteInfo?.allocation);
   const { userExists, checkingUser } = useUserSubscriptionCheck(address);
-  const { sendAsync } = useSendTransaction({});
+  const { sendAsync, isPending, isError, data } = useSendTransaction({});
 
   const bonusAlreadyAwarded = React.useMemo(
     () => (userCompleteInfo?.points?.follow_bonus_points || 0) > 0,
     [userCompleteInfo?.points?.follow_bonus_points],
   );
+
+  const [isWaitingForConfirmation, setIsWaitingForConfirmation] =
+    React.useState(false);
 
   const contracts = React.useMemo(() => {
     const provider = getProvider();
@@ -829,8 +848,8 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
   }, [
     address,
     eligibilityData,
-    trackAnalyticsCallback,
     state.hasAlreadyClaimed,
+    trackAnalyticsCallback,
   ]);
 
   const closeModal = React.useCallback(() => {
@@ -880,9 +899,6 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
       const claimRes = await sendAsync([claimCall]);
 
       console.log("claim response:", claimRes);
-
-      // if claimed successfully, update the state
-      setState((prev) => ({ ...prev, activeModal: "twitterShare" }));
     } catch (error) {
       console.error("Error claiming rewards:", error);
       toast({ description: "Failed to claim rewards. Please try again." });
@@ -949,8 +965,76 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
     if (isLoading) {
       return { disabled: true, text: "Checking..." };
     }
+    if (isPending && isWaitingForConfirmation) {
+      return { disabled: true, text: "Confirming..." };
+    }
+    if (isPending) {
+      return { disabled: true, text: "Transaction pending..." };
+    }
     return { disabled: false, text: "Check eligibility" };
-  }, [state.isCheckingClaimed, state.hasAlreadyClaimed, isLoading]);
+  }, [
+    state.isCheckingClaimed,
+    state.hasAlreadyClaimed,
+    isLoading,
+    isPending,
+    isWaitingForConfirmation,
+  ]);
+
+  React.useEffect(() => {
+    if (data && isPending) {
+      setIsWaitingForConfirmation(true);
+      toast({
+        description: "Transaction submitted! Waiting for confirmation...",
+        duration: 3000,
+      });
+    }
+  }, [data, isPending, setIsWaitingForConfirmation]);
+
+  React.useEffect(() => {
+    if (isPending) {
+      const allocation = userCompleteInfo?.allocation;
+      if (allocation) {
+        toast({
+          description: `Claiming ${formatNumberWithCommas(allocation)} xSTRK rewards...`,
+          duration: 3000,
+        });
+      }
+    }
+  }, [isPending, userCompleteInfo?.allocation]);
+
+  React.useEffect(() => {
+    if (data && !isPending) {
+      setIsWaitingForConfirmation(false);
+      const allocation = userCompleteInfo?.allocation;
+      if (allocation) {
+        toast({
+          description: `🎉 Successfully claimed ${formatNumberWithCommas(allocation)} xSTRK rewards!`,
+          duration: 5000,
+        });
+
+        setState((prev) => ({
+          ...prev,
+          activeModal: "twitterShare",
+          hasAlreadyClaimed: true,
+        }));
+      }
+    }
+  }, [
+    data,
+    isPending,
+    userCompleteInfo?.allocation,
+    setIsWaitingForConfirmation,
+  ]);
+
+  React.useEffect(() => {
+    if (isError && !isPending) {
+      setIsWaitingForConfirmation(false);
+      toast({
+        description: "Transaction failed. Please try again.",
+        duration: 4000,
+      });
+    }
+  }, [isError, isPending, setIsWaitingForConfirmation]);
 
   return (
     <div>
@@ -1002,6 +1086,7 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
           claimRewards={handleClaim}
           isFollowed={state.isFollowed}
           bonusAlreadyAwarded={bonusAlreadyAwarded}
+          isPending={isPending}
         />
       </Dialog>
 
