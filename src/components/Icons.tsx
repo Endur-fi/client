@@ -9632,4 +9632,174 @@ export const Icons = {
       />
     </svg>
   ),
+  trovesLogoDark: (props: LucideProps) => (
+    <svg
+      {...props}
+      viewBox="0 0 420 420"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <circle cx="210" cy="210" r="210" fill="url(#paint0_linear_197_2)" />
+      <circle cx="210" cy="210" r="210" fill="url(#paint1_radial_197_2)" />
+      <g filter="url(#filter0_i_197_2)">
+        <path
+          d="M241.136 340.282C241.136 347.761 235.073 353.824 227.594 353.824H192.213C184.734 353.824 178.671 347.761 178.671 340.282V179.049C178.671 175.223 180.29 171.575 183.128 169.007L216.801 138.54C226.165 130.069 241.136 136.713 241.136 149.34V340.282Z"
+          fill="#1F1740"
+        />
+      </g>
+      <g filter="url(#filter1_i_197_2)">
+        <path
+          d="M101 144.141V113.542C101 106.063 107.063 100 114.542 100H294.022C301.501 100 307.564 106.063 307.564 113.542V143.469C307.564 150.949 301.501 157.012 294.022 157.012H284.688C281.33 157.012 278.092 155.764 275.602 153.511L236.362 118.008C231.263 113.395 223.517 113.335 218.348 117.868L177.477 153.709C175.046 155.84 171.934 157.032 168.702 157.069L114.696 157.682C107.157 157.768 101 151.68 101 144.141Z"
+          fill="#1F1740"
+        />
+      </g>
+      <defs>
+        <filter
+          id="filter0_i_197_2"
+          x="174.51"
+          y="134.748"
+          width="66.6259"
+          height="229.791"
+          filterUnits="userSpaceOnUse"
+          colorInterpolationFilters="sRGB"
+        >
+          <feFlood floodOpacity="0" result="BackgroundImageFix" />
+          <feBlend
+            mode="normal"
+            in="SourceGraphic"
+            in2="BackgroundImageFix"
+            result="shape"
+          />
+          <feColorMatrix
+            in="SourceAlpha"
+            type="matrix"
+            values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"
+            result="hardAlpha"
+          />
+          <feOffset dx="-4.16105" dy="22.8858" />
+          <feGaussianBlur stdDeviation="5.35735" />
+          <feComposite in2="hardAlpha" operator="arithmetic" k2="-1" k3="1" />
+          <feColorMatrix
+            type="matrix"
+            values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.5 0"
+          />
+          <feBlend
+            mode="normal"
+            in2="shape"
+            result="effect1_innerShadow_197_2"
+          />
+        </filter>
+        <filter
+          id="filter1_i_197_2"
+          x="92.99"
+          y="100"
+          width="214.574"
+          height="64.9649"
+          filterUnits="userSpaceOnUse"
+          colorInterpolationFilters="sRGB"
+        >
+          <feFlood floodOpacity="0" result="BackgroundImageFix" />
+          <feBlend
+            mode="normal"
+            in="SourceGraphic"
+            in2="BackgroundImageFix"
+            result="shape"
+          />
+          <feColorMatrix
+            in="SourceAlpha"
+            type="matrix"
+            values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"
+            result="hardAlpha"
+          />
+          <feOffset dx="-14.5637" dy="7.28184" />
+          <feGaussianBlur stdDeviation="4.00501" />
+          <feComposite in2="hardAlpha" operator="arithmetic" k2="-1" k3="1" />
+          <feColorMatrix
+            type="matrix"
+            values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.5 0"
+          />
+          <feBlend
+            mode="normal"
+            in2="shape"
+            result="effect1_innerShadow_197_2"
+          />
+        </filter>
+        <linearGradient
+          id="paint0_linear_197_2"
+          x1="2.15584e-07"
+          y1="210"
+          x2="439.861"
+          y2="240.304"
+          gradientUnits="userSpaceOnUse"
+        >
+          <stop stopColor="#9069F0" />
+          <stop offset="1" stopColor="#4A14CD" />
+        </linearGradient>
+        <radialGradient
+          id="paint1_radial_197_2"
+          cx="0"
+          cy="0"
+          r="1"
+          gradientUnits="userSpaceOnUse"
+          gradientTransform="translate(106.012 -90.6354) rotate(65.9041) scale(474.095 415.357)"
+        >
+          <stop offset="0.16987" stopColor="#E3DAFB" />
+          <stop offset="0.84654" stopColor="#5A20E9" stopOpacity="0" />
+        </radialGradient>
+      </defs>
+    </svg>
+  ),
+  trovesLogoLight: (props: LucideProps) => (
+    <svg {...props} viewBox="0 0 420 421" fill="none" xmlns="http://www.w3.org/2000/svg">
+<circle cx="210" cy="210.199" r="210" fill="url(#paint0_linear_2467_12733)"/>
+<circle cx="210" cy="210.199" r="210" fill="url(#paint1_linear_2467_12733)" fill-opacity="0.2"/>
+<circle cx="210" cy="210.199" r="210" fill="url(#paint2_radial_2467_12733)" fill-opacity="0.2"/>
+<path d="M90.2617 101.002C90.2617 93.8128 96.0901 87.9844 103.28 87.9844H316.723C323.913 87.9844 329.741 93.8127 329.741 101.002V137.575C329.741 144.765 323.913 150.593 316.723 150.593H299.309C296.104 150.593 293.013 149.411 290.625 147.274L242.741 104.403C237.831 100.007 230.411 99.9738 225.462 104.325L176.523 147.352C174.146 149.441 171.091 150.593 167.927 150.593H103.28C96.0901 150.593 90.2617 144.765 90.2617 137.575V101.002Z" fill="#9069F0"/>
+<path d="M171.443 181.359C171.443 176.656 173.389 172.163 176.819 168.945L221.613 126.931C231.831 117.347 248.559 124.592 248.559 138.6V325.233C248.559 333.066 242.209 339.416 234.376 339.416H185.626C177.793 339.416 171.443 333.066 171.443 325.233V181.359Z" fill="url(#paint3_linear_2467_12733)"/>
+<defs>
+<linearGradient id="paint0_linear_2467_12733" x1="46.1503" y1="374.943" x2="220.174" y2="152.545" gradientUnits="userSpaceOnUse">
+<stop stop-color="#212121"/>
+<stop offset="1"/>
+</linearGradient>
+<linearGradient id="paint1_linear_2467_12733" x1="193.4" y1="329.266" x2="241.397" y2="443.121" gradientUnits="userSpaceOnUse">
+<stop stop-opacity="0"/>
+<stop offset="0.729291" stop-color="#5220CB"/>
+</linearGradient>
+<radialGradient id="paint2_radial_2467_12733" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(210 199.516) rotate(90) scale(239.553 301.236)">
+<stop offset="0.58654" stop-opacity="0"/>
+<stop offset="0.822472" stop-color="#845BEA"/>
+<stop offset="1" stop-opacity="0"/>
+</radialGradient>
+<linearGradient id="paint3_linear_2467_12733" x1="210.001" y1="101.656" x2="210.001" y2="339.416" gradientUnits="userSpaceOnUse">
+<stop stop-color="#9069F0"/>
+<stop offset="1" stop-color="#4A14CD"/>
+</linearGradient>
+</defs>
+</svg>
+
+
+  ),
+  trovesNamedLogo: (props: LucideProps) => {
+    <svg
+      {...props}
+      width="954"
+      height="403"
+      viewBox="0 0 954 403"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M227.581 238.679V316H186.085V156.581H224.298V187.331C235.94 167.03 260.719 154.79 286.393 154.79V197.78C251.166 195.093 227.581 203.452 227.581 238.679ZM377.237 318.985C330.964 318.985 296.333 282.564 296.333 236.291C296.333 189.719 330.964 153.596 377.237 153.596C423.51 153.596 458.14 189.719 458.14 236.291C458.14 282.564 423.51 318.985 377.237 318.985ZM377.237 282.265C397.836 282.265 415.449 265.846 415.449 236.291C415.449 206.736 397.836 190.615 377.237 190.615C356.638 190.615 339.024 206.736 339.024 236.291C339.024 265.846 356.638 282.265 377.237 282.265ZM622.678 156.581L564.165 316H518.787L459.976 156.581H504.756L542.67 268.831L580.883 156.581H622.678ZM704.608 318.687C656.842 318.687 624.898 285.549 624.898 235.694C624.898 188.226 658.036 153.596 704.011 153.596C754.463 153.596 787.899 194.496 780.436 246.441H667.291C669.978 272.414 682.516 286.743 703.712 286.743C721.923 286.743 734.163 277.787 738.939 261.965H780.137C771.181 298.088 743.417 318.687 704.608 318.687ZM703.115 184.047C683.71 184.047 671.47 196.585 667.888 220.17H736.551C735.357 198.078 722.818 184.047 703.115 184.047ZM942.87 264.95C942.87 298.386 917.495 318.985 872.117 318.985C826.739 318.985 801.364 297.192 798.08 261.666H837.785C838.084 278.086 852.115 288.535 872.714 288.535C888.835 288.535 901.075 283.46 901.075 272.115C901.075 261.965 894.507 257.785 879.282 254.8L850.622 249.426C821.963 244.351 804.648 228.529 804.648 203.75C804.648 174.195 830.023 153.596 869.729 153.596C909.733 153.596 937.198 174.792 940.183 209.124H900.478C898.985 193.6 887.342 184.047 869.729 184.047C854.503 184.047 844.353 189.719 844.353 199.869C844.353 209.422 850.921 213.303 865.251 215.99L896 221.662C927.048 227.633 942.87 241.963 942.87 264.95Z"
+        fill="#9069F0"
+      />
+      <path
+        d="M126.442 306.634C126.442 313.229 121.096 318.576 114.501 318.576H82.1928C75.5977 318.576 70.2513 313.229 70.2513 306.634V158.997C70.2513 155.65 71.6555 152.458 74.122 150.196L106.43 120.569C114.089 113.545 126.442 118.978 126.442 129.37V306.634Z"
+        fill="#9069F0"
+      />
+      <path
+        d="M0.424316 127.79V99.0772C0.424316 92.4821 5.77069 87.1357 12.3658 87.1357H174.299C180.895 87.1357 186.241 92.4821 186.241 99.0772V127.175C186.241 133.77 180.895 139.116 174.299 139.116H165.616C162.628 139.116 159.748 137.996 157.545 135.976L122.09 103.462C117.576 99.3233 110.663 99.2695 106.086 103.338L69.1663 136.152C67.0159 138.064 64.2477 139.134 61.3708 139.168L12.5033 139.73C5.85489 139.807 0.424316 134.439 0.424316 127.79Z"
+        fill="#9069F0"
+      />
+    </svg>;
+  },
 };

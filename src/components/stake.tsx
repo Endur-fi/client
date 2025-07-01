@@ -90,7 +90,7 @@ export type Platform = "none" | "vesu" | "nostraLending" | "strkfarmEkubo";
 const PLATFORMS = {
   VESU: "vesu",
   NOSTRA: "nostraLending",
-  STRKFARM_EKUBO: "strkfarmEkubo",
+  // STRKFARM_EKUBO: "strkfarmEkubo",
 } as const;
 
 const PLATFORM_CONFIG = {
@@ -346,9 +346,11 @@ const Stake: React.FC = () => {
 
   const sortPlatforms = (platforms: string[], yields: any) => {
     const regularPlatforms = platforms.filter(
+      // @ts-ignore
       (p) => p !== PLATFORMS.STRKFARM_EKUBO,
     );
     const strkfarmPlatform = platforms.find(
+      // @ts-ignore
       (p) => p === PLATFORMS.STRKFARM_EKUBO,
     );
 
@@ -360,6 +362,7 @@ const Stake: React.FC = () => {
 
     if (!strkfarmPlatform) return sortedRegular;
 
+    // @ts-ignore
     const strkfarmAPY = yields[PLATFORMS.STRKFARM_EKUBO]?.value || 0;
     const highestRegularAPY =
       sortedRegular.length > 0 ? yields[sortedRegular[0]]?.value || 0 : 0;
@@ -400,7 +403,7 @@ const Stake: React.FC = () => {
     setSelectedPlatform,
   }) => {
     return (
-      <div className="flex items-center gap-2 w-full">
+      <div className="flex w-full items-center gap-2">
         {sortedPlatforms.map((platform) => {
           const config = getPlatformConfig(platform);
           const yieldData = getYieldData(platform, yields);
@@ -471,7 +474,7 @@ const Stake: React.FC = () => {
             <TwitterShareButton
               url={getEndpoint()}
               title={`Just staked my STRK on Endur.fi, earning ${(apy.value * 100 + (selectedPlatform !== "none" ? getPlatformYield(selectedPlatform) : 0)).toFixed(2)}% APY! 🚀 \n\n${selectedPlatform !== "none" ? `My xSTRK is now earning an additional ${getPlatformYield(selectedPlatform).toFixed(2)}% yield on ${selectedPlatform === "vesu" ? "Vesu" : "Nostra"}! 📈\n\n` : ""}Laying the foundation for decentralising Starknet — be part of the journey at @endurfi!\n\n`}
-              related={["endurfi", "strkfarm", "karnotxyz"]}
+              related={["endurfi", "troves", "karnotxyz"]}
               style={{
                 display: "flex",
                 alignItems: "center",
