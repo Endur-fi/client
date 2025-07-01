@@ -206,7 +206,11 @@ const ClaimModal = React.memo(
           You&apos;ve earned it! Grab your fee rebate rewards now.
         </DialogDescription> */}
         <DialogDescription className="text-center text-sm font-normal text-[#DCF6E5]">
-          Please report any issues before 22nd Jun, 2025 in our <a href="http://endur.fi/tg" className="underline">Official TG group</a>.
+          Please report any issues before 22nd Jun, 2025 in our{" "}
+          <a href="http://endur.fi/tg" className="underline">
+            Official TG group
+          </a>
+          .
         </DialogDescription>
       </DialogHeader>
 
@@ -262,8 +266,12 @@ const NotEligibleModal = React.memo(({ onClose }: { onClose: () => void }) => (
         Close
       </Button>
       <DialogDescription className="text-center text-sm font-normal text-[#DCF6E5]">
-          Please report any issues before 22nd Jun, 2025 in our <a href="http://endur.fi/tg" className="underline">Official TG group</a>.
-        </DialogDescription>
+        Please report any issues before 22nd Jun, 2025 in our{" "}
+        <a href="http://endur.fi/tg" className="underline">
+          Official TG group
+        </a>
+        .
+      </DialogDescription>
     </div>
   </DialogContent>
 ));

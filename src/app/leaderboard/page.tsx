@@ -13,7 +13,9 @@ import { MyAnalytics } from "@/lib/analytics";
 import apolloClient from "@/lib/apollo-client";
 import { cn } from "@/lib/utils";
 
-import CheckEligibility, { UserCompleteDetailsApiResponse } from "./_components/check-eligibility";
+import CheckEligibility, {
+  UserCompleteDetailsApiResponse,
+} from "./_components/check-eligibility";
 import { columns, type SizeColumn } from "./_components/table/columns";
 import { DataTable } from "./_components/table/data-table";
 import Image from "next/image";
@@ -279,7 +281,11 @@ const AnnouncementBanner = React.memo(
           </p>
           <p className="text-center text-sm font-normal text-white/80 md:text-base">
             Early adopters may have earned fee rebates.{" "}
-            <a href="https://x.com/endurfi/status/1932785841564487770" target="_blank" className="underline">
+            <a
+              href="https://x.com/endurfi/status/1932785841564487770"
+              target="_blank"
+              className="underline"
+            >
               Learn more.
             </a>
           </p>
@@ -389,7 +395,11 @@ const Leaderboard: React.FC = () => {
         <p className="text-sm text-[#021B1A]">
           Your position on the leaderboard based on your xSTRK holding activity.
           Points updated daily.{" "}
-          <a href="https://blog.endur.fi/points?utm_source=leaderboard-page&utm_medium=website" target="_blank" className="underline">
+          <a
+            href="https://blog.endur.fi/points?utm_source=leaderboard-page&utm_medium=website"
+            target="_blank"
+            className="underline"
+          >
             More Info.
           </a>
         </p>
