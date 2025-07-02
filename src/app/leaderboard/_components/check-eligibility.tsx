@@ -75,7 +75,6 @@ export interface UserCompleteDetailsApiResponse {
     dex_bonus_points: bigint;
   };
   allocation: string;
-  merkle_root: string;
   proof: string;
   tags: {
     early_adopter: boolean;
@@ -277,7 +276,7 @@ const EligibilityModal = React.memo<{
             Subscribe to Endur
           </DialogTitle>
           <DialogDescription className="!mt-2 text-center text-sm font-normal text-[#DCF6E5]">
-            Receive product updates, transaction updates and future rewards
+            Get product updates, transaction alerts, and exclusive rewards
           </DialogDescription>
         </DialogHeader>
 
@@ -324,10 +323,9 @@ const EligibilityModal = React.memo<{
 
         <div className="mt-7 px-2">
           <div className="flex w-full items-start justify-center gap-2 rounded-lg bg-[#E3EFEC]/5 px-4 py-4 text-sm">
-            <Icons.shield className="mt-1 size-6 text-[#2ACF83]" />
+            <Icons.shield className="mt-1 size-10 text-[#2ACF83]" />
             <p className="text-sm text-white/80">
-              Your email is secure and will only be used for reward
-              notifications
+              Your email is safe with us and will not be shared with third parties.
             </p>
           </div>
         </div>
@@ -361,10 +359,10 @@ const TwitterFollowModal = React.memo<{
           />
         </div>
         <DialogTitle className="!mt-8 text-center text-3xl font-semibold text-white">
-          Boost your experience
+          Power in Numbers
         </DialogTitle>
         <DialogDescription className="!mt-2 text-center text-sm font-normal text-[#DCF6E5]">
-          Join our community for exclusive updates and bonus rewards!
+          Your follow on X shows our strength and fuels our mission. Plus, never miss tiny updates and fun.
         </DialogDescription>
       </DialogHeader>
 
@@ -384,7 +382,7 @@ const TwitterFollowModal = React.memo<{
             {isFollowClicked ? (
               <div className="flex items-center justify-center gap-2">
                 <Loader2 className="size-4 animate-spin" />
-                redirecting...
+                checking...
               </div>
             ) : (
               "Follow us on X"
@@ -424,17 +422,17 @@ const FollowBonusAlreadyAwardedModal = React.memo<{ onContinue: () => void }>(
             />
           </div>
           <DialogTitle className="!mt-8 text-center text-3xl font-semibold text-white">
-            Boost your experience
+            Power in Numbers
           </DialogTitle>
           <DialogDescription className="!mt-2 text-center text-sm font-normal text-[#DCF6E5]">
-            Join our community for exclusive updates and bonus rewards!
+            Thank you for following us on X! Your support fuels our mission.
           </DialogDescription>
         </DialogHeader>
 
         <div className="mt-5 flex w-full items-center justify-center">
           <Button className="h-10 w-fit cursor-default rounded-md bg-[#17876D]/30 font-dmSans text-base font-semibold text-white shadow-lg hover:bg-[#17876D]/30">
             <Icons.sparklingStar className="size-12 text-[#FAFAFA]" />
-            {BONUS_POINTS.toLocaleString()} bonus points already awarded !
+            {BONUS_POINTS.toLocaleString()} bonus points already awarded!
           </Button>
         </div>
 
@@ -578,8 +576,8 @@ const TwitterShareModal = React.memo<{
 }>(({ onClose, allocation }) => {
   const shareData = React.useMemo(
     () => ({
-      url: `https://staging.endur.fi/leaderboard/${allocation}`,
-      title: `I just claimed my rewards on Endur.fi! 🎉\n\nCheck your eligibility and join the leaderboard: ${getEndpoint()}`,
+      url: `https://endur.fi/leaderboard/${allocation}`,
+      title: `Just claimed my rewards on @endurfi! 🔥\n\nEndur distributed its 6-month revenue back to the community! You might have something waiting — check your eligibility 👇\n`,
     }),
     [allocation],
   );
@@ -957,13 +955,13 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
 
   const buttonState = React.useMemo(() => {
     if (state.isCheckingClaimed) {
-      return { disabled: true, text: "Checking..." };
+      return { disabled: true, text: "Preparing..." };
     }
     if (state.hasAlreadyClaimed) {
       return { disabled: true, text: "Already claimed" };
     }
     if (isLoading) {
-      return { disabled: true, text: "Checking..." };
+      return { disabled: true, text: "Preparing..." };
     }
     if (isPending && isWaitingForConfirmation) {
       return { disabled: true, text: "Confirming..." };
