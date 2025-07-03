@@ -172,6 +172,39 @@ const DisclaimerText = React.memo(() => (
 ));
 DisclaimerText.displayName = "DisclaimerText";
 
+const RewardItem = React.memo<{
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+}>(({ icon, label, value }) => (
+  <div className="mt-2 flex items-center justify-between text-sm text-white">
+    <p className="flex items-center gap-1.5">
+      {icon}
+      {label}
+    </p>
+    <span className="font-semibold">{value}</span>
+  </div>
+));
+RewardItem.displayName = "RewardItem";
+
+const VerificationStatus = React.memo<{
+  isVerified: boolean;
+  isLoading?: boolean;
+  label: string;
+}>(({ isVerified, isLoading, label }) => (
+  <div className="flex w-full items-center gap-2">
+    {isLoading ? (
+      <Loader2 className="size-3 animate-spin" />
+    ) : isVerified ? (
+      <Icons.rightCircle className="text-[#2ACF83]" />
+    ) : (
+      <Icons.wrongCircle className="text-[#F8623F]" />
+    )}
+    {label}
+  </div>
+));
+VerificationStatus.displayName = "VerificationStatus";
+
 const RewardSummary = React.memo<{
   showBonus?: boolean;
   isFollowed?: boolean;
@@ -184,49 +217,60 @@ const RewardSummary = React.memo<{
     allocation,
     bonusAlreadyAwarded = false,
   }) => {
+    const { address } = useAccount();
+    const { userExists, checkingUser } = useUserSubscriptionCheck(address);
+
+    // Format the allocation once
+    const formattedAllocation = React.useMemo(
+      () => `${Number(allocation).toFixed(2)} xSTRK`,
+      [allocation],
+    );
+
+    // Determine the Twitter follow status text once
+    const twitterStatusText = React.useMemo(
+      () =>
+        isFollowed || bonusAlreadyAwarded
+          ? `X account followed - earned bonus ${BONUS_POINTS.toLocaleString()} points`
+          : `X account not followed - missed bonus ${BONUS_POINTS.toLocaleString()} points`,
+      [isFollowed, bonusAlreadyAwarded],
+    );
+
+    const isTwitterVerified = isFollowed || bonusAlreadyAwarded;
+
     return (
       <div className="px-2">
         <div className="!mt-5 w-full rounded-lg bg-[#17876D]/30 px-4 py-3">
           <p className="text-base font-bold text-white">
             {showBonus ? "Rewards Claimed" : "Reward Summary"}
           </p>
-          <div className="mt-2 flex items-center justify-between text-sm text-white">
-            <p className="flex items-center gap-1.5">
-              <Icons.feeRebateIcon className="text-[#DFDFEC]" />
-              Fee Rebates
-            </p>
-            <span className="font-semibold">
-              {Number(allocation).toFixed(2)} xSTRK
-            </span>
-          </div>
+
+          <RewardItem
+            icon={<Icons.feeRebateIcon className="text-[#DFDFEC]" />}
+            label="Fee Rebates"
+            value={formattedAllocation}
+          />
+
           {showBonus && (
-            <div className="mt-2 flex items-center justify-between text-sm text-white">
-              <p className="flex items-center gap-1.5">
-                <Icons.sparklingStar className="size-4 text-[#DFDFEC]" />
-                Bonus Points
-              </p>
-              <span className="font-semibold">
-                {BONUS_POINTS.toLocaleString()}
-              </span>
-            </div>
+            <RewardItem
+              icon={<Icons.sparklingStar className="size-4 text-[#DFDFEC]" />}
+              label="Bonus Points"
+              value={BONUS_POINTS.toLocaleString()}
+            />
           )}
         </div>
+
         {!showBonus && (
           <div className="!mt-6 w-full space-y-2 text-sm text-white">
-            <div className="flex w-full items-center gap-2">
-              <Icons.rightCircle className="text-[#2ACF83]" />
-              Email verified and saved
-            </div>
-            <div className="flex w-full items-center gap-2">
-              {isFollowed || bonusAlreadyAwarded ? (
-                <Icons.rightCircle className="text-[#2ACF83]" />
-              ) : (
-                <Icons.wrongCircle className="text-[#F8623F]" />
-              )}
-              {isFollowed || bonusAlreadyAwarded
-                ? `X account followed - earned bonus ${BONUS_POINTS} points`
-                : `X account not followed - missed bonus ${BONUS_POINTS} points`}
-            </div>
+            <VerificationStatus
+              isVerified={userExists && !checkingUser}
+              isLoading={checkingUser}
+              label="Email verified and saved"
+            />
+
+            <VerificationStatus
+              isVerified={isTwitterVerified}
+              label={twitterStatusText}
+            />
           </div>
         )}
       </div>
