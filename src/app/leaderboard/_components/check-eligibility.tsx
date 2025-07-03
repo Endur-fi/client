@@ -23,7 +23,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import {
-  getEndpoint,
   getProvider,
   LEADERBOARD_ANALYTICS_EVENTS,
   MERKLE_CONTRACT_ADDRESS_MAINNET,
@@ -325,7 +324,8 @@ const EligibilityModal = React.memo<{
           <div className="flex w-full items-start justify-center gap-2 rounded-lg bg-[#E3EFEC]/5 px-4 py-4 text-sm">
             <Icons.shield className="mt-1 size-10 text-[#2ACF83]" />
             <p className="text-sm text-white/80">
-              Your email is safe with us and will not be shared with third parties.
+              Your email is safe with us and will not be shared with third
+              parties.
             </p>
           </div>
         </div>
@@ -362,7 +362,8 @@ const TwitterFollowModal = React.memo<{
           Power in Numbers
         </DialogTitle>
         <DialogDescription className="!mt-2 text-center text-sm font-normal text-[#DCF6E5]">
-          Your follow on X shows our strength and fuels our mission. Plus, never miss tiny updates and fun.
+          Your follow on X shows our strength and fuels our mission. Plus, never
+          miss tiny updates and fun.
         </DialogDescription>
       </DialogHeader>
 

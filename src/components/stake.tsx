@@ -400,7 +400,7 @@ const Stake: React.FC = () => {
     setSelectedPlatform,
   }) => {
     return (
-      <div className="flex items-center gap-2 w-full">
+      <div className="flex w-full items-center gap-2">
         {sortedPlatforms.map((platform) => {
           const config = getPlatformConfig(platform);
           const yieldData = getYieldData(platform, yields);
