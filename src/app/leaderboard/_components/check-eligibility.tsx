@@ -264,7 +264,7 @@ const RewardSummary = React.memo<{
             <VerificationStatus
               isVerified={userExists && !checkingUser}
               isLoading={checkingUser}
-              label="Email verified and saved"
+              label={userExists && !checkingUser ? "Email verified and saved" : "Email not verified"}
             />
 
             <VerificationStatus
