@@ -4,7 +4,7 @@ export const MERKLE_CONTRACT_ADDRESS_SEPOLIA =
   "0x0620325f0dfe1a31b06126af8612fe762f9dcab79960ce23ac734ff93ddf6c64";
 
 export const MERKLE_CONTRACT_ADDRESS_MAINNET =
-  "0xc066e9beae1d361c6ec83fbfce6a0f97186faceb426eeb506399adb82a181e";
+  "0x2cb0c045ca7c0ef8c1622c964310224e529fb24cb6d2c080052aec3deaad2fc";
 
 export const STRK_TOKEN =
   "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d" as const;
