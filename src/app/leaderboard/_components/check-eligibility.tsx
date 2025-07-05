@@ -117,7 +117,10 @@ const useEligibilityData = (allocation?: string) => {
   }, [allocation]);
 };
 
-const useUserSubscriptionCheck = (address: string | undefined, submittedEmail: boolean) => {
+const useUserSubscriptionCheck = (
+  address: string | undefined,
+  submittedEmail: boolean,
+) => {
   const [userExists, setUserExists] = React.useState(false);
   const [checkingUser, setCheckingUser] = React.useState(false);
 
@@ -218,7 +221,10 @@ const RewardSummary = React.memo<{
     bonusAlreadyAwarded = false,
   }) => {
     const { address } = useAccount();
-    const { userExists, checkingUser } = useUserSubscriptionCheck(address, false); // false is just to avoid type check
+    const { userExists, checkingUser } = useUserSubscriptionCheck(
+      address,
+      false,
+    ); // false is just to avoid type check
 
     // Format the allocation once
     const formattedAllocation = React.useMemo(
@@ -264,7 +270,11 @@ const RewardSummary = React.memo<{
             <VerificationStatus
               isVerified={userExists && !checkingUser}
               isLoading={checkingUser}
-              label={userExists && !checkingUser ? "Email verified and saved" : "Email not verified"}
+              label={
+                userExists && !checkingUser
+                  ? "Email verified and saved"
+                  : "Email not verified"
+              }
             />
 
             <VerificationStatus
@@ -373,7 +383,6 @@ const EligibilityModal = React.memo<{
             Skip
           </Button>
         </div>
-
       </div>
     </DialogContent>
   ),
@@ -693,7 +702,10 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
   const { address } = useAccount();
   const eligibilityData = useEligibilityData(userCompleteInfo?.allocation);
   const [submittedEmail, setSubmittedEmail] = React.useState<boolean>(false);
-  const { userExists, checkingUser } = useUserSubscriptionCheck(address, submittedEmail);
+  const { userExists, checkingUser } = useUserSubscriptionCheck(
+    address,
+    submittedEmail,
+  );
   const { sendAsync, isPending, isError, data } = useSendTransaction({});
 
   const bonusAlreadyAwarded = React.useMemo(

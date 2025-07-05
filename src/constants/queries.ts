@@ -47,4 +47,4 @@ export const CHECK_EMAIL_EXISTS = gql`
   query CheckUserEmail($userAddress: String!) {
     hasEmailSaved(userAddress: $userAddress)
   }
-`;  
+`;
