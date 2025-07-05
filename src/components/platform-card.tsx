@@ -32,7 +32,7 @@ export function PlatformCard({
         "shadow-sm hover:shadow",
         isSelected && "!border-[#17876D] !bg-white !shadow",
         {
-          "!w-full py-3": name.includes("STRKFarm"),
+          "!w-full py-3": name.includes("Troves"),
         },
       )}
     >

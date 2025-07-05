@@ -1,6 +1,7 @@
 "use client";
 
 import { useAtom, useAtomValue } from "jotai";
+import { Loader } from "lucide-react";
 import * as React from "react";
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
 
@@ -20,11 +21,11 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart";
 import { cn, formatHumanFriendlyDateTime } from "@/lib/utils";
+import { userAddressAtom } from "@/store/common.store";
 import { chartFilter } from "@/store/portfolio.store";
+
 import { chartConfig } from "./defi-holding";
 import { HoldingInfo } from "./portfolio-page";
-import { userAddressAtom } from "@/store/common.store";
-import { Loader } from "lucide-react";
 
 function getLast7Days() {
   const result = [];

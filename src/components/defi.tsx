@@ -30,8 +30,8 @@ export const protocolConfigs: Partial<Record<SupportedDApp, ProtocolConfig>> = {
     tokens: [
       { icon: <Icons.endurLogo className="size-[22px]" />, name: "xSTRK" },
     ],
-    protocolIcon: <Icons.strkfarmLogo className="rounded-full" />,
-    protocolName: "STRKFarm",
+    protocolIcon: <Icons.trovesLogoLight className="rounded-full" />,
+    protocolName: "Troves",
     badges: [{ type: "Yield Farming", color: "bg-[#E9F3F0] text-[#17876D]" }],
     description: "Leveraged xSTRK strategy on Vesu",
     action: {
@@ -40,7 +40,7 @@ export const protocolConfigs: Partial<Record<SupportedDApp, ProtocolConfig>> = {
       buttonText: "Invest",
       onClick: () => {
         MyAnalytics.track(eventNames.OPPORTUNITIES, {
-          protocol: "strkfarm",
+          protocol: "troves",
           buttonText: "Invest",
         });
       },
@@ -51,8 +51,8 @@ export const protocolConfigs: Partial<Record<SupportedDApp, ProtocolConfig>> = {
       { icon: <Icons.endurLogo className="size-[22px]" />, name: "xSTRK" },
       { icon: <Icons.strkLogo className="size-[22px]" />, name: "STRK" },
     ],
-    protocolIcon: <Icons.strkfarmLogo className="rounded-full" />,
-    protocolName: "STRKFarm",
+    protocolIcon: <Icons.trovesLogoLight className="rounded-full" />,
+    protocolName: "Troves",
     badges: [
       {
         type: "Automated Liquidity Pool",
@@ -67,7 +67,7 @@ export const protocolConfigs: Partial<Record<SupportedDApp, ProtocolConfig>> = {
       buttonText: "Add Liquidity",
       onClick: () => {
         MyAnalytics.track(eventNames.OPPORTUNITIES, {
-          protocol: "strkfarmEkubo",
+          protocol: "trovesEkubo",
           buttonText: "Add Liquidity",
         });
       },
