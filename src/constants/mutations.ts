@@ -12,6 +12,15 @@ export const UPDATE_USER_POINTS = gql`
   }
 `;
 
+export const SAVE_USER_EMAIL = gql`
+  mutation Mutation($input: SaveEmailInput!) {
+    saveEmail(input: $input) {
+      success
+      message
+    }
+  }
+`;
+
 // AddPointsInput = {
 //   "input": {
 //     "userAddress": "",

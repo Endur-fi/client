@@ -117,7 +117,7 @@ const useEligibilityData = (allocation?: string) => {
   }, [allocation]);
 };
 
-const useUserSubscriptionCheck = (address: string | undefined) => {
+const useUserSubscriptionCheck = (address: string | undefined, submittedEmail: boolean) => {
   const [userExists, setUserExists] = React.useState(false);
   const [checkingUser, setCheckingUser] = React.useState(false);
 
@@ -139,7 +139,7 @@ const useUserSubscriptionCheck = (address: string | undefined) => {
 
     const timer = setTimeout(checkUser, 500); // debounce for 500ms
     return () => clearTimeout(timer);
-  }, [address]);
+  }, [address, submittedEmail]);
 
   return { userExists, checkingUser };
 };
@@ -218,7 +218,7 @@ const RewardSummary = React.memo<{
     bonusAlreadyAwarded = false,
   }) => {
     const { address } = useAccount();
-    const { userExists, checkingUser } = useUserSubscriptionCheck(address);
+    const { userExists, checkingUser } = useUserSubscriptionCheck(address, false); // false is just to avoid type check
 
     // Format the allocation once
     const formattedAllocation = React.useMemo(
@@ -340,6 +340,16 @@ const EligibilityModal = React.memo<{
             </div>
           )}
 
+          <div className="">
+            <div className="flex w-full items-start justify-center gap-2 rounded-lg bg-[#E3EFEC]/5 px-4 py-4 text-sm">
+              <Icons.shield className="mt-1 size-10 text-[#2ACF83]" />
+              <p className="text-sm text-white/80">
+                Your email is safe with us and will not be shared with third
+                parties.
+              </p>
+            </div>
+          </div>
+
           <Button
             onClick={onNext}
             disabled={isSubmitting || (checkingUser && !userExists)}
@@ -364,15 +374,6 @@ const EligibilityModal = React.memo<{
           </Button>
         </div>
 
-        <div className="mt-7 px-2">
-          <div className="flex w-full items-start justify-center gap-2 rounded-lg bg-[#E3EFEC]/5 px-4 py-4 text-sm">
-            <Icons.shield className="mt-1 size-10 text-[#2ACF83]" />
-            <p className="text-sm text-white/80">
-              Your email is safe with us and will not be shared with third
-              parties.
-            </p>
-          </div>
-        </div>
       </div>
     </DialogContent>
   ),
@@ -691,7 +692,8 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
 
   const { address } = useAccount();
   const eligibilityData = useEligibilityData(userCompleteInfo?.allocation);
-  const { userExists, checkingUser } = useUserSubscriptionCheck(address);
+  const [submittedEmail, setSubmittedEmail] = React.useState<boolean>(false);
+  const { userExists, checkingUser } = useUserSubscriptionCheck(address, submittedEmail);
   const { sendAsync, isPending, isError, data } = useSendTransaction({});
 
   const bonusAlreadyAwarded = React.useMemo(
@@ -751,7 +753,7 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
         return;
       }
 
-      const subscriptionStatus = await checkSubscription(state.emailInput);
+      const subscriptionStatus = await checkSubscription(address);
 
       if (!subscriptionStatus.isSubscribed) {
         const subscriptionResult = await subscribeUser(
@@ -762,6 +764,7 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
           toast({ description: "Failed to subscribe. Please try again." });
           return;
         }
+        setSubmittedEmail(true);
       }
 
       trackAnalyticsCallback(LEADERBOARD_ANALYTICS_EVENTS.EMAIL_SUBMITTED, {
