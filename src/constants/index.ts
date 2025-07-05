@@ -141,4 +141,6 @@ export const LEADERBOARD_ANALYTICS_EVENTS = {
   EMAIL_SUBMITTED: "email_submitted",
   EMAIL_SKIP_CLICKED: "email_skip_clicked",
   TWITTER_FOLLOW_CLICKED: "twitter_follow_clicked",
+  TWITTER_FOLLOW_SKIPPED: "twitter_follow_skipped",
+  CLICKED_CLAIM_REWARDS: "clicked_claim_rewards",
 } as const;
