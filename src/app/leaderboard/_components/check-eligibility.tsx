@@ -765,6 +765,8 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
         return;
       }
 
+
+
       const subscriptionStatus = await checkSubscription(address);
 
       if (!subscriptionStatus.isSubscribed) {
@@ -919,6 +921,9 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
   }, []);
 
   const goToClaim = React.useCallback(() => {
+    MyAnalytics.track(LEADERBOARD_ANALYTICS_EVENTS.TWITTER_FOLLOW_SKIPPED, {
+      userAddress: address,
+    });
     setState((prev) => ({
       ...prev,
       activeModal: state.isEligible ? "claim" : "notEligible",
@@ -939,6 +944,13 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
       toast({ description: "No allocation or proof found." });
       return;
     }
+
+    MyAnalytics.track(LEADERBOARD_ANALYTICS_EVENTS.CLICKED_CLAIM_REWARDS, {
+      userAddress: address || "anonymous",
+      timestamp: Date.now(),
+      isWalletConnected: !!address,
+      allocation,
+    });
 
     try {
       const allocationWei = MyNumber.fromEther(
