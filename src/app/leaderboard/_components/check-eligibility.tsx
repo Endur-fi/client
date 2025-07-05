@@ -765,8 +765,6 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
         return;
       }
 
-
-
       const subscriptionStatus = await checkSubscription(address);
 
       if (!subscriptionStatus.isSubscribed) {
