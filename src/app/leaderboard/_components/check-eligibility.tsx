@@ -7,7 +7,7 @@ import Image from "next/image";
 import Link from "next/link";
 import React from "react";
 import { TwitterShareButton } from "react-share";
-import { Contract, num } from "starknet";
+import { Contract } from "starknet";
 
 import merkleAbi from "@/abi/merkle.abi.json";
 import { Icons } from "@/components/Icons";
@@ -34,7 +34,7 @@ import { toast } from "@/hooks/use-toast";
 import { MyAnalytics } from "@/lib/analytics";
 import { checkSubscription, subscribeUser } from "@/lib/api";
 import apolloClient from "@/lib/apollo-client";
-import { Web3Number } from '@strkfarm/sdk';
+import { Web3Number } from "@strkfarm/sdk";
 
 import {
   cn,
@@ -951,10 +951,7 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
       allocation,
     });
 
-    const allocationWei = (new Web3Number(
-      allocation,
-      STRK_DECIMALS,
-    )).toWei();
+    const allocationWei = new Web3Number(allocation, STRK_DECIMALS).toWei();
 
     try {
       console.log(proofs, "proofs", allocationWei, allocation);
