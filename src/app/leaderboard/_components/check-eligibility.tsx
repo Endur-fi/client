@@ -7,7 +7,7 @@ import Image from "next/image";
 import Link from "next/link";
 import React from "react";
 import { TwitterShareButton } from "react-share";
-import { Contract } from "starknet";
+import { Contract, num } from "starknet";
 
 import merkleAbi from "@/abi/merkle.abi.json";
 import { Icons } from "@/components/Icons";
@@ -34,7 +34,8 @@ import { toast } from "@/hooks/use-toast";
 import { MyAnalytics } from "@/lib/analytics";
 import { checkSubscription, subscribeUser } from "@/lib/api";
 import apolloClient from "@/lib/apollo-client";
-import MyNumber from "@/lib/MyNumber";
+import { Web3Number } from '@strkfarm/sdk';
+
 import {
   cn,
   formatNumberWithCommas,
@@ -950,13 +951,13 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
       allocation,
     });
 
-    try {
-      const allocationWei = MyNumber.fromEther(
-        Number(allocation).toString(),
-        STRK_DECIMALS,
-      ).toString();
+    const allocationWei = (new Web3Number(
+      allocation,
+      STRK_DECIMALS,
+    )).toWei();
 
-      console.log(proofs, "proofs");
+    try {
+      console.log(proofs, "proofs", allocationWei, allocation);
 
       // call claim with allocation and any proof (use first proof)
       const claimCall = merkleContract.populate("claim", [
