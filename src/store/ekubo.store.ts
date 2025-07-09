@@ -5,11 +5,13 @@ import { atomFamily } from "jotai/utils";
 import { BlockIdentifier, Contract, RpcProvider } from "starknet";
 
 import ekuboPositionAbi from "@/abi/ekubo.position.abi.json";
-import { STRK_DECIMALS, xSTRK_TOKEN_MAINNET } from "@/constants";
+import { STRK_DECIMALS, STRK_TOKEN, xSTRK_TOKEN_MAINNET } from "@/constants";
 import MyNumber from "@/lib/MyNumber";
 
 import { DAppHoldingsAtom, DAppHoldingsFn, getHoldingAtom } from "./defi.store";
 import { isContractNotDeployed } from "@/lib/utils";
+import { gql } from "@apollo/client";
+import apolloClient from "@/lib/apollo-client";
 
 export const XSTRK_ADDRESS = xSTRK_TOKEN_MAINNET;
 export const EKUBO_POSITION_ADDRESS =
@@ -18,23 +20,17 @@ export const EKUBO_POSITION_DEPLOYMENT_BLOCK = 165388;
 
 Decimal.set({ precision: 78 });
 
-function loadFromCache() {
-  if (typeof window !== "undefined") {
-    // If running in a browser, we cannot use fs
-    return {};
-  // eslint-disable-next-line
-  } else {
-    // eslint-disable-next-line
-    const fs = require("fs");
-    const { existsSync, readFileSync, writeFileSync } = fs;
-    if (!existsSync(`./ekubo_positions.json`)) {
-      return {};
-    }
-    return JSON.parse(readFileSync(`./ekubo_positions.json`, "utf8"));
+const EKUBO_API_QUERY = gql`query GetEkuboPositionsByUser($userAddress: String!, $showClosed: Boolean!, $toDateTime: DateTimeISO!) {
+  getEkuboPositionsByUser(userAddress: $userAddress, showClosed: $showClosed, toDateTime: $toDateTime) {
+    position_id
+    timestamp
+    lower_bound
+    upper_bound
+    pool_fee
+    pool_tick_spacing
+    extension
   }
-  // return {};
-}
-const ekuboPositionsCache: Record<string, any> = loadFromCache();
+}`;
 
 export const getEkuboHoldings: DAppHoldingsFn = async (
   address: string,
@@ -43,35 +39,8 @@ export const getEkuboHoldings: DAppHoldingsFn = async (
 ) => {
   let xSTRKAmount = MyNumber.fromEther("0", 18);
   let STRKAmount = MyNumber.fromEther("0", 18);
-
-  let res: any = ekuboPositionsCache[address];
-  if (!res) {
-    const resp = await axios.get(
-      `https://mainnet-api.ekubo.org/positions/${address}?showClosed=true`,
-      {
-        headers: {
-          Host: "mainnet-api.ekubo.org",
-        },
-      },
-      // `https://mainnet-api.ekubo.org/positions/0x067138f4b11ac7757e39ee65814d7a714841586e2aa714ce4ececf38874af245`,
-    );
-    if (resp?.data) {
-      res = resp.data;
-      ekuboPositionsCache[address] = res; // Cache the result
-      if (typeof window === "undefined") {
-        // If running in a Node.js environment, write to file
-        // This is useful for caching in server-side environments
-        // but should not be used in client-side code
-        // eslint-disable-next-line
-        const fs = require("fs");
-        const { writeFileSync } = fs;
-        writeFileSync(`./ekubo_positions.json`, JSON.stringify(ekuboPositionsCache, null, 2));
-      }
-    } else {
-      throw new Error("Failed to fetch Ekubo positions data");
-    }
-  }
-
+  
+  const blockInfo = await provider.getBlock(blockNumber ?? "latest");
   if (isContractNotDeployed(blockNumber, EKUBO_POSITION_DEPLOYMENT_BLOCK)) {
     return {
       xSTRKAmount,
@@ -79,88 +48,91 @@ export const getEkuboHoldings: DAppHoldingsFn = async (
     };
   }
 
+  const resp = await apolloClient.query({
+    query: EKUBO_API_QUERY,
+    variables: {
+      userAddress: address.toLowerCase(),
+      showClosed: false, // Fetch both open and closed positions
+      toDateTime: new Date(blockInfo.timestamp * 1000).toISOString()
+    },
+  });
+  const ekuboPositionsResp = resp;
+  if (!ekuboPositionsResp || !ekuboPositionsResp.data || !ekuboPositionsResp.data.getEkuboPositionsByUser) {
+    throw new Error("Failed to fetch Ekubo positions data");
+  }
+  const ekuboPositions: {
+    position_id: string;
+    timestamp: string;
+    lower_bound: number;
+    upper_bound: number;
+    pool_fee: string;
+    pool_tick_spacing: string;
+    extension: string;
+  }[] = ekuboPositionsResp.data.getEkuboPositionsByUser;
+
+
   const positionContract = new Contract(
     ekuboPositionAbi,
     EKUBO_POSITION_ADDRESS,
     provider,
   );
 
-  if (res?.data) {
-    const filteredData = res?.data?.filter(
-      (position: any) =>
-        position.pool_key.token0 === XSTRK_ADDRESS ||
-        position.pool_key.token1 === XSTRK_ADDRESS,
-    );
-
-    if (filteredData) {
-      for (let i = 0; i < filteredData.length; i++) {
-        const position = filteredData[i];
-        if (!position.id) continue;
-        try {
-          const result: any = await positionContract.call(
-            "get_token_info",
-            [
-              position?.id,
-              position.pool_key,
-              {
-                lower: {
-                  mag: Math.abs(position?.bounds?.lower),
-                  sign: position?.bounds?.lower < 0 ? 1 : 0,
-                },
-                upper: {
-                  mag: Math.abs(position?.bounds?.upper),
-                  sign: position?.bounds?.upper < 0 ? 1 : 0,
-                },
-              },
-            ],
-            {
-              blockIdentifier: blockNumber ?? "pending",
-            },
-          );
-
-          if (XSTRK_ADDRESS === position.pool_key.token0) {
-            xSTRKAmount = xSTRKAmount.operate(
-              "plus",
-              new MyNumber(result.amount0.toString(), STRK_DECIMALS).toString(),
-            );
-            xSTRKAmount = xSTRKAmount.operate(
-              "plus",
-              new MyNumber(result.fees0.toString(), STRK_DECIMALS).toString(),
-            );
-            STRKAmount = STRKAmount.operate(
-              "plus",
-              new MyNumber(result.amount1.toString(), STRK_DECIMALS).toString(),
-            );
-            STRKAmount = STRKAmount.operate(
-              "plus",
-              new MyNumber(result.fees1.toString(), STRK_DECIMALS).toString(),
-            );
-          } else {
-            xSTRKAmount = xSTRKAmount.operate(
-              "plus",
-              new MyNumber(result.amount1.toString(), STRK_DECIMALS).toString(),
-            );
-            xSTRKAmount = xSTRKAmount.operate(
-              "plus",
-              new MyNumber(result.fees1.toString(), STRK_DECIMALS).toString(),
-            );
-            STRKAmount = STRKAmount.operate(
-              "plus",
-              new MyNumber(result.amount0.toString(), STRK_DECIMALS).toString(),
-            );
-            STRKAmount = STRKAmount.operate(
-              "plus",
-              new MyNumber(result.fees0.toString(), STRK_DECIMALS).toString(),
-            );
-          }
-        } catch (error: any) {
-          if (error.message.includes("NOT_INITIALIZED")) {
-            // do nothing
-            continue;
-          }
-          throw error;
-        }
+  for (let i = 0; i < ekuboPositions.length; i++) {
+    const position = ekuboPositions[i];
+    if (!position.position_id) continue;
+    try {
+      const poolKey = {
+        token0: XSTRK_ADDRESS,
+        token1: STRK_TOKEN,
+        fee: position.pool_fee,
+        tick_spacing: position.pool_tick_spacing,
+        extension: position.extension,
       }
+      const result: any = await positionContract.call(
+        "get_token_info",
+        [
+          position.position_id,
+          poolKey,
+          {
+            lower: {
+              mag: Math.abs(position.lower_bound),
+              sign: position.lower_bound < 0 ? 1 : 0,
+            },
+            upper: {
+              mag: Math.abs(position.upper_bound),
+              sign: position.upper_bound < 0 ? 1 : 0,
+            },
+          },
+        ],
+        {
+          blockIdentifier: blockNumber ?? "pending",
+        },
+      );
+
+      console.log(`Position ID: ${position.position_id}, Result:`, result, poolKey, blockNumber);
+
+      xSTRKAmount = xSTRKAmount.operate(
+        "plus",
+        new MyNumber(result.amount0.toString(), STRK_DECIMALS).toString(),
+      );
+      xSTRKAmount = xSTRKAmount.operate(
+        "plus",
+        new MyNumber(result.fees0.toString(), STRK_DECIMALS).toString(),
+      );
+      STRKAmount = STRKAmount.operate(
+        "plus",
+        new MyNumber(result.amount1.toString(), STRK_DECIMALS).toString(),
+      );
+      STRKAmount = STRKAmount.operate(
+        "plus",
+        new MyNumber(result.fees1.toString(), STRK_DECIMALS).toString(),
+      );
+    } catch (error: any) {
+      if (error.message.includes("NOT_INITIALIZED")) {
+        // do nothing
+        continue;
+      }
+      throw error;
     }
   }
 
