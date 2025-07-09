@@ -20,17 +20,27 @@ export const EKUBO_POSITION_DEPLOYMENT_BLOCK = 165388;
 
 Decimal.set({ precision: 78 });
 
-const EKUBO_API_QUERY = gql`query GetEkuboPositionsByUser($userAddress: String!, $showClosed: Boolean!, $toDateTime: DateTimeISO!) {
-  getEkuboPositionsByUser(userAddress: $userAddress, showClosed: $showClosed, toDateTime: $toDateTime) {
-    position_id
-    timestamp
-    lower_bound
-    upper_bound
-    pool_fee
-    pool_tick_spacing
-    extension
+const EKUBO_API_QUERY = gql`
+  query GetEkuboPositionsByUser(
+    $userAddress: String!
+    $showClosed: Boolean!
+    $toDateTime: DateTimeISO!
+  ) {
+    getEkuboPositionsByUser(
+      userAddress: $userAddress
+      showClosed: $showClosed
+      toDateTime: $toDateTime
+    ) {
+      position_id
+      timestamp
+      lower_bound
+      upper_bound
+      pool_fee
+      pool_tick_spacing
+      extension
+    }
   }
-}`;
+`;
 
 export const getEkuboHoldings: DAppHoldingsFn = async (
   address: string,
@@ -39,7 +49,7 @@ export const getEkuboHoldings: DAppHoldingsFn = async (
 ) => {
   let xSTRKAmount = MyNumber.fromEther("0", 18);
   let STRKAmount = MyNumber.fromEther("0", 18);
-  
+
   const blockInfo = await provider.getBlock(blockNumber ?? "latest");
   if (isContractNotDeployed(blockNumber, EKUBO_POSITION_DEPLOYMENT_BLOCK)) {
     return {
@@ -53,11 +63,15 @@ export const getEkuboHoldings: DAppHoldingsFn = async (
     variables: {
       userAddress: address.toLowerCase(),
       showClosed: false, // Fetch both open and closed positions
-      toDateTime: new Date(blockInfo.timestamp * 1000).toISOString()
+      toDateTime: new Date(blockInfo.timestamp * 1000).toISOString(),
     },
   });
   const ekuboPositionsResp = resp;
-  if (!ekuboPositionsResp || !ekuboPositionsResp.data || !ekuboPositionsResp.data.getEkuboPositionsByUser) {
+  if (
+    !ekuboPositionsResp ||
+    !ekuboPositionsResp.data ||
+    !ekuboPositionsResp.data.getEkuboPositionsByUser
+  ) {
     throw new Error("Failed to fetch Ekubo positions data");
   }
   const ekuboPositions: {
@@ -69,7 +83,6 @@ export const getEkuboHoldings: DAppHoldingsFn = async (
     pool_tick_spacing: string;
     extension: string;
   }[] = ekuboPositionsResp.data.getEkuboPositionsByUser;
-
 
   const positionContract = new Contract(
     ekuboPositionAbi,
@@ -87,7 +100,7 @@ export const getEkuboHoldings: DAppHoldingsFn = async (
         fee: position.pool_fee,
         tick_spacing: position.pool_tick_spacing,
         extension: position.extension,
-      }
+      };
       const result: any = await positionContract.call(
         "get_token_info",
         [
@@ -109,7 +122,12 @@ export const getEkuboHoldings: DAppHoldingsFn = async (
         },
       );
 
-      console.log(`Position ID: ${position.position_id}, Result:`, result, poolKey, blockNumber);
+      console.log(
+        `Position ID: ${position.position_id}, Result:`,
+        result,
+        poolKey,
+        blockNumber,
+      );
 
       xSTRKAmount = xSTRKAmount.operate(
         "plus",
