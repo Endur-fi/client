@@ -1,5 +1,11 @@
 import { constants, RpcProvider } from "starknet";
 
+export const MERKLE_CONTRACT_ADDRESS_SEPOLIA =
+  "0x0620325f0dfe1a31b06126af8612fe762f9dcab79960ce23ac734ff93ddf6c64";
+
+export const MERKLE_CONTRACT_ADDRESS_MAINNET =
+  "0x021660de54b2e2ba6189c70767f0be7916c8abe0962ff5c7bd912264855bf339";
+
 export const STRK_TOKEN =
   "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d" as const;
 export const ETH_TOKEN =
@@ -134,4 +140,7 @@ export const LEADERBOARD_ANALYTICS_EVENTS = {
   ELIGIBILITY_RESULT: "eligibility_result",
   EMAIL_SUBMITTED: "email_submitted",
   EMAIL_SKIP_CLICKED: "email_skip_clicked",
+  TWITTER_FOLLOW_CLICKED: "twitter_follow_clicked",
+  TWITTER_FOLLOW_SKIPPED: "twitter_follow_skipped",
+  CLICKED_CLAIM_REWARDS: "clicked_claim_rewards",
 } as const;

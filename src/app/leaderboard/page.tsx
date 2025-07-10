@@ -1,6 +1,7 @@
 "use client";
 
 import { useAccount } from "@starknet-react/core";
+import Image from "next/image";
 import React from "react";
 
 import { useSidebar } from "@/components/ui/sidebar";
@@ -18,7 +19,6 @@ import CheckEligibility, {
 } from "./_components/check-eligibility";
 import { columns, type SizeColumn } from "./_components/table/columns";
 import { DataTable } from "./_components/table/data-table";
-import Image from "next/image";
 
 const PAGINATION_LIMIT = 100;
 
@@ -90,7 +90,7 @@ const useLeaderboardData = () => {
           !isRefresh &&
           leaderboardCache &&
           // refresh, even if address changes
-          leaderboardCache.currentUserInfo.address == address &&
+          leaderboardCache.currentUserInfo.address === address &&
           Date.now() - leaderboardCache.timestamp < CACHE_EXPIRY_MS
         ) {
           setState({
@@ -412,7 +412,11 @@ const Leaderboard: React.FC = () => {
 
       <div className="mt-6">
         {allUsers.length > 0 ? (
-          <DataTable columns={columns} data={leaderboardData} />
+          <DataTable
+            columns={columns}
+            data={leaderboardData}
+            userCompleteDetails={userCompleteInfo}
+          />
         ) : (
           <EmptyState />
         )}

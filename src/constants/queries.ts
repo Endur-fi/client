@@ -30,11 +30,21 @@ export const GET_USER_COMPLETE_DETAILS = gql`
         total_points
         regular_points
         bonus_points
+        early_adopter_points
+        follow_bonus_points
+        dex_bonus_points
       }
       allocation
+      proof
       tags {
         early_adopter
       }
     }
+  }
+`;
+
+export const CHECK_EMAIL_EXISTS = gql`
+  query CheckUserEmail($userAddress: String!) {
+    hasEmailSaved(userAddress: $userAddress)
   }
 `;
