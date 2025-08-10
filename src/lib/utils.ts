@@ -161,11 +161,16 @@ export const eventNames = {
 };
 
 export async function getSTRKPrice() {
+  const rpcUrl = process.env.NEXT_PUBLIC_CHAIN_ID === "SN_MAIN"
+    ? process.env.NEXT_PUBLIC_RPC_URL
+    : "https://starknet-mainnet.public.blastapi.io/rpc/v0_7";
+
+  if (!rpcUrl) {
+    throw new Error("RPC_URL is not set");
+  } 
+
   const provider = new RpcProvider({
-    nodeUrl:
-      process.env.NEXT_PUBLIC_CHAIN_ID === "SN_MAIN"
-        ? process.env.NEXT_PUBLIC_RPC_URL
-        : "https://starknet-mainnet.public.blastapi.io/rpc/v0_7",
+    nodeUrl: rpcUrl,
   });
 
   if (!provider) return 0;

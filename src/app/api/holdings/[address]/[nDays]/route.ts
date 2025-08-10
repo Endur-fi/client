@@ -1,25 +1,9 @@
 import { getProvider } from "@/constants";
 import MyNumber from "@/lib/MyNumber";
+import { holdingsService, HoldingsService } from "@/services/holdings.service";
 import { DAppHoldings } from "@/store/defi.store";
-import { getEkuboHoldings } from "@/store/ekubo.store";
-import { getXSTRKHoldings } from "@/store/lst.store";
-import {
-  getNostraDexHoldings,
-  getNostraHoldingsByToken,
-  i_XSTRK_C_CONTRACT_ADDRESS,
-  i_XSTRK_CONTRACT_ADDRESS,
-  N_XSTRK_C_CONTRACT_ADDRESS,
-  N_XSTRK_CONTRACT_ADDRESS,
-} from "@/store/nostra.store";
-import { getOpusHoldings } from "@/store/opus.store";
-import {
-  getEkuboXSTRKSTRKHoldings,
-  getXSTRKSenseiHoldings,
-} from "@/store/strkfarm.store";
-import {
-  getVesuHoldings,
-  getVesuxSTRKCollateralWrapper,
-} from "@/store/vesu.store";
+
+
 import axios from "axios";
 import { NextResponse } from "next/server";
 
@@ -131,7 +115,7 @@ export async function getAllOpusHoldings(address: string, blocks: BlockInfo[]) {
   // Opus holdings are not implemented yet
   return Promise.all(
     blocks.map(async (block) => {
-      return getOpusHoldings(address, getProvider(), block.block);
+      return retry(holdingsService.getProtocolHoldings.bind(holdingsService), [address, 'opus', block.block]);
     }),
   );
 }
@@ -139,76 +123,35 @@ export async function getAllOpusHoldings(address: string, blocks: BlockInfo[]) {
 export async function getAllVesuHoldings(address: string, blocks: BlockInfo[]) {
   return Promise.all(
     blocks.map(async (block) => {
-      const justSupply = await retry(getVesuHoldings, [
-        address,
-        getProvider(),
-        block.block,
-      ]);
-      const collateral = await retry(getVesuxSTRKCollateralWrapper(), [
-        address,
-        getProvider(),
-        block.block,
-      ]);
-
-      const output: DAppHoldings = {
-        xSTRKAmount: justSupply.xSTRKAmount.operate(
-          "plus",
-          collateral.xSTRKAmount.toString(),
-        ),
-        STRKAmount: justSupply.STRKAmount.operate(
-          "plus",
-          collateral.STRKAmount.toString(),
-        ),
-      };
-      return output;
+      return retry(holdingsService.getProtocolHoldings.bind(holdingsService), [address, 'vesu', block.block]);
     }),
   );
 }
 
+// todo switch to actual sensei logic
 export async function getAllXSTRKSenseiHoldings(
   address: string,
   blocks: BlockInfo[],
 ) {
   return Promise.all(
     blocks.map(async (block) => {
-      return retry(getXSTRKSenseiHoldings, [
-        address,
-        getProvider(),
-        block.block,
-      ]);
+      return retry(holdingsService.getProtocolHoldings.bind(holdingsService), [address, 'strkfarm', block.block]);
     }),
   );
 }
 
+// todo switch to actual ekubo logic
 export async function getAllEkuboXSTRKSTRKHoldings(
   address: string,
   blocks: BlockInfo[],
 ) {
   return Promise.all(
     blocks.map(async (block) => {
-      return retry(getEkuboXSTRKSTRKHoldings, [
-        address,
-        getProvider(),
-        block.block,
-      ]);
+      return retry(holdingsService.getProtocolHoldings.bind(holdingsService), [address, 'strkfarmEkubo', block.block]);
     }),
   );
 }
 
-async function getAllVesuCollateralHoldings(
-  address: string,
-  blocks: BlockInfo[],
-) {
-  return Promise.all(
-    blocks.map(async (block) => {
-      return retry(getVesuxSTRKCollateralWrapper(), [
-        address,
-        getProvider(),
-        block.block,
-      ]);
-    }),
-  );
-}
 
 export async function getAllEkuboHoldings(
   address: string,
@@ -216,7 +159,7 @@ export async function getAllEkuboHoldings(
 ) {
   return Promise.all(
     blocks.map(async (block) => {
-      return retry(getEkuboHoldings, [address, getProvider(), block.block]);
+      return retry(holdingsService.getProtocolHoldings.bind(holdingsService), [address, 'ekubo', block.block]);
     }),
   );
 }
@@ -232,34 +175,11 @@ export async function getNostraLendingHoldings(
   address: string,
   blocks: BlockInfo[],
 ): Promise<DAppHoldings[]> {
-  const nTokens = [
-    N_XSTRK_CONTRACT_ADDRESS,
-    N_XSTRK_C_CONTRACT_ADDRESS,
-    i_XSTRK_CONTRACT_ADDRESS,
-    i_XSTRK_C_CONTRACT_ADDRESS,
-  ];
-  const provider = getProvider();
 
   // loop across blocks and sum the holdings for all tokens
   const result = await Promise.all(
     blocks.map(async (block) => {
-      const holdings = await Promise.all(
-        nTokens.map(async (token) => {
-          return retry(getNostraHoldingsByToken, [
-            address,
-            provider,
-            token,
-            block.block,
-          ]);
-        }),
-      );
-      return {
-        xSTRKAmount: holdings.reduce(
-          (acc, cur) => acc.operate("plus", cur.toString()),
-          MyNumber.fromEther("0", 18),
-        ),
-        STRKAmount: MyNumber.fromZero(),
-      };
+      return retry(holdingsService.getProtocolHoldings.bind(holdingsService), [address, 'nostraLending', block.block]);
     }),
   );
   return result;
@@ -273,7 +193,7 @@ export async function getNostraDEXHoldings(
 
   return Promise.all(
     blocks.map(async (block) => {
-      return retry(getNostraDexHoldings, [address, provider, block.block]);
+      return retry(holdingsService.getProtocolHoldings.bind(holdingsService), [address, 'nostraDex', block.block]);
     }),
   );
 }
@@ -284,7 +204,7 @@ export async function getAllXSTRKHoldings(
 ) {
   return Promise.all(
     blocks.map(async (block) => {
-      return retry(getXSTRKHoldings, [address, getProvider(), block.block]);
+      return retry(holdingsService.getProtocolHoldings.bind(holdingsService), [address, 'lst', block.block]);
     }),
   );
 }

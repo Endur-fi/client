@@ -5,17 +5,16 @@ import {
   type BlockIdentifier,
   Contract,
   type RpcProvider,
-  uint256,
 } from "starknet";
 
 import WqAbi from "@/abi/wq.abi.json";
 import {
   STRK_DECIMALS,
   WITHDRAWAL_QUEUE_ADDRESS,
-  xSTRK_TOKEN_MAINNET_DEPLOYMENT_BLOCK,
 } from "@/constants";
 import MyNumber from "@/lib/MyNumber";
 import LSTService from "@/services/lst";
+import { holdingsService } from "@/services/holdings.service";
 
 import {
   currentBlockAtom,
@@ -28,7 +27,6 @@ import {
   type DAppHoldingsFn,
   getHoldingAtom,
 } from "./defi.store";
-import { isContractNotDeployed } from "@/lib/utils";
 
 const lstService = new LSTService();
 
@@ -37,37 +35,46 @@ export const getXSTRKHoldings: DAppHoldingsFn = async (
   provider: RpcProvider,
   blockNumber?: BlockIdentifier,
 ) => {
-  const lstContract = lstService.getLSTContract(provider);
-  if (
-    isContractNotDeployed(blockNumber, xSTRK_TOKEN_MAINNET_DEPLOYMENT_BLOCK)
-  ) {
+  // Set provider for the holdings service
+  holdingsService.setProvider(provider);
+  
+  try {
+    const holdings = await holdingsService.getProtocolHoldings(address, 'lst', blockNumber as any);
+    return {
+      xSTRKAmount: holdings.xSTRKAmount,
+      STRKAmount: holdings.STRKAmount,
+    };
+  } catch (error) {
+    console.error('Error fetching LST holdings via SDK:', error);
     return {
       xSTRKAmount: MyNumber.fromZero(),
       STRKAmount: MyNumber.fromZero(),
     };
   }
-
-  const balance = await lstContract.call("balance_of", [address], {
-    blockIdentifier: blockNumber ?? "pending",
-  });
-  return {
-    xSTRKAmount: new MyNumber(balance.toString(), STRK_DECIMALS),
-    STRKAmount: MyNumber.fromZero(),
-  };
 };
 
 export const getTotalAssetsByBlock = async (
   blockNumber: BlockIdentifier = "pending",
 ) => {
-  const balance = await lstService.getTotalStaked(blockNumber);
-  return balance;
+  try {
+    const lstData = await holdingsService.getLSTData(blockNumber as any);
+    return lstData.totalAssets;
+  } catch (error) {
+    console.error('Error fetching total assets via SDK:', error);
+    return MyNumber.fromZero();
+  }
 };
 
 export const getTotalSupplyByBlock = async (
   blockNumber: BlockIdentifier = "pending",
 ) => {
-  const balance = await lstService.getTotalSupply(blockNumber);
-  return balance;
+  try {
+    const lstData = await holdingsService.getLSTData(blockNumber as any);
+    return lstData.totalSupply;
+  } catch (error) {
+    console.error('Error fetching total supply via SDK:', error);
+    return MyNumber.fromZero();
+  }
 };
 
 function blockNumberQueryKey(
@@ -108,9 +115,9 @@ const userXSTRKBalanceQueryAtom = atomWithQuery((get) => {
         return MyNumber.fromZero();
       }
       try {
-        const lstContract = lstService.getLSTContract(provider);
-        const balance = await lstContract.call("balance_of", [userAddress]);
-        return new MyNumber(balance.toString(), STRK_DECIMALS);
+        holdingsService.setProvider(provider);
+        const holdings = await holdingsService.getProtocolHoldings(userAddress, 'lst');
+        return holdings.xSTRKAmount;
       } catch (error) {
         console.error("userXSTRKBalanceAtom [3]", error);
         return MyNumber.fromZero();
@@ -202,11 +209,9 @@ export const userSTRKBalanceQueryAtom = atomWithQuery((get) => {
       }
 
       try {
-        const lstContract = lstService.getLSTContract(provider);
-        const balance = await lstContract.call("convert_to_assets", [
-          uint256.bnToUint256(xSTRKBalance.value.toString()),
-        ]);
-        return new MyNumber(balance.toString(), STRK_DECIMALS);
+        holdingsService.setProvider(provider);
+        const strkAmount = await holdingsService.convertXSTRKToSTRK(xSTRKBalance.value.toString());
+        return strkAmount;
       } catch (error) {
         console.error("userSTRKBalanceQueryAtom [3]", error);
         return MyNumber.fromZero();

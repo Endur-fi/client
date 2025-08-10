@@ -7,6 +7,9 @@ import MyNumber from "@/lib/MyNumber";
 import { STRK_DECIMALS } from "@/constants";
 import { atom } from "jotai";
 import { atomFamily } from "jotai/utils";
+import { atomWithQuery } from "jotai-tanstack-query";
+import { holdingsService } from "@/services/holdings.service";
+import { providerAtom, userAddressAtom } from "./common.store";
 
 const XSTRK_SENSEI =
   "0x07023a5cadc8a5db80e4f0fde6b330cbd3c17bbbf9cb145cbabd7bd5e6fb7b0b";
@@ -94,33 +97,52 @@ export const userEkuboXSTRKSTRKBalanceQueryAtom = getHoldingAtom(
 
 export const getSTRKFarmBalanceAtom: DAppHoldingsAtom = atomFamily(
   (blockNumber?: number) => {
-    return atom((get) => {
-      const { data, error } = get(userXSTRKSenseiBalanceQueryAtom(blockNumber));
-      const { data: data2, error: error2 } = get(
-        userEkuboXSTRKSTRKBalanceQueryAtom(blockNumber),
-      );
-
-      let xSTRKAmount = data?.xSTRKAmount ?? new MyNumber("0", STRK_DECIMALS);
-      let STRKAmount = data?.STRKAmount ?? new MyNumber("0", STRK_DECIMALS);
-
-      if (data2) {
-        xSTRKAmount = xSTRKAmount.operate(
-          "plus",
-          data2?.xSTRKAmount ? data2.xSTRKAmount.toString() : "0",
-        );
-        STRKAmount = STRKAmount.operate(
-          "plus",
-          data2?.STRKAmount ? data2.STRKAmount.toString() : "0",
-        );
-      }
-
+    const queryAtom = atomWithQuery((get) => {
       return {
-        data: {
-          xSTRKAmount,
-          STRKAmount,
+        queryKey: [
+          "strkfarmHoldings",
+          blockNumber,
+          get(userAddressAtom),
+          get(providerAtom),
+        ],
+        queryFn: async ({ queryKey }: any) => {
+          const [, , userAddress] = queryKey;
+          const provider = get(providerAtom);
+          
+          if (!provider || !userAddress) {
+            return {
+              xSTRKAmount: MyNumber.fromZero(),
+              STRKAmount: MyNumber.fromZero(),
+            };
+          }
+
+          try {
+            holdingsService.setProvider(provider);
+            const holdings = await holdingsService.getProtocolHoldings(userAddress, 'strkfarm', blockNumber as any);
+            return {
+              xSTRKAmount: holdings.xSTRKAmount,
+              STRKAmount: holdings.STRKAmount,
+            };
+          } catch (error) {
+            console.error('Error fetching STRKFarm holdings via SDK:', error);
+            return {
+              xSTRKAmount: MyNumber.fromZero(),
+              STRKAmount: MyNumber.fromZero(),
+            };
+          }
         },
-        error: error || error2,
-        isLoading: !data && !error,
+      };
+    });
+
+    return atom((get) => {
+      const { data, error, isLoading } = get(queryAtom);
+      return {
+        data: data || {
+          xSTRKAmount: MyNumber.fromZero(),
+          STRKAmount: MyNumber.fromZero(),
+        },
+        error,
+        isLoading,
       };
     });
   },

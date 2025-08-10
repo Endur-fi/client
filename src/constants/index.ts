@@ -81,8 +81,11 @@ export function getEndpoint() {
 export function getProvider() {
   const rpcUrl =
     process.env.RPC_URL ||
-    process.env.NEXT_PUBLIC_RPC_URL ||
-    "https://starknet-mainnet.public.blastapi.io";
+    process.env.NEXT_PUBLIC_RPC_URL;
+  
+  if (!rpcUrl) {
+    throw new Error("RPC_URL is not set");
+  }
 
   return new RpcProvider({
     nodeUrl: rpcUrl,
