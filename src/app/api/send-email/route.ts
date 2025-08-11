@@ -7,7 +7,7 @@ import { SAVE_USER_EMAIL } from "@/constants/mutations";
 
 export async function POST(request: NextRequest) {
   try {
-    const { email, address } = await request.json();
+    const { email, address, listIDs } = await request.json();
 
     if (!email) {
       return NextResponse.json({ error: "Email is required" }, { status: 400 });
@@ -16,6 +16,13 @@ export async function POST(request: NextRequest) {
     if (!address) {
       return NextResponse.json(
         { error: "Address is required" },
+        { status: 400 },
+      );
+    }
+
+    if (!listIDs) {
+      return NextResponse.json(
+        { error: "List Ids is required" },
         { status: 400 },
       );
     }
@@ -84,7 +91,7 @@ export async function POST(request: NextRequest) {
       updateEnabled: false,
       email,
       ext_id: standariseAddress(address), // unique identifier for the contact
-      listIds: [5], // Subscribers-Endur list
+      listIds: listIDs, // Subscribers-Endur list
     };
 
     try {

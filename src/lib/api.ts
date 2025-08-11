@@ -10,9 +10,17 @@ export const checkSubscription = async (address: string) => {
   }
 };
 
-export const subscribeUser = async (email: string, address: string) => {
+export const subscribeUser = async (
+  email: string,
+  address: string,
+  listIDs: number[],
+) => {
   try {
-    const response = await axios.post("/api/send-email", { email, address });
+    const response = await axios.post("/api/send-email", {
+      email,
+      address,
+      listIDs,
+    });
     return response.data;
   } catch (error) {
     console.error("Error subscribing user:", error);
