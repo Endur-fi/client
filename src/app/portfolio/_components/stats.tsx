@@ -58,9 +58,9 @@ const Stats: React.FC = () => {
   }, [exchangeRate.rate, totalXSTRK]);
 
   return (
-    <div className="flex h-fit w-full flex-wrap items-center justify-between rounded-xl border border-[#AACBC4]/30 bg-white p-5 font-poppins shadow-sm lg:px-12">
-      <div className="flex w-[100%] gap-3 lg:w-[50%]">
-        <div className="flex w-[50%] flex-col items-start gap-3">
+    <div className="flex h-fit w-full items-center justify-between rounded-xl border border-[#AACBC4]/30 bg-white p-5 font-poppins shadow-sm lg:px-8">
+      <div className="flex w-[100%] gap-3 lg:w-[60%]">
+        <div className="flex w-full flex-col items-start gap-3">
           <span className="text-xs font-medium text-[#03624C] lg:text-sm">
             Total staked STRK
           </span>
@@ -72,7 +72,7 @@ const Stats: React.FC = () => {
           </p>
         </div>
 
-        <div className="flex w-[50%] flex-col items-start gap-3">
+        <div className="flex w-full flex-col items-start gap-3">
           <span className="text-xs font-medium text-[#03624C] lg:text-sm">
             xSTRK in Wallet
           </span>
@@ -84,8 +84,8 @@ const Stats: React.FC = () => {
         </div>
       </div>
 
-      <div className="mt-[25px] flex w-[100%] gap-3 lg:mt-0 lg:w-[50%]">
-        <div className="flex w-[50%] flex-col items-start gap-3">
+      <div className="mt-[25px] flex w-[100%] gap-3 lg:mt-0 lg:w-[40%]">
+        <div className="flex w-full flex-col items-start gap-3">
           <span className="text-xs font-medium text-[#03624C] lg:text-sm">
             xSTRK in DApps
           </span>
@@ -99,7 +99,7 @@ const Stats: React.FC = () => {
           </p>
         </div>
 
-        <div className="flex w-[50%] flex-col items-start gap-3">
+        <div className="flex w-full flex-col items-start gap-3">
           <span className="text-xs font-medium text-[#03624C] lg:text-sm">
             xSTRK APY
           </span>

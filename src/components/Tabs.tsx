@@ -1,9 +1,10 @@
 "use client";
 
 import { useAtom, useAtomValue } from "jotai";
-import { Info } from "lucide-react";
+import { Icon, Info } from "lucide-react";
 import Link from "next/link";
 import React from "react";
+import { useAccount } from "@starknet-react/core";
 
 import { Icons } from "@/components/Icons";
 import {
@@ -15,6 +16,9 @@ import {
 import { IS_PAUSED } from "@/constants";
 import { cn } from "@/lib/utils";
 import { isMerryChristmasAtom, tabsAtom } from "@/store/merry.store";
+import { toast } from "@/hooks/use-toast";
+import { validateEmail } from "@/lib/utils";
+import { checkSubscription, subscribeUser } from "@/lib/api";
 
 import Stake from "./stake";
 import { useSidebar } from "./ui/sidebar";
@@ -29,13 +33,17 @@ import WithdrawLog from "./withdraw-log";
 
 const Tabs = () => {
   const [activeTab, setActiveTab] = useAtom(tabsAtom);
+  const [activeSubTab, setActiveSubTab] = React.useState("stake");
+  const [waitlistEmail, setWaitlistEmail] = React.useState("");
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   const isMerry = useAtomValue(isMerryChristmasAtom);
+  const { address } = useAccount();
 
   const { isPinned } = useSidebar();
 
   function getMessage() {
-    if (activeTab === "unstake") {
+    if (activeSubTab === "unstake") {
       return (
         <p>
           Unstake requests go into a Withdrawal Queue and are processed when
@@ -51,7 +59,7 @@ const Tabs = () => {
           </Link>
         </p>
       );
-    } else if (activeTab === "stake") {
+    } else if (activeSubTab === "stake") {
       return (
         <p>
           Staking rewards are automatically claimed and compounded, gradually
@@ -60,6 +68,65 @@ const Tabs = () => {
       );
     }
   }
+
+  const handleWaitlistSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!address) {
+      toast({ description: "Please connect your wallet first." });
+      return;
+    }
+
+    if (!waitlistEmail.trim()) {
+      toast({ description: "Please enter your email address." });
+      return;
+    }
+
+    if (!validateEmail(waitlistEmail)) {
+      toast({ description: "Please enter a valid email address." });
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const subscriptionStatus = await checkSubscription(address);
+
+      if (!subscriptionStatus.isSubscribed) {
+        const listIds = [parseInt(process.env.TEST_BREVO_LIST_ID || "7")];
+        const subscriptionResult = await subscribeUser(
+          waitlistEmail,
+          address,
+          listIds,
+        );
+
+        if (!subscriptionResult.success) {
+          toast({
+            description: "Failed to subscribe. Please try again.",
+            variant: "destructive",
+          });
+          setWaitlistEmail("");
+        }
+        toast({
+          description: "Successfully joined waitlist.",
+          variant: "complete",
+        });
+      } else {
+        toast({
+          description: "Already subscribed.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Error joining waitlist:", error);
+      toast({
+        description: "Error joining waitlist. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <div className="relative h-full">
@@ -110,106 +177,224 @@ const Tabs = () => {
           </p>
         </div>
 
-        <div
-          className={cn(
-            "mt-6 min-h-[31.5rem] w-full max-w-xl rounded-xl bg-white shadow-xl lg:h-fit lg:pb-5",
-          )}
-        >
+        {/* Main Tabs - STRK and BTC */}
+        <div className="w-full max-w-xl">
           <ShadCNTabs
             onValueChange={(value) => setActiveTab(value)}
             value={activeTab}
-            defaultValue="stake"
+            defaultValue="strk"
             className="col-span-2 h-full w-full lg:mt-0"
           >
             <TabsList
               className={cn(
-                "flex w-full items-center justify-start rounded-none border-b bg-transparent px-3 pb-5 pt-5 lg:pt-8",
+                "flex w-full items-center gap-2 rounded-none bg-transparent px-3 pb-5 pt-5 lg:pt-8",
                 {
                   // "lg:pt-10": activeTab !== "withdraw" && isMerry,
                 },
               )}
             >
               <TabsTrigger
-                value="stake"
-                className="group relative rounded-none border-none bg-transparent pl-0 text-sm font-medium text-[#8D9C9C] focus-visible:ring-0 focus-visible:ring-offset-0 data-[state=active]:border-t-0 data-[state=active]:shadow-none lg:pl-3 lg:text-base"
+                value="strk"
+                className="group relative inline-flex w-full justify-between rounded-xl border bg-transparent py-2 pl-0 text-sm font-medium text-[#8D9C9C] focus-visible:ring-0 focus-visible:ring-offset-0 data-[state=active]:border-[#17876D] data-[state=active]:text-black data-[state=active]:shadow-none lg:pl-3 lg:text-base"
               >
-                Stake
-                <div className="absolute -bottom-[7.5px] left-0 hidden h-[2px] w-10 rounded-full bg-black group-data-[state=active]:flex lg:-bottom-[5.5px] lg:left-3" />
+                <div className="inline-flex items-center gap-2 text-lg font-bold">
+                  <Icons.strkLogo className="h-5 w-5 opacity-20 group-data-[state=active]:opacity-100" />
+                  STRK
+                </div>
+                <div>
+                  <p className="text-xs">APY: 00.00%</p>
+                </div>
               </TabsTrigger>
               <TabsTrigger
-                value="unstake"
-                className="group relative rounded-none border-none bg-transparent text-sm font-medium text-[#8D9C9C] focus-visible:ring-0 focus-visible:ring-offset-0 data-[state=active]:border-t-0 data-[state=active]:shadow-none lg:text-base"
+                value="btc"
+                className="group relative inline-flex w-full justify-between rounded-xl border bg-transparent py-2 pl-0 text-sm font-medium text-[#8D9C9C] focus-visible:ring-0 focus-visible:ring-offset-0 data-[state=active]:border-[#17876D] data-[state=active]:text-black data-[state=active]:shadow-none lg:pl-3 lg:text-base"
               >
-                Unstake
-                <div className="absolute -bottom-[7.5px] left-3 hidden h-[2px] w-[3.3rem] rounded-full bg-black group-data-[state=active]:flex lg:-bottom-[5.5px] lg:left-3.5" />
-              </TabsTrigger>
-              <TabsTrigger
-                value="withdraw"
-                className="group relative rounded-none border-none bg-transparent text-sm font-medium text-[#8D9C9C] focus-visible:ring-0 focus-visible:ring-offset-0 data-[state=active]:border-t-0 data-[state=active]:shadow-none lg:text-base"
-              >
-                Withdraw log
-                <TooltipProvider delayDuration={0}>
-                  <Tooltip>
-                    <TooltipTrigger className="ml-1" tabIndex={-1} asChild>
-                      <Info className="size-3 text-[#3F6870] lg:text-[#8D9C9C]" />
-                    </TooltipTrigger>
-                    <TooltipContent
-                      side="right"
-                      className="max-w-[13rem] rounded-md border border-[#03624C] bg-white text-[#03624C]"
-                    >
-                      Learn more about withdraw logs{" "}
-                      <Link
-                        target="_blank"
-                        href="https://docs.endur.fi/docs/concepts/withdraw-log"
-                        className="text-blue-600 underline"
-                      >
-                        here
-                      </Link>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-                <div className="absolute -bottom-[7.5px] left-3 hidden h-[2px] w-[5rem] rounded-full bg-black group-data-[state=active]:flex lg:-bottom-[5.5px] lg:left-[16px]" />
+                <div className="inline-flex items-center gap-2 text-lg font-bold">
+                  <Icons.btcLogo className="h-5 w-5 opacity-20 group-data-[state=active]:opacity-100" />
+                  BTC
+                </div>
+                <div>
+                  <p className="text-xs">Coming soon</p>
+                </div>
               </TabsTrigger>
             </TabsList>
 
+            {/* STRK Tab Content */}
             <TabsContent
-              value="stake"
+              value="strk"
               className="h-full pb-3 focus-visible:ring-0 focus-visible:ring-offset-0 lg:pb-0"
             >
-              <Stake />
+              <div
+                className={cn(
+                  "mt-6 min-h-[31.5rem] w-full rounded-xl bg-white shadow-xl lg:h-fit lg:pb-5",
+                )}
+              >
+                <ShadCNTabs
+                  onValueChange={(value) => setActiveSubTab(value)}
+                  value={activeSubTab}
+                  defaultValue="stake"
+                  className="col-span-2 h-full w-full lg:mt-0"
+                >
+                  <TabsList
+                    className={cn(
+                      "flex w-full items-center justify-start rounded-none border-b bg-transparent px-3 pb-5 pt-5 lg:pt-8",
+                      {
+                        // "lg:pt-10": activeTab !== "withdraw" && isMerry,
+                      },
+                    )}
+                  >
+                    <TabsTrigger
+                      value="stake"
+                      className="group relative rounded-none border-none bg-transparent pl-0 text-sm font-medium text-[#8D9C9C] focus-visible:ring-0 focus-visible:ring-offset-0 data-[state=active]:border-t-0 data-[state=active]:shadow-none lg:pl-3 lg:text-base"
+                    >
+                      Stake
+                      <div className="absolute -bottom-[7.5px] left-0 hidden h-[2px] w-10 rounded-full bg-black group-data-[state=active]:flex lg:-bottom-[5.5px] lg:left-3" />
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="unstake"
+                      className="group relative rounded-none border-none bg-transparent text-sm font-medium text-[#8D9C9C] focus-visible:ring-0 focus-visible:ring-offset-0 data-[state=active]:border-t-0 data-[state=active]:shadow-none lg:text-base"
+                    >
+                      Unstake
+                      <div className="absolute -bottom-[7.5px] left-3 hidden h-[2px] w-[3.3rem] rounded-full bg-black group-data-[state=active]:flex lg:-bottom-[5.5px] lg:left-3.5" />
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="withdraw"
+                      className="group relative rounded-none border-none bg-transparent text-sm font-medium text-[#8D9C9C] focus-visible:ring-0 focus-visible:ring-offset-0 data-[state=active]:border-t-0 data-[state=active]:shadow-none lg:text-base"
+                    >
+                      Withdraw log
+                      <TooltipProvider delayDuration={0}>
+                        <Tooltip>
+                          <TooltipTrigger
+                            className="ml-1"
+                            tabIndex={-1}
+                            asChild
+                          >
+                            <Info className="size-3 text-[#3F6870] lg:text-[#8D9C9C]" />
+                          </TooltipTrigger>
+                          <TooltipContent
+                            side="right"
+                            className="max-w-[13rem] rounded-md border border-[#03624C] bg-white text-[#03624C]"
+                          >
+                            Learn more about withdraw logs{" "}
+                            <Link
+                              target="_blank"
+                              href="https://docs.endur.fi/docs/concepts/withdraw-log"
+                              className="text-blue-600 underline"
+                            >
+                              here
+                            </Link>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                      <div className="absolute -bottom-[7.5px] left-3 hidden h-[2px] w-[5rem] rounded-full bg-black group-data-[state=active]:flex lg:-bottom-[5.5px] lg:left-[16px]" />
+                    </TabsTrigger>
+                  </TabsList>
+
+                  <TabsContent
+                    value="stake"
+                    className="h-full pb-3 focus-visible:ring-0 focus-visible:ring-offset-0 lg:pb-0"
+                  >
+                    <Stake />
+                  </TabsContent>
+
+                  <TabsContent
+                    value="unstake"
+                    className="h-full pb-3 focus-visible:ring-0 focus-visible:ring-offset-0 lg:pb-0"
+                  >
+                    <Unstake />
+                  </TabsContent>
+
+                  <TabsContent
+                    value="withdraw"
+                    className="h-full focus-visible:ring-0 focus-visible:ring-offset-0"
+                  >
+                    <WithdrawLog />
+                  </TabsContent>
+                </ShadCNTabs>
+              </div>
+
+              {(activeSubTab === "unstake" || activeSubTab === "stake") && (
+                <div
+                  className={cn(
+                    "mb-2 mt-5 flex items-center rounded-md bg-[#FFC4664D] py-3 pl-4 pr-3 text-xs text-[#D69733] lg:mb-4 lg:text-sm",
+                    {
+                      "bg-[#C0D5CE69] text-[#134c3d9e]":
+                        activeSubTab === "stake",
+                    },
+                  )}
+                >
+                  <span className="mr-3 flex size-4 shrink-0 items-center justify-center rounded-full text-xl lg:size-6">
+                    {activeSubTab === "unstake" ? "⚠️" : <Info />}
+                  </span>
+                  {getMessage()}
+                </div>
+              )}
             </TabsContent>
 
+            {/* BTC Tab Content - Coming Soon */}
             <TabsContent
-              value="unstake"
+              value="btc"
               className="h-full pb-3 focus-visible:ring-0 focus-visible:ring-offset-0 lg:pb-0"
             >
-              <Unstake />
-            </TabsContent>
-
-            <TabsContent
-              value="withdraw"
-              className="h-full focus-visible:ring-0 focus-visible:ring-offset-0"
-            >
-              <WithdrawLog />
+              <div className="mt-6 min-h-[31.5rem] w-full rounded-xl bg-white shadow-xl lg:h-fit lg:pb-5">
+                <div className="relative flex flex-col gap-6 overflow-hidden">
+                  <img
+                    src="/btc-coming-soon-banner.png"
+                    alt="BTC Staking Coming Soon"
+                    className="h-auto w-full"
+                  />
+                  <div className="pl-6">
+                    <p className="mb-6 text-left text-sm text-[#03372C]">
+                      Be among the first to stake - join the waitlist now.
+                    </p>
+                  </div>
+                </div>
+                <div className="flex h-full flex-col px-6">
+                  <div className="flex flex-1 flex-col">
+                    <div className="flex flex-1 flex-col justify-center">
+                      <form
+                        className="space-y-6"
+                        onSubmit={handleWaitlistSubmit}
+                      >
+                        <div>
+                          <label
+                            htmlFor="waitlist-email"
+                            className="block text-xs font-medium text-[#8D9C9C]"
+                          >
+                            Enter Email ID
+                          </label>
+                          <input
+                            type="email"
+                            id="waitlist-email"
+                            placeholder="your.email@example.com"
+                            className="w-full rounded-xl bg-[#03624C1A] px-4 py-3 text-sm placeholder-[#03372C] focus:border-[#17876D] focus:outline-none focus:ring-1 focus:ring-[#17876D]"
+                            value={waitlistEmail}
+                            onChange={(e) => setWaitlistEmail(e.target.value)}
+                            disabled={isSubmitting}
+                          />
+                        </div>
+                        <button
+                          type="submit"
+                          className="w-full rounded-xl bg-[#136d5a] px-4 py-3 text-sm font-medium text-white transition-colors focus:outline-none focus:ring-2 focus:ring-[#17876D] focus:ring-offset-2 disabled:bg-[#03624C4D] disabled:text-[#17876D]"
+                          disabled={
+                            !waitlistEmail.trim() || isSubmitting || !address
+                          }
+                        >
+                          {isSubmitting ? "Joining Waitlist..." : "Submit ID"}
+                        </button>
+                        {!address && (
+                          <p className="text-center text-xs text-[#8D9C9C]">
+                            Please connect your wallet to join the waitlist
+                          </p>
+                        )}
+                      </form>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </TabsContent>
           </ShadCNTabs>
         </div>
-
-        {(activeTab === "unstake" || activeTab === "stake") && (
-          <div
-            className={cn(
-              "mb-2 mt-5 flex max-w-xl items-center rounded-md bg-[#FFC4664D] py-3 pl-4 pr-3 text-xs text-[#D69733] lg:mb-4 lg:text-sm",
-              {
-                "bg-[#C0D5CE69] text-[#134c3d9e]": activeTab === "stake",
-              },
-            )}
-          >
-            <span className="mr-3 flex size-4 shrink-0 items-center justify-center rounded-full text-xl lg:size-6">
-              {activeTab === "unstake" ? "⚠️" : <Info />}
-            </span>
-            {getMessage()}
-          </div>
-        )}
 
         <p
           className={cn(
