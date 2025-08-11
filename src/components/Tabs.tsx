@@ -187,15 +187,12 @@ const Tabs = () => {
           >
             <TabsList
               className={cn(
-                "flex w-full items-center gap-2 rounded-none bg-transparent px-3 pb-5 pt-5 lg:pt-8",
-                {
-                  // "lg:pt-10": activeTab !== "withdraw" && isMerry,
-                },
+                "flex w-full items-center gap-2 rounded-none bg-transparent pb-5 pt-8",
               )}
             >
               <TabsTrigger
                 value="strk"
-                className="group relative inline-flex w-full justify-between rounded-xl border bg-transparent py-2 pl-0 text-sm font-medium text-[#8D9C9C] focus-visible:ring-0 focus-visible:ring-offset-0 data-[state=active]:border-[#17876D] data-[state=active]:text-black data-[state=active]:shadow-none lg:pl-3 lg:text-base"
+                className="group relative inline-flex w-full justify-between rounded-xl border bg-transparent py-2 pl-0 pl-3 text-sm font-medium text-[#8D9C9C] focus-visible:ring-0 focus-visible:ring-offset-0 data-[state=active]:border-[#17876D] data-[state=active]:text-black data-[state=active]:shadow-none lg:text-base"
               >
                 <div className="inline-flex items-center gap-2 text-lg font-bold">
                   <Icons.strkLogo className="h-5 w-5 opacity-20 group-data-[state=active]:opacity-100" />
@@ -207,7 +204,7 @@ const Tabs = () => {
               </TabsTrigger>
               <TabsTrigger
                 value="btc"
-                className="group relative inline-flex w-full justify-between rounded-xl border bg-transparent py-2 pl-0 text-sm font-medium text-[#8D9C9C] focus-visible:ring-0 focus-visible:ring-offset-0 data-[state=active]:border-[#17876D] data-[state=active]:text-black data-[state=active]:shadow-none lg:pl-3 lg:text-base"
+                className="group relative inline-flex w-full justify-between rounded-xl border bg-transparent py-2 pl-0 pl-3 text-sm font-medium text-[#8D9C9C] focus-visible:ring-0 focus-visible:ring-offset-0 data-[state=active]:border-[#17876D] data-[state=active]:text-black data-[state=active]:shadow-none lg:text-base"
               >
                 <div className="inline-flex items-center gap-2 text-lg font-bold">
                   <Icons.btcLogo className="h-5 w-5 opacity-20 group-data-[state=active]:opacity-100" />
