@@ -1,7 +1,7 @@
 "use client";
 
 import { useAtom, useAtomValue } from "jotai";
-import { Icon, Info } from "lucide-react";
+import { Info } from "lucide-react";
 import Link from "next/link";
 import React from "react";
 import { useAccount } from "@starknet-react/core";
@@ -93,7 +93,7 @@ const Tabs = () => {
       const subscriptionStatus = await checkSubscription(address);
 
       if (!subscriptionStatus.isSubscribed) {
-        const listIds = [parseInt(process.env.TEST_BREVO_LIST_ID || "7")];
+        const listIds = [parseInt(process.env.TEST_BREVO_LIST_ID || "7", 10)];
         const subscriptionResult = await subscribeUser(
           waitlistEmail,
           address,
