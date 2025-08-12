@@ -30,17 +30,21 @@ import {
 } from "./ui/tabs";
 import Unstake from "./unstake";
 import WithdrawLog from "./withdraw-log";
+import { snAPYAtom } from "@/store/staking.store";
+import { useWalletConnection } from "@/hooks/use-wallet-connection";
 
 const Tabs = () => {
   const [activeTab, setActiveTab] = useAtom(tabsAtom);
   const [activeSubTab, setActiveSubTab] = React.useState("stake");
   const [waitlistEmail, setWaitlistEmail] = React.useState("");
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const strkAPY = useAtomValue(snAPYAtom);
 
   const isMerry = useAtomValue(isMerryChristmasAtom);
   const { address } = useAccount();
 
   const { isPinned } = useSidebar();
+  const { connectWallet } = useWalletConnection();
 
   function getMessage() {
     if (activeSubTab === "unstake") {
@@ -198,8 +202,8 @@ const Tabs = () => {
                   <Icons.strkLogo className="h-5 w-5 opacity-20 group-data-[state=active]:opacity-100" />
                   STRK
                 </div>
-                <div>
-                  <p className="text-xs">APY: 00.00%</p>
+                <div className="pl-2">
+                  <p className="text-xs">APY: {(strkAPY.value * 100).toFixed(2)}%</p>
                 </div>
               </TabsTrigger>
               <TabsTrigger
@@ -210,7 +214,7 @@ const Tabs = () => {
                   <Icons.btcLogo className="h-5 w-5 opacity-20 group-data-[state=active]:opacity-100" />
                   BTC
                 </div>
-                <div>
+                <div className="pl-2">
                   <p className="text-xs">Coming soon</p>
                 </div>
               </TabsTrigger>
@@ -370,19 +374,23 @@ const Tabs = () => {
                             disabled={isSubmitting}
                           />
                         </div>
-                        <button
+                        {address && <button
                           type="submit"
                           className="w-full rounded-xl bg-[#136d5a] px-4 py-3 text-sm font-medium text-white transition-colors focus:outline-none focus:ring-2 focus:ring-[#17876D] focus:ring-offset-2 disabled:bg-[#03624C4D] disabled:text-[#17876D]"
                           disabled={
-                            !waitlistEmail.trim() || isSubmitting || !address
+                            !waitlistEmail.trim() || isSubmitting
                           }
                         >
-                          {isSubmitting ? "Joining Waitlist..." : "Submit ID"}
-                        </button>
+                            {isSubmitting ? "Joining Waitlist..." : "Submit ID"}
+                          </button>
+                        }
                         {!address && (
-                          <p className="text-center text-xs text-[#8D9C9C]">
-                            Please connect your wallet to join the waitlist
-                          </p>
+                          <button
+                            className="w-full rounded-xl bg-[#136d5a] px-4 py-3 text-sm font-medium text-white transition-colors focus:outline-none focus:ring-2 focus:ring-[#17876D] focus:ring-offset-2 disabled:bg-[#03624C4D] disabled:text-[#17876D]"
+                            onClick={connectWallet}
+                          >
+                            Connect Wallet
+                          </button>
                         )}
                       </form>
                     </div>
