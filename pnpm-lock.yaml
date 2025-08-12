@@ -12,7 +12,7 @@ importers:
         specifier: ^3.11.10
         version: 3.11.10(@types/react@18.3.12)(graphql@16.11.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@avnu/avnu-sdk':
-        specifier: ^3.0.0
+        specifier: 3.0.0
         version: 3.0.0(ethers@6.13.4)(moment@2.30.1)(qs@6.14.0)(starknet@6.24.1)
       '@duneanalytics/client-sdk':
         specifier: ^0.2.4
