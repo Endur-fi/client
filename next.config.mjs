@@ -8,7 +8,6 @@ const nextConfig = {
             ...minimizer.options.terserOptions,
             mangle: {
               keep_fnames: true,
-              reserved: ["e", "exports", "require", "module"],
             },
             nameCache: {},
           };
