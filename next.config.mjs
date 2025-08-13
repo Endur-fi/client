@@ -1,5 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  swcMinify: true,
   webpack: (config, { dev, isServer }) => {
     if (!dev && !isServer) {
       config.optimization.minimizer.forEach((minimizer) => {
