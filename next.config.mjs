@@ -1,5 +1,36 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  webpack: (config, { dev, isServer }) => {
+    if (!dev && !isServer) {
+      config.optimization.splitChunks = {
+        ...config.optimization.splitChunks,
+        chunks: "all",
+        maxSize: 244000,
+        cacheGroups: {
+          vendor: {
+            test: /[\\/]node_modules[\\/]/,
+            name: "vendors",
+            chunks: "all",
+          },
+          react: {
+            test: /[\\/]node_modules[\\/](react|react-dom)[\\/]/,
+            name: "react-vendor",
+            chunks: "all",
+            priority: 10,
+          },
+          common: {
+            name: "common",
+            minChunks: 2,
+            chunks: "all",
+            priority: 5,
+            reuseExistingChunk: true,
+          },
+        },
+      };
+    }
+    return config;
+  },
+
   compiler:
     process.env.NODE_ENV === "development"
       ? {}
