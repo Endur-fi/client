@@ -36,7 +36,8 @@ export function AppSidebar() {
 
   const isMerry = useAtomValue(isMerryChristmasAtom);
 
-  if (typeof window === "undefined" || isMobile) return null;
+  // Don't render sidebar on mobile to prevent hydration issues
+  if (isMobile) return null;
 
   return (
     <Sidebar
