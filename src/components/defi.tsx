@@ -136,28 +136,28 @@ export const protocolConfigs: Partial<Record<SupportedDApp, ProtocolConfig>> = {
       },
     },
   },
-  // nostraDex: {
-  //   tokens: [
-  //     { icon: <Icons.endurLogo className="size-[22px]" />, name: "xSTRK" },
-  //     { icon: <Icons.strkLogo className="size-[22px]" />, name: "STRK" },
-  //   ],
-  //   protocolIcon: <Icons.nostraLogo className="shrink-0 rounded-full" />,
-  //   protocolName: "Nostra (DEX)",
-  //   badges: [{ type: "Liquidity Pool", color: "bg-[#FFF7ED] text-[#EA580C]" }],
-  //   description:
-  //     "Provide liquidity to the xSTRK/STRK pool on Nostra and earn trading fees",
-  //   action: {
-  //     type: "pool",
-  //     link: "https://app.nostra.finance/pools/xSTRK-STRK/deposit",
-  //     buttonText: "Add Liquidity",
-  //     onClick: () => {
-  //       MyAnalytics.track(eventNames.OPPORTUNITIES, {
-  //         protocol: "nostra-pool",
-  //         buttonText: "Add Liquidity",
-  //       });
-  //     },
-  //   },
-  // },
+  nostraDex: {
+    tokens: [
+      { icon: <Icons.endurLogo className="size-[22px]" />, name: "xSTRK" },
+      { icon: <Icons.strkLogo className="size-[22px]" />, name: "STRK" },
+    ],
+    protocolIcon: <Icons.nostraLogo className="shrink-0 rounded-full" />,
+    protocolName: "Nostra (DEX)",
+    badges: [{ type: "Liquidity Pool", color: "bg-[#FFF7ED] text-[#EA580C]" }],
+    description:
+      "Provide liquidity to the xSTRK/STRK pool on Nostra and earn trading fees",
+    action: {
+      type: "pool",
+      link: "https://app.nostra.finance/pools/xSTRK-STRK/deposit",
+      buttonText: "Add Liquidity",
+      onClick: () => {
+        MyAnalytics.track(eventNames.OPPORTUNITIES, {
+          protocol: "nostra-pool",
+          buttonText: "Add Liquidity",
+        });
+      },
+    },
+  },
   // nostraLending: {
   //   tokens: [
   //     { icon: <Icons.endurLogo className="size-[22px]" />, name: "xSTRK" },
