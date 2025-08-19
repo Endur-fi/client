@@ -136,48 +136,48 @@ export const protocolConfigs: Partial<Record<SupportedDApp, ProtocolConfig>> = {
       },
     },
   },
-  nostraDex: {
-    tokens: [
-      { icon: <Icons.endurLogo className="size-[22px]" />, name: "xSTRK" },
-      { icon: <Icons.strkLogo className="size-[22px]" />, name: "STRK" },
-    ],
-    protocolIcon: <Icons.nostraLogo className="shrink-0 rounded-full" />,
-    protocolName: "Nostra (DEX)",
-    badges: [{ type: "Liquidity Pool", color: "bg-[#FFF7ED] text-[#EA580C]" }],
-    description:
-      "Provide liquidity to the xSTRK/STRK pool on Nostra and earn trading fees",
-    action: {
-      type: "pool",
-      link: "https://app.nostra.finance/pools/xSTRK-STRK/deposit",
-      buttonText: "Add Liquidity",
-      onClick: () => {
-        MyAnalytics.track(eventNames.OPPORTUNITIES, {
-          protocol: "nostra-pool",
-          buttonText: "Add Liquidity",
-        });
-      },
-    },
-  },
-  nostraLending: {
-    tokens: [
-      { icon: <Icons.endurLogo className="size-[22px]" />, name: "xSTRK" },
-    ],
-    protocolIcon: <Icons.nostraLogo className="shrink-0 rounded-full" />,
-    protocolName: "Nostra (Lending)",
-    badges: [{ type: "Lend/Borrow", color: "bg-[#EEF6FF] text-[#0369A1]" }],
-    description: "Lend your xSTRK on Nostra to earn additional yield",
-    action: {
-      type: "lend",
-      link: "https://app.nostra.finance/lend-borrow/xSTRK/deposit",
-      buttonText: "Lend Assets",
-      onClick: () => {
-        MyAnalytics.track(eventNames.OPPORTUNITIES, {
-          protocol: "nostra-lend",
-          buttonText: "Lend Assets",
-        });
-      },
-    },
-  },
+  // nostraDex: {
+  //   tokens: [
+  //     { icon: <Icons.endurLogo className="size-[22px]" />, name: "xSTRK" },
+  //     { icon: <Icons.strkLogo className="size-[22px]" />, name: "STRK" },
+  //   ],
+  //   protocolIcon: <Icons.nostraLogo className="shrink-0 rounded-full" />,
+  //   protocolName: "Nostra (DEX)",
+  //   badges: [{ type: "Liquidity Pool", color: "bg-[#FFF7ED] text-[#EA580C]" }],
+  //   description:
+  //     "Provide liquidity to the xSTRK/STRK pool on Nostra and earn trading fees",
+  //   action: {
+  //     type: "pool",
+  //     link: "https://app.nostra.finance/pools/xSTRK-STRK/deposit",
+  //     buttonText: "Add Liquidity",
+  //     onClick: () => {
+  //       MyAnalytics.track(eventNames.OPPORTUNITIES, {
+  //         protocol: "nostra-pool",
+  //         buttonText: "Add Liquidity",
+  //       });
+  //     },
+  //   },
+  // },
+  // nostraLending: {
+  //   tokens: [
+  //     { icon: <Icons.endurLogo className="size-[22px]" />, name: "xSTRK" },
+  //   ],
+  //   protocolIcon: <Icons.nostraLogo className="shrink-0 rounded-full" />,
+  //   protocolName: "Nostra (Lending)",
+  //   badges: [{ type: "Lend/Borrow", color: "bg-[#EEF6FF] text-[#0369A1]" }],
+  //   description: "Lend your xSTRK on Nostra to earn additional yield",
+  //   action: {
+  //     type: "lend",
+  //     link: "https://app.nostra.finance/lend-borrow/xSTRK/deposit",
+  //     buttonText: "Lend Assets",
+  //     onClick: () => {
+  //       MyAnalytics.track(eventNames.OPPORTUNITIES, {
+  //         protocol: "nostra-lend",
+  //         buttonText: "Lend Assets",
+  //       });
+  //     },
+  //   },
+  // },
   ekubo: {
     tokens: [
       { icon: <Icons.endurLogo className="size-[22px]" />, name: "xSTRK" },

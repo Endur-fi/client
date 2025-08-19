@@ -89,7 +89,7 @@ export type Platform = "none" | "vesu" | "nostraLending" | "strkfarmEkubo";
 
 const PLATFORMS = {
   VESU: "vesu",
-  NOSTRA: "nostraLending",
+  // NOSTRA: "nostraLending",
   // STRKFARM_EKUBO: "strkfarmEkubo",
 } as const;
 
