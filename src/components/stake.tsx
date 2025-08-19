@@ -45,7 +45,6 @@ import {
 import {
   getEndpoint,
   IS_PAUSED,
-  LINKS,
   LST_ADDRRESS,
   NOSTRA_iXSTRK_ADDRESS,
   REWARD_FEES,
@@ -715,25 +714,25 @@ const Stake: React.FC = () => {
                 >
                   This fee applies exclusively to your staking rewards and does
                   NOT affect your staked amount.{" "}
-                  <Link
+                  {/* <Link
                     target="_blank"
                     href={LINKS.ENDUR_VALUE_DISTRUBUTION_BLOG_LINK}
                   >
                     Learn more
-                  </Link>
+                  </Link> */}
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
           </p>
           <p>
-            <span className="line-through">{REWARD_FEES}%</span>{" "}
-            <Link
+            <span className="">{REWARD_FEES}%</span>{" "}
+            {/* <Link
               target="_blank"
               href={LINKS.ENDUR_VALUE_DISTRUBUTION_BLOG_LINK}
               className="underline"
             >
               Fee Rebate
-            </Link>
+            </Link> */}
           </p>
         </div>
       </div>
