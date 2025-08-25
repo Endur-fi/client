@@ -3,6 +3,7 @@
 import { useAtom, useAtomValue } from "jotai";
 import { Info } from "lucide-react";
 import Link from "next/link";
+import { useRouter, usePathname } from "next/navigation";
 import React from "react";
 import { useAccount } from "@starknet-react/core";
 
@@ -34,6 +35,9 @@ import { snAPYAtom } from "@/store/staking.store";
 import { useWalletConnection } from "@/hooks/use-wallet-connection";
 
 const Tabs = () => {
+  const router = useRouter();
+  const pathname = usePathname();
+
   const [activeTab, setActiveTab] = useAtom(tabsAtom);
   const [activeSubTab, setActiveSubTab] = React.useState("stake");
   const [waitlistEmail, setWaitlistEmail] = React.useState("");
@@ -45,6 +49,16 @@ const Tabs = () => {
 
   const { isPinned } = useSidebar();
   const { connectWallet } = useWalletConnection();
+
+  React.useEffect(() => {
+    if (pathname === "/btc") {
+      setActiveTab("btc");
+    } else if (pathname === "/strk") {
+      setActiveTab("strk");
+    } else {
+      setActiveTab("strk");
+    }
+  }, [pathname, setActiveTab]);
 
   function getMessage() {
     if (activeSubTab === "unstake") {
@@ -72,6 +86,24 @@ const Tabs = () => {
       );
     }
   }
+
+  const handleTabChange = async (tab: string) => {
+    if (tab === activeTab) return;
+
+    setActiveTab(tab);
+
+    if (tab === "btc") {
+      router.push("/btc", { scroll: false });
+    } else if (tab === "strk") {
+      router.push("/strk", { scroll: false });
+    }
+  };
+
+  const handleSubTabChange = (subTab: string) => {
+    if (subTab === activeSubTab) return;
+
+    setActiveSubTab(subTab);
+  };
 
   const handleWaitlistSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -135,7 +167,7 @@ const Tabs = () => {
   return (
     <div className="relative h-full">
       <div
-        className={cn("z-30 flex h-full flex-col items-center", {
+        className={cn("z-30 flex h-full flex-col items-center gap-4", {
           "lg:-ml-56": isPinned,
         })}
       >
@@ -184,7 +216,7 @@ const Tabs = () => {
         {/* Main Tabs - STRK and BTC */}
         <div className="w-full max-w-xl">
           <ShadCNTabs
-            onValueChange={(value) => setActiveTab(value)}
+            onValueChange={(value) => handleTabChange(value)}
             value={activeTab}
             defaultValue="strk"
             className="col-span-2 h-full w-full lg:mt-0"
@@ -203,7 +235,9 @@ const Tabs = () => {
                   STRK
                 </div>
                 <div className="pl-2">
-                  <p className="text-xs">APY: {(strkAPY.value * 100).toFixed(2)}%</p>
+                  <p className="text-xs">
+                    APY: {(strkAPY.value * 100).toFixed(2)}%
+                  </p>
                 </div>
               </TabsTrigger>
               <TabsTrigger
@@ -231,7 +265,7 @@ const Tabs = () => {
                 )}
               >
                 <ShadCNTabs
-                  onValueChange={(value) => setActiveSubTab(value)}
+                  onValueChange={(value) => handleSubTabChange(value)}
                   value={activeSubTab}
                   defaultValue="stake"
                   className="col-span-2 h-full w-full lg:mt-0"
@@ -344,20 +378,20 @@ const Tabs = () => {
                     alt="BTC Staking Coming Soon"
                     className="h-auto w-full"
                   />
-                  <div className="pl-6">
+                  <div className="px-4">
                     <p className="mb-6 text-left text-sm text-[#03372C]">
                       Be among the first to stake - join the waitlist now.
                     </p>
                   </div>
                 </div>
-                <div className="flex h-full flex-col px-6">
+                <div className="flex h-full flex-col px-4">
                   <div className="flex flex-1 flex-col">
                     <div className="flex flex-1 flex-col justify-center">
                       <form
                         className="space-y-6"
                         onSubmit={handleWaitlistSubmit}
                       >
-                        <div>
+                        <div className="space-y-1">
                           <label
                             htmlFor="waitlist-email"
                             className="block text-xs font-medium text-[#8D9C9C]"
@@ -374,16 +408,15 @@ const Tabs = () => {
                             disabled={isSubmitting}
                           />
                         </div>
-                        {address && <button
-                          type="submit"
-                          className="w-full rounded-xl bg-[#136d5a] px-4 py-3 text-sm font-medium text-white transition-colors focus:outline-none focus:ring-2 focus:ring-[#17876D] focus:ring-offset-2 disabled:bg-[#03624C4D] disabled:text-[#17876D]"
-                          disabled={
-                            !waitlistEmail.trim() || isSubmitting
-                          }
-                        >
+                        {address && (
+                          <button
+                            type="submit"
+                            className="w-full rounded-xl bg-[#136d5a] px-4 py-3 text-sm font-medium text-white transition-colors focus:outline-none focus:ring-2 focus:ring-[#17876D] focus:ring-offset-2 disabled:bg-[#03624C4D] disabled:text-[#17876D]"
+                            disabled={!waitlistEmail.trim() || isSubmitting}
+                          >
                             {isSubmitting ? "Joining Waitlist..." : "Submit ID"}
                           </button>
-                        }
+                        )}
                         {!address && (
                           <button
                             className="w-full rounded-xl bg-[#136d5a] px-4 py-3 text-sm font-medium text-white transition-colors focus:outline-none focus:ring-2 focus:ring-[#17876D] focus:ring-offset-2 disabled:bg-[#03624C4D] disabled:text-[#17876D]"
