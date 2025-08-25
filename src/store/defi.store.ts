@@ -110,7 +110,7 @@ const vesuYieldQueryAtom = atomWithQuery(() => ({
       );
       const data: VesuAPIResponse = await response.json();
 
-      const stats = data.data.assets.find((a) => a.symbol === "xSTRK")?.stats;
+      const stats = data.data.assets?.find((a) => a.symbol === "xSTRK")?.stats;
       if (!stats) {
         console.error("No xSTRK stats found in Vesu API response");
         return {
@@ -416,7 +416,7 @@ const haikoYieldQueryAtom = atomWithQuery(() => ({
       );
       const data = await response.json();
 
-      const xSTRKSolver = data.inactive.find(
+      const xSTRKSolver = data?.inactive?.find(
         (vault: any) => vault.market.baseSymbol === "xSTRK",
       );
 

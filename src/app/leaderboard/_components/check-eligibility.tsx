@@ -769,9 +769,11 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
       const subscriptionStatus = await checkSubscription(address);
 
       if (!subscriptionStatus.isSubscribed) {
+        const listIds = [parseInt(process.env.ENDUR_BREVO_LIST_ID || "5", 10)];
         const subscriptionResult = await subscribeUser(
           state.emailInput,
           address,
+          listIds,
         );
         if (!subscriptionResult.success) {
           toast({ description: "Failed to subscribe. Please try again." });

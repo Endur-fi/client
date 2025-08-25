@@ -5,7 +5,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useAccount, useSendTransaction } from "@starknet-react/core";
 import { useAtom, useAtomValue } from "jotai";
 import { Info } from "lucide-react";
-import Link from "next/link";
 import React from "react";
 import { useForm } from "react-hook-form";
 import { AccountInterface, Contract } from "starknet";
@@ -21,7 +20,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { getProvider, IS_PAUSED, LINKS, REWARD_FEES } from "@/constants";
+import { getProvider, IS_PAUSED, REWARD_FEES } from "@/constants";
 import { toast } from "@/hooks/use-toast";
 import { useTransactionHandler } from "@/hooks/use-transactions";
 import { useWalletConnection } from "@/hooks/use-wallet-connection";
@@ -106,26 +105,26 @@ const FeeSection = () => (
           <>
             This fee applies exclusively to your staking rewards and does NOT
             affect your staked amount.{" "}
-            <Link
+            {/* <Link
               target="_blank"
               href={LINKS.ENDUR_VALUE_DISTRUBUTION_BLOG_LINK}
               className="text-blue-600 underline"
             >
               Learn more
-            </Link>
+            </Link> */}
           </>
         }
       />
     </p>
     <p>
-      <span className="line-through">{REWARD_FEES}%</span>{" "}
-      <Link
+      <span className="">{REWARD_FEES}%</span>{" "}
+      {/* <Link
         target="_blank"
         href={LINKS.ENDUR_VALUE_DISTRUBUTION_BLOG_LINK}
         className="underline"
       >
         Fee Rebate
-      </Link>
+      </Link> */}
     </p>
   </div>
 );

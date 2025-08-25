@@ -158,26 +158,26 @@ export const protocolConfigs: Partial<Record<SupportedDApp, ProtocolConfig>> = {
       },
     },
   },
-  nostraLending: {
-    tokens: [
-      { icon: <Icons.endurLogo className="size-[22px]" />, name: "xSTRK" },
-    ],
-    protocolIcon: <Icons.nostraLogo className="shrink-0 rounded-full" />,
-    protocolName: "Nostra (Lending)",
-    badges: [{ type: "Lend/Borrow", color: "bg-[#EEF6FF] text-[#0369A1]" }],
-    description: "Lend your xSTRK on Nostra to earn additional yield",
-    action: {
-      type: "lend",
-      link: "https://app.nostra.finance/lend-borrow/xSTRK/deposit",
-      buttonText: "Lend Assets",
-      onClick: () => {
-        MyAnalytics.track(eventNames.OPPORTUNITIES, {
-          protocol: "nostra-lend",
-          buttonText: "Lend Assets",
-        });
-      },
-    },
-  },
+  // nostraLending: {
+  //   tokens: [
+  //     { icon: <Icons.endurLogo className="size-[22px]" />, name: "xSTRK" },
+  //   ],
+  //   protocolIcon: <Icons.nostraLogo className="shrink-0 rounded-full" />,
+  //   protocolName: "Nostra (Lending)",
+  //   badges: [{ type: "Lend/Borrow", color: "bg-[#EEF6FF] text-[#0369A1]" }],
+  //   description: "Lend your xSTRK on Nostra to earn additional yield",
+  //   action: {
+  //     type: "lend",
+  //     link: "https://app.nostra.finance/lend-borrow/xSTRK/deposit",
+  //     buttonText: "Lend Assets",
+  //     onClick: () => {
+  //       MyAnalytics.track(eventNames.OPPORTUNITIES, {
+  //         protocol: "nostra-lend",
+  //         buttonText: "Lend Assets",
+  //       });
+  //     },
+  //   },
+  // },
   ekubo: {
     tokens: [
       { icon: <Icons.endurLogo className="size-[22px]" />, name: "xSTRK" },
