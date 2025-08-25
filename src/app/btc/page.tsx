@@ -5,9 +5,9 @@ import Tabs from "@/components/Tabs";
 
 export const metadata: Metadata = {
   title:
-    "Endur.fi | Starknet Liquid Staking | xWBTC | xtBTC | xLBTC | xsolvBTC | Earn BTC rewards",
+    "Endur.fi | BTC Liquid Staking on Starknet",
   description:
-    "Stake BTC with Endur and receive x BTCs - the liquid staking BTC tokens on Starknet. Earn rewards while accessing DeFi with instant liquidity, higher rewards and faster unstaking",
+    "Stake BTC on Endur and get liquid tokens like xWBTC, xtBTC (Threshold network), or xsolvBTC — earn rewards, enjoy instant liquidity, and faster unstaking in DeFi.",
 };
 
 export default function BTCPage() {
