@@ -4,14 +4,25 @@ import { atomWithQuery } from "jotai-tanstack-query";
 import MyNumber from "@/lib/MyNumber";
 import StakingService from "@/services/staking";
 
-import { currentBlockAtom, providerAtom } from "./common.store";
+import { currentBlockAtom, providerAtom, lstConfigAtom } from "./common.store";
 
 const stakingService = new StakingService();
 
 const snTotalStakedQueryAtom = atomWithQuery((get) => {
   return {
-    queryKey: ["snTotalStaked", get(currentBlockAtom), get(providerAtom)],
-    queryFn: () => stakingService.getSNTotalStaked(),
+    queryKey: [
+      "snTotalStaked",
+      get(currentBlockAtom),
+      get(providerAtom),
+      get(lstConfigAtom),
+    ],
+    queryFn: () => {
+      const lstConfig = get(lstConfigAtom);
+      if (!lstConfig) {
+        return MyNumber.fromZero();
+      }
+      return stakingService.getSNTotalStaked(lstConfig.DECIMALS);
+    },
     refetchInterval: 60000,
   };
 });
@@ -27,8 +38,19 @@ export const snTotalStakedAtom = atom((get) => {
 
 export const yearlyMintingQueryAtom = atomWithQuery((get) => {
   return {
-    queryKey: ["yearlyMinting", get(currentBlockAtom), get(providerAtom)],
-    queryFn: () => stakingService.getYearlyMinting(),
+    queryKey: [
+      "yearlyMinting",
+      get(currentBlockAtom),
+      get(providerAtom),
+      get(lstConfigAtom),
+    ],
+    queryFn: () => {
+      const lstConfig = get(lstConfigAtom);
+      if (!lstConfig) {
+        return MyNumber.fromZero();
+      }
+      return stakingService.getYearlyMinting(lstConfig.DECIMALS);
+    },
     refetchInterval: 60000,
   };
 });

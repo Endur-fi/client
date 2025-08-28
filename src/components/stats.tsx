@@ -12,13 +12,16 @@ import { formatNumber } from "@/lib/utils";
 import {
   totalStakedAtom,
   totalStakedUSDAtom,
-  userXSTRKBalanceAtom,
+  userLSTBalanceAtom,
 } from "@/store/lst.store";
 import { snAPYAtom } from "@/store/staking.store";
 
 import { Icons } from "./Icons";
 import { type Platform } from "./stake";
 import { totalXSTRKAcrossDefiHoldingsAtom } from "@/app/portfolio/_components/stats";
+import AssetSelector from "./AssetSelector";
+import { tabsAtom } from "@/store/merry.store";
+import { lstConfigAtom } from "@/store/common.store";
 
 interface StatsProps {
   selectedPlatform?: Platform;
@@ -30,11 +33,15 @@ const Stats: React.FC<StatsProps> = ({
   getPlatformYield,
 }) => {
   const apy = useAtomValue(snAPYAtom);
-  const currentStaked = useAtomValue(userXSTRKBalanceAtom);
+  const currentStaked = useAtomValue(userLSTBalanceAtom);
   const totalStaked = useAtomValue(totalStakedAtom);
   const totalStakedUSD = useAtomValue(totalStakedUSDAtom);
+  const activeTab = useAtomValue(tabsAtom);
+  const lstConfig = useAtomValue(lstConfigAtom)!;
 
   const totalXSTRKAcrossDefi = useAtomValue(totalXSTRKAcrossDefiHoldingsAtom);
+
+  const [selectedAsset, setSelectedAsset] = React.useState<string>("");
 
   const xSTRKInDefiOnly = useMemo(() => {
     return totalXSTRKAcrossDefi - Number(currentStaked.value.toEtherStr());
@@ -80,7 +87,8 @@ const Stats: React.FC<StatsProps> = ({
           TVL
           <p className="flex items-center gap-2">
             <span>
-              {formatNumber(totalStaked.value.toEtherToFixedDecimals(2))} STRK
+              {formatNumber(totalStaked.value.toEtherToFixedDecimals(2))}{" "}
+              {lstConfig.SYMBOL}
             </span>
             <span className="font-medium">
               | ${formatNumber(totalStakedUSD.value)}
@@ -90,17 +98,24 @@ const Stats: React.FC<StatsProps> = ({
       </div>
 
       <div className="flex items-center justify-between border-b bg-gradient-to-t from-[#E9F3F0] to-white px-5 py-12 lg:py-12">
-        <div className="flex items-center gap-2 text-sm font-semibold text-black lg:gap-4 lg:text-2xl">
-          <Icons.strkLogo className="size-6 lg:size-[35px]" />
-          STRK
-        </div>
+        {activeTab === "strk" ? (
+          <div className="flex items-center gap-2 text-sm font-semibold text-black lg:gap-4 lg:text-2xl">
+            <Icons.strkLogo className="size-6 lg:size-[35px]" />
+            STRK
+          </div>
+        ) : (
+          <AssetSelector
+            selectedAsset={selectedAsset}
+            onChange={setSelectedAsset}
+          />
+        )}
 
         <div>
           <div className="flex items-center justify-between rounded-md bg-[#17876D] px-2 py-1 text-xs text-white">
             <span>
               Available stake:{" "}
               {formatNumber(currentStaked.value.toEtherToFixedDecimals(2))}{" "}
-              xSTRK
+              {lstConfig.LST_SYMBOL}
             </span>
             <div className="ml-auto pl-2">
               <TooltipProvider delayDuration={0}>
@@ -112,11 +127,11 @@ const Stats: React.FC<StatsProps> = ({
                     side="right"
                     className="max-w-56 rounded-md border border-[#03624C] bg-white text-[#03624C]"
                   >
-                    xSTRK directly available in your wallet. You can unstake
-                    this xSTRK anytime.
+                    {lstConfig.LST_SYMBOL} directly available in your wallet.
+                    You can unstake this {lstConfig.LST_SYMBOL} anytime.
                     <br />
                     <br />
-                    Excludes xSTRK in DeFi apps.
+                    Excludes {lstConfig.LST_SYMBOL} in DeFi apps.
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
@@ -126,7 +141,8 @@ const Stats: React.FC<StatsProps> = ({
           <a href="/portfolio">
             <div className="mt-[10px] flex items-center justify-between rounded-md bg-white px-2 py-1 text-xs text-[#17876D]">
               <span>
-                Stake in DeFi: {formatNumber(xSTRKInDefiOnly.toFixed(2))} xSTRK
+                Stake in DeFi: {formatNumber(xSTRKInDefiOnly.toFixed(2))}{" "}
+                {lstConfig.LST_SYMBOL}
               </span>
               <div className="ml-auto pl-2">
                 <TooltipProvider delayDuration={0}>
@@ -139,8 +155,9 @@ const Stats: React.FC<StatsProps> = ({
                       className="max-w-56 rounded-md border border-[#03624C] bg-white text-[#03624C]"
                     >
                       <div>
-                        xSTRK in third party DeFi apps. You cannot unstake this
-                        xSTRK directly. Withdraw your xSTRK from DeFi apps to
+                        {lstConfig.LST_SYMBOL} in third party DeFi apps. You
+                        cannot unstake this {lstConfig.LST_SYMBOL} directly.
+                        Withdraw your {lstConfig.LST_SYMBOL} from DeFi apps to
                         unstake here.
                       </div>
                       <br />

@@ -3,8 +3,13 @@ import { Atom, atom } from "jotai";
 import { atomWithQuery } from "jotai-tanstack-query";
 import { atomFamily } from "jotai/utils";
 import { AtomFamily } from "jotai/vanilla/utils/atomFamily";
-import { BlockIdentifier, RpcProvider } from "starknet";
-import { providerAtom, strkPriceAtom, userAddressAtom } from "./common.store";
+import { BlockIdentifier } from "starknet";
+import {
+  lstAddressAtom,
+  lstDecimalsAtom,
+  strkPriceAtom,
+  userAddressAtom,
+} from "./common.store";
 import { exchangeRateAtom } from "./lst.store";
 import { snAPYAtom } from "./staking.store";
 
@@ -550,8 +555,8 @@ export const protocolYieldsAtom = atom<
 
 // Takes input as blocknumber | undefined, returns a Query Atom
 export interface DAppHoldings {
-  xSTRKAmount: MyNumber;
-  STRKAmount: MyNumber;
+  lstAmount: MyNumber;
+  underlyingTokenAmount: MyNumber;
 }
 export type DAppHoldingsAtom = AtomFamily<
   number | undefined,
@@ -564,7 +569,8 @@ export type DAppHoldingsAtom = AtomFamily<
 
 export type DAppHoldingsFn = (
   address: string,
-  provider: RpcProvider,
+  lstAddress: string,
+  decimals: number,
   blockNumber?: BlockIdentifier,
 ) => Promise<DAppHoldings>;
 
@@ -584,25 +590,32 @@ export function getHoldingAtom(uniqueKey: string, queryFn: DAppHoldingsFn) {
           uniqueKey,
           blockNumber,
           get(userAddressAtom),
-          get(providerAtom),
+          get(lstAddressAtom),
+          get(lstDecimalsAtom),
         ],
         queryFn: async ({ queryKey }: any): Promise<DAppHoldings> => {
-          const provider = get(providerAtom);
           const userAddress = get(userAddressAtom);
+          const lstAddress = get(lstAddressAtom);
+          const lstDecimals = get(lstDecimalsAtom);
 
-          if (!provider || !userAddress)
+          if (!userAddress || !lstAddress || !lstDecimals)
             return {
-              xSTRKAmount: MyNumber.fromZero(),
-              STRKAmount: MyNumber.fromZero(),
+              lstAmount: MyNumber.fromZero(),
+              underlyingTokenAmount: MyNumber.fromZero(),
             };
 
           try {
-            return await queryFn(queryKey[2], queryKey[3], blockNumber);
+            return await queryFn(
+              queryKey[2],
+              queryKey[3],
+              queryKey[4],
+              blockNumber,
+            );
           } catch (err) {
             console.error("getHoldingAtom error:", err);
             return {
-              xSTRKAmount: MyNumber.fromZero(),
-              STRKAmount: MyNumber.fromZero(),
+              lstAmount: MyNumber.fromZero(),
+              underlyingTokenAmount: MyNumber.fromZero(),
             };
           }
         },

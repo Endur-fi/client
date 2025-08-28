@@ -3,7 +3,7 @@ import { clsx, type ClassValue } from "clsx";
 import { BlockIdentifier, Contract, num, RpcProvider } from "starknet";
 import { twMerge } from "tailwind-merge";
 
-import { STRK_ORACLE_CONTRACT } from "@/constants";
+import { BTC_ORACLE_CONTRACT, STRK_ORACLE_CONTRACT } from "@/constants";
 import { toast } from "@/hooks/use-toast";
 
 import OracleAbi from "../abi/oracle.abi.json";
@@ -160,7 +160,7 @@ export const eventNames = {
   OPPORTUNITIES: "opportunities",
 };
 
-export async function getSTRKPrice() {
+export async function getAssetPrice(isSTRK: boolean = true): Promise<number> {
   const provider = new RpcProvider({
     nodeUrl:
       process.env.NEXT_PUBLIC_CHAIN_ID === "SN_MAIN"
@@ -169,8 +169,10 @@ export async function getSTRKPrice() {
   });
 
   if (!provider) return 0;
+  
+  const oracleContract = isSTRK ? STRK_ORACLE_CONTRACT : BTC_ORACLE_CONTRACT;
 
-  const contract = new Contract(OracleAbi, STRK_ORACLE_CONTRACT, provider);
+  const contract = new Contract(OracleAbi, oracleContract, provider);
   const data = await contract.call("get_price", []);
   return Number(data) / 10 ** 8;
 }

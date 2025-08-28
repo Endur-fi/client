@@ -6,7 +6,6 @@ import {
   getProvider,
   SN_MINTING_CURVE_ADRESS,
   SN_STAKING_ADRESS,
-  STRK_DECIMALS,
 } from "@/constants";
 import MyNumber from "@/lib/MyNumber";
 import { tryCatch } from "@/lib/utils";
@@ -23,7 +22,11 @@ class StakingService {
     }
   }
 
-  async getYearlyMinting() {
+  async getYearlyMinting(lstDecimals: number) {
+    if (!lstDecimals) {
+      return MyNumber.fromZero();
+    }
+
     const mintingContract = new Contract(
       MINTING_ABI,
       SN_MINTING_CURVE_ADRESS,
@@ -35,7 +38,7 @@ class StakingService {
     );
 
     if (yearlyMinting) {
-      return new MyNumber(yearlyMinting.toString(), STRK_DECIMALS);
+      return new MyNumber(yearlyMinting.toString(), lstDecimals);
     }
 
     if (error) {
@@ -43,7 +46,11 @@ class StakingService {
       return MyNumber.fromZero();
     }
   }
-  async getSNTotalStaked() {
+  async getSNTotalStaked(lstDecimals: number) {
+    if (!lstDecimals) {
+      return MyNumber.fromZero();
+    }
+
     const stakingContract = new Contract(
       STAKING_ABI,
       SN_STAKING_ADRESS,
@@ -55,7 +62,7 @@ class StakingService {
     );
 
     if (totalStaked) {
-      return new MyNumber(totalStaked.toString(), STRK_DECIMALS);
+      return new MyNumber(totalStaked.toString(), lstDecimals);
     }
 
     if (error) {

@@ -35,7 +35,7 @@ import {
 } from "@/store/avnu.store";
 import {
   exchangeRateAtom,
-  userXSTRKBalanceAtom,
+  userLSTBalanceAtom,
   withdrawalQueueStateAtom,
 } from "@/store/lst.store";
 
@@ -43,6 +43,7 @@ import { Icons } from "./Icons";
 import Stats from "./stats";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
+import { lstConfigAtom } from "@/store/common.store";
 
 const formSchema = z.object({
   unstakeAmount: z.string().refine(
@@ -135,15 +136,21 @@ const YouWillGetSection = ({
 }: {
   amount: string;
   tooltipContent: React.ReactNode;
-}) => (
-  <div className="flex items-center justify-between rounded-md text-xs font-bold text-[#03624C] lg:text-[13px]">
-    <p className="flex items-center gap-1">
-      You will get
-      <InfoTooltip content={tooltipContent} />
-    </p>
-    <span className="text-xs lg:text-[13px]">{amount} STRK</span>
-  </div>
-);
+}) => {
+  const lstConfig = useAtomValue(lstConfigAtom)!;
+
+  return (
+    <div className="flex items-center justify-between rounded-md text-xs font-bold text-[#03624C] lg:text-[13px]">
+      <p className="flex items-center gap-1">
+        You will get
+        <InfoTooltip content={tooltipContent} />
+      </p>
+      <span className="text-xs lg:text-[13px]">
+        {amount} {lstConfig.LST_SYMBOL}
+      </span>
+    </div>
+  );
+};
 
 const _calculateWaitingTime = (queueState: any, unstakeAmount: string) => {
   if (!queueState || !unstakeAmount) return "-";
@@ -195,61 +202,65 @@ const UnstakeOptionCard = ({
   isRecommended,
   isBestRate,
   bgColor = "#E9F3F0",
-}: UnstakeOptionCardProps) => (
-  <TabsTrigger
-    value={title.toLowerCase().includes("endur") ? "endur" : "dex"}
-    className={`flex w-full flex-col gap-1.5 rounded-[15px] border border-[#8D9C9C20] px-4 py-3 ${
-      isActive ? "border-[#17876D]" : ""
-    }`}
-    style={{ backgroundColor: isActive ? "#D0E6E0" : bgColor }}
-  >
-    <div className="flex w-full items-center justify-between">
-      <p className="text-sm font-semibold">
-        {title}
-        {isRecommended && " (Recommended)"}
-      </p>
-      {logo}
-    </div>
+}: UnstakeOptionCardProps) => {
+  const lstConfig = useAtomValue(lstConfigAtom)!;
 
-    <div className="flex w-full items-center justify-between text-xs text-[#939494] lg:text-[13px]">
-      <div className="flex items-center gap-0.5">
-        Rate
-        {title.toLowerCase().includes("endur") && (
-          <TooltipProvider delayDuration={0}>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Info className="size-3 text-[#3F6870] lg:text-[#8D9C9C]" />
-              </TooltipTrigger>
-              <TooltipContent
-                side="right"
-                className="rounded-md border border-[#03624C] bg-white text-[#03624C]"
-              >
-                {typeof rate === "number" && rate === 0
-                  ? "-"
-                  : `1 xSTRK = ${Number(rate).toFixed(4)} STRK`}
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+  return (
+    <TabsTrigger
+      value={title.toLowerCase().includes("endur") ? "endur" : "dex"}
+      className={`flex w-full flex-col gap-1.5 rounded-[15px] border border-[#8D9C9C20] px-4 py-3 ${
+        isActive ? "border-[#17876D]" : ""
+      }`}
+      style={{ backgroundColor: isActive ? "#D0E6E0" : bgColor }}
+    >
+      <div className="flex w-full items-center justify-between">
+        <p className="text-sm font-semibold">
+          {title}
+          {isRecommended && " (Recommended)"}
+        </p>
+        {logo}
+      </div>
+
+      <div className="flex w-full items-center justify-between text-xs text-[#939494] lg:text-[13px]">
+        <div className="flex items-center gap-0.5">
+          Rate
+          {title.toLowerCase().includes("endur") && (
+            <TooltipProvider delayDuration={0}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Info className="size-3 text-[#3F6870] lg:text-[#8D9C9C]" />
+                </TooltipTrigger>
+                <TooltipContent
+                  side="right"
+                  className="rounded-md border border-[#03624C] bg-white text-[#03624C]"
+                >
+                  {typeof rate === "number" && rate === 0
+                    ? "-"
+                    : `1 ${lstConfig.LST_SYMBOL} = ${Number(rate).toFixed(4)} ${lstConfig.SYMBOL}`}
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
+        </div>
+        <p className={isBestRate ? "font-semibold text-[#17876D]" : ""}>
+          {isLoading ? "Loading..." : `1=${Number(rate).toFixed(4)}`}
+        </p>
+      </div>
+
+      <div className="flex w-full items-center justify-between text-xs text-[#939494] lg:text-[13px]">
+        <p>Waiting time</p>
+        {title.toLowerCase().includes("dex") ? (
+          <p className="flex items-center gap-1 font-semibold text-[#17876D]">
+            <Icons.zap className="h-4 w-4" />
+            {waitingTime}
+          </p>
+        ) : (
+          <p>{waitingTime}</p>
         )}
       </div>
-      <p className={isBestRate ? "font-semibold text-[#17876D]" : ""}>
-        {isLoading ? "Loading..." : `1=${Number(rate).toFixed(4)}`}
-      </p>
-    </div>
-
-    <div className="flex w-full items-center justify-between text-xs text-[#939494] lg:text-[13px]">
-      <p>Waiting time</p>
-      {title.toLowerCase().includes("dex") ? (
-        <p className="flex items-center gap-1 font-semibold text-[#17876D]">
-          <Icons.zap className="h-4 w-4" />
-          {waitingTime}
-        </p>
-      ) : (
-        <p>{waitingTime}</p>
-      )}
-    </div>
-  </TabsTrigger>
-);
+    </TabsTrigger>
+  );
+};
 
 const Unstake = () => {
   const [txnDapp, setTxnDapp] = React.useState<"endur" | "dex">("dex");
@@ -262,8 +273,9 @@ const Unstake = () => {
   const [_avnuError, setAvnuError] = useAtom(avnuErrorAtom);
 
   const exRate = useAtomValue(exchangeRateAtom);
-  const currentXSTRKBalance = useAtomValue(userXSTRKBalanceAtom);
+  const currentLSTBalance = useAtomValue(userLSTBalanceAtom);
   const queueState = useAtomValue(withdrawalQueueStateAtom);
+  const lstConfig = useAtomValue(lstConfigAtom)!;
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -365,7 +377,7 @@ const Unstake = () => {
       });
     }
 
-    const amount = Number(currentXSTRKBalance.value.toEtherToFixedDecimals(9));
+    const amount = Number(currentLSTBalance.value.toEtherToFixedDecimals(9));
 
     if (amount) {
       form.setValue("unstakeAmount", ((amount * percentage) / 100).toString());
@@ -399,7 +411,8 @@ const Unstake = () => {
                   <span className="text-[18px] font-semibold text-[#075A5A]">
                     Success 🎉
                   </span>
-                  Unstaked {form.getValues("unstakeAmount")} STRK via Avnu
+                  Unstaked {form.getValues("unstakeAmount")} {lstConfig.SYMBOL}{" "}
+                  via Avnu
                 </div>
               </div>
             ),
@@ -447,13 +460,13 @@ const Unstake = () => {
 
     if (
       Number(values.unstakeAmount) >
-      Number(currentXSTRKBalance.value.toEtherToFixedDecimals(9))
+      Number(currentLSTBalance.value.toEtherToFixedDecimals(9))
     ) {
       return toast({
         description: (
           <div className="flex items-center gap-2">
             <Info className="size-5" />
-            Insufficient xSTRK balance
+            Insufficient {lstConfig.LST_SYMBOL} balance
           </div>
         ),
       });
@@ -482,7 +495,9 @@ const Unstake = () => {
       <div className="flex h-[88px] w-full items-center px-7 pb-3 pt-5 md:h-[84px] lg:h-fit lg:gap-2">
         <div className="flex flex-1 flex-col items-start">
           <div className="flex items-center gap-2">
-            <p className="text-xs text-[#06302B]">Enter Amount (xSTRK)</p>
+            <p className="text-xs text-[#06302B]">
+              Enter Amount ({lstConfig.LST_SYMBOL})
+            </p>
             {form.formState.errors.unstakeAmount && (
               <p className="text-xs text-destructive">
                 {form.formState.errors.unstakeAmount.message}
@@ -559,10 +574,8 @@ const Unstake = () => {
             <Icons.wallet className="size-3 lg:size-5" />
             <span className="hidden md:block">Balance:</span>
             <span className="font-bold">
-              {formatNumber(
-                currentXSTRKBalance.value.toEtherToFixedDecimals(2),
-              )}{" "}
-              xSTRK
+              {formatNumber(currentLSTBalance.value.toEtherToFixedDecimals(2))}{" "}
+              {lstConfig.LST_SYMBOL}
             </span>
           </div>
         </div>
@@ -606,7 +619,7 @@ const Unstake = () => {
           <div className="space-y-3 px-7">
             <YouWillGetSection
               amount={formatNumber(youWillGet, 2)}
-              tooltipContent="You will receive the equivalent amount of STRK for the xSTRK you are unstaking. The amount of STRK you receive will be based on the current exchange rate of xSTRK to STRK."
+              tooltipContent={`You will receive the equivalent amount of ${lstConfig.SYMBOL} for the ${lstConfig.LST_SYMBOL} you are unstaking. The amount of ${lstConfig.SYMBOL} you receive will be based on the current exchange rate of ${lstConfig.LST_SYMBOL} to ${lstConfig.SYMBOL}.`}
             />
             <FeeSection />
           </div>

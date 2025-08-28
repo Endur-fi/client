@@ -6,6 +6,7 @@ import erc4626Abi from "@/abi/erc4626.abi.json";
 import vesuSingletonAbi from "@/abi/vesu.singleton.abi.json";
 import {
   ETH_TOKEN,
+  getProvider,
   RUSDC,
   STRK_DECIMALS,
   STRK_TOKEN,
@@ -111,9 +112,11 @@ const getVTokenHoldings = async (
 
 export const getVesuHoldings: DAppHoldingsFn = async (
   address: string,
-  provider: any,
+  lstAddress: string,
+  lstDecimals: number,
   blockNumber?: BlockIdentifier,
 ) => {
+  const provider = getProvider();
   const proms = [
     getVTokenHoldings(
       address,
