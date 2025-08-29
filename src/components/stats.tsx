@@ -44,6 +44,18 @@ const Stats: React.FC<StatsProps> = ({
   const [selectedAsset, setSelectedAsset] =
     React.useState<string>(getFirstBtcAsset());
 
+  // Memoize APY values to prevent re-renders from async calculations
+  const memoizedApyValue = useMemo(() => {
+    const apyValue =
+      activeTab === "strk" ? apy.value.strkApy * 100 : apy.value.btcApy * 100;
+
+    // Show more decimal places for very small values
+    if (apyValue < 0.01 && apyValue > 0) {
+      return apyValue.toFixed(6);
+    }
+    return apyValue.toFixed(2);
+  }, [activeTab, apy.value.strkApy, apy.value.btcApy]);
+
   const xSTRKInDefiOnly = useMemo(() => {
     return totalXSTRKAcrossDefi - Number(currentStaked.value.toEtherStr());
   }, [totalXSTRKAcrossDefi, currentStaked.value]);
@@ -71,7 +83,7 @@ const Stats: React.FC<StatsProps> = ({
             </TooltipProvider>
           </span>
           <span className="flex items-center gap-1">
-            ~{(apy.value * 100).toFixed(2)}%
+            ~{memoizedApyValue}%
             {selectedPlatform && selectedPlatform !== "none" && (
               <span className="font-semibold text-[#17876D]">
                 +{" "}

@@ -251,7 +251,7 @@ const Tabs = () => {
                 </div>
                 <div className="pl-2">
                   <p className="text-xs">
-                    APY: {(apy.value * 100).toFixed(2)}%
+                    APY: {(apy.value.strkApy * 100).toFixed(2)}%
                   </p>
                 </div>
               </TabsTrigger>
@@ -265,7 +265,7 @@ const Tabs = () => {
                 </div>
                 <div className="pl-2">
                   <p className="text-xs">
-                    APY: {(apy.value * 100).toFixed(2)}%
+                    APY: {(apy.value.btcApy * 100).toFixed(2)}%
                   </p>
                 </div>
               </TabsTrigger>

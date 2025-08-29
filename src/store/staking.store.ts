@@ -4,33 +4,50 @@ import { atomWithQuery } from "jotai-tanstack-query";
 import MyNumber from "@/lib/MyNumber";
 import StakingService from "@/services/staking";
 
-import { currentBlockAtom, providerAtom, lstConfigAtom } from "./common.store";
+import { currentBlockAtom, providerAtom } from "./common.store";
+import { getAssetPrice } from "@/lib/utils";
 
 const stakingService = new StakingService();
 
-const snTotalStakedQueryAtom = atomWithQuery((get) => {
+const snTotalStakingPowerQueryAtom = atomWithQuery((get) => {
   return {
-    queryKey: [
-      "snTotalStaked",
-      get(currentBlockAtom),
-      get(providerAtom),
-      get(lstConfigAtom),
-    ],
+    queryKey: ["snTotalStakingPower", get(currentBlockAtom)],
     queryFn: () => {
-      const lstConfig = get(lstConfigAtom);
-      if (!lstConfig) {
-        return MyNumber.fromZero();
-      }
-      return stakingService.getSNTotalStaked(lstConfig.DECIMALS);
+      return stakingService.getTotalStakingPower();
     },
     refetchInterval: 60000,
   };
 });
 
-export const snTotalStakedAtom = atom((get) => {
-  const { data, error } = get(snTotalStakedQueryAtom);
+export const snTotalStakingPowerAtom = atom((get) => {
+  const { data, error } = get(snTotalStakingPowerQueryAtom);
   return {
-    value: error || !data ? MyNumber.fromZero() : data,
+    value:
+      error || !data
+        ? {
+            totalStakingPowerSTRK: MyNumber.fromZero(),
+            totalStakingPowerBTC: MyNumber.fromZero(),
+          }
+        : data,
+    error,
+    isLoading: !data && !error,
+  };
+});
+
+const snAlphaQueryAtom = atomWithQuery((get) => {
+  return {
+    queryKey: ["snAlpha", get(currentBlockAtom)],
+    queryFn: () => {
+      return stakingService.getAlpha();
+    },
+    refetchInterval: 60000,
+  };
+});
+
+export const snAlphaAtom = atom((get) => {
+  const { data, error } = get(snAlphaQueryAtom);
+  return {
+    value: error || !data ? 0 : data,
     error,
     isLoading: !data && !error,
   };
@@ -38,18 +55,9 @@ export const snTotalStakedAtom = atom((get) => {
 
 export const yearlyMintingQueryAtom = atomWithQuery((get) => {
   return {
-    queryKey: [
-      "yearlyMinting",
-      get(currentBlockAtom),
-      get(providerAtom),
-      get(lstConfigAtom),
-    ],
+    queryKey: ["yearlyMinting", get(currentBlockAtom), get(providerAtom)],
     queryFn: () => {
-      const lstConfig = get(lstConfigAtom);
-      if (!lstConfig) {
-        return MyNumber.fromZero();
-      }
-      return stakingService.getYearlyMinting(lstConfig.DECIMALS);
+      return stakingService.getYearlyMinting();
     },
     refetchInterval: 60000,
   };
@@ -64,25 +72,90 @@ export const yearlyMintingAtom = atom((get) => {
   };
 });
 
+// Separate atoms for prices to avoid async in main APY calculation
+const strkPriceQueryAtom = atomWithQuery(() => ({
+  queryKey: ["strkPrice"],
+  queryFn: () => getAssetPrice(),
+  refetchInterval: 60000,
+}));
+
+const btcPriceQueryAtom = atomWithQuery(() => ({
+  queryKey: ["btcPrice"],
+  queryFn: () => getAssetPrice(false),
+  refetchInterval: 60000,
+}));
+
+const strkPriceAtom = atom((get) => {
+  const { data, error } = get(strkPriceQueryAtom);
+  return error || !data ? 0 : data;
+});
+
+const btcPriceAtom = atom((get) => {
+  const { data, error } = get(btcPriceQueryAtom);
+  return error || !data ? 0 : data;
+});
+
 export const snAPYAtom = atom((get) => {
   const yearlyMintRes = get(yearlyMintingAtom);
-  const totalStakedRes = get(snTotalStakedAtom);
+  const totalStakingPowerRes = get(snTotalStakingPowerAtom);
+  const alphaRes = get(snAlphaAtom);
+  const strkPrice = get(strkPriceAtom);
+  const btcPrice = get(btcPriceAtom);
 
-  let value = 0;
-  if (!totalStakedRes.value.isZero()) {
-    value =
-      Number(yearlyMintRes.value.toEtherToFixedDecimals(4)) /
-      Number(totalStakedRes.value.toEtherToFixedDecimals(4));
+  let strkApy = 0;
+  let btcApy = 0;
+
+  // Calculate STRK APY
+  if (
+    !totalStakingPowerRes.value.totalStakingPowerSTRK.isZero() &&
+    alphaRes.value !== 0
+  ) {
+    strkApy =
+      (Number(yearlyMintRes.value.toEtherToFixedDecimals(4)) *
+        (100 - alphaRes.value)) /
+      (100 *
+        Number(
+          totalStakingPowerRes.value.totalStakingPowerSTRK.toEtherToFixedDecimals(
+            4,
+          ),
+        ));
 
     // deduce endur fee
-    value *= 0.85;
+    strkApy *= 0.85;
   }
 
-  const newValue = (1 + value / 365) ** 365 - 1;
+  // Calculate BTC APY
+  if (
+    !totalStakingPowerRes.value.totalStakingPowerBTC.isZero() &&
+    alphaRes.value !== 0 &&
+    strkPrice > 0 &&
+    btcPrice > 0
+  ) {
+    const yearlyMinting = Number(yearlyMintRes.value.toEtherToFixedDecimals(4));
+    const btcStakingPower = Number(
+      totalStakingPowerRes.value.totalStakingPowerBTC.toEtherToFixedDecimals(4),
+    );
+
+    // Calculate BTC APY
+    if (btcStakingPower > 0) {
+      btcApy =
+        (yearlyMinting * strkPrice * alphaRes.value) /
+        (100 * btcStakingPower * btcPrice);
+
+      // deduce endur fee
+      btcApy *= 0.85;
+    }
+  }
 
   return {
-    value: newValue,
-    isLoading: yearlyMintRes.isLoading || totalStakedRes.isLoading,
-    error: yearlyMintRes.error || totalStakedRes.error,
+    value: {
+      strkApy,
+      btcApy,
+    },
+    isLoading:
+      yearlyMintRes.isLoading ||
+      totalStakingPowerRes.isLoading ||
+      alphaRes.isLoading,
+    error: yearlyMintRes.error || totalStakingPowerRes.error || alphaRes.error,
   };
 });

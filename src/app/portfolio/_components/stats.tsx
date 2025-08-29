@@ -104,7 +104,7 @@ const Stats: React.FC = () => {
             xSTRK APY
           </span>
           <p className="-ml-3 flex items-end gap-4 text-xl font-semibold leading-[1] text-black">
-            ~{(apy.value * 100).toFixed(2)}%
+            ~{(apy.value.strkApy * 100).toFixed(2)}%
           </p>
         </div>
       </div>

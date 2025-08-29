@@ -95,6 +95,11 @@ export const SN_MINTING_CURVE_ADRESS =
     ? ""
     : "0x05ab44e99d715b01c543d39dba0a22fa8e2071655b3d251ae5c418d6f418a1a9";
 
+export const SN_STAKING_REWARD_ADDRESS =
+  NETWORK === "SN_MAIN"
+    ? ""
+    : "0x02ebbebb8ceb2e07f30a5088f5849afd4f908f04f3f9c97c694e5d83d2a7cc61";
+
 export const WITHDRAWAL_QUEUE_ADDRESS = process.env
   .NEXT_PUBLIC_WITHDRAWAL_QUEUE_ADDRESS as `0x${string}`;
 
