@@ -29,7 +29,7 @@ export function formatNumber(
   } else if (numberValue >= 1_000) {
     return `${(numberValue / 1_000).toFixed(decimals ?? 2)}${caps ? "K" : "k"}`;
   }
-  return `${numberValue.toFixed(decimals ?? 2)}`;
+  return `${numberValue}`;
 }
 
 export function formatNumberWithCommas(
@@ -169,7 +169,7 @@ export async function getAssetPrice(isSTRK: boolean = true): Promise<number> {
   });
 
   if (!provider) return 0;
-  
+
   const oracleContract = isSTRK ? STRK_ORACLE_CONTRACT : BTC_ORACLE_CONTRACT;
 
   const contract = new Contract(OracleAbi, oracleContract, provider);
