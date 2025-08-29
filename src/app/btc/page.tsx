@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   title:
     "Endur.fi | BTC Liquid Staking on Starknet",
   description:
-    "Stake BTC on Endur and get liquid tokens like xWBTC, xtBTC (Threshold network), or xsolvBTC — earn rewards, enjoy instant liquidity, and faster unstaking in DeFi.",
+    "Stake BTC on Endur and get liquid tokens like xWBTC, xtBTC (Threshold network), etc. — earn rewards, enjoy instant liquidity, and faster unstaking in DeFi.",
 };
 
 export default function BTCPage() {
