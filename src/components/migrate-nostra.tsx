@@ -13,7 +13,7 @@ import {
 import { LST_ADDRRESS, NOSTRA_IXSTRK, STRK_TOKEN } from "@/constants";
 import { toast, useToast } from "@/hooks/use-toast";
 import { cn, formatNumberWithCommas } from "@/lib/utils";
-import { providerAtom, lstAddressAtom } from "@/store/common.store";
+import { lstConfigAtom, providerAtom } from "@/store/common.store";
 import {
   exchangeRateAtom,
   nstStrkWithdrawalFeeAtom,
@@ -43,8 +43,8 @@ const MigrateNostra = () => {
   const { sendAsync, data, isPending, error } = useSendTransaction({});
   const [isMigrationDone, setIsMigrationDone] = React.useState(false);
 
+  const lstConfig = useAtomValue(lstConfigAtom);
   const rpcProvider = useAtomValue(providerAtom);
-  const lstAddress = useAtomValue(lstAddressAtom);
   const nstStrkBalanceRes = useAtomValue(userNstSTRKBalanceAtom);
   const nstStrkWithdrawal = useAtomValue(nstStrkWithdrawalFeeAtom);
   const exchangeRate = useAtomValue(exchangeRateAtom);
@@ -112,9 +112,9 @@ const MigrateNostra = () => {
       });
     }
 
-    if (!rpcProvider || !lstAddress) return;
+    if (!rpcProvider || !lstConfig) return;
 
-    const lstContract = lstService.getLSTContract(lstAddress);
+    const lstContract = lstService.getLSTContract(lstConfig.LST_ADDRESS);
     const nstContract = lstService.getNstSTRKContract();
     const strkContract = new Contract(erc4626Abi, STRK_TOKEN);
     const xSTRKContract = new Contract(erc4626Abi, LST_ADDRRESS);

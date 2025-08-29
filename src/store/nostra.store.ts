@@ -1,14 +1,13 @@
 import { atom } from "jotai";
 import { atomFamily } from "jotai/utils";
-import { BlockIdentifier, Contract, RpcProvider } from "starknet";
+import { BlockIdentifier, Contract } from "starknet";
 
 import erc4626Abi from "@/abi/erc4626.abi.json";
 import nostraLpAbi from "@/abi/nostra.lp.abi.json";
-import { getProvider } from "@/constants";
+import { getProvider, STRK_DECIMALS } from "@/constants";
 import MyNumber from "@/lib/MyNumber";
 
 import { DAppHoldingsAtom, DAppHoldingsFn, getHoldingAtom } from "./defi.store";
-import { lstDecimalsAtom } from "./common.store";
 import { isContractNotDeployed } from "@/lib/utils";
 
 export const N_XSTRK_CONTRACT_ADDRESS =
@@ -35,12 +34,10 @@ const deploymentBlocksOfNostraContracts: { [contract: string]: number } = {
 
 export async function getNostraHoldingsByToken(
   address: string,
-  lstDecimals: number,
-  provider: RpcProvider,
   nostraToken: string,
   blockNumber?: BlockIdentifier,
 ) {
-  const contract = new Contract(erc4626Abi, nostraToken, provider);
+  const contract = new Contract(erc4626Abi, nostraToken, getProvider());
   if (
     isContractNotDeployed(
       blockNumber,
@@ -53,21 +50,19 @@ export async function getNostraHoldingsByToken(
   const balance = await contract.call("balance_of", [address], {
     blockIdentifier: blockNumber ?? "latest",
   });
-  return new MyNumber(balance.toString(), lstDecimals);
+  return new MyNumber(balance.toString(), STRK_DECIMALS);
 }
 
 function getNostraHoldings(nostraToken: string): DAppHoldingsFn {
-  return async (
-    address: string,
-    lstAddress: string,
-    lstDecimals: number,
-    blockNumber?: BlockIdentifier,
-  ) => {
-    const provider = getProvider();
+  return async ({
+    address,
+    blockNumber,
+  }: {
+    address: string;
+    blockNumber?: BlockIdentifier;
+  }) => {
     const lstAmount = await getNostraHoldingsByToken(
       address,
-      lstDecimals,
-      provider,
       nostraToken,
       blockNumber,
     );
@@ -103,17 +98,17 @@ const userdxSTRKBalanceQueryAtom = getHoldingAtom(
   getNostraHoldings(D_XSTRK_CONTRACT_ADDRESS),
 );
 
-export const getNostraDexHoldings: DAppHoldingsFn = async (
-  address: string,
-  lstAddress: string,
-  lstDecimals: number,
-  blockNumber?: BlockIdentifier,
-) => {
-  const provider = getProvider();
+export const getNostraDexHoldings: DAppHoldingsFn = async ({
+  address,
+  blockNumber,
+}: {
+  address: string;
+  blockNumber?: BlockIdentifier;
+}) => {
   const contract = new Contract(
     nostraLpAbi,
     LP_TOKEN_CONTRACT_ADDRESS,
-    provider,
+    getProvider(),
   );
 
   if (
@@ -140,21 +135,24 @@ export const getNostraDexHoldings: DAppHoldingsFn = async (
     blockIdentifier: blockNumber ?? "latest",
   });
 
-  const balanceStr = new MyNumber(balance.toString(), lstDecimals).toEtherStr();
+  const balanceStr = new MyNumber(
+    balance.toString(),
+    STRK_DECIMALS,
+  ).toEtherStr();
 
   const totalSupplyStr = new MyNumber(
     totalSupply.toString(),
-    lstDecimals,
+    STRK_DECIMALS,
   ).toEtherStr();
 
   const getReserves0Str = new MyNumber(
     getReserves[0].toString(),
-    lstDecimals,
+    STRK_DECIMALS,
   ).toEtherStr();
 
   const getReserves1Str = new MyNumber(
     getReserves[1].toString(),
-    lstDecimals,
+    STRK_DECIMALS,
   ).toEtherStr();
 
   const lstTokenBal =
@@ -168,10 +166,10 @@ export const getNostraDexHoldings: DAppHoldingsFn = async (
       : (Number(balanceStr) / Number(totalSupplyStr)) * Number(getReserves1Str);
 
   return {
-    lstAmount: MyNumber.fromEther(lstTokenBal.toFixed(8), lstDecimals),
+    lstAmount: MyNumber.fromEther(lstTokenBal.toFixed(8), STRK_DECIMALS),
     underlyingTokenAmount: MyNumber.fromEther(
       underlyingTokenBal.toFixed(8),
-      lstDecimals,
+      STRK_DECIMALS,
     ),
   };
 };
@@ -265,8 +263,8 @@ export const userdxSTRKBalance = atomFamily((blockNumber?: number) =>
       value:
         error || !data
           ? {
-              xSTRKAmount: MyNumber.fromZero(),
-              STRKAmount: MyNumber.fromZero(),
+              lstAmount: MyNumber.fromZero(),
+              underlyingTokenAmount: MyNumber.fromZero(),
             }
           : data,
       error,
@@ -283,8 +281,8 @@ export const userLPTokenBalance = atomFamily((blockNumber?: number) =>
       value:
         error || !data
           ? {
-              lstAmount: MyNumber.fromEther("0", 18),
-              underlyingTokenAmount: MyNumber.fromEther("0", 18),
+              lstAmount: MyNumber.fromEther("0", STRK_DECIMALS),
+              underlyingTokenAmount: MyNumber.fromEther("0", STRK_DECIMALS),
             }
           : data,
       error,
@@ -296,12 +294,11 @@ export const userLPTokenBalance = atomFamily((blockNumber?: number) =>
 export const userLSTNostraBalance: DAppHoldingsAtom = atomFamily(
   (blockNumber?: number) =>
     atom((get) => {
-      const lstDecimals = get(lstDecimalsAtom);
       let isLoading = false;
       let error: any = null;
       const data = {
-        lstAmount: MyNumber.fromEther("0", lstDecimals || 18),
-        underlyingTokenAmount: MyNumber.fromEther("0", lstDecimals || 18),
+        lstAmount: MyNumber.fromEther("0", STRK_DECIMALS),
+        underlyingTokenAmount: MyNumber.fromEther("0", STRK_DECIMALS),
       };
 
       const atoms = [

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { getProvider, STRK_DECIMALS } from "@/constants";
+import { getProvider, LST_CONFIG, STRK_DECIMALS } from "@/constants";
 import MyNumber from "@/lib/MyNumber";
 import LSTService from "@/services/lst";
 
@@ -15,7 +15,10 @@ export async function GET(_req: Request) {
 
   const lstService = new LSTService();
 
-  const totalSupply = await lstService.getTotalSupply();
+  const totalSupply = await lstService.getTotalSupply(
+    LST_CONFIG.STRK.LST_ADDRESS,
+    LST_CONFIG.STRK.DECIMALS,
+  );
 
   if (totalSupply) {
     const totalSupplyNum = Number(

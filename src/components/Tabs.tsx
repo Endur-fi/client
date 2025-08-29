@@ -33,18 +33,12 @@ import Unstake from "./unstake";
 import WithdrawLog from "./withdraw-log";
 import { snAPYAtom } from "@/store/staking.store";
 import { useWalletConnection } from "@/hooks/use-wallet-connection";
-import {
-  lstAddressAtom,
-  lstConfigAtom,
-  lstDecimalsAtom,
-} from "@/store/common.store";
+import { lstConfigAtom } from "@/store/common.store";
 
 const Tabs = () => {
   const router = useRouter();
   const pathname = usePathname();
 
-  const [lstAddress, setLSTAddress] = useAtom(lstAddressAtom);
-  const [lstDecimals, setLSTDecimals] = useAtom(lstDecimalsAtom);
   const [lstConfig, setLSTConfig] = useAtom(lstConfigAtom);
 
   const [activeTab, setActiveTab] = useAtom(tabsAtom);
@@ -62,8 +56,6 @@ const Tabs = () => {
   React.useEffect(() => {
     if (activeTab === "strk") {
       setLSTConfig(LST_CONFIG.STRK);
-      setLSTAddress(LST_CONFIG.STRK?.LST_ADDRESS);
-      setLSTDecimals(LST_CONFIG.STRK?.DECIMALS);
     } else {
       const firstBTCAsset = Object.values(LST_CONFIG).filter(
         (asset: (typeof LST_CONFIG)[keyof typeof LST_CONFIG]) =>
@@ -71,7 +63,7 @@ const Tabs = () => {
       )[0];
       setLSTConfig(firstBTCAsset);
     }
-  }, [activeTab, setLSTConfig, setLSTAddress, setLSTDecimals]);
+  }, [activeTab, setLSTConfig]);
 
   React.useEffect(() => {
     if (pathname === "/btc") {

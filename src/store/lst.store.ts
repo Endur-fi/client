@@ -28,12 +28,23 @@ import { isContractNotDeployed } from "@/lib/utils";
 
 const lstService = new LSTService();
 
-export const getHoldings: DAppHoldingsFn = async (
-  address: string,
-  lstAddress: string,
-  decimals: number,
-  blockNumber?: BlockIdentifier,
-) => {
+export const getHoldings: DAppHoldingsFn = async ({
+  address,
+  lstAddress,
+  decimals,
+  blockNumber,
+}: {
+  address: string;
+  lstAddress?: string;
+  decimals?: number;
+  blockNumber?: BlockIdentifier;
+}) => {
+  if (!lstAddress || !decimals) {
+    return {
+      lstAmount: MyNumber.fromZero(),
+      underlyingTokenAmount: MyNumber.fromZero(),
+    };
+  }
   const lstContract = lstService.getLSTContract(lstAddress);
   if (
     isContractNotDeployed(blockNumber, xSTRK_TOKEN_MAINNET_DEPLOYMENT_BLOCK)

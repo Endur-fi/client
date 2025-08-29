@@ -9,7 +9,7 @@ import { exchangeRateAtom, userLSTBalanceAtom } from "@/store/lst.store";
 import { userLSTNostraBalance } from "@/store/nostra.store";
 import { snAPYAtom } from "@/store/staking.store";
 import { uservXSTRKBalanceAtom } from "@/store/vesu.store";
-import { strkPriceAtom } from "@/store/common.store";
+import { assetPriceAtom } from "@/store/common.store";
 import { getSTRKFarmBalanceAtom } from "@/store/strkfarm.store";
 import { userOpusBalanceAtom } from "@/store/opus.store";
 
@@ -35,7 +35,7 @@ export const totalXSTRKAcrossDefiHoldingsAtom = atom((get) => {
 });
 
 const Stats: React.FC = () => {
-  const strkPrice = useAtomValue(strkPriceAtom);
+  const strkPrice = useAtomValue(assetPriceAtom);
   const apy = useAtomValue(snAPYAtom);
   const currentLSTBalance = useAtomValue(userLSTBalanceAtom);
   const exchangeRate = useAtomValue(exchangeRateAtom);

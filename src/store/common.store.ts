@@ -18,8 +18,6 @@ export const currentBlockAtom = atom(async (get) => {
 
 export const userAddressAtom = atom<string | undefined>();
 
-export const lstAddressAtom = atom<string | undefined>();
-export const lstDecimalsAtom = atom<number | undefined>();
 export const lstConfigAtom = atom<(typeof LST_CONFIG)[keyof typeof LST_CONFIG]>(
   LST_CONFIG.STRK,
 );

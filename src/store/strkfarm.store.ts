@@ -4,7 +4,7 @@ import SenseiAbi from "@/abi/sensei.abi.json";
 import EkuboSTRKFarmAbi from "@/abi/ekubo_strkfarm.abi.json";
 import { isContractNotDeployed } from "@/lib/utils";
 import MyNumber from "@/lib/MyNumber";
-import { STRK_DECIMALS } from "@/constants";
+import { getProvider, STRK_DECIMALS } from "@/constants";
 import { atom } from "jotai";
 import { atomFamily } from "jotai/utils";
 
@@ -16,19 +16,21 @@ const EKUBO_XSTRK_STRK =
   "0x01f083b98674bc21effee29ef443a00c7b9a500fd92cf30341a3da12c73f2324";
 const EKUBO_XSTRK_STRK_DEPLOYMENT_BLOCK = 1209881;
 
-export const getXSTRKSenseiHoldings: DAppHoldingsFn = async (
-  address: string,
-  provider: any,
-  blockNumber?: BlockIdentifier,
-) => {
+export const getXSTRKSenseiHoldings: DAppHoldingsFn = async ({
+  address,
+  blockNumber,
+}: {
+  address: string;
+  blockNumber?: BlockIdentifier;
+}) => {
   if (isContractNotDeployed(blockNumber, XSTRK_SENSEI_DEPLOYMENT_BLOCK)) {
     return {
-      xSTRKAmount: MyNumber.fromZero(STRK_DECIMALS),
-      STRKAmount: MyNumber.fromZero(STRK_DECIMALS),
+      lstAmount: MyNumber.fromZero(STRK_DECIMALS),
+      underlyingTokenAmount: MyNumber.fromZero(STRK_DECIMALS),
     };
   }
   try {
-    const contract = new Contract(SenseiAbi, XSTRK_SENSEI, provider);
+    const contract = new Contract(SenseiAbi, XSTRK_SENSEI, getProvider());
     const info: any = await contract.call("describe_position", [address], {
       blockIdentifier: blockNumber ?? "pending",
     });
@@ -39,30 +41,36 @@ export const getXSTRKSenseiHoldings: DAppHoldingsFn = async (
     // const exchangeRate = Number(totalAssets.operate('multipliedBy', '1000000').operate('div', totalSupply.toString()).toString()) / 1000000;
     // const xSTRKAmount = strkAmount.operate('multipliedBy', exchangeRate.toString());
     return {
-      xSTRKAmount: new MyNumber(holdings.deposit2.toString(), STRK_DECIMALS),
-      STRKAmount: MyNumber.fromZero(STRK_DECIMALS),
+      lstAmount: new MyNumber(holdings.deposit2.toString(), STRK_DECIMALS),
+      underlyingTokenAmount: MyNumber.fromZero(STRK_DECIMALS),
     };
   } catch (error) {
     return {
-      xSTRKAmount: MyNumber.fromZero(STRK_DECIMALS),
-      STRKAmount: MyNumber.fromZero(STRK_DECIMALS),
+      lstAmount: MyNumber.fromZero(STRK_DECIMALS),
+      underlyingTokenAmount: MyNumber.fromZero(STRK_DECIMALS),
     };
   }
 };
 
-export const getEkuboXSTRKSTRKHoldings: DAppHoldingsFn = async (
-  address: string,
-  provider: any,
-  blockNumber?: BlockIdentifier,
-) => {
+export const getEkuboXSTRKSTRKHoldings: DAppHoldingsFn = async ({
+  address,
+  blockNumber,
+}: {
+  address: string;
+  blockNumber?: BlockIdentifier;
+}) => {
   if (isContractNotDeployed(blockNumber, EKUBO_XSTRK_STRK_DEPLOYMENT_BLOCK)) {
     return {
-      xSTRKAmount: MyNumber.fromZero(STRK_DECIMALS),
-      STRKAmount: MyNumber.fromZero(STRK_DECIMALS),
+      lstAmount: MyNumber.fromZero(STRK_DECIMALS),
+      underlyingTokenAmount: MyNumber.fromZero(STRK_DECIMALS),
     };
   }
 
-  const contract = new Contract(EkuboSTRKFarmAbi, EKUBO_XSTRK_STRK, provider);
+  const contract = new Contract(
+    EkuboSTRKFarmAbi,
+    EKUBO_XSTRK_STRK,
+    getProvider(),
+  );
   const bal: any = await contract.call("balanceOf", [address], {
     blockIdentifier: blockNumber ?? "pending",
   });
@@ -77,8 +85,8 @@ export const getEkuboXSTRKSTRKHoldings: DAppHoldingsFn = async (
   // const exchangeRate = Number(totalAssets.operate('multipliedBy', '1000000').operate('div', totalSupply.toString()).toString()) / 1000000;
   // const xSTRKAmount = strkAmount.operate('multipliedBy', exchangeRate.toString());
   return {
-    xSTRKAmount: new MyNumber(xSTRKHolings.toString(), STRK_DECIMALS),
-    STRKAmount: new MyNumber(STRKHolings.toString(), STRK_DECIMALS),
+    lstAmount: new MyNumber(xSTRKHolings.toString(), STRK_DECIMALS),
+    underlyingTokenAmount: new MyNumber(STRKHolings.toString(), STRK_DECIMALS),
   };
 };
 
@@ -100,24 +108,27 @@ export const getSTRKFarmBalanceAtom: DAppHoldingsAtom = atomFamily(
         userEkuboXSTRKSTRKBalanceQueryAtom(blockNumber),
       );
 
-      let xSTRKAmount = data?.xSTRKAmount ?? new MyNumber("0", STRK_DECIMALS);
-      let STRKAmount = data?.STRKAmount ?? new MyNumber("0", STRK_DECIMALS);
+      let lstAmount = data?.lstAmount ?? new MyNumber("0", STRK_DECIMALS);
+      let underlyingTokenAmount =
+        data?.underlyingTokenAmount ?? new MyNumber("0", STRK_DECIMALS);
 
       if (data2) {
-        xSTRKAmount = xSTRKAmount.operate(
+        lstAmount = lstAmount.operate(
           "plus",
-          data2?.xSTRKAmount ? data2.xSTRKAmount.toString() : "0",
+          data2?.lstAmount ? data2.lstAmount.toString() : "0",
         );
-        STRKAmount = STRKAmount.operate(
+        underlyingTokenAmount = underlyingTokenAmount.operate(
           "plus",
-          data2?.STRKAmount ? data2.STRKAmount.toString() : "0",
+          data2?.underlyingTokenAmount
+            ? data2.underlyingTokenAmount.toString()
+            : "0",
         );
       }
 
       return {
         data: {
-          xSTRKAmount,
-          STRKAmount,
+          lstAmount,
+          underlyingTokenAmount,
         },
         error: error || error2,
         isLoading: !data && !error,

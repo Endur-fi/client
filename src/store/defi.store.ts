@@ -4,12 +4,7 @@ import { atomWithQuery } from "jotai-tanstack-query";
 import { atomFamily } from "jotai/utils";
 import { AtomFamily } from "jotai/vanilla/utils/atomFamily";
 import { BlockIdentifier } from "starknet";
-import {
-  lstAddressAtom,
-  lstDecimalsAtom,
-  strkPriceAtom,
-  userAddressAtom,
-} from "./common.store";
+import { assetPriceAtom, lstConfigAtom, userAddressAtom } from "./common.store";
 import { exchangeRateAtom } from "./lst.store";
 import { snAPYAtom } from "./staking.store";
 
@@ -387,7 +382,7 @@ const strkFarmEkuboYieldQueryAtom = atomWithQuery((get) => ({
       };
     }
 
-    const { data: price, isLoading } = get(strkPriceAtom);
+    const { data: price, isLoading } = get(assetPriceAtom);
     const { value: baseApy } = get(snAPYAtom);
 
     if (!price) {
@@ -567,12 +562,12 @@ export type DAppHoldingsAtom = AtomFamily<
   }>
 >;
 
-export type DAppHoldingsFn = (
-  address: string,
-  lstAddress: string,
-  decimals: number,
-  blockNumber?: BlockIdentifier,
-) => Promise<DAppHoldings>;
+export type DAppHoldingsFn = (params: {
+  address: string;
+  lstAddress?: string;
+  decimals?: number;
+  blockNumber?: BlockIdentifier;
+}) => Promise<DAppHoldings>;
 
 /**
  * @description Returns an AtomFamily of DAppHoldings
@@ -586,31 +581,24 @@ export function getHoldingAtom(uniqueKey: string, queryFn: DAppHoldingsFn) {
   return atomFamily((blockNumber?: BlockIdentifier) => {
     return atomWithQuery((get) => {
       return {
-        queryKey: [
-          uniqueKey,
-          blockNumber,
-          get(userAddressAtom),
-          get(lstAddressAtom),
-          get(lstDecimalsAtom),
-        ],
+        queryKey: [uniqueKey, blockNumber, get(userAddressAtom)],
         queryFn: async ({ queryKey }: any): Promise<DAppHoldings> => {
           const userAddress = get(userAddressAtom);
-          const lstAddress = get(lstAddressAtom);
-          const lstDecimals = get(lstDecimalsAtom);
+          const lstConfig = get(lstConfigAtom);
 
-          if (!userAddress || !lstAddress || !lstDecimals)
+          if (!userAddress || !lstConfig)
             return {
               lstAmount: MyNumber.fromZero(),
               underlyingTokenAmount: MyNumber.fromZero(),
             };
 
           try {
-            return await queryFn(
-              queryKey[2],
-              queryKey[3],
-              queryKey[4],
+            return await queryFn({
+              address: userAddress,
+              lstAddress: lstConfig.LST_ADDRESS,
+              decimals: lstConfig.DECIMALS,
               blockNumber,
-            );
+            });
           } catch (err) {
             console.error("getHoldingAtom error:", err);
             return {
