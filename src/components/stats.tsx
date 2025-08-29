@@ -19,7 +19,7 @@ import { snAPYAtom } from "@/store/staking.store";
 import { Icons } from "./Icons";
 import { type Platform } from "./stake";
 import { totalXSTRKAcrossDefiHoldingsAtom } from "@/app/portfolio/_components/stats";
-import AssetSelector from "./AssetSelector";
+import AssetSelector, { getFirstBtcAsset } from "./asset-selector";
 import { tabsAtom } from "@/store/merry.store";
 import { lstConfigAtom } from "@/store/common.store";
 
@@ -41,7 +41,8 @@ const Stats: React.FC<StatsProps> = ({
 
   const totalXSTRKAcrossDefi = useAtomValue(totalXSTRKAcrossDefiHoldingsAtom);
 
-  const [selectedAsset, setSelectedAsset] = React.useState<string>("");
+  const [selectedAsset, setSelectedAsset] =
+    React.useState<string>(getFirstBtcAsset());
 
   const xSTRKInDefiOnly = useMemo(() => {
     return totalXSTRKAcrossDefi - Number(currentStaked.value.toEtherStr());

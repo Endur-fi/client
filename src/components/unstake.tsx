@@ -327,7 +327,13 @@ const Unstake = () => {
     const initializeAvnuQuote = async () => {
       setAvnuLoading(true);
       try {
-        const quotes = await getAvnuQuotes("1000", "0x0");
+        const quotes = await getAvnuQuotes(
+          "1000",
+          "0x0",
+          lstConfig.LST_ADDRESS,
+          lstConfig.ASSET_ADDRESS,
+          lstConfig.DECIMALS,
+        );
         setAvnuQuote(quotes[0] || null);
         setAvnuError(null);
       } catch (error) {
@@ -351,6 +357,9 @@ const Unstake = () => {
         const quotes = await getAvnuQuotes(
           form.getValues("unstakeAmount"),
           address || "0x0",
+          lstConfig.LST_ADDRESS,
+          lstConfig.ASSET_ADDRESS,
+          lstConfig.DECIMALS,
         );
         setAvnuQuote(quotes[0] || null);
         setAvnuError(null);

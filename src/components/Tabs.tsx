@@ -51,7 +51,7 @@ const Tabs = () => {
   const [activeSubTab, setActiveSubTab] = React.useState("stake");
   const [waitlistEmail, setWaitlistEmail] = React.useState("");
   const [isSubmitting, setIsSubmitting] = React.useState(false);
-  const strkAPY = useAtomValue(snAPYAtom);
+  const apy = useAtomValue(snAPYAtom);
 
   const isMerry = useAtomValue(isMerryChristmasAtom);
   const { address } = useAccount();
@@ -251,28 +251,30 @@ const Tabs = () => {
             >
               <TabsTrigger
                 value="strk"
-                className="group relative inline-flex w-full justify-between rounded-xl border bg-transparent py-2 pl-0 pl-3 text-sm font-medium text-[#8D9C9C] focus-visible:ring-0 focus-visible:ring-offset-0 data-[state=active]:border-[#17876D] data-[state=active]:text-black data-[state=active]:shadow-none lg:text-base"
+                className="group relative inline-flex w-full justify-between rounded-xl border border-[#8D9C9C80] bg-transparent py-3 pl-3 text-sm font-medium text-[#8D9C9C] focus-visible:ring-0 focus-visible:ring-offset-0 data-[state=active]:border-[#17876D] data-[state=active]:bg-[#03624C1A] data-[state=active]:text-[#03624C] data-[state=active]:shadow-none lg:text-base"
               >
                 <div className="inline-flex items-center gap-2 text-lg font-bold">
-                  <Icons.strkLogo className="h-5 w-5 opacity-20 group-data-[state=active]:opacity-100" />
+                  <Icons.strkLogo className="h-6 w-6 opacity-20 group-data-[state=active]:opacity-100" />
                   STRK
                 </div>
                 <div className="pl-2">
                   <p className="text-xs">
-                    APY: {(strkAPY.value * 100).toFixed(2)}%
+                    APY: {(apy.value * 100).toFixed(2)}%
                   </p>
                 </div>
               </TabsTrigger>
               <TabsTrigger
                 value="btc"
-                className="group relative inline-flex w-full justify-between rounded-xl border bg-transparent py-2 pl-0 pl-3 text-sm font-medium text-[#8D9C9C] focus-visible:ring-0 focus-visible:ring-offset-0 data-[state=active]:border-[#17876D] data-[state=active]:text-black data-[state=active]:shadow-none lg:text-base"
+                className="group relative inline-flex w-full justify-between rounded-xl border border-[#8D9C9C80] bg-transparent py-3 pl-3 text-sm font-medium text-[#8D9C9C] focus-visible:ring-0 focus-visible:ring-offset-0 data-[state=active]:border-[#17876D] data-[state=active]:bg-[#03624C1A] data-[state=active]:text-[#03624C] data-[state=active]:shadow-none lg:text-base"
               >
                 <div className="inline-flex items-center gap-2 text-lg font-bold">
-                  <Icons.btcLogo className="h-5 w-5 opacity-20 group-data-[state=active]:opacity-100" />
+                  <Icons.btcLogo className="h-6 w-6 opacity-20 group-data-[state=active]:opacity-100" />
                   BTC
                 </div>
                 <div className="pl-2">
-                  <p className="text-xs">Coming soon</p>
+                  <p className="text-xs">
+                    APY: {(apy.value * 100).toFixed(2)}%
+                  </p>
                 </div>
               </TabsTrigger>
             </TabsList>
