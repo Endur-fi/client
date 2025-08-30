@@ -1,8 +1,7 @@
-import { getProvider } from "@/constants";
 import MyNumber from "@/lib/MyNumber";
 import { DAppHoldings } from "@/store/defi.store";
 import { getEkuboHoldings } from "@/store/ekubo.store";
-import { getXSTRKHoldings } from "@/store/lst.store";
+import { getHoldings } from "@/store/lst.store";
 import {
   getNostraDexHoldings,
   getNostraHoldingsByToken,
@@ -131,7 +130,10 @@ export async function getAllOpusHoldings(address: string, blocks: BlockInfo[]) {
   // Opus holdings are not implemented yet
   return Promise.all(
     blocks.map(async (block) => {
-      return getOpusHoldings(address, getProvider(), block.block);
+      return getOpusHoldings({
+        address,
+        blockNumber: block.block,
+      });
     }),
   );
 }
@@ -140,24 +142,26 @@ export async function getAllVesuHoldings(address: string, blocks: BlockInfo[]) {
   return Promise.all(
     blocks.map(async (block) => {
       const justSupply = await retry(getVesuHoldings, [
-        address,
-        getProvider(),
-        block.block,
+        {
+          address,
+          blockNumber: block.block,
+        },
       ]);
       const collateral = await retry(getVesuxSTRKCollateralWrapper(), [
-        address,
-        getProvider(),
-        block.block,
+        {
+          address,
+          blockNumber: block.block,
+        },
       ]);
 
       const output: DAppHoldings = {
-        xSTRKAmount: justSupply.xSTRKAmount.operate(
+        lstAmount: justSupply.lstAmount.operate(
           "plus",
-          collateral.xSTRKAmount.toString(),
+          collateral.lstAmount.toString(),
         ),
-        STRKAmount: justSupply.STRKAmount.operate(
+        underlyingTokenAmount: justSupply.underlyingTokenAmount.operate(
           "plus",
-          collateral.STRKAmount.toString(),
+          collateral.underlyingTokenAmount.toString(),
         ),
       };
       return output;
@@ -172,9 +176,10 @@ export async function getAllXSTRKSenseiHoldings(
   return Promise.all(
     blocks.map(async (block) => {
       return retry(getXSTRKSenseiHoldings, [
-        address,
-        getProvider(),
-        block.block,
+        {
+          address,
+          blockNumber: block.block,
+        },
       ]);
     }),
   );
@@ -187,9 +192,10 @@ export async function getAllEkuboXSTRKSTRKHoldings(
   return Promise.all(
     blocks.map(async (block) => {
       return retry(getEkuboXSTRKSTRKHoldings, [
-        address,
-        getProvider(),
-        block.block,
+        {
+          address,
+          blockNumber: block.block,
+        },
       ]);
     }),
   );
@@ -202,9 +208,10 @@ async function getAllVesuCollateralHoldings(
   return Promise.all(
     blocks.map(async (block) => {
       return retry(getVesuxSTRKCollateralWrapper(), [
-        address,
-        getProvider(),
-        block.block,
+        {
+          address,
+          blockNumber: block.block,
+        },
       ]);
     }),
   );
@@ -216,7 +223,12 @@ export async function getAllEkuboHoldings(
 ) {
   return Promise.all(
     blocks.map(async (block) => {
-      return retry(getEkuboHoldings, [address, getProvider(), block.block]);
+      return retry(getEkuboHoldings, [
+        {
+          address,
+          blockNumber: block.block,
+        },
+      ]);
     }),
   );
 }
@@ -238,27 +250,24 @@ export async function getNostraLendingHoldings(
     i_XSTRK_CONTRACT_ADDRESS,
     i_XSTRK_C_CONTRACT_ADDRESS,
   ];
-  const provider = getProvider();
 
   // loop across blocks and sum the holdings for all tokens
   const result = await Promise.all(
     blocks.map(async (block) => {
       const holdings = await Promise.all(
         nTokens.map(async (token) => {
-          return retry(getNostraHoldingsByToken, [
-            address,
-            provider,
-            token,
-            block.block,
-          ]);
+          return retry(getNostraHoldingsByToken, [address, token, block.block]);
         }),
       );
       return {
-        xSTRKAmount: holdings.reduce(
+        lstAmount: holdings.reduce(
           (acc, cur) => acc.operate("plus", cur.toString()),
-          MyNumber.fromEther("0", 18),
+          MyNumber.fromZero(),
         ),
-        STRKAmount: MyNumber.fromZero(),
+        underlyingTokenAmount: holdings.reduce(
+          (acc, cur) => acc.operate("plus", cur.toString()),
+          MyNumber.fromZero(),
+        ),
       };
     }),
   );
@@ -269,11 +278,14 @@ export async function getNostraDEXHoldings(
   address: string,
   blocks: BlockInfo[],
 ) {
-  const provider = getProvider();
-
   return Promise.all(
     blocks.map(async (block) => {
-      return retry(getNostraDexHoldings, [address, provider, block.block]);
+      return retry(getNostraDexHoldings, [
+        {
+          address,
+          blockNumber: block.block,
+        },
+      ]);
     }),
   );
 }
@@ -284,7 +296,12 @@ export async function getAllXSTRKHoldings(
 ) {
   return Promise.all(
     blocks.map(async (block) => {
-      return retry(getXSTRKHoldings, [address, getProvider(), block.block]);
+      return retry(getHoldings, [
+        {
+          address,
+          blockNumber: block.block,
+        },
+      ]);
     }),
   );
 }

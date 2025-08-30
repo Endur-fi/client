@@ -1,8 +1,8 @@
-import { BlockIdentifier, Contract, RpcProvider } from "starknet";
+import { BlockIdentifier, Contract } from "starknet";
 import { DAppHoldingsAtom, DAppHoldingsFn, getHoldingAtom } from "./defi.store";
 import OpusAbi from "@/abi/opus.abi.json";
 import { isContractNotDeployed } from "@/lib/utils";
-import { STRK_DECIMALS } from "@/constants";
+import { getProvider, STRK_DECIMALS } from "@/constants";
 import MyNumber from "@/lib/MyNumber";
 import { XSTRK_ADDRESS } from "./ekubo.store";
 import { atomFamily } from "jotai/utils";
@@ -12,23 +12,25 @@ const OPUS_CONTRACT =
   "0x04d0bb0a4c40012384e7c419e6eb3c637b28e8363fb66958b60d90505b9c072f";
 const OPUS_CONTRACT_DEPLOYMENT_BLOCK = 973643;
 
-export const getOpusHoldings: DAppHoldingsFn = async (
-  address: string,
-  provider: RpcProvider,
-  blockNumber?: BlockIdentifier,
-) => {
+export const getOpusHoldings: DAppHoldingsFn = async ({
+  address,
+  blockNumber,
+}: {
+  address: string;
+  blockNumber?: BlockIdentifier;
+}) => {
   const isDeployed = !isContractNotDeployed(
     blockNumber,
     OPUS_CONTRACT_DEPLOYMENT_BLOCK,
   );
   if (!isDeployed) {
     return {
-      xSTRKAmount: MyNumber.fromZero(STRK_DECIMALS),
-      STRKAmount: MyNumber.fromZero(STRK_DECIMALS),
+      lstAmount: MyNumber.fromZero(STRK_DECIMALS),
+      underlyingTokenAmount: MyNumber.fromZero(STRK_DECIMALS),
     };
   }
 
-  const contract = new Contract(OpusAbi, OPUS_CONTRACT, provider);
+  const contract = new Contract(OpusAbi, OPUS_CONTRACT, getProvider());
   const userTroves: any = await contract.call("get_user_trove_ids", [address], {
     blockIdentifier: blockNumber,
   });
@@ -44,8 +46,8 @@ export const getOpusHoldings: DAppHoldingsFn = async (
     MyNumber.fromZero(STRK_DECIMALS),
   );
   return {
-    xSTRKAmount,
-    STRKAmount: MyNumber.fromZero(STRK_DECIMALS),
+    lstAmount: xSTRKAmount,
+    underlyingTokenAmount: MyNumber.fromZero(STRK_DECIMALS),
   };
 };
 
@@ -59,13 +61,12 @@ export const userOpusBalanceAtom: DAppHoldingsAtom = atomFamily(
     atom((get) => {
       const { data, error } = get(userOpusBalanceQueryAtom(blockNumber));
 
-      const xSTRKAmount1 =
-        data?.xSTRKAmount ?? new MyNumber("0", STRK_DECIMALS);
+      const lstAmount1 = data?.lstAmount ?? new MyNumber("0", STRK_DECIMALS);
 
       return {
         data: {
-          xSTRKAmount: xSTRKAmount1,
-          STRKAmount: MyNumber.fromZero(STRK_DECIMALS),
+          lstAmount: lstAmount1,
+          underlyingTokenAmount: MyNumber.fromZero(STRK_DECIMALS),
         },
         error,
         isLoading: !data && !error,

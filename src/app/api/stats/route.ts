@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 
-import { getProvider, STRK_DECIMALS } from "@/constants";
+import { getProvider, LST_CONFIG, STRK_DECIMALS } from "@/constants";
 import MyNumber from "@/lib/MyNumber";
-import { getSTRKPrice, tryCatch } from "@/lib/utils";
+import { getAssetPrice, tryCatch } from "@/lib/utils";
 import LSTService from "@/services/lst";
 import StakingService from "@/services/staking";
 
@@ -38,9 +38,15 @@ export async function GET(_req: Request) {
 
   const apyInPercentage = (newApy * 100).toFixed(2);
 
-  const balance = await lstService.getTotalStaked();
+  const strkLSTConfig = LST_CONFIG.STRK;
 
-  const { data: price, error: strkPriceError } = await tryCatch(getSTRKPrice());
+  const balance = await lstService.getTotalStaked(
+    strkLSTConfig.LST_ADDRESS,
+    strkLSTConfig.DECIMALS,
+  );
+
+  const { data: price, error: strkPriceError } =
+    await tryCatch(getAssetPrice());
 
   if (balance && price) {
     const tvlInStrk = Number(

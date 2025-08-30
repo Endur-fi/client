@@ -13,7 +13,7 @@ import {
 import { LST_ADDRRESS, NOSTRA_IXSTRK, STRK_TOKEN } from "@/constants";
 import { toast, useToast } from "@/hooks/use-toast";
 import { cn, formatNumberWithCommas } from "@/lib/utils";
-import { providerAtom } from "@/store/common.store";
+import { lstConfigAtom, providerAtom } from "@/store/common.store";
 import {
   exchangeRateAtom,
   nstStrkWithdrawalFeeAtom,
@@ -43,6 +43,7 @@ const MigrateNostra = () => {
   const { sendAsync, data, isPending, error } = useSendTransaction({});
   const [isMigrationDone, setIsMigrationDone] = React.useState(false);
 
+  const lstConfig = useAtomValue(lstConfigAtom);
   const rpcProvider = useAtomValue(providerAtom);
   const nstStrkBalanceRes = useAtomValue(userNstSTRKBalanceAtom);
   const nstStrkWithdrawal = useAtomValue(nstStrkWithdrawalFeeAtom);
@@ -111,10 +112,10 @@ const MigrateNostra = () => {
       });
     }
 
-    if (!rpcProvider) return;
+    if (!rpcProvider || !lstConfig) return;
 
-    const lstContract = lstService.getLSTContract(rpcProvider);
-    const nstContract = lstService.getNstSTRKContract(rpcProvider);
+    const lstContract = lstService.getLSTContract(lstConfig.LST_ADDRESS);
+    const nstContract = lstService.getNstSTRKContract();
     const strkContract = new Contract(erc4626Abi, STRK_TOKEN);
     const xSTRKContract = new Contract(erc4626Abi, LST_ADDRRESS);
     const ixSTRKContract = new Contract(nostraIXSTRK, NOSTRA_IXSTRK);
@@ -316,9 +317,10 @@ const MigrateNostra = () => {
             <div className="mt-2 flex items-center justify-between font-bold">
               <span>Net APY (Incl. Staking yield)</span>
               <span>
-                {(stakingApy.value * 100 + (nostraLendApy.value || 0)).toFixed(
-                  2,
-                )}
+                {(
+                  stakingApy.value.strkApy * 100 +
+                  (nostraLendApy.value || 0)
+                ).toFixed(2)}
                 % APY
               </span>
             </div>
