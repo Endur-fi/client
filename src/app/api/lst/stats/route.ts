@@ -35,11 +35,9 @@ export async function GET(_req: Request) {
       }
 
       const yearlyMinting =
-        (await stakingService.getYearlyMinting(value.DECIMALS)) ??
-        MyNumber.fromZero();
+        (await stakingService.getYearlyMinting()) ?? MyNumber.fromZero();
       const totalStaked =
-        (await stakingService.getSNTotalStaked(value.DECIMALS)) ??
-        MyNumber.fromZero();
+        (await stakingService.getSNTotalStaked()) ?? MyNumber.fromZero();
 
       let apy = 0;
 

@@ -19,11 +19,9 @@ export async function GET(_req: Request) {
   const lstService = new LSTService();
 
   const yearlyMinting =
-    (await stakingService.getYearlyMinting(LST_CONFIG.STRK.DECIMALS)) ??
-    MyNumber.fromZero();
+    (await stakingService.getYearlyMinting()) ?? MyNumber.fromZero();
   const totalStaked =
-    (await stakingService.getSNTotalStaked(LST_CONFIG.STRK.DECIMALS)) ??
-    MyNumber.fromZero();
+    (await stakingService.getSNTotalStaked()) ?? MyNumber.fromZero();
 
   let apy = 0;
 

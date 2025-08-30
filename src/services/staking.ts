@@ -8,6 +8,7 @@ import {
   SN_MINTING_CURVE_ADRESS,
   SN_STAKING_ADRESS,
   SN_STAKING_REWARD_ADDRESS,
+  STRK_DECIMALS,
 } from "@/constants";
 import MyNumber from "@/lib/MyNumber";
 import { tryCatch } from "@/lib/utils";
@@ -46,6 +47,27 @@ class StakingService {
     }
 
     return MyNumber.fromZero();
+  }
+
+  async getSNTotalStaked() {
+    const stakingContract = new Contract(
+      STAKING_ABI,
+      SN_STAKING_ADRESS,
+      this.provider,
+    );
+
+    const { data: totalStaked, error } = await tryCatch(
+      stakingContract.call("get_total_stake"),
+    );
+
+    if (totalStaked) {
+      return new MyNumber(totalStaked.toString(), STRK_DECIMALS);
+    }
+
+    if (error) {
+      console.error("snTotalStakedError", error);
+      return MyNumber.fromZero();
+    }
   }
 
   async getTotalStakingPower() {

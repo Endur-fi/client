@@ -395,7 +395,7 @@ const strkFarmEkuboYieldQueryAtom = atomWithQuery((get) => ({
 
     const totalSupplied = strategy.tvlUsd / price;
 
-    const apy = strategy.apy - baseApy;
+    const apy = strategy.apy - baseApy.strkApy;
 
     return {
       value: apy * 100,

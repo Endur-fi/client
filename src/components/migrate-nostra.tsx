@@ -317,9 +317,10 @@ const MigrateNostra = () => {
             <div className="mt-2 flex items-center justify-between font-bold">
               <span>Net APY (Incl. Staking yield)</span>
               <span>
-                {(stakingApy.value * 100 + (nostraLendApy.value || 0)).toFixed(
-                  2,
-                )}
+                {(
+                  stakingApy.value.strkApy * 100 +
+                  (nostraLendApy.value || 0)
+                ).toFixed(2)}
                 % APY
               </span>
             </div>
