@@ -28,6 +28,7 @@ export type WithdrawLogColumn = {
   claimTime: string;
   txHash: string;
   rank: number;
+  asset?: string;
 };
 
 export const withdrawLogColumn: ColumnDef<WithdrawLogColumn>[] = [
@@ -75,6 +76,38 @@ export const withdrawLogColumn: ColumnDef<WithdrawLogColumn>[] = [
     },
   },
   {
+    accessorKey: "asset",
+    header: "Asset",
+    cell: ({ row }) => {
+      const assetType = row.original.asset || "STRK";
+
+      // Asset icon mapping - using actual icon components
+      const getAssetIcon = (asset: string) => {
+        switch (asset) {
+          case "LBTC":
+            return <Icons.btcLogo className="h-5 w-5" />;
+          case "BTC":
+            return <Icons.btcLogo className="h-5 w-5" />;
+          case "WBTC":
+            return <Icons.btcLogo className="h-5 w-5" />;
+          case "tBTC":
+            return <Icons.btcLogo className="h-5 w-5" />;
+          case "STRK":
+            return <Icons.strkLogo className="h-5 w-5" />;
+          default:
+            return <Icons.strkLogo className="h-5 w-5" />;
+        }
+      };
+
+      return (
+        <div className="flex items-center gap-2">
+          {getAssetIcon(assetType)}
+          <span className="text-sm font-medium">{assetType}</span>
+        </div>
+      );
+    },
+  },
+  {
     accessorKey: "amount",
     header: ({ column }) => {
       return (
@@ -88,7 +121,8 @@ export const withdrawLogColumn: ColumnDef<WithdrawLogColumn>[] = [
       );
     },
     cell: ({ row }) => {
-      return `${formatNumberWithCommas(row.original.amount)} STRK`;
+      const amount = row.original.amount;
+      return formatNumberWithCommas(amount);
     },
     sortingFn: (rowA, rowB, _columnId) => {
       return Number(rowA.original.amount) - Number(rowB.original.amount);

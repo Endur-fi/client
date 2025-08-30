@@ -287,11 +287,7 @@ const Unstake = () => {
 
   const provider = getProvider();
 
-  const contract = new Contract(
-    erc4626Abi,
-    process.env.NEXT_PUBLIC_LST_ADDRESS as string,
-    provider,
-  );
+  const contract = new Contract(erc4626Abi, lstConfig.LST_ADDRESS, provider);
 
   const { sendAsync, data, isPending, error } = useSendTransaction({});
 

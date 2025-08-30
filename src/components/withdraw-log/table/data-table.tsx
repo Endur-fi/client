@@ -130,7 +130,7 @@ export function WithdrawDataTable<TData, TValue>({
                     key={header.id}
                     className={cn("text-xs text-black", {
                       "pl-5": idx === 0,
-                      "pr-5 text-right": idx === 2,
+                      "pr-5 text-right": idx === 3,
                     })}
                   >
                     {header.isPlaceholder
@@ -159,7 +159,7 @@ export function WithdrawDataTable<TData, TValue>({
                       key={cell.id}
                       className={cn({
                         "pl-5": idx === 0,
-                        "pr-5 text-right": idx === 2,
+                        "pr-5 text-right": idx === 3,
                       })}
                     >
                       {flexRender(
@@ -184,44 +184,40 @@ export function WithdrawDataTable<TData, TValue>({
         </Table>
       </div>
 
-      <div
-        className={cn(
-          "absolute -bottom-[5.5rem] left-1/2 flex -translate-x-1/2 items-center justify-center space-x-2 py-4",
-          {
-            "-bottom-[15.3rem]": noResults,
-            "-bottom-[18.3rem]": table.getRowModel().rows.length <= 5,
-          },
-        )}
-      >
-        <div className="flex items-center justify-center gap-2">
-          {[1, 2, 3, 4].map((pageNumber) => (
+      {!noResults && table.getPageCount() > 1 && (
+        <div className="mt-4 flex items-center justify-start space-x-1 px-5">
+          {/* Generate page numbers dynamically */}
+          {Array.from({ length: table.getPageCount() }, (_, i) => i + 1).map(
+            (pageNumber) => (
+              <Button
+                key={pageNumber}
+                variant="outline"
+                size="sm"
+                className={cn(
+                  "h-8 w-8 border-none bg-transparent p-0 text-sm font-normal text-[#8D9C9C] shadow-none transition-all hover:bg-[#17876D] hover:text-white",
+                  {
+                    "bg-[#17876D] text-white": currentPage === pageNumber,
+                  },
+                )}
+                onClick={() => table.setPageIndex(pageNumber - 1)}
+              >
+                {pageNumber}
+              </Button>
+            ),
+          )}
+
+          {table.getCanNextPage() && (
             <Button
-              key={pageNumber}
               variant="outline"
               size="sm"
-              className={cn(
-                "border-none bg-transparent text-sm font-normal text-[#8D9C9C] shadow-none transition-all hover:bg-[#17876D] hover:text-white",
-                {
-                  "bg-[#17876D] text-white": currentPage === pageNumber,
-                },
-              )}
-              onClick={() => table.setPageIndex(pageNumber - 1)}
+              className="ml-2 flex h-8 items-center gap-1 border-none bg-transparent px-3 text-sm font-normal text-[#8D9C9C] shadow-none transition-all hover:bg-[#17876D] hover:text-white"
+              onClick={() => table.nextPage()}
             >
-              {pageNumber}
+              Next <ChevronRight className="h-3 w-3" />
             </Button>
-          ))}
-
-          <Button
-            variant="outline"
-            size="sm"
-            className="flex items-center gap-1 border-none bg-transparent text-sm font-normal text-[#8D9C9C] shadow-none transition-all hover:bg-[#17876D] hover:text-white"
-            onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
-          >
-            Next <ChevronRight className="size-3" />
-          </Button>
+          )}
         </div>
-      </div>
+      )}
     </div>
   );
 }

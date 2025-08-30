@@ -109,6 +109,7 @@ const WithdrawLog: React.FC = () => {
           claimTime: item.claim_time,
           txHash: item.tx_hash,
           rank,
+          asset: "STRK", // Default to STRK for real data
         };
       },
     );
@@ -123,13 +124,13 @@ const WithdrawLog: React.FC = () => {
 
   if (withdrawalLogs.isLoading)
     return (
-      <div className="-mt-5 flex h-full items-center justify-center gap-2">
+      <div className="relative flex h-full items-center justify-center gap-2">
         Loading your withdrawals <Loader className="size-5 animate-spin" />
       </div>
     );
 
   return (
-    <div className="h-full w-full">
+    <div className="relative h-full w-full">
       <div className="my-3 flex w-full grid-cols-3 flex-wrap items-center justify-center gap-5 px-5 lg:grid">
         <div className="h-full rounded-[12px] border border-[#AACBC4]/30 bg-[#E3EFEC]/30 p-2 px-3 lg:col-span-1 lg:w-full">
           <p className="text-[10px] font-medium text-[#03624C]">
