@@ -2,7 +2,7 @@ import axios from "axios";
 import { Decimal } from "decimal.js-light";
 import { atom } from "jotai";
 import { atomFamily } from "jotai/utils";
-import { BlockIdentifier, Contract, RpcProvider } from "starknet";
+import { BlockIdentifier, BlockTag, Contract, RpcProvider } from "starknet";
 
 import ekuboPositionAbi from "@/abi/ekubo.position.abi.json";
 import { STRK_DECIMALS, xSTRK_TOKEN_MAINNET } from "@/constants";
@@ -79,11 +79,11 @@ export const getEkuboHoldings: DAppHoldingsFn = async (
     };
   }
 
-  const positionContract = new Contract(
-    ekuboPositionAbi,
-    EKUBO_POSITION_ADDRESS,
-    provider,
-  );
+  const positionContract = new Contract({
+    abi: ekuboPositionAbi,
+    address: EKUBO_POSITION_ADDRESS,
+    providerOrAccount: provider,
+  });
 
   if (res?.data) {
     const filteredData = res?.data?.filter(
@@ -114,7 +114,7 @@ export const getEkuboHoldings: DAppHoldingsFn = async (
               },
             ],
             {
-              blockIdentifier: blockNumber ?? "pending",
+              blockIdentifier: blockNumber ?? BlockTag.LATEST,
             },
           );
 

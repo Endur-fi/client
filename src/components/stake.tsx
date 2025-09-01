@@ -140,7 +140,7 @@ const Stake: React.FC = () => {
     mode: "onChange",
   });
 
-  const contractSTRK = new Contract(erc4626Abi, STRK_TOKEN);
+  const contractSTRK = new Contract({ abi: erc4626Abi, address: STRK_TOKEN });
 
   const lstService = new LSTService();
 
@@ -265,7 +265,10 @@ const Stake: React.FC = () => {
     }
 
     if (selectedPlatform !== "none") {
-      const lstContract = new Contract(erc4626Abi, LST_ADDRRESS);
+      const lstContract = new Contract({
+        abi: erc4626Abi,
+        address: LST_ADDRRESS,
+      });
 
       const lendingAddress =
         selectedPlatform === "vesu"
@@ -280,7 +283,10 @@ const Stake: React.FC = () => {
       ]);
 
       if (selectedPlatform === "vesu") {
-        const vesuContract = new Contract(vxstrkAbi, VESU_vXSTRK_ADDRESS);
+        const vesuContract = new Contract({
+          abi: vxstrkAbi,
+          address: VESU_vXSTRK_ADDRESS,
+        });
         const lendingCall = vesuContract.populate("deposit", [
           xstrkAmount,
           address,
@@ -313,14 +319,20 @@ const Stake: React.FC = () => {
         // const output = await clVault.matchInputAmounts(input);
 
         // TODO: update the address
-        const strkFarmEkuboContract = new Contract(ekuboStrkfarmAbi, "");
+        const strkFarmEkuboContract = new Contract({
+          abi: ekuboStrkfarmAbi,
+          address: "",
+        });
         const lendingCall = strkFarmEkuboContract.populate("deposit", [
           xstrkAmount,
           address,
         ]);
         calls.push(approveCall, lendingCall);
       } else {
-        const nostraContract = new Contract(ixstrkAbi, NOSTRA_iXSTRK_ADDRESS);
+        const nostraContract = new Contract({
+          abi: ixstrkAbi,
+          address: NOSTRA_iXSTRK_ADDRESS,
+        });
         const lendingCall = nostraContract.populate("mint", [
           address,
           xstrkAmount,

@@ -1,6 +1,6 @@
 import { atom } from "jotai";
 import { atomFamily } from "jotai/utils";
-import { BlockIdentifier, Contract } from "starknet";
+import { BlockIdentifier, BlockTag, Contract } from "starknet";
 
 import erc4626Abi from "@/abi/erc4626.abi.json";
 import vesuSingletonAbi from "@/abi/vesu.singleton.abi.json";
@@ -83,15 +83,23 @@ const getVTokenHoldings = async (
   const vTokens = isV2Deployed ? [vToken, vTokenV2] : [vToken];
   const balances = Promise.all(
     vTokens.map(async (token) => {
-      const contract = new Contract(erc4626Abi, token, provider);
+      const contract = new Contract({
+        abi: erc4626Abi,
+        address: token,
+        providerOrAccount: provider,
+      });
       const shares = await contract.call("balance_of", [address], {
-        blockIdentifier: blockNumber ?? "pending",
+        blockIdentifier: blockNumber ?? BlockTag.LATEST,
       });
 
       const assetsToken = isV2Deployed ? vTokenV2 : vToken;
-      const contractV2 = new Contract(erc4626Abi, assetsToken, provider);
+      const contractV2 = new Contract({
+        abi: erc4626Abi,
+        address: assetsToken,
+        providerOrAccount: provider,
+      });
       const balance = await contractV2.call("convert_to_assets", [shares], {
-        blockIdentifier: blockNumber ?? "pending",
+        blockIdentifier: blockNumber ?? BlockTag.LATEST,
       });
 
       return balance.toString();
@@ -118,7 +126,7 @@ export const getVesuHoldings: DAppHoldingsFn = async (
     getVTokenHoldings(
       address,
       provider,
-      blockNumber ?? "pending",
+      blockNumber ?? BlockTag.LATEST,
       VESU_XSTRK_ADDRESS,
       VESU_XSTRK_ADDRESS_DEPLOYMENT_BLOCK,
       VESU_XSTRK_ADDRESS_MAX_BLOCK,
@@ -128,7 +136,7 @@ export const getVesuHoldings: DAppHoldingsFn = async (
     getVTokenHoldings(
       address,
       provider,
-      blockNumber ?? "pending",
+      blockNumber ?? BlockTag.LATEST,
       VESU_ALTERSCOPR_XSTRK_ADDRESS,
       VESU_ALTERSCOPR_XSTRK_ADDRESS_DEPLOYMENT_BLOCK,
       VESU_ALTERSCOPR_XSTRK_ADDRESS_MAX_BLOCK,
@@ -138,7 +146,7 @@ export const getVesuHoldings: DAppHoldingsFn = async (
     getVTokenHoldings(
       address,
       provider,
-      blockNumber ?? "pending",
+      blockNumber ?? BlockTag.LATEST,
       VESU_RE7_rUSDC_XSTRK_ADDRESS,
       VESU_RE7_rUSDC_XSTRK_ADDRESS_DEPLOYMENT_BLOCK,
       VESU_RE7_rUSDC_XSTRK_ADDRESS_MAX_BLOCK,
@@ -225,19 +233,23 @@ export const getVesuxSTRKCollateral = async (
     ? VESU_SINGLETON_ADDRESS_V2
     : VESU_SINGLETON_ADDRESS;
   try {
-    const contract = new Contract(vesuSingletonAbi, singletonAddress, provider);
+    const contract = new Contract({
+      abi: vesuSingletonAbi,
+      address: singletonAddress,
+      providerOrAccount: provider,
+    });
     const currentPosition: any = await contract.call(
       "position_unsafe",
       [poolId, xSTRK_TOKEN_MAINNET, debtToken, address],
       {
-        blockIdentifier: blockNumber ?? "pending",
+        blockIdentifier: blockNumber ?? BlockTag.LATEST,
       },
     );
     // const exRate = await contract.call("rate_accumulator", [
     //   poolId,
     //   xSTRK_TOKEN_MAINNET,
     // ], {
-    //   blockIdentifier: blockNumber ?? "pending",
+    //   blockIdentifier: blockNumber ?? BlockTag.LATEST,
     // });
 
     return {

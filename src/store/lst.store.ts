@@ -3,6 +3,7 @@ import { atomWithQuery } from "jotai-tanstack-query";
 import { atomFamily } from "jotai/utils";
 import {
   type BlockIdentifier,
+  BlockTag,
   Contract,
   type RpcProvider,
   uint256,
@@ -48,7 +49,7 @@ export const getXSTRKHoldings: DAppHoldingsFn = async (
   }
 
   const balance = await lstContract.call("balance_of", [address], {
-    blockIdentifier: blockNumber ?? "pending",
+    blockIdentifier: blockNumber ?? BlockTag.LATEST,
   });
   return {
     xSTRKAmount: new MyNumber(balance.toString(), STRK_DECIMALS),
@@ -57,14 +58,14 @@ export const getXSTRKHoldings: DAppHoldingsFn = async (
 };
 
 export const getTotalAssetsByBlock = async (
-  blockNumber: BlockIdentifier = "pending",
+  blockNumber: BlockIdentifier = BlockTag.LATEST,
 ) => {
   const balance = await lstService.getTotalStaked(blockNumber);
   return balance;
 };
 
 export const getTotalSupplyByBlock = async (
-  blockNumber: BlockIdentifier = "pending",
+  blockNumber: BlockIdentifier = BlockTag.LATEST,
 ) => {
   const balance = await lstService.getTotalSupply(blockNumber);
   return balance;
@@ -72,9 +73,9 @@ export const getTotalSupplyByBlock = async (
 
 function blockNumberQueryKey(
   get: Getter,
-  blockNumber: BlockIdentifier = "pending",
+  blockNumber: BlockIdentifier = BlockTag.LATEST,
 ) {
-  if (blockNumber === "pending" || blockNumber === "latest") {
+  if (blockNumber === BlockTag.LATEST || blockNumber === BlockTag.LATEST) {
     return get(currentBlockAtom);
   }
   return blockNumber;
@@ -366,11 +367,11 @@ export const withdrawalQueueStateQueryAtom = atomWithQuery((get) => {
       if (!provider) return null;
 
       try {
-        const contract = new Contract(
-          WqAbi,
-          WITHDRAWAL_QUEUE_ADDRESS,
-          provider,
-        );
+        const contract = new Contract({
+          abi: WqAbi,
+          address: WITHDRAWAL_QUEUE_ADDRESS,
+          providerOrAccount: provider,
+        });
 
         const state = await contract.call("get_queue_state");
         return state;
@@ -424,10 +425,10 @@ export const totalStakedCurrentBlockQueryAtom = atomWithQuery((get) => {
       "totalStaked",
       get(currentBlockAtom),
       get(providerAtom),
-      get(totalStakedQueryAtom("pending")),
+      get(totalStakedQueryAtom(BlockTag.LATEST)),
     ],
     queryFn: async ({ _queryKey }: any) => {
-      const { data, error } = get(totalStakedQueryAtom("pending"));
+      const { data, error } = get(totalStakedQueryAtom(BlockTag.LATEST));
       return {
         value: error || !data ? MyNumber.fromZero() : data,
         error,
@@ -443,10 +444,10 @@ export const totalSupplyCurrentBlockAtom = atomWithQuery((get) => {
       "totalSupply",
       get(currentBlockAtom),
       get(providerAtom),
-      get(totalStakedQueryAtom("pending")),
+      get(totalStakedQueryAtom(BlockTag.LATEST)),
     ],
     queryFn: async ({ _queryKey }: any) => {
-      const { data, error } = get(totalSupplyQueryAtom("pending"));
+      const { data, error } = get(totalSupplyQueryAtom(BlockTag.LATEST));
 
       return {
         value: error || !data ? MyNumber.fromZero() : data,

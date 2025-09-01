@@ -1,7 +1,6 @@
 "use client";
 
 import erc4626Abi from "@/abi/erc4626.abi.json";
-import nostraIXSTRK from "@/abi/ixstrk.abi.json";
 import {
   Dialog,
   DialogContent,
@@ -115,9 +114,15 @@ const MigrateNostra = () => {
 
     const lstContract = lstService.getLSTContract(rpcProvider);
     const nstContract = lstService.getNstSTRKContract(rpcProvider);
-    const strkContract = new Contract(erc4626Abi, STRK_TOKEN);
-    const xSTRKContract = new Contract(erc4626Abi, LST_ADDRRESS);
-    const ixSTRKContract = new Contract(nostraIXSTRK, NOSTRA_IXSTRK);
+    const strkContract = new Contract({ abi: erc4626Abi, address: STRK_TOKEN });
+    const xSTRKContract = new Contract({
+      abi: erc4626Abi,
+      address: LST_ADDRRESS,
+    });
+    const ixSTRKContract = new Contract({
+      abi: erc4626Abi,
+      address: NOSTRA_IXSTRK,
+    });
 
     const call1 = nstContract.populate("redeem", [
       uint256.bnToUint256(nstStrkBalance.toString()),

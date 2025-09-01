@@ -16,7 +16,11 @@ export async function GET(_req: Request) {
     return NextResponse.json("Provider not found");
   }
 
-  const wqContract = new Contract(WqAbi, WITHDRAWAL_QUEUE_ADDRESS, provider);
+  const wqContract = new Contract({
+    abi: WqAbi,
+    address: WITHDRAWAL_QUEUE_ADDRESS,
+    providerOrAccount: provider,
+  });
 
   let contractReqId;
   let apiReqId;

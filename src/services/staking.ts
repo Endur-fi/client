@@ -24,11 +24,11 @@ class StakingService {
   }
 
   async getYearlyMinting() {
-    const mintingContract = new Contract(
-      MINTING_ABI,
-      SN_MINTING_CURVE_ADRESS,
-      this.provider,
-    );
+    const mintingContract = new Contract({
+      abi: MINTING_ABI,
+      address: SN_MINTING_CURVE_ADRESS,
+      providerOrAccount: this.provider,
+    });
 
     const { data: yearlyMinting, error } = await tryCatch(
       mintingContract.call("yearly_mint"),
@@ -44,11 +44,11 @@ class StakingService {
     }
   }
   async getSNTotalStaked() {
-    const stakingContract = new Contract(
-      STAKING_ABI,
-      SN_STAKING_ADRESS,
-      this.provider,
-    );
+    const stakingContract = new Contract({
+      abi: STAKING_ABI,
+      address: SN_STAKING_ADRESS,
+      providerOrAccount: this.provider,
+    });
 
     const { data: totalStaked, error } = await tryCatch(
       stakingContract.call("get_total_stake"),

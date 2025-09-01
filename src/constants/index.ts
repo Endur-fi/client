@@ -1,4 +1,4 @@
-import { constants, RpcProvider } from "starknet";
+import { BlockTag, constants, RpcProvider } from "starknet";
 
 export const MERKLE_CONTRACT_ADDRESS_SEPOLIA =
   "0x0620325f0dfe1a31b06126af8612fe762f9dcab79960ce23ac734ff93ddf6c64";
@@ -86,7 +86,7 @@ export function getProvider() {
 
   return new RpcProvider({
     nodeUrl: rpcUrl,
-    blockIdentifier: "pending",
+    blockIdentifier: BlockTag.LATEST,
   });
 }
 

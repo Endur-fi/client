@@ -38,7 +38,11 @@ export async function getNostraHoldingsByToken(
   nostraToken: string,
   blockNumber?: BlockIdentifier,
 ) {
-  const contract = new Contract(erc4626Abi, nostraToken, provider);
+  const contract = new Contract({
+    abi: erc4626Abi,
+    address: nostraToken,
+    providerOrAccount: provider,
+  });
   if (
     isContractNotDeployed(
       blockNumber,
@@ -103,11 +107,11 @@ export const getNostraDexHoldings: DAppHoldingsFn = async (
   provider: RpcProvider,
   blockNumber?: BlockIdentifier,
 ) => {
-  const contract = new Contract(
-    nostraLpAbi,
-    LP_TOKEN_CONTRACT_ADDRESS,
-    provider,
-  );
+  const contract = new Contract({
+    abi: nostraLpAbi,
+    address: LP_TOKEN_CONTRACT_ADDRESS,
+    providerOrAccount: provider,
+  });
 
   if (
     isContractNotDeployed(

@@ -1,4 +1,4 @@
-import { BlockIdentifier, Contract } from "starknet";
+import { BlockIdentifier, BlockTag, Contract } from "starknet";
 import { DAppHoldingsAtom, DAppHoldingsFn, getHoldingAtom } from "./defi.store";
 import SenseiAbi from "@/abi/sensei.abi.json";
 import EkuboSTRKFarmAbi from "@/abi/ekubo_strkfarm.abi.json";
@@ -28,9 +28,13 @@ export const getXSTRKSenseiHoldings: DAppHoldingsFn = async (
     };
   }
   try {
-    const contract = new Contract(SenseiAbi, XSTRK_SENSEI, provider);
+    const contract = new Contract({
+      abi: SenseiAbi,
+      address: XSTRK_SENSEI,
+      providerOrAccount: provider,
+    });
     const info: any = await contract.call("describe_position", [address], {
-      blockIdentifier: blockNumber ?? "pending",
+      blockIdentifier: blockNumber ?? BlockTag.LATEST,
     });
     const holdings = info["1"];
     // const strkAmount = new MyNumber(holdings.estimated_size.toString(), STRK_DECIMALS);
@@ -62,12 +66,16 @@ export const getEkuboXSTRKSTRKHoldings: DAppHoldingsFn = async (
     };
   }
 
-  const contract = new Contract(EkuboSTRKFarmAbi, EKUBO_XSTRK_STRK, provider);
+  const contract = new Contract({
+    abi: EkuboSTRKFarmAbi,
+    address: EKUBO_XSTRK_STRK,
+    providerOrAccount: provider,
+  });
   const bal: any = await contract.call("balanceOf", [address], {
-    blockIdentifier: blockNumber ?? "pending",
+    blockIdentifier: blockNumber ?? BlockTag.LATEST,
   });
   const info: any = await contract.call("convert_to_assets", [bal.toString()], {
-    blockIdentifier: blockNumber ?? "pending",
+    blockIdentifier: blockNumber ?? BlockTag.LATEST,
   });
   const xSTRKHolings = info.amount0;
   const STRKHolings = info.amount1;
