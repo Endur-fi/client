@@ -28,7 +28,7 @@ export const getOpusHoldings: DAppHoldingsFn = async (
     };
   }
 
-  const contract = new Contract(OpusAbi, OPUS_CONTRACT, provider);
+  const contract = new Contract({abi: OpusAbi, address: OPUS_CONTRACT, providerOrAccount: provider});
   const userTroves: any = await contract.call("get_user_trove_ids", [address], {
     blockIdentifier: blockNumber,
   });

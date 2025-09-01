@@ -1,6 +1,6 @@
 import { BigNumber } from "bignumber.js";
 import { clsx, type ClassValue } from "clsx";
-import { BlockIdentifier, Contract, num, RpcProvider } from "starknet";
+import { BlockIdentifier, BlockTag, Contract, num, RpcProvider } from "starknet";
 import { twMerge } from "tailwind-merge";
 
 import { STRK_ORACLE_CONTRACT } from "@/constants";
@@ -170,7 +170,7 @@ export async function getSTRKPrice() {
 
   if (!provider) return 0;
 
-  const contract = new Contract(OracleAbi, STRK_ORACLE_CONTRACT, provider);
+  const contract = new Contract({abi: OracleAbi, address: STRK_ORACLE_CONTRACT, providerOrAccount: provider});
   const data = await contract.call("get_price", []);
   return Number(data) / 10 ** 8;
 }
@@ -200,7 +200,7 @@ export async function tryCatch<T, E = Error>(
 }
 
 export function isContractNotDeployed(
-  blockIdentifier: BlockIdentifier = "pending",
+  blockIdentifier: BlockIdentifier = BlockTag.LATEST,
   deploymentBlock: number,
   maxBlock?: number,
 ) {
@@ -211,8 +211,7 @@ export function isContractNotDeployed(
   const upperCondition =
     maxBlock &&
     ((blockIdentifier as number) > maxBlock ||
-      blockIdentifier === "latest" ||
-      blockIdentifier === "pending" ||
+      blockIdentifier === BlockTag.LATEST ||
       !blockIdentifier);
 
   return lowerCondition || upperCondition;

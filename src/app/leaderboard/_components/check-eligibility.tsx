@@ -720,11 +720,11 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
   const contracts = React.useMemo(() => {
     const provider = getProvider();
     return {
-      merkleContract: new Contract(
-        merkleAbi,
-        MERKLE_CONTRACT_ADDRESS_MAINNET,
-        provider,
-      ),
+      merkleContract: new Contract({
+        abi: merkleAbi,
+        address: MERKLE_CONTRACT_ADDRESS_MAINNET,
+        providerOrAccount: provider,
+      }),
     };
   }, []);
 
