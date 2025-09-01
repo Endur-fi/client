@@ -83,13 +83,21 @@ const getVTokenHoldings = async (
   const vTokens = isV2Deployed ? [vToken, vTokenV2] : [vToken];
   const balances = Promise.all(
     vTokens.map(async (token) => {
-      const contract = new Contract({abi: erc4626Abi, address: token, providerOrAccount: provider});
+      const contract = new Contract({
+        abi: erc4626Abi,
+        address: token,
+        providerOrAccount: provider,
+      });
       const shares = await contract.call("balance_of", [address], {
         blockIdentifier: blockNumber ?? BlockTag.LATEST,
       });
 
       const assetsToken = isV2Deployed ? vTokenV2 : vToken;
-      const contractV2 = new Contract({abi: erc4626Abi, address: assetsToken, providerOrAccount: provider});
+      const contractV2 = new Contract({
+        abi: erc4626Abi,
+        address: assetsToken,
+        providerOrAccount: provider,
+      });
       const balance = await contractV2.call("convert_to_assets", [shares], {
         blockIdentifier: blockNumber ?? BlockTag.LATEST,
       });
@@ -225,7 +233,11 @@ export const getVesuxSTRKCollateral = async (
     ? VESU_SINGLETON_ADDRESS_V2
     : VESU_SINGLETON_ADDRESS;
   try {
-    const contract = new Contract({abi: vesuSingletonAbi, address: singletonAddress, providerOrAccount: provider});
+    const contract = new Contract({
+      abi: vesuSingletonAbi,
+      address: singletonAddress,
+      providerOrAccount: provider,
+    });
     const currentPosition: any = await contract.call(
       "position_unsafe",
       [poolId, xSTRK_TOKEN_MAINNET, debtToken, address],

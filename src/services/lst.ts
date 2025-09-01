@@ -25,11 +25,19 @@ class LSTService {
   }
 
   getLSTContract(provider: RpcProvider) {
-    return new Contract({abi: ERC_4626_ABI, address: LST_ADDRRESS, providerOrAccount: provider});
+    return new Contract({
+      abi: ERC_4626_ABI,
+      address: LST_ADDRRESS,
+      providerOrAccount: provider,
+    });
   }
 
   getNstSTRKContract(provider: RpcProvider) {
-    return new Contract({abi: NOSTRA_STRK_ABI, address: NST_STRK_ADDRESS, providerOrAccount: provider});
+    return new Contract({
+      abi: NOSTRA_STRK_ABI,
+      address: NST_STRK_ADDRESS,
+      providerOrAccount: provider,
+    });
   }
 
   async getTotalSupply(blockNumber?: BlockIdentifier) {

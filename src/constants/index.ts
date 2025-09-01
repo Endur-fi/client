@@ -86,7 +86,7 @@ export function getProvider() {
 
   return new RpcProvider({
     nodeUrl: rpcUrl,
-    blockIdentifier: BlockTag.LATEST
+    blockIdentifier: BlockTag.LATEST,
   });
 }
 

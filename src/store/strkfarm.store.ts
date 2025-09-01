@@ -28,7 +28,11 @@ export const getXSTRKSenseiHoldings: DAppHoldingsFn = async (
     };
   }
   try {
-    const contract = new Contract({abi: SenseiAbi, address: XSTRK_SENSEI, providerOrAccount: provider});
+    const contract = new Contract({
+      abi: SenseiAbi,
+      address: XSTRK_SENSEI,
+      providerOrAccount: provider,
+    });
     const info: any = await contract.call("describe_position", [address], {
       blockIdentifier: blockNumber ?? BlockTag.LATEST,
     });
@@ -62,7 +66,11 @@ export const getEkuboXSTRKSTRKHoldings: DAppHoldingsFn = async (
     };
   }
 
-  const contract = new Contract({abi: EkuboSTRKFarmAbi, address: EKUBO_XSTRK_STRK, providerOrAccount: provider});
+  const contract = new Contract({
+    abi: EkuboSTRKFarmAbi,
+    address: EKUBO_XSTRK_STRK,
+    providerOrAccount: provider,
+  });
   const bal: any = await contract.call("balanceOf", [address], {
     blockIdentifier: blockNumber ?? BlockTag.LATEST,
   });

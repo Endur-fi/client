@@ -38,7 +38,11 @@ export async function getNostraHoldingsByToken(
   nostraToken: string,
   blockNumber?: BlockIdentifier,
 ) {
-  const contract = new Contract({abi: erc4626Abi, address: nostraToken, providerOrAccount: provider});
+  const contract = new Contract({
+    abi: erc4626Abi,
+    address: nostraToken,
+    providerOrAccount: provider,
+  });
   if (
     isContractNotDeployed(
       blockNumber,
