@@ -10,10 +10,10 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { LST_ADDRRESS, NOSTRA_IXSTRK, STRK_TOKEN } from "@/constants";
+import { getProvider, NOSTRA_IXSTRK, STRK_TOKEN } from "@/constants";
 import { toast, useToast } from "@/hooks/use-toast";
 import { cn, formatNumberWithCommas } from "@/lib/utils";
-import { providerAtom } from "@/store/common.store";
+import { lstConfigAtom, providerAtom } from "@/store/common.store";
 import {
   exchangeRateAtom,
   nstStrkWithdrawalFeeAtom,
@@ -43,6 +43,7 @@ const MigrateNostra = () => {
   const { sendAsync, data, isPending, error } = useSendTransaction({});
   const [isMigrationDone, setIsMigrationDone] = React.useState(false);
 
+  const lstConfig = useAtomValue(lstConfigAtom);
   const rpcProvider = useAtomValue(providerAtom);
   const nstStrkBalanceRes = useAtomValue(userNstSTRKBalanceAtom);
   const nstStrkWithdrawal = useAtomValue(nstStrkWithdrawalFeeAtom);
@@ -111,12 +112,13 @@ const MigrateNostra = () => {
       });
     }
 
-    if (!rpcProvider) return;
+    if (!rpcProvider || !lstConfig) return;
 
-    const lstContract = lstService.getLSTContract(rpcProvider);
-    const nstContract = lstService.getNstSTRKContract(rpcProvider);
+    // @deprecated
+    const lstContract = lstService.getLSTContract('');
+    const nstContract = lstService.getNstSTRKContract();
     const strkContract = new Contract({abi: erc4626Abi, address: STRK_TOKEN});
-    const xSTRKContract = new Contract({abi: erc4626Abi, address: LST_ADDRRESS});
+    const xSTRKContract = new Contract({abi: erc4626Abi, address: ''});
     const ixSTRKContract = new Contract({abi: erc4626Abi, address: NOSTRA_IXSTRK});
 
     const call1 = nstContract.populate("redeem", [
@@ -316,9 +318,10 @@ const MigrateNostra = () => {
             <div className="mt-2 flex items-center justify-between font-bold">
               <span>Net APY (Incl. Staking yield)</span>
               <span>
-                {(stakingApy.value * 100 + (nostraLendApy.value || 0)).toFixed(
-                  2,
-                )}
+                {(
+                  stakingApy.value.strkApy * 100 +
+                  (nostraLendApy.value || 0)
+                ).toFixed(2)}
                 % APY
               </span>
             </div>

@@ -2,10 +2,10 @@ import axios from "axios";
 import { Decimal } from "decimal.js-light";
 import { atom } from "jotai";
 import { atomFamily } from "jotai/utils";
-import { BlockIdentifier, BlockTag, Contract, RpcProvider } from "starknet";
+import { BlockIdentifier, BlockTag, Contract } from "starknet";
 
 import ekuboPositionAbi from "@/abi/ekubo.position.abi.json";
-import { STRK_DECIMALS, xSTRK_TOKEN_MAINNET } from "@/constants";
+import { getProvider, STRK_DECIMALS, xSTRK_TOKEN_MAINNET } from "@/constants";
 import MyNumber from "@/lib/MyNumber";
 
 import { DAppHoldingsAtom, DAppHoldingsFn, getHoldingAtom } from "./defi.store";
@@ -36,11 +36,13 @@ Decimal.set({ precision: 78 });
 // }
 // const ekuboPositionsCache: Record<string, any> = loadFromCache();
 
-export const getEkuboHoldings: DAppHoldingsFn = async (
-  address: string,
-  provider: RpcProvider,
-  blockNumber?: BlockIdentifier,
-) => {
+export const getEkuboHoldings: DAppHoldingsFn = async ({
+  address,
+  blockNumber,
+}: {
+  address: string;
+  blockNumber?: BlockIdentifier;
+}) => {
   let xSTRKAmount = MyNumber.fromEther("0", 18);
   let STRKAmount = MyNumber.fromEther("0", 18);
 
@@ -74,15 +76,15 @@ export const getEkuboHoldings: DAppHoldingsFn = async (
 
   if (isContractNotDeployed(blockNumber, EKUBO_POSITION_DEPLOYMENT_BLOCK)) {
     return {
-      xSTRKAmount,
-      STRKAmount,
+      lstAmount: xSTRKAmount,
+      underlyingTokenAmount: STRKAmount,
     };
   }
 
   const positionContract = new Contract({
     abi: ekuboPositionAbi,
     address: EKUBO_POSITION_ADDRESS,
-    providerOrAccount: provider,
+    providerOrAccount: getProvider(),
   });
 
   if (res?.data) {
@@ -165,8 +167,8 @@ export const getEkuboHoldings: DAppHoldingsFn = async (
   }
 
   return {
-    xSTRKAmount,
-    STRKAmount,
+    lstAmount: xSTRKAmount,
+    underlyingTokenAmount: STRKAmount,
   };
 };
 
@@ -186,8 +188,8 @@ export const userEkuboxSTRKPositions: DAppHoldingsAtom = atomFamily(
         data:
           error || !data
             ? {
-                xSTRKAmount: MyNumber.fromZero(),
-                STRKAmount: MyNumber.fromZero(),
+                lstAmount: MyNumber.fromZero(),
+                underlyingTokenAmount: MyNumber.fromZero(),
               }
             : data,
         error,

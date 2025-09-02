@@ -151,21 +151,21 @@ const PortfolioPage: React.FC = () => {
             return {
               date: block.date,
               nostraLending: serialisedMyNumberToNumber(
-                nostraLending[idx].xSTRKAmount as any,
+                nostraLending[idx].lstAmount as any,
               ),
               nostraDex: serialisedMyNumberToNumber(
-                nostraDex[idx].xSTRKAmount as any,
+                nostraDex[idx].lstAmount as any,
               ),
-              vesu: serialisedMyNumberToNumber(vesu[idx].xSTRKAmount as any),
-              ekubo: serialisedMyNumberToNumber(ekubo[idx].xSTRKAmount as any),
-              endur: serialisedMyNumberToNumber(wallet[idx].xSTRKAmount as any),
+              vesu: serialisedMyNumberToNumber(vesu[idx].lstAmount as any),
+              ekubo: serialisedMyNumberToNumber(ekubo[idx].lstAmount as any),
+              endur: serialisedMyNumberToNumber(wallet[idx].lstAmount as any),
               strkfarm: serialisedMyNumberToNumber(
-                strkfarm[idx].xSTRKAmount as any,
+                strkfarm[idx].lstAmount as any,
               ),
               strkfarmEkubo: serialisedMyNumberToNumber(
-                strkfarmEkubo[idx].xSTRKAmount as any,
+                strkfarmEkubo[idx].lstAmount as any,
               ),
-              opus: serialisedMyNumberToNumber(opus[idx].xSTRKAmount as any),
+              opus: serialisedMyNumberToNumber(opus[idx].lstAmount as any),
             };
           });
           holdings.sort(

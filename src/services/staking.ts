@@ -2,10 +2,12 @@ import { Contract, type RpcProvider } from "starknet";
 
 import MINTING_ABI from "@/abi/minting.abi.json";
 import STAKING_ABI from "@/abi/staking.abi.json";
+import STAKING_REWARD_ABI from "@/abi/staking-reward.abi.json";
 import {
   getProvider,
   SN_MINTING_CURVE_ADRESS,
   SN_STAKING_ADRESS,
+  SN_STAKING_REWARD_ADDRESS,
   STRK_DECIMALS,
 } from "@/constants";
 import MyNumber from "@/lib/MyNumber";
@@ -35,14 +37,18 @@ class StakingService {
     );
 
     if (yearlyMinting) {
-      return new MyNumber(yearlyMinting.toString(), STRK_DECIMALS);
+      // Yearly minting is always in STRK (18 decimals)
+      return new MyNumber(yearlyMinting.toString(), 18);
     }
 
     if (error) {
       console.error("yearlyMintingError", error);
       return MyNumber.fromZero();
     }
+
+    return MyNumber.fromZero();
   }
+
   async getSNTotalStaked() {
     const stakingContract = new Contract({
       abi: STAKING_ABI,
@@ -62,6 +68,68 @@ class StakingService {
       console.error("snTotalStakedError", error);
       return MyNumber.fromZero();
     }
+  }
+
+  async getTotalStakingPower() {
+    const stakingContract = new Contract(
+      STAKING_ABI,
+      SN_STAKING_ADRESS,
+      this.provider,
+    );
+
+    const { data: totalStakingPower, error } = await tryCatch(
+      stakingContract.call("get_current_total_staking_power"),
+    );
+
+    if (totalStakingPower) {
+      const stakingPowers = totalStakingPower as any;
+      return {
+        totalStakingPowerSTRK: new MyNumber(
+          stakingPowers[0].amount_18_decimals.toString(),
+          18,
+        ),
+        totalStakingPowerBTC: new MyNumber(
+          stakingPowers[1].amount_18_decimals.toString(),
+          18,
+        ),
+      };
+    }
+
+    if (error) {
+      console.error("snTotalStakedError", error);
+      return {
+        totalStakingPowerSTRK: MyNumber.fromZero(),
+        totalStakingPowerBTC: MyNumber.fromZero(),
+      };
+    }
+
+    return {
+      totalStakingPowerSTRK: MyNumber.fromZero(),
+      totalStakingPowerBTC: MyNumber.fromZero(),
+    };
+  }
+
+  async getAlpha() {
+    const stakingRewardContract = new Contract(
+      STAKING_REWARD_ABI,
+      SN_STAKING_REWARD_ADDRESS,
+      this.provider,
+    );
+
+    const { data: alpha, error } = await tryCatch(
+      stakingRewardContract.call("get_alpha"),
+    );
+
+    if (alpha) {
+      return Number(alpha);
+    }
+
+    if (error) {
+      console.error("alphaError", error);
+      return 0;
+    }
+
+    return 0;
   }
 }
 
