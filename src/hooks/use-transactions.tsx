@@ -6,6 +6,8 @@ import { eventNames } from "@/lib/utils";
 import { isTxAccepted } from "@/store/transactions.atom";
 
 import { toast, useToast } from "./use-toast";
+import { lstConfigAtom } from "@/store/common.store";
+import { useAtomValue } from "jotai";
 
 type TransactionType = "STAKE" | "UNSTAKE";
 
@@ -27,6 +29,7 @@ interface TransactionHandlerProps {
 
 const useTransactionHandler = () => {
   const { dismiss } = useToast();
+  const lstConfig = useAtomValue(lstConfigAtom)!;
 
   const handleTransaction = async (
     transactionType: TransactionType,
@@ -69,7 +72,8 @@ const useTransactionHandler = () => {
                 In Progress..
               </span>
               {transactionType === "STAKE" ? "Staking" : "Unstaking"}{" "}
-              {form.getValues(`${transactionType.toLowerCase()}Amount`)} STRK
+              {form.getValues(`${transactionType.toLowerCase()}Amount`)}{" "}
+              {lstConfig.SYMBOL}
             </div>
           </div>
         ),
@@ -149,7 +153,8 @@ const useTransactionHandler = () => {
                   Success 🎉
                 </span>
                 {transactionType === "STAKE" ? "Staked" : "Unstaked"}{" "}
-                {form.getValues(`${transactionType.toLowerCase()}Amount`)} STRK
+                {form.getValues(`${transactionType.toLowerCase()}Amount`)}{" "}
+                {lstConfig.SYMBOL}
               </div>
             </div>
           ),
