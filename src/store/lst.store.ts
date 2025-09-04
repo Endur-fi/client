@@ -66,7 +66,7 @@ export const getHoldings: DAppHoldingsFn = async ({
 export const getTotalAssetsByBlock = async (
   lstAddress: string,
   decimals: number,
-  blockNumber: BlockIdentifier = BlockTag.LATEST
+  blockNumber: BlockIdentifier = BlockTag.LATEST,
 ) => {
   const balance = await lstService.getTotalStaked(
     lstAddress,
@@ -386,14 +386,13 @@ export const withdrawalQueueStateQueryAtom = atomWithQuery((get) => {
     queryKey: ["withdrawalQueueState", get(currentBlockAtom)],
     queryFn: async () => {
       const provider = get(providerAtom);
+      const lstConfig = get(lstConfigAtom)!;
       if (!provider) return null;
 
-      // todo fix
-      const WITHDRAWAL_QUEUE_ADDRESS = ''
       try {
         const contract = new Contract({
           abi: WqAbi,
-          address: WITHDRAWAL_QUEUE_ADDRESS,
+          address: lstConfig.WITHDRAWAL_QUEUE_ADDRESS,
           providerOrAccount: provider,
         });
 

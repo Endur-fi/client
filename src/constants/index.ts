@@ -32,6 +32,7 @@ export const LST_CONFIG =
           ASSET_ADDRESS: "",
           LST_SYMBOL: "xSTRK",
           LST_ADDRESS: "",
+          WITHDRAWAL_QUEUE_ADDRESS: "",
           DECIMALS: 18,
         },
       }
@@ -43,6 +44,8 @@ export const LST_CONFIG =
           LST_SYMBOL: "xSTRK",
           LST_ADDRESS:
             "0x042de5b868da876768213c48019b8d46cd484e66013ae3275f8a4b97b31fc7eb",
+          WITHDRAWAL_QUEUE_ADDRESS:
+            "0x254cbdaf8275cb1b514ae63ccedb04a3a9996b1489829e5d6bbaf759ac100b6",
           DECIMALS: 18,
         },
         TBTC1: {
@@ -52,6 +55,8 @@ export const LST_CONFIG =
           LST_SYMBOL: "xBTC1",
           LST_ADDRESS:
             "0x036A2c3C56ae806B12A84bB253cBc1a009e3da5469e6a736C483303B864C8e2B",
+          WITHDRAWAL_QUEUE_ADDRESS:
+            "0x446406874095a226318f4a8875e51376a2d8ad76d46072f1ec626791f396712",
           DECIMALS: 8,
         },
         BTC2: {
@@ -61,6 +66,8 @@ export const LST_CONFIG =
           LST_SYMBOL: "xBTC2",
           LST_ADDRESS:
             "0x0226324F63D994834E4729dd1bab443fe50Af8E97C608b812ee1f950ceaE68c7",
+          WITHDRAWAL_QUEUE_ADDRESS:
+            "0x567d665b15789eed571a4b0521144d68fa435db87ca8e958a0f3102caae664b",
           DECIMALS: 8,
         },
       };
@@ -131,7 +138,7 @@ export function getProvider() {
 
   return new RpcProvider({
     nodeUrl: rpcUrl,
-    blockIdentifier: BlockTag.LATEST
+    blockIdentifier: BlockTag.LATEST,
   });
 }
 
