@@ -71,11 +71,11 @@ class StakingService {
   }
 
   async getTotalStakingPower() {
-    const stakingContract = new Contract(
-      STAKING_ABI,
-      SN_STAKING_ADRESS,
-      this.provider,
-    );
+    const stakingContract = new Contract({
+      abi: STAKING_ABI,
+      address: SN_STAKING_ADRESS,
+      providerOrAccount: this.provider,
+    });
 
     const { data: totalStakingPower, error } = await tryCatch(
       stakingContract.call("get_current_total_staking_power"),
@@ -110,11 +110,11 @@ class StakingService {
   }
 
   async getAlpha() {
-    const stakingRewardContract = new Contract(
-      STAKING_REWARD_ABI,
-      SN_STAKING_REWARD_ADDRESS,
-      this.provider,
-    );
+    const stakingRewardContract = new Contract({
+      abi: STAKING_REWARD_ABI,
+      address: SN_STAKING_REWARD_ADDRESS,
+      providerOrAccount: this.provider,
+    });
 
     const { data: alpha, error } = await tryCatch(
       stakingRewardContract.call("get_alpha"),

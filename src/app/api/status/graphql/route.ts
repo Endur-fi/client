@@ -9,16 +9,28 @@ import { getProvider } from "@/constants";
 
 export const revalidate = 0;
 
-export async function GET(_req: Request) {
+export async function GET(_req: Request, context: any) {
+  const { params } = context;
+
+  const withdrawlQueueAddress = params.withdrawlQueueAddress;
+
+  if (!withdrawlQueueAddress) {
+    return NextResponse.json({
+      error: "Withdrawal Queue Address Required",
+    });
+  }
+
   const provider = getProvider();
 
   if (!provider) {
     return NextResponse.json("Provider not found");
   }
 
-  // todo fix
-  const WITHDRAWAL_QUEUE_ADDRESS = ''
-  const wqContract = new Contract({abi: WqAbi, address: WITHDRAWAL_QUEUE_ADDRESS, providerOrAccount: provider});
+  const wqContract = new Contract({
+    abi: WqAbi,
+    address: withdrawlQueueAddress,
+    providerOrAccount: provider,
+  });
 
   let contractReqId;
   let apiReqId;

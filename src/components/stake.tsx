@@ -138,7 +138,10 @@ const Stake: React.FC = () => {
     mode: "onChange",
   });
 
-  const assetContract = new Contract({abi: erc4626Abi, address: lstConfig.ASSET_ADDRESS});
+  const assetContract = new Contract({
+    abi: erc4626Abi,
+    address: lstConfig.ASSET_ADDRESS,
+  });
 
   const lstService = new LSTService();
 
@@ -287,7 +290,10 @@ const Stake: React.FC = () => {
     }
 
     if (selectedPlatform !== "none") {
-      const lstContract = new Contract({abi: erc4626Abi, address: lstConfig.LST_ADDRESS});
+      const lstContract = new Contract({
+        abi: erc4626Abi,
+        address: lstConfig.LST_ADDRESS,
+      });
 
       const lendingAddress =
         selectedPlatform === "vesu"
@@ -302,7 +308,10 @@ const Stake: React.FC = () => {
       ]);
 
       if (selectedPlatform === "vesu") {
-        const vesuContract = new Contract({abi: vxstrkAbi, address: VESU_vXSTRK_ADDRESS});
+        const vesuContract = new Contract({
+          abi: vxstrkAbi,
+          address: VESU_vXSTRK_ADDRESS,
+        });
         const lendingCall = vesuContract.populate("deposit", [
           lstAmount,
           address,
@@ -335,14 +344,20 @@ const Stake: React.FC = () => {
         // const output = await clVault.matchInputAmounts(input);
 
         // TODO: update the address
-        const strkFarmEkuboContract = new Contract({abi: ekuboStrkfarmAbi, address: ""});
+        const strkFarmEkuboContract = new Contract({
+          abi: ekuboStrkfarmAbi,
+          address: "",
+        });
         const lendingCall = strkFarmEkuboContract.populate("deposit", [
           lstAmount,
           address,
         ]);
         calls.push(approveCall, lendingCall);
       } else {
-        const nostraContract = new Contract({abi: ixstrkAbi, address: NOSTRA_iXSTRK_ADDRESS});
+        const nostraContract = new Contract({
+          abi: ixstrkAbi,
+          address: NOSTRA_iXSTRK_ADDRESS,
+        });
         const lendingCall = nostraContract.populate("mint", [
           address,
           lstAmount,
@@ -792,7 +807,7 @@ const Stake: React.FC = () => {
             {IS_PAUSED
               ? "Paused"
               : selectedPlatform === "none"
-                ? "Stake STRK"
+                ? `Stake ${lstConfig.SYMBOL}`
                 : `Stake & Lend on ${selectedPlatform === "vesu" ? "Vesu" : "Nostra"}`}
           </Button>
         )}

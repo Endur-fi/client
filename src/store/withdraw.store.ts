@@ -4,15 +4,12 @@ import { atomWithQuery } from "jotai-tanstack-query";
 import { Contract } from "starknet";
 
 import WqAbi from "@/abi/wq.abi.json";
-import {
-  getProvider,
-  STRK_DECIMALS,
-} from "@/constants";
+import { getProvider, STRK_DECIMALS } from "@/constants";
 import apolloClient from "@/lib/apollo-client";
 import MyNumber from "@/lib/MyNumber";
 import { standariseAddress } from "@/lib/utils";
 
-import { userAddressAtom } from "./common.store";
+import { lstConfigAtom, userAddressAtom } from "./common.store";
 
 const withdrawLogsAtomWithQuery = atomWithQuery((get) => {
   return {
@@ -82,18 +79,17 @@ const globalPendingWithdrawStatsAtomWithQuery = atomWithQuery((_get) => {
   };
 });
 
-const globalAmountAvailableAtomWithQuery = atomWithQuery((_get) => {
+const globalAmountAvailableAtomWithQuery = atomWithQuery((get) => {
   return {
     queryKey: ["global-amount-available"],
     queryFn: async ({ _queryKey }: any) => {
       try {
         const provider = getProvider();
+        const lstConfig = get(lstConfigAtom)!;
 
-        // todo fix
-        const WITHDRAWAL_QUEUE_ADDRESS = '';
         const withdrawContract = new Contract({
           abi: WqAbi,
-          address: WITHDRAWAL_QUEUE_ADDRESS,
+          address: lstConfig.WITHDRAWAL_QUEUE_ADDRESS,
           providerOrAccount: provider,
         });
 
