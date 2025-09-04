@@ -20,7 +20,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { getProvider, IS_PAUSED, REWARD_FEES } from "@/constants";
+import { getProvider, IS_PAUSED, isMainnet, REWARD_FEES } from "@/constants";
 import { toast } from "@/hooks/use-toast";
 import { useTransactionHandler } from "@/hooks/use-transactions";
 import { useWalletConnection } from "@/hooks/use-wallet-connection";
@@ -263,7 +263,7 @@ const UnstakeOptionCard = ({
 };
 
 const Unstake = () => {
-  const [txnDapp, setTxnDapp] = React.useState<"endur" | "dex">("dex");
+  const [txnDapp, setTxnDapp] = React.useState<"endur" | "dex">("endur");
 
   const { account, address } = useAccount();
   const { connectWallet } = useWalletConnection();
@@ -287,7 +287,11 @@ const Unstake = () => {
 
   const provider = getProvider();
 
-  const contract = new Contract({abi: erc4626Abi, address: lstConfig.LST_ADDRESS, providerOrAccount: provider});
+  const contract = new Contract({
+    abi: erc4626Abi,
+    address: lstConfig.LST_ADDRESS,
+    providerOrAccount: provider,
+  });
 
   const { sendAsync, data, isPending, error } = useSendTransaction({});
 
@@ -485,7 +489,7 @@ const Unstake = () => {
     });
 
     const call1 = contract.populate("redeem", [
-      MyNumber.fromEther(values.unstakeAmount, 18),
+      MyNumber.fromEther(values.unstakeAmount, lstConfig.DECIMALS),
       address,
       address,
     ]);
@@ -603,18 +607,20 @@ const Unstake = () => {
             bgColor="transparent"
           />
 
-          <UnstakeOptionCard
-            isActive={txnDapp === "dex"}
-            title="Use DEX"
-            logo={
-              <Icons.avnuLogo className="size-6 rounded-full border border-[#8D9C9C20]" />
-            }
-            rate={dexRate}
-            waitingTime="Instant"
-            isLoading={avnuLoading}
-            isRecommended
-            isBestRate={getBetterRate() === "dex"}
-          />
+          {isMainnet() && (
+            <UnstakeOptionCard
+              isActive={txnDapp === "dex"}
+              title="Use DEX"
+              logo={
+                <Icons.avnuLogo className="size-6 rounded-full border border-[#8D9C9C20]" />
+              }
+              rate={dexRate}
+              waitingTime="Instant"
+              isLoading={avnuLoading}
+              isRecommended
+              isBestRate={getBetterRate() === "dex"}
+            />
+          )}
         </TabsList>
       </Tabs>
 
