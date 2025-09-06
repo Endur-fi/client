@@ -110,15 +110,15 @@ export const snAPYAtom = atom((get) => {
     !totalStakingPowerRes.value.totalStakingPowerSTRK.isZero() &&
     alphaRes.value !== 0
   ) {
-    strkApy =
-      (Number(yearlyMintRes.value.toEtherToFixedDecimals(4)) *
-        (100 - alphaRes.value)) /
-      (100 *
-        Number(
-          totalStakingPowerRes.value.totalStakingPowerSTRK.toEtherToFixedDecimals(
-            4,
-          ),
-        ));
+    const yearMinting = Number(yearlyMintRes.value.toEtherToFixedDecimals(4));
+    const alpha = alphaRes.value;
+    const strkStakingPower = Number(
+      totalStakingPowerRes.value.totalStakingPowerSTRK.toEtherToFixedDecimals(
+        4,
+      ),
+    );
+
+    strkApy = (yearMinting * (100 - alpha)) / (100 * strkStakingPower);
 
     // deduce endur fee
     strkApy *= 0.85;
@@ -137,14 +137,12 @@ export const snAPYAtom = atom((get) => {
     );
 
     // Calculate BTC APY
-    if (btcStakingPower > 0) {
-      btcApy =
-        (yearlyMinting * strkPrice * alphaRes.value) /
-        (100 * btcStakingPower * btcPrice);
+    btcApy =
+      (yearlyMinting * strkPrice * alphaRes.value) /
+      (100 * btcStakingPower * btcPrice);
 
-      // deduce endur fee
-      btcApy *= 0.85;
-    }
+    // deduce endur fee
+    btcApy *= 0.85;
   }
 
   return {

@@ -22,45 +22,90 @@ export async function GET(_req: Request) {
 
   for (const value of Object.values(LST_CONFIG)) {
     try {
-      const { data: price, error: assetPriceError } = await tryCatch(
-        getAssetPrice(value.SYMBOL.toLowerCase().includes("strk")),
+      const isBtcAsset = value.SYMBOL.toLowerCase().includes("btc");
+      const isStrkAsset = value.SYMBOL.toLowerCase().includes("strk");
+
+      // Get the asset price for TVL calculation
+      const { data: assetPrice, error: assetPriceError } = await tryCatch(
+        getAssetPrice(isStrkAsset),
       );
 
       if (assetPriceError) {
-        console.error("strkPriceError", assetPriceError);
+        console.error("assetPriceError", assetPriceError);
         return NextResponse.json({
-          message: "strkPriceError",
+          message: "assetPriceError",
           error: assetPriceError.message,
         });
       }
 
       const yearlyMinting =
         (await stakingService.getYearlyMinting()) ?? MyNumber.fromZero();
-      const totalStaked =
-        (await stakingService.getSNTotalStaked()) ?? MyNumber.fromZero();
+      const totalStakingPower =
+        (await stakingService.getTotalStakingPower()) ?? {
+          totalStakingPowerSTRK: MyNumber.fromZero(),
+          totalStakingPowerBTC: MyNumber.fromZero(),
+        };
+      const alpha = (await stakingService.getAlpha()) ?? 0;
+
+      const { data: strkPrice, error: strkPriceError } = await tryCatch(
+        getAssetPrice(true),
+      );
+      const { data: btcPrice, error: btcPriceError } = await tryCatch(
+        getAssetPrice(false),
+      );
+
+      if (strkPriceError || btcPriceError) {
+        console.error("Price errors", { strkPriceError, btcPriceError });
+      }
 
       let apy = 0;
 
-      if (Number(totalStaked.toEtherToFixedDecimals(0)) !== 0) {
-        apy =
-          Number(yearlyMinting.toEtherToFixedDecimals(4)) /
-          Number(totalStaked.toEtherToFixedDecimals(4));
-        apy *= 0.85; // deduce endur fee
+      if (isBtcAsset) {
+        if (
+          !totalStakingPower.totalStakingPowerBTC.isZero() &&
+          alpha !== 0 &&
+          strkPrice &&
+          btcPrice &&
+          strkPrice > 0 &&
+          btcPrice > 0
+        ) {
+          const yearMinting = Number(yearlyMinting.toEtherToFixedDecimals(4));
+          const btcStakingPower = Number(
+            totalStakingPower.totalStakingPowerBTC.toEtherToFixedDecimals(4),
+          );
+
+          apy =
+            (yearMinting * strkPrice * alpha) /
+            (100 * btcStakingPower * btcPrice);
+          // deduce endur fee
+          apy *= 0.85;
+        }
+      } else if (
+        !totalStakingPower.totalStakingPowerSTRK.isZero() &&
+        alpha !== 0
+      ) {
+        const yearMinting = Number(yearlyMinting.toEtherToFixedDecimals(4));
+        const strkStakingPower = Number(
+          totalStakingPower.totalStakingPowerSTRK.toEtherToFixedDecimals(4),
+        );
+
+        apy = (yearMinting * (100 - alpha)) / (100 * strkStakingPower);
+        // deduce endur fee
+        apy *= 0.85;
       }
 
-      const newApy = (1 + apy / 365) ** 365 - 1;
-      const apyInPercentage = (newApy * 100).toFixed(2);
+      const apyInPercentage = (apy * 100).toFixed(2);
 
       const balance = await lstService.getTotalStaked(
         value.LST_ADDRESS,
         value.DECIMALS,
       );
 
-      if (balance && price) {
+      if (balance && assetPrice) {
         const tvlAsset = Number(
           new MyNumber(balance.toString(), value.DECIMALS).toEtherStr(),
         );
-        const tvlUsd = price * tvlAsset;
+        const tvlUsd = assetPrice * tvlAsset;
 
         results.push({
           asset: value.SYMBOL,
@@ -68,7 +113,7 @@ export async function GET(_req: Request) {
           lstAddress: value.LST_ADDRESS,
           tvlUsd,
           tvlAsset,
-          apy: newApy,
+          apy,
           apyInPercentage: `${apyInPercentage}%`,
         });
       } else {
