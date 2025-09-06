@@ -20,23 +20,26 @@ export async function GET(_req: Request) {
 
   const yearlyMinting =
     (await stakingService.getYearlyMinting()) ?? MyNumber.fromZero();
-  const totalStaked =
-    (await stakingService.getSNTotalStaked()) ?? MyNumber.fromZero();
+  const totalStakingPower = (await stakingService.getTotalStakingPower()) ?? {
+    totalStakingPowerSTRK: MyNumber.fromZero(),
+    totalStakingPowerBTC: MyNumber.fromZero(),
+  };
+  const alpha = (await stakingService.getAlpha()) ?? 0;
 
-  let apy = 0;
+  let strkApy = 0;
 
-  if (Number(totalStaked.toEtherToFixedDecimals(0)) !== 0) {
-    apy =
-      Number(yearlyMinting.toEtherToFixedDecimals(4)) /
-      Number(totalStaked.toEtherToFixedDecimals(4));
+  if (!totalStakingPower.totalStakingPowerSTRK.isZero() && alpha !== 0) {
+    const yearMinting = Number(yearlyMinting.toEtherToFixedDecimals(4));
+    const strkStakingPower = Number(
+      totalStakingPower.totalStakingPowerSTRK.toEtherToFixedDecimals(4),
+    );
 
+    strkApy = (yearMinting * (100 - alpha)) / (100 * strkStakingPower);
     // deduce endur fee
-    apy *= 0.85;
+    strkApy *= 0.85;
   }
 
-  const newApy = (1 + apy / 365) ** 365 - 1;
-
-  const apyInPercentage = (newApy * 100).toFixed(2);
+  const apyInPercentage = (strkApy * 100).toFixed(2);
 
   const strkLSTConfig = LST_CONFIG.STRK;
 
@@ -59,7 +62,7 @@ export async function GET(_req: Request) {
       asset: "STRK",
       tvl: tvlInUsd,
       tvlStrk: tvlInStrk,
-      apy: newApy,
+      apy: strkApy,
       apyInPercentage: `${apyInPercentage}%`,
     });
     response.headers.set(

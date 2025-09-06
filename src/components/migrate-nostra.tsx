@@ -1,7 +1,6 @@
 "use client";
 
 import erc4626Abi from "@/abi/erc4626.abi.json";
-import nostraIXSTRK from "@/abi/ixstrk.abi.json";
 import {
   Dialog,
   DialogContent,
@@ -10,7 +9,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { getProvider, NOSTRA_IXSTRK, STRK_TOKEN } from "@/constants";
+import { NOSTRA_IXSTRK, STRK_TOKEN } from "@/constants";
 import { toast, useToast } from "@/hooks/use-toast";
 import { cn, formatNumberWithCommas } from "@/lib/utils";
 import { lstConfigAtom, providerAtom } from "@/store/common.store";
@@ -115,11 +114,14 @@ const MigrateNostra = () => {
     if (!rpcProvider || !lstConfig) return;
 
     // @deprecated
-    const lstContract = lstService.getLSTContract('');
+    const lstContract = lstService.getLSTContract("");
     const nstContract = lstService.getNstSTRKContract();
-    const strkContract = new Contract({abi: erc4626Abi, address: STRK_TOKEN});
-    const xSTRKContract = new Contract({abi: erc4626Abi, address: ''});
-    const ixSTRKContract = new Contract({abi: erc4626Abi, address: NOSTRA_IXSTRK});
+    const strkContract = new Contract({ abi: erc4626Abi, address: STRK_TOKEN });
+    const xSTRKContract = new Contract({ abi: erc4626Abi, address: "" });
+    const ixSTRKContract = new Contract({
+      abi: erc4626Abi,
+      address: NOSTRA_IXSTRK,
+    });
 
     const call1 = nstContract.populate("redeem", [
       uint256.bnToUint256(nstStrkBalance.toString()),

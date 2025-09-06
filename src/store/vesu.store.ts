@@ -83,13 +83,21 @@ const getVTokenHoldings = async (
   const vTokens = isV2Deployed ? [vToken, vTokenV2] : [vToken];
   const balances = Promise.all(
     vTokens.map(async (token) => {
-      const contract = new Contract({abi: erc4626Abi, address: token, providerOrAccount: getProvider()});
+      const contract = new Contract({
+        abi: erc4626Abi,
+        address: token,
+        providerOrAccount: getProvider(),
+      });
       const shares = await contract.call("balance_of", [address], {
         blockIdentifier: blockNumber ?? BlockTag.LATEST,
       });
 
       const assetsToken = isV2Deployed ? vTokenV2 : vToken;
-      const contractV2 = new Contract({abi: erc4626Abi, address: assetsToken, providerOrAccount: getProvider()});
+      const contractV2 = new Contract({
+        abi: erc4626Abi,
+        address: assetsToken,
+        providerOrAccount: getProvider(),
+      });
       const balance = await contractV2.call("convert_to_assets", [shares], {
         blockIdentifier: blockNumber ?? BlockTag.LATEST,
       });
