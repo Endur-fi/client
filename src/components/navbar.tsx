@@ -1,16 +1,11 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 
-import {
-  useAccount,
-  useDisconnect,
-  useProvider,
-  useSwitchChain,
-} from "@starknet-react/core";
+import { useAccount, useDisconnect, useProvider } from "@starknet-react/core";
 import { useAtom, useSetAtom } from "jotai";
 import { X } from "lucide-react";
 import React from "react";
-import { constants, num } from "starknet";
+import { constants } from "starknet";
 import { disconnect } from "starknetkit";
 
 import { getProvider, NETWORK } from "@/constants";

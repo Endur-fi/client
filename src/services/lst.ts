@@ -26,11 +26,19 @@ class LSTService {
     if (!lstAddress) {
       throw new Error("LST address is required");
     }
-    return new Contract({abi: ERC_4626_ABI, address: lstAddress, providerOrAccount: this.provider});
+    return new Contract({
+      abi: ERC_4626_ABI,
+      address: lstAddress,
+      providerOrAccount: this.provider,
+    });
   }
 
   getNstSTRKContract() {
-    return new Contract({abi: NOSTRA_STRK_ABI, address: NST_STRK_ADDRESS, providerOrAccount: this.provider});
+    return new Contract({
+      abi: NOSTRA_STRK_ABI,
+      address: NST_STRK_ADDRESS,
+      providerOrAccount: this.provider,
+    });
   }
 
   async getTotalSupply(

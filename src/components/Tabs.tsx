@@ -223,8 +223,9 @@ const Tabs = () => {
           </div>
 
           <p className="mt-2 text-sm text-[#8D9C9C]">
-            Convert your STRK and BTC tokens into xSTRK and xyBTCs to earn staking rewards and participate
-            in DeFi opportunities across the Starknet ecosystem.
+            Convert your STRK and BTC tokens into xSTRK and xyBTCs to earn
+            staking rewards and participate in DeFi opportunities across the
+            Starknet ecosystem.
           </p>
         </div>
 
