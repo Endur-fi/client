@@ -104,7 +104,7 @@ const Stats: React.FC<StatsProps> = ({
               {lstConfig.SYMBOL}
             </span>
             <span className="font-medium">
-              | ${formatNumber(totalStakedUSD.value)}
+              | ${formatNumber(totalStakedUSD.value.toFixed(2))}
             </span>
           </p>
         </div>
