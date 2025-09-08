@@ -45,7 +45,7 @@ export const LST_CONFIG =
           LST_ADDRESS:
             "0x042de5b868da876768213c48019b8d46cd484e66013ae3275f8a4b97b31fc7eb",
           WITHDRAWAL_QUEUE_ADDRESS:
-            "0x254cbdaf8275cb1b514ae63ccedb04a3a9996b1489829e5d6bbaf759ac100b6",
+            "0x0254cbdaf8275cb1b514ae63ccedb04a3a9996b1489829e5d6bbaf759ac100b6",
           DECIMALS: 18,
         },
         TBTC1: {
