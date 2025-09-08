@@ -24,7 +24,7 @@ export class WalletConnector {
     const hostname =
       typeof window !== "undefined" ? window.location.hostname : "";
 
-    const mobileConnector = ArgentMobileConnector.init({
+    const argentMobileConnector = ArgentMobileConnector.init({
       options: {
         dappName: "Endurfi",
         url: hostname,
@@ -105,14 +105,14 @@ export class WalletConnector {
 
     if (isMainnet) {
       if (isInArgentMobileAppBrowser()) {
-        return [mobileConnector];
+        return [argentMobileConnector];
       } else if (isInBraavosMobileAppBrowser()) {
         return [braavosMobile];
       } else if (this.isMobile) {
-        return [mobileConnector, braavosMobile, webWalletConnector];
+        return [argentMobileConnector, braavosMobile, webWalletConnector];
       }
 
-      sortedConnectors.push(mobileConnector);
+      // sortedConnectors.push(argentMobileConnector);
       sortedConnectors.push(webWalletConnector);
       return sortedConnectors;
     }
