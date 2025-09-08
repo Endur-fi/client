@@ -6,7 +6,7 @@ import React from "react";
 import MyNumber from "@/lib/MyNumber";
 import { formatNumber, formatNumberWithCommas } from "@/lib/utils";
 
-import { STRK_DECIMALS } from "@/constants";
+import { STRK_DECIMALS, LST_CONFIG } from "@/constants";
 import {
   globalAmountAvailableAtom,
   globalPendingWithdrawStatsAtom,
@@ -18,21 +18,8 @@ import {
   type WithdrawLogColumn,
 } from "./table/columns";
 import { WithdrawDataTable } from "./table/data-table";
-
-const getUniqueWithdrawals = (data: any[]) => {
-  return Object.values(
-    data.reduce((acc: Record<string, any>, item: any) => {
-      if (
-        !acc[item.request_id] ||
-        acc[item.request_id].claim_time < item.claim_time ||
-        (acc[item.request_id].claim_time === item.claim_time && item.is_claimed)
-      ) {
-        acc[item.request_id] = item;
-      }
-      return acc;
-    }, {}),
-  ).sort((a: any, b: any) => b.timestamp - a.timestamp);
-};
+import { lstConfigAtom } from "@/store/common.store";
+import { tabsAtom } from "@/store/merry.store";
 
 const WithdrawLog: React.FC = () => {
   const [withdrawals, setWithdrawals] = React.useState<WithdrawLogColumn[]>([]);
@@ -47,6 +34,7 @@ const WithdrawLog: React.FC = () => {
     globalPendingWithdrawStatsAtom,
   );
   const globalAmountAvailable = useAtomValue(globalAmountAvailableAtom);
+  const activeTab = useAtomValue(tabsAtom);
 
   const { address } = useAccount();
 
@@ -84,32 +72,59 @@ const WithdrawLog: React.FC = () => {
       ),
     });
 
-    const uniqueWithdrawals = getUniqueWithdrawals(withdrawalData);
+    // Filter withdrawals based on current tab
+    const filteredWithdrawals = withdrawalData.filter((item: any) => {
+      const lstConfig = Object.values(LST_CONFIG).find(
+        (config) =>
+          config.WITHDRAWAL_QUEUE_ADDRESS.toLowerCase() ===
+          item.queue_contract.toLowerCase(),
+      );
 
-    const maxRequestID = uniqueWithdrawals?.reduce(
-      (acc, item) =>
-        item.is_claimed
-          ? Math.max(Number(acc || 0), Number(item.request_id))
-          : acc,
+      if (activeTab === "strk") {
+        return lstConfig?.SYMBOL === "STRK";
+      } else if (activeTab === "btc") {
+        return lstConfig?.SYMBOL?.toLowerCase().includes("btc");
+      }
+      return true;
+    });
+
+    // Sort withdrawals by timestamp (newest first)
+    const sortedWithdrawals = filteredWithdrawals.sort(
+      (a: any, b: any) => b.timestamp - a.timestamp,
+    );
+
+    const maxRequestID = sortedWithdrawals?.reduce(
+      (acc: number, item: any) =>
+        item.is_claimed ? Math.max(acc, Number(item.request_id)) : acc,
       0,
     );
 
     console.log(maxRequestID, "max");
 
-    const formattedWithdrawals: WithdrawLogColumn[] = uniqueWithdrawals.map(
+    const formattedWithdrawals: WithdrawLogColumn[] = sortedWithdrawals.map(
       (item: any) => {
         const negativeDiff = Number(item.request_id) - maxRequestID;
 
         const rank = negativeDiff <= 0 ? 1 : negativeDiff;
 
+        const lstConfig: (typeof LST_CONFIG)[keyof typeof LST_CONFIG] =
+          Object.values(LST_CONFIG).find(
+            (config) =>
+              config.WITHDRAWAL_QUEUE_ADDRESS.toLowerCase() ===
+              item.queue_contract.toLowerCase(),
+          )!;
+
         return {
           queuePosition: item.request_id,
-          amount: new MyNumber(item.amount_strk, 18).toEtherToFixedDecimals(2),
+          amount: new MyNumber(
+            item.amount,
+            lstConfig?.DECIMALS || 18,
+          ).toEtherToFixedDecimals(2),
           status: (item.is_claimed ? "Success" : "Pending") as Status,
           claimTime: item.claim_time,
           txHash: item.tx_hash,
           rank,
-          asset: "STRK", // Default to STRK for real data
+          asset: lstConfig?.SYMBOL,
         };
       },
     );
@@ -117,6 +132,7 @@ const WithdrawLog: React.FC = () => {
     setWithdrawals(formattedWithdrawals);
   }, [
     address,
+    activeTab,
     globalAmountAvailable.value,
     globalPendingWithdrawStats?.value,
     withdrawalLogs.value,
@@ -131,7 +147,7 @@ const WithdrawLog: React.FC = () => {
 
   return (
     <div className="relative h-full w-full">
-      <div className="my-3 flex w-full grid-cols-3 flex-wrap items-center justify-center gap-5 px-5 lg:grid">
+      {/* <div className="my-3 flex w-full grid-cols-3 flex-wrap items-center justify-center gap-5 px-5 lg:grid">
         <div className="h-full rounded-[12px] border border-[#AACBC4]/30 bg-[#E3EFEC]/30 p-2 px-3 lg:col-span-1 lg:w-full">
           <p className="text-[10px] font-medium text-[#03624C]">
             Global Pending withdrawals
@@ -165,7 +181,7 @@ const WithdrawLog: React.FC = () => {
             {globalStats.globalAmountAvailable} STRK
           </p>
         </div>
-      </div>
+      </div> */}
 
       <WithdrawDataTable columns={withdrawLogColumn} data={withdrawals} />
     </div>
