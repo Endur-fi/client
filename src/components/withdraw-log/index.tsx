@@ -18,7 +18,6 @@ import {
   type WithdrawLogColumn,
 } from "./table/columns";
 import { WithdrawDataTable } from "./table/data-table";
-import { lstConfigAtom } from "@/store/common.store";
 import { tabsAtom } from "@/store/merry.store";
 
 const WithdrawLog: React.FC = () => {
