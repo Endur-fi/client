@@ -7,7 +7,6 @@ import WqAbi from "@/abi/wq.abi.json";
 import { getProvider, STRK_DECIMALS } from "@/constants";
 import apolloClient from "@/lib/apollo-client";
 import MyNumber from "@/lib/MyNumber";
-import { standariseAddress } from "@/lib/utils";
 
 import { lstConfigAtom, userAddressAtom } from "./common.store";
 
@@ -24,20 +23,26 @@ const withdrawLogsAtomWithQuery = atomWithQuery((get) => {
           query: gql`
             query Withdraw_queues($where: Withdraw_queueWhereInput) {
               withdraw_queues(where: $where) {
-                amount_strk
+                tx_hash
+                queue_contract
+                amount
+                amount_lst
                 request_id
-                receiver
                 is_claimed
                 claim_time
+                receiver
+                caller
+                cumulative_requested_amount_snapshot
+                is_rejected
+                is_notified
                 timestamp
-                tx_hash
               }
             }
           `,
           variables: {
             where: {
               receiver: {
-                equals: standariseAddress(address),
+                equals: address,
               },
             },
           },
@@ -122,6 +127,7 @@ const globalAmountAvailableAtomWithQuery = atomWithQuery((get) => {
 
 export const withdrawLogsAtom = atom((get) => {
   const { data, error } = get(withdrawLogsAtomWithQuery);
+  console.log("withdrawlogs", data);
 
   return {
     value: error || !data ? [] : data,

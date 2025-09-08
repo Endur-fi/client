@@ -37,7 +37,7 @@ export const withdrawLogColumn: ColumnDef<WithdrawLogColumn>[] = [
     header: () => {
       return (
         <div className="flex items-center gap-2">
-          Queue Position
+          Log ID
           <TooltipProvider delayDuration={0}>
             <Tooltip>
               <TooltipTrigger className="ml-1" tabIndex={-1} asChild>
@@ -91,6 +91,10 @@ export const withdrawLogColumn: ColumnDef<WithdrawLogColumn>[] = [
           case "WBTC":
             return <Icons.btcLogo className="h-5 w-5" />;
           case "tBTC":
+            return <Icons.btcLogo className="h-5 w-5" />;
+          case "TBTC1":
+            return <Icons.btcLogo className="h-5 w-5" />;
+          case "TBTC2":
             return <Icons.btcLogo className="h-5 w-5" />;
           case "STRK":
             return <Icons.strkLogo className="h-5 w-5" />;
