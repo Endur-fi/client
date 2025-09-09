@@ -210,7 +210,7 @@ const Tabs = () => {
           <div className="flex flex-wrap items-center gap-3 lg:mt-7">
             <div className="flex items-center gap-2">
               <Icons.strkLogo className="size-8" />
-              <h1 className="text-xl font-bold text-black">Stake STRK</h1>
+              <h1 className="text-xl font-bold text-black">Starknet Staking</h1>
             </div>
             <Link
               href="https://endur.fi/audit"
@@ -223,8 +223,9 @@ const Tabs = () => {
           </div>
 
           <p className="mt-2 text-sm text-[#8D9C9C]">
-            Convert your STRK into xSTRK to earn staking rewards and participate
-            in DeFi opportunities across the Starknet ecosystem.
+            Convert your STRK and BTC tokens into xSTRK and xyBTCs to earn
+            staking rewards and participate in DeFi opportunities across the
+            Starknet ecosystem.
           </p>
         </div>
 

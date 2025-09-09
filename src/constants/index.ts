@@ -97,7 +97,7 @@ export const SN_STAKING_ADRESS = process.env
 export const SN_MINTING_CURVE_ADRESS =
   NETWORK === "SN_MAIN"
     ? ""
-    : "0x05ab44e99d715b01c543d39dba0a22fa8e2071655b3d251ae5c418d6f418a1a9";
+    : "0x0351c67dc2d4653cbe457be59a035f80ff1e6f6939118dad1b7a94317a51a454";
 
 export const SN_STAKING_REWARD_ADDRESS =
   NETWORK === "SN_MAIN"

@@ -11,7 +11,7 @@ const stakingService = new StakingService();
 
 const snTotalStakingPowerQueryAtom = atomWithQuery((get) => {
   return {
-    queryKey: ["snTotalStakingPower", get(currentBlockAtom)],
+    queryKey: ["snTotalStakingPower", get(currentBlockAtom), get(providerAtom)],
     queryFn: () => {
       return stakingService.getTotalStakingPower();
     },
@@ -36,7 +36,7 @@ export const snTotalStakingPowerAtom = atom((get) => {
 
 const snAlphaQueryAtom = atomWithQuery((get) => {
   return {
-    queryKey: ["snAlpha", get(currentBlockAtom)],
+    queryKey: ["snAlpha", get(currentBlockAtom), get(providerAtom)],
     queryFn: () => {
       return stakingService.getAlpha();
     },
@@ -73,14 +73,14 @@ export const yearlyMintingAtom = atom((get) => {
 });
 
 // Separate atoms for prices to avoid async in main APY calculation
-const strkPriceQueryAtom = atomWithQuery(() => ({
-  queryKey: ["strkPrice"],
+const strkPriceQueryAtom = atomWithQuery((get) => ({
+  queryKey: ["strkPrice", get(currentBlockAtom), get(providerAtom)],
   queryFn: () => getAssetPrice(),
   refetchInterval: 60000,
 }));
 
-const btcPriceQueryAtom = atomWithQuery(() => ({
-  queryKey: ["btcPrice"],
+const btcPriceQueryAtom = atomWithQuery((get) => ({
+  queryKey: ["btcPrice", get(currentBlockAtom), get(providerAtom)],
   queryFn: () => getAssetPrice(false),
   refetchInterval: 60000,
 }));

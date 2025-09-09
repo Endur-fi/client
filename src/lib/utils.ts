@@ -1,6 +1,12 @@
 import { BigNumber } from "bignumber.js";
 import { clsx, type ClassValue } from "clsx";
-import { BlockIdentifier, BlockTag, Contract, num, RpcProvider } from "starknet";
+import {
+  BlockIdentifier,
+  BlockTag,
+  Contract,
+  num,
+  RpcProvider,
+} from "starknet";
 import { twMerge } from "tailwind-merge";
 
 import { BTC_ORACLE_CONTRACT, STRK_ORACLE_CONTRACT } from "@/constants";
@@ -172,7 +178,11 @@ export async function getAssetPrice(isSTRK: boolean = true): Promise<number> {
 
   const oracleContract = isSTRK ? STRK_ORACLE_CONTRACT : BTC_ORACLE_CONTRACT;
 
-  const contract = new Contract({abi: OracleAbi, address: oracleContract, providerOrAccount: provider});
+  const contract = new Contract({
+    abi: OracleAbi,
+    address: oracleContract,
+    providerOrAccount: provider,
+  });
   const data = await contract.call("get_price", []);
   return Number(data) / 10 ** 8;
 }
