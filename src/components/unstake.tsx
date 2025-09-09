@@ -138,7 +138,7 @@ const YouWillGetSection = ({
   tooltipContent: React.ReactNode;
 }) => {
   const lstConfig = useAtomValue(lstConfigAtom)!;
-
+  const isBTC = lstConfig.SYMBOL?.toLowerCase().includes("btc");
   return (
     <div className="flex items-center justify-between rounded-md text-xs font-bold text-[#03624C] lg:text-[13px]">
       <p className="flex items-center gap-1">
@@ -146,7 +146,7 @@ const YouWillGetSection = ({
         <InfoTooltip content={tooltipContent} />
       </p>
       <span className="text-xs lg:text-[13px]">
-        {amount} {lstConfig.LST_SYMBOL}
+        {Number(amount).toFixed(isBTC ? 6 : 2)} {lstConfig.LST_SYMBOL}
       </span>
     </div>
   );
@@ -276,6 +276,7 @@ const Unstake = () => {
   const currentLSTBalance = useAtomValue(userLSTBalanceAtom);
   const queueState = useAtomValue(withdrawalQueueStateAtom);
   const lstConfig = useAtomValue(lstConfigAtom)!;
+  const isBTC = lstConfig.SYMBOL?.toLowerCase().includes("btc");
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -583,7 +584,9 @@ const Unstake = () => {
             <Icons.wallet className="size-3 lg:size-5" />
             <span className="hidden md:block">Balance:</span>
             <span className="font-bold">
-              {formatNumber(currentLSTBalance.value.toEtherToFixedDecimals(2))}{" "}
+              {Number(
+                currentLSTBalance.value.toEtherToFixedDecimals(2),
+              ).toFixed(isBTC ? 6 : 2)}{" "}
               {lstConfig.LST_SYMBOL}
             </span>
           </div>

@@ -18,6 +18,8 @@ import {
   convertFutureTimestamp,
   formatNumberWithCommas,
 } from "@/lib/utils";
+import { useAtomValue } from "jotai";
+import { lstConfigAtom } from "@/store/common.store";
 
 export type Status = "Success" | "Pending";
 
@@ -61,9 +63,9 @@ export const withdrawLogColumn: ColumnDef<WithdrawLogColumn>[] = [
 
       return (
         <div className="flex flex-col items-start gap-1">
-          {status !== "Success" && (
+          {/* {status !== "Success" && (
             <span className="text-sm font-normal">Rank - {rank}</span>
-          )}
+          )} */}
           <span
             className={cn("text-xs text-[#939494]", {
               "text-sm font-normal text-black/70": status === "Success",
@@ -126,7 +128,9 @@ export const withdrawLogColumn: ColumnDef<WithdrawLogColumn>[] = [
     },
     cell: ({ row }) => {
       const amount = row.original.amount;
-      return formatNumberWithCommas(amount);
+      const lstConfig = useAtomValue(lstConfigAtom)!;
+      const isBTC = lstConfig.SYMBOL?.toLowerCase().includes("btc");
+      return formatNumberWithCommas(amount, isBTC ? 6 : 2);
     },
     sortingFn: (rowA, rowB, _columnId) => {
       return Number(rowA.original.amount) - Number(rowB.original.amount);
