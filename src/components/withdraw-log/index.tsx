@@ -18,12 +18,11 @@ import {
   type WithdrawLogColumn,
 } from "./table/columns";
 import { WithdrawDataTable } from "./table/data-table";
-import { lstConfigAtom } from "@/store/common.store";
 import { tabsAtom } from "@/store/merry.store";
 
 const WithdrawLog: React.FC = () => {
   const [withdrawals, setWithdrawals] = React.useState<WithdrawLogColumn[]>([]);
-  const [globalStats, setGlobalStats] = React.useState({
+  const [_globalStats, setGlobalStats] = React.useState({
     globalPendingAmountSTRK: "0",
     globalPendingRequests: "0",
     globalAmountAvailable: "0",
@@ -38,7 +37,7 @@ const WithdrawLog: React.FC = () => {
 
   const { address } = useAccount();
 
-  const yourPendingWithdrawalsAmount = React.useMemo(
+  const _yourPendingWithdrawalsAmount = React.useMemo(
     () =>
       withdrawals.reduce(
         (acc, item) =>
