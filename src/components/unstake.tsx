@@ -390,7 +390,8 @@ const Unstake = () => {
     const amount = Number(currentLSTBalance.value.toEtherToFixedDecimals(9));
 
     if (amount) {
-      form.setValue("unstakeAmount", ((amount * percentage) / 100).toString());
+      const calculatedAmount = (amount * percentage) / 100;
+      form.setValue("unstakeAmount", calculatedAmount.toFixed(isBTC ? 6 : 2));
       form.clearErrors("unstakeAmount");
     }
   };

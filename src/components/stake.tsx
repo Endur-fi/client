@@ -174,16 +174,17 @@ const Stake: React.FC = () => {
         return;
       }
 
-      form.setValue("stakeAmount", (Number(balance?.formatted) - 1).toString());
+      form.setValue(
+        "stakeAmount",
+        (Number(balance?.formatted) - 1).toFixed(isBTC ? 6 : 2),
+      );
       form.clearErrors("stakeAmount");
       return;
     }
 
     if (balance) {
-      form.setValue(
-        "stakeAmount",
-        ((Number(balance?.formatted) * percentage) / 100).toString(),
-      );
+      const calculatedAmount = (Number(balance?.formatted) * percentage) / 100;
+      form.setValue("stakeAmount", calculatedAmount.toFixed(isBTC ? 6 : 2));
       form.clearErrors("stakeAmount");
     }
   };

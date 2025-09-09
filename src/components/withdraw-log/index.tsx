@@ -137,6 +137,14 @@ const WithdrawLog: React.FC = () => {
     withdrawalLogs.value,
   ]);
 
+  if (!address) {
+    return (
+      <div className="relative flex h-full items-center justify-center gap-2">
+        Please connect wallet to see your withdraw log
+      </div>
+    );
+  }
+
   if (withdrawalLogs.isLoading)
     return (
       <div className="relative flex h-full items-center justify-center gap-2">
