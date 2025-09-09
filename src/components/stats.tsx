@@ -38,6 +38,7 @@ const Stats: React.FC<StatsProps> = ({
   const totalStakedUSD = useAtomValue(totalStakedUSDAtom);
   const activeTab = useAtomValue(tabsAtom);
   const lstConfig = useAtomValue(lstConfigAtom)!;
+  const isBTC = lstConfig.SYMBOL?.toLowerCase().includes("btc");
 
   const totalXSTRKAcrossDefi = useAtomValue(totalXSTRKAcrossDefiHoldingsAtom);
 
@@ -104,7 +105,7 @@ const Stats: React.FC<StatsProps> = ({
               {lstConfig.SYMBOL}
             </span>
             <span className="font-medium">
-              | ${formatNumber(totalStakedUSD.value)}
+              | ${formatNumber(totalStakedUSD.value.toFixed(2))}
             </span>
           </p>
         </div>
@@ -127,7 +128,9 @@ const Stats: React.FC<StatsProps> = ({
           <div className="flex items-center justify-between rounded-md bg-[#17876D] px-2 py-1 text-xs text-white">
             <span>
               Available stake:{" "}
-              {formatNumber(currentStaked.value.toEtherToFixedDecimals(2))}{" "}
+              {Number(currentStaked.value.toEtherToFixedDecimals(2)).toFixed(
+                isBTC ? 6 : 2,
+              )}{" "}
               {lstConfig.LST_SYMBOL}
             </span>
             <div className="ml-auto pl-2">
@@ -154,7 +157,8 @@ const Stats: React.FC<StatsProps> = ({
           <a href="/portfolio">
             <div className="mt-[10px] flex items-center justify-between rounded-md bg-white px-2 py-1 text-xs text-[#17876D]">
               <span>
-                Stake in DeFi: {formatNumber(xSTRKInDefiOnly.toFixed(2))}{" "}
+                Stake in DeFi:{" "}
+                {Number(xSTRKInDefiOnly.toFixed(2)).toFixed(isBTC ? 6 : 2)}{" "}
                 {lstConfig.LST_SYMBOL}
               </span>
               <div className="ml-auto pl-2">

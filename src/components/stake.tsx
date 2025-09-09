@@ -130,6 +130,8 @@ const Stake: React.FC = () => {
 
   const referrer = searchParams.get("referrer");
 
+  const isBTC = lstConfig.SYMBOL?.toLowerCase().includes("btc");
+
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     values: {
@@ -172,16 +174,17 @@ const Stake: React.FC = () => {
         return;
       }
 
-      form.setValue("stakeAmount", (Number(balance?.formatted) - 1).toString());
+      form.setValue(
+        "stakeAmount",
+        (Number(balance?.formatted) - 1).toFixed(isBTC ? 6 : 2),
+      );
       form.clearErrors("stakeAmount");
       return;
     }
 
     if (balance) {
-      form.setValue(
-        "stakeAmount",
-        ((Number(balance?.formatted) * percentage) / 100).toString(),
-      );
+      const calculatedAmount = (Number(balance?.formatted) * percentage) / 100;
+      form.setValue("stakeAmount", calculatedAmount.toFixed(isBTC ? 6 : 2));
       form.clearErrors("stakeAmount");
     }
   };
@@ -608,7 +611,9 @@ const Stake: React.FC = () => {
             <Icons.wallet className="size-3 lg:size-5" />
             <span className="hidden md:block">Balance:</span>
             <span className="font-bold">
-              {balance?.formatted ? Number(balance?.formatted).toFixed(2) : "0"}{" "}
+              {balance?.formatted
+                ? Number(balance?.formatted).toFixed(isBTC ? 6 : 2)
+                : "0"}{" "}
               {lstConfig.SYMBOL}
             </span>
           </div>
@@ -706,7 +711,8 @@ const Stake: React.FC = () => {
             </TooltipProvider>
           </p>
           <span className="text-xs lg:text-[13px]">
-            {getCalculatedLSTAmount()} {lstConfig.LST_SYMBOL}
+            {Number(getCalculatedLSTAmount()).toFixed(isBTC ? 6 : 2)}{" "}
+            {lstConfig.LST_SYMBOL}
           </span>
         </div>
 
