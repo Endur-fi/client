@@ -176,7 +176,7 @@ const Tabs = () => {
             Endur is currently undergoing a scheduled upgrade to support Staking
             V2.{" "}
             <Link
-              href="https://x.com/endurfi/status/1934622982250639733"
+              href="https://x.com/endurfi/status/1966140807968338110"
               target="_blank"
               className="text-blue-500 transition-all hover:underline"
             >
