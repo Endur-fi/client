@@ -1,6 +1,5 @@
 import { Analytics } from "@vercel/analytics/react";
 import type { Metadata } from "next";
-import Image from "next/image";
 import React from "react";
 
 import Providers from "@/components/providers";
@@ -70,12 +69,12 @@ export default function RootLayout({
         <Providers>
           <React.Suspense>
             <div className="relative flex h-full min-h-screen w-full overflow-x-hidden">
-              <Image
+              {/* <Image
                 src="/subtle_tree_bg.svg"
                 alt="subtle_tree_bg"
                 fill
                 className="-z-10 object-cover"
-              />
+              /> */}
 
               <AppSidebar />
 
