@@ -22,7 +22,7 @@ import { tabsAtom } from "@/store/merry.store";
 
 const WithdrawLog: React.FC = () => {
   const [withdrawals, setWithdrawals] = React.useState<WithdrawLogColumn[]>([]);
-  const [globalStats, setGlobalStats] = React.useState({
+  const [_globalStats, setGlobalStats] = React.useState({
     globalPendingAmountSTRK: "0",
     globalPendingRequests: "0",
     globalAmountAvailable: "0",
@@ -37,7 +37,7 @@ const WithdrawLog: React.FC = () => {
 
   const { address } = useAccount();
 
-  const yourPendingWithdrawalsAmount = React.useMemo(
+  const _yourPendingWithdrawalsAmount = React.useMemo(
     () =>
       withdrawals.reduce(
         (acc, item) =>
@@ -136,6 +136,14 @@ const WithdrawLog: React.FC = () => {
     globalPendingWithdrawStats?.value,
     withdrawalLogs.value,
   ]);
+
+  if (!address) {
+    return (
+      <div className="relative flex h-full items-center justify-center gap-2">
+        Please connect wallet to see your withdraw log
+      </div>
+    );
+  }
 
   if (withdrawalLogs.isLoading)
     return (

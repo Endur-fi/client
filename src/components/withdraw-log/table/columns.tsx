@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import { ColumnDef } from "@tanstack/react-table";
 import { Info } from "lucide-react";
 import Link from "next/link";
@@ -18,6 +19,15 @@ import {
   convertFutureTimestamp,
   formatNumberWithCommas,
 } from "@/lib/utils";
+import { useAtomValue } from "jotai";
+import { lstConfigAtom } from "@/store/common.store";
+
+// Custom component for amount cell that can use hooks
+const AmountCell: React.FC<{ amount: string }> = ({ amount }) => {
+  const lstConfig = useAtomValue(lstConfigAtom)!;
+  const isBTC = lstConfig.SYMBOL?.toLowerCase().includes("btc");
+  return <>{formatNumberWithCommas(amount, isBTC ? 6 : 2)}</>;
+};
 
 export type Status = "Success" | "Pending";
 
@@ -56,14 +66,13 @@ export const withdrawLogColumn: ColumnDef<WithdrawLogColumn>[] = [
     },
     cell: ({ row }) => {
       const requestId = row.original.queuePosition;
-      const rank = row.original.rank;
       const status = row.original.status;
 
       return (
         <div className="flex flex-col items-start gap-1">
-          {status !== "Success" && (
+          {/* {status !== "Success" && (
             <span className="text-sm font-normal">Rank - {rank}</span>
-          )}
+          )} */}
           <span
             className={cn("text-xs text-[#939494]", {
               "text-sm font-normal text-black/70": status === "Success",
@@ -126,7 +135,7 @@ export const withdrawLogColumn: ColumnDef<WithdrawLogColumn>[] = [
     },
     cell: ({ row }) => {
       const amount = row.original.amount;
-      return formatNumberWithCommas(amount);
+      return <AmountCell amount={amount} />;
     },
     sortingFn: (rowA, rowB, _columnId) => {
       return Number(rowA.original.amount) - Number(rowB.original.amount);
