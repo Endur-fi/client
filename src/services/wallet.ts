@@ -109,7 +109,12 @@ export class WalletConnector {
       } else if (isInBraavosMobileAppBrowser()) {
         return [braavosMobile];
       } else if (this.isMobile) {
-        return [mobileConnector, braavosMobile, webWalletConnector];
+        return [
+          mobileConnector,
+          braavosMobile,
+          webWalletConnector,
+          keplrConnector,
+        ];
       }
 
       sortedConnectors.push(mobileConnector);
