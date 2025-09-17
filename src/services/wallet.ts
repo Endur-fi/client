@@ -117,7 +117,7 @@ export class WalletConnector {
         ];
       }
 
-      sortedConnectors.push(mobileConnector);
+      // sortedConnectors.push(mobileConnector);
       sortedConnectors.push(webWalletConnector);
       return sortedConnectors;
     }
