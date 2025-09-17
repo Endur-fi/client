@@ -166,7 +166,7 @@ const _calculateWaitingTime = (queueState: any, unstakeAmount: string) => {
     } else if (totalAmount <= THRESHOLD * BigInt(2)) {
       return "1-2 days";
     }
-    return "~21 days";
+    return "~7 days";
   } catch (error) {
     console.error("Error calculating waiting time:", error);
     return "-";
@@ -298,7 +298,7 @@ const Unstake = () => {
   }, [avnuQuote]);
 
   const waitingTime = React.useMemo(() => {
-    return "~21 days";
+    return "~7 days";
   }, [queueState.value, form.watch("unstakeAmount")]);
 
   React.useEffect(() => {

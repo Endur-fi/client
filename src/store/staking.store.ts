@@ -5,6 +5,7 @@ import MyNumber from "@/lib/MyNumber";
 import StakingService from "@/services/staking";
 
 import { currentBlockAtom, providerAtom } from "./common.store";
+import { ALPHA } from "@/constants";
 
 const stakingService = new StakingService();
 
@@ -53,7 +54,7 @@ export const snAPYAtom = atom((get) => {
       Number(totalStakedRes.value.toEtherToFixedDecimals(4));
 
     // deduce endur fee
-    value *= 0.85;
+    value *= (1 - ALPHA) * 0.85;
   }
 
   const newValue = (1 + value / 365) ** 365 - 1;
