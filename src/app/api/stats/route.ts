@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { getProvider, STRK_DECIMALS } from "@/constants";
+import { ALPHA, getProvider, STRK_DECIMALS } from "@/constants";
 import MyNumber from "@/lib/MyNumber";
 import { getSTRKPrice, tryCatch } from "@/lib/utils";
 import LSTService from "@/services/lst";
@@ -31,7 +31,7 @@ export async function GET(_req: Request) {
       Number(totalStaked.toEtherToFixedDecimals(4));
 
     // deduce endur fee
-    apy *= 0.85;
+    apy *= (1 - ALPHA) * 0.85;
   }
 
   const newApy = (1 + apy / 365) ** 365 - 1;
