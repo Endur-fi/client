@@ -29,12 +29,44 @@ export const LST_CONFIG =
     ? {
         STRK: {
           SYMBOL: "STRK",
-          ASSET_ADDRESS: "",
+          ASSET_ADDRESS: "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
           LST_SYMBOL: "xSTRK",
-          LST_ADDRESS: "",
-          WITHDRAWAL_QUEUE_ADDRESS: "",
+          LST_ADDRESS: "0x028d709c875c0ceac3dce7065bec5328186dc89fe254527084d1689910954b0a",
+          WITHDRAWAL_QUEUE_ADDRESS: "0x00518a66e579f9eb1603f5ffaeff95d3f013788e9c37ee94995555026b9648b6",
           DECIMALS: 18,
         },
+        WBTC: {
+          SYMBOL: 'WBTC',
+          ASSET_ADDRESS: '0x3fe2b97c1fd336e750087d68b9b867997fd64a2661ff3ca5a7c771641e8e7ac',
+          LST_SYMBOL: 'xWBTC',
+          LST_ADDRESS: '0x6a567e68c805323525fe1649adb80b03cddf92c23d2629a6779f54192dffc13',
+          WITHDRAWAL_QUEUE_ADDRESS: '0x670cdfa77487203cdf11d58db9617988d3a8fc2b22730594ed7d193a0430f72',
+          DECIMALS: 8
+        },
+        tBTC: {
+          SYMBOL: 'tBTC',
+          ASSET_ADDRESS: '0x4daa17763b286d1e59b97c283c0b8c949994c361e426a28f743c67bdfe9a32f',
+          LST_SYMBOL: 'xtBTC',
+          LST_ADDRESS: '0x43a35c1425a0125ef8c171f1a75c6f31ef8648edcc8324b55ce1917db3f9b91',
+          WITHDRAWAL_QUEUE_ADDRESS: '0x35b194007fb5d9fd10cb1f8772ef45cced853e7b3239367de0e19ecba85d75a',
+          DECIMALS: 18
+        },
+        LBTC: {
+          SYMBOL: 'LBTC',
+          ASSET_ADDRESS: '0x036834a40984312f7f7de8d31e3f6305b325389eaeea5b1c0664b2fb936461a4',
+          LST_SYMBOL: 'xLBTC',
+          LST_ADDRESS: '0x7dd3c80de9fcc5545f0cb83678826819c79619ed7992cc06ff81fc67cd2efe0',
+          WITHDRAWAL_QUEUE_ADDRESS: '0x293caaca81259f02f17bd85de5056624626fc7cb25ff79f104c3ef07a4649ec',
+          DECIMALS: 8
+        },
+        solvBTC: {
+          SYMBOL: 'solvBTC',
+          ASSET_ADDRESS: '0x0593e034dda23eea82d2ba9a30960ed42cf4a01502cc2351dc9b9881f9931a68',
+          LST_SYMBOL: 'xsBTC',
+          LST_ADDRESS: '0x580f3dc564a7b82f21d40d404b3842d490ae7205e6ac07b1b7af2b4a5183dc9',
+          WITHDRAWAL_QUEUE_ADDRESS: '0x45f4f8affbfa6ef794f3b5eee7855bd19321745c5b442ad935cad4ae6a61006',
+          DECIMALS: 18
+        }
       }
     : {
         STRK: {
@@ -96,12 +128,12 @@ export const SN_STAKING_ADRESS = process.env
 
 export const SN_MINTING_CURVE_ADRESS =
   NETWORK === "SN_MAIN"
-    ? ""
+    ? "0x00ca1705e74233131dbcdee7f1b8d2926bf262168c7df339004b3f46015b6984"
     : "0x0351c67dc2d4653cbe457be59a035f80ff1e6f6939118dad1b7a94317a51a454";
 
 export const SN_STAKING_REWARD_ADDRESS =
   NETWORK === "SN_MAIN"
-    ? ""
+    ? "0x009035556d1ee136e7722ae4e78f92828553a45eed3bc9b2aba90788ec2ca112"
     : "0x02ebbebb8ceb2e07f30a5088f5849afd4f908f04f3f9c97c694e5d83d2a7cc61";
 
 export const NST_STRK_ADDRESS = process.env

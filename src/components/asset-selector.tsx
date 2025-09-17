@@ -10,6 +10,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ChevronDown } from "lucide-react";
+// import wbtcSVG from '@public/wbtc.svg';
 
 interface AssetSelectorProps {
   selectedAsset: string;
@@ -30,6 +31,10 @@ export const ASSET_ICONS: Record<string, React.FC<any>> = {
   STRK: Icons.strkLogo,
   TBTC1: Icons.btcLogo,
   TBTC2: Icons.btcLogo,
+  WBTC: Icons.btcLogo,
+  tBTC: Icons.btcLogo,
+  LBTC: Icons.btcLogo,
+  solvBTC: Icons.btcLogo,
 };
 
 const AssetSelector: React.FC<AssetSelectorProps> = ({

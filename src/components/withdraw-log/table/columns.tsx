@@ -102,6 +102,8 @@ export const withdrawLogColumn: ColumnDef<WithdrawLogColumn>[] = [
             return <Icons.btcLogo className="h-5 w-5" />;
           case "tBTC":
             return <Icons.btcLogo className="h-5 w-5" />;
+          case "solvBTC":
+            return <Icons.btcLogo className="h-5 w-5" />;
           case "TBTC1":
             return <Icons.btcLogo className="h-5 w-5" />;
           case "TBTC2":
