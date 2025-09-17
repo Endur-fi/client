@@ -110,10 +110,10 @@ export class WalletConnector {
         return [braavosMobile];
       } else if (this.isMobile) {
         return [
-          mobileConnector,
+          // mobileConnector,
           braavosMobile,
           webWalletConnector,
-          keplrConnector,
+          // keplrConnector,
         ];
       }
 
