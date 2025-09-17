@@ -66,6 +66,7 @@ export const withdrawLogColumn: ColumnDef<WithdrawLogColumn>[] = [
     },
     cell: ({ row }) => {
       const requestId = row.original.queuePosition;
+      const rank = row.original.rank;
       const status = row.original.status;
 
       return (
@@ -188,7 +189,7 @@ export const withdrawLogColumn: ColumnDef<WithdrawLogColumn>[] = [
                     side="bottom"
                     className="max-w-[13rem] rounded-md border border-[#03624C] bg-white text-[#03624C]"
                   >
-                    You can claim your within{" "}
+                    You can claim within{" "}
                     {convertFutureTimestamp(row.original.claimTime as any)}
                   </TooltipContent>
                 </Tooltip>
