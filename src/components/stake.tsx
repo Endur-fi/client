@@ -45,10 +45,8 @@ import {
 import {
   getEndpoint,
   IS_PAUSED,
-  LST_ADDRRESS,
   NOSTRA_iXSTRK_ADDRESS,
   REWARD_FEES,
-  STRK_TOKEN,
   VESU_vXSTRK_ADDRESS,
 } from "@/constants";
 import { toast } from "@/hooks/use-toast";
@@ -58,7 +56,7 @@ import { MyAnalytics } from "@/lib/analytics";
 import MyNumber from "@/lib/MyNumber";
 import { cn, eventNames, formatNumberWithCommas } from "@/lib/utils";
 import LSTService from "@/services/lst";
-import { providerAtom } from "@/store/common.store";
+import { lstConfigAtom } from "@/store/common.store";
 import { protocolYieldsAtom } from "@/store/defi.store";
 import { exchangeRateAtom } from "@/store/lst.store";
 import { snAPYAtom } from "@/store/staking.store";
@@ -120,17 +118,19 @@ const Stake: React.FC = () => {
 
   const { address } = useAccount();
   const { connectWallet } = useWalletConnection();
+  const lstConfig = useAtomValue(lstConfigAtom)!;
   const { data: balance } = useBalance({
     address,
-    token: STRK_TOKEN,
+    token: lstConfig.ASSET_ADDRESS as `0x${string}`,
   });
 
   const exchangeRate = useAtomValue(exchangeRateAtom);
   const apy = useAtomValue(snAPYAtom);
   const yields = useAtomValue(protocolYieldsAtom);
-  const rpcProvider = useAtomValue(providerAtom);
 
   const referrer = searchParams.get("referrer");
+
+  const isBTC = lstConfig.SYMBOL?.toLowerCase().includes("btc");
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -140,11 +140,16 @@ const Stake: React.FC = () => {
     mode: "onChange",
   });
 
-  const contractSTRK = new Contract({ abi: erc4626Abi, address: STRK_TOKEN });
+  const assetContract = new Contract({
+    abi: erc4626Abi,
+    address: lstConfig.ASSET_ADDRESS,
+  });
 
   const lstService = new LSTService();
 
-  const contract = rpcProvider ? lstService.getLSTContract(rpcProvider) : null;
+  const contract = lstConfig.LST_ADDRESS
+    ? lstService.getLSTContract(lstConfig.LST_ADDRESS)
+    : null;
 
   const { sendAsync, data, isPending, error } = useSendTransaction({});
 
@@ -169,33 +174,37 @@ const Stake: React.FC = () => {
         return;
       }
 
-      form.setValue("stakeAmount", (Number(balance?.formatted) - 1).toString());
+      form.setValue(
+        "stakeAmount",
+        (Number(balance?.formatted) - 1).toFixed(isBTC ? 6 : 2),
+      );
       form.clearErrors("stakeAmount");
       return;
     }
 
     if (balance) {
-      form.setValue(
-        "stakeAmount",
-        ((Number(balance?.formatted) * percentage) / 100).toString(),
-      );
+      const calculatedAmount = (Number(balance?.formatted) * percentage) / 100;
+      form.setValue("stakeAmount", calculatedAmount.toFixed(isBTC ? 6 : 2));
       form.clearErrors("stakeAmount");
     }
   };
 
-  const getCalculatedXSTRK = () => {
+  const getCalculatedLSTAmount = () => {
     const amount = form.watch("stakeAmount");
     if (!amount || isNaN(Number(amount)) || Number(amount) <= 0) return "0";
 
     try {
       return formatNumberWithCommas(
-        MyNumber.fromEther(amount, 18)
-          .operate("multipliedBy", MyNumber.fromEther("1", 18).toString())
+        MyNumber.fromEther(amount, lstConfig.DECIMALS)
+          .operate(
+            "multipliedBy",
+            MyNumber.fromEther("1", lstConfig.DECIMALS).toString(),
+          )
           .operate("div", exchangeRate.preciseRate.toString())
           .toEtherStr(),
       );
     } catch (error) {
-      console.error("Error in getCalculatedXSTRK", error);
+      console.error("Error in getCalculatedLSTAmount", error);
       return "0";
     }
   };
@@ -239,25 +248,44 @@ const Stake: React.FC = () => {
         ),
       });
     }
+
+    if (!lstConfig) {
+      return toast({
+        description: (
+          <div className="flex items-center gap-2">
+            <Info className="size-5" />
+            LST is not available
+          </div>
+        ),
+      });
+    }
     // track stake button click
     MyAnalytics.track(eventNames.STAKE_CLICK, {
       address,
       amount: Number(values.stakeAmount),
     });
 
-    const strkAmount = MyNumber.fromEther(values.stakeAmount, 18);
-    const previewCall = await contract?.preview_deposit(strkAmount.toString());
-    const xstrkAmount = previewCall?.toString() || "0";
+    const underlyingTokenAmount = MyNumber.fromEther(
+      values.stakeAmount,
+      lstConfig.DECIMALS,
+    );
+    const previewCall = await contract?.preview_deposit(
+      underlyingTokenAmount.toString(),
+    );
+    const lstAmount = previewCall?.toString() || "0";
 
-    const call1 = contractSTRK.populate("approve", [LST_ADDRRESS, strkAmount]);
+    const call1 = assetContract.populate("approve", [
+      lstConfig.LST_ADDRESS,
+      underlyingTokenAmount,
+    ]);
 
     const call2 = referrer
       ? contract?.populate("deposit_with_referral", [
-          strkAmount,
+          underlyingTokenAmount,
           address,
           referrer,
         ])
-      : contract?.populate("deposit", [strkAmount, address]);
+      : contract?.populate("deposit", [underlyingTokenAmount, address]);
 
     const calls: Call[] = [call1];
     if (call2) {
@@ -267,7 +295,7 @@ const Stake: React.FC = () => {
     if (selectedPlatform !== "none") {
       const lstContract = new Contract({
         abi: erc4626Abi,
-        address: LST_ADDRRESS,
+        address: lstConfig.LST_ADDRESS,
       });
 
       const lendingAddress =
@@ -279,7 +307,7 @@ const Stake: React.FC = () => {
 
       const approveCall = lstContract.populate("approve", [
         lendingAddress,
-        xstrkAmount,
+        lstAmount,
       ]);
 
       if (selectedPlatform === "vesu") {
@@ -288,7 +316,7 @@ const Stake: React.FC = () => {
           address: VESU_vXSTRK_ADDRESS,
         });
         const lendingCall = vesuContract.populate("deposit", [
-          xstrkAmount,
+          lstAmount,
           address,
         ]);
         calls.push(approveCall, lendingCall);
@@ -324,7 +352,7 @@ const Stake: React.FC = () => {
           address: "",
         });
         const lendingCall = strkFarmEkuboContract.populate("deposit", [
-          xstrkAmount,
+          lstAmount,
           address,
         ]);
         calls.push(approveCall, lendingCall);
@@ -335,7 +363,7 @@ const Stake: React.FC = () => {
         });
         const lendingCall = nostraContract.populate("mint", [
           address,
-          xstrkAmount,
+          lstAmount,
         ]);
         calls.push(approveCall, lendingCall);
       }
@@ -403,7 +431,7 @@ const Stake: React.FC = () => {
   const PlatformList: React.FC<{
     sortedPlatforms: string[];
     yields: any;
-    apy: { value: number };
+    apy: number;
     selectedPlatform: Platform;
     setSelectedPlatform: (platform: Platform) => void;
   }> = ({
@@ -430,7 +458,7 @@ const Stake: React.FC = () => {
               name={config.name}
               icon={config.icon}
               apy={yieldData?.value ?? 0}
-              baseApy={apy.value}
+              baseApy={apy}
               xstrkLent={yieldData?.totalSupplied ?? 0}
               isSelected={selectedPlatform === platform}
               onClick={() =>
@@ -484,7 +512,7 @@ const Stake: React.FC = () => {
           <div className="mt-2 flex items-center justify-center">
             <TwitterShareButton
               url={getEndpoint()}
-              title={`Just staked my STRK on Endur.fi, earning ${(apy.value * 100 + (selectedPlatform !== "none" ? getPlatformYield(selectedPlatform) : 0)).toFixed(2)}% APY! 🚀 \n\n${selectedPlatform !== "none" ? `My xSTRK is now earning an additional ${getPlatformYield(selectedPlatform).toFixed(2)}% yield on ${selectedPlatform === "vesu" ? "Vesu" : "Nostra"}! 📈\n\n` : ""}Laying the foundation for decentralising Starknet — be part of the journey at @endurfi!\n\n`}
+              title={`Just staked my STRK on Endur.fi, earning ${(apy.value.strkApy * 100 + (selectedPlatform !== "none" ? getPlatformYield(selectedPlatform) : 0)).toFixed(2)}% APY! 🚀 \n\n${selectedPlatform !== "none" ? `My xSTRK is now earning an additional ${getPlatformYield(selectedPlatform).toFixed(2)}% yield on ${selectedPlatform === "vesu" ? "Vesu" : "Nostra"}! 📈\n\n` : ""}Laying the foundation for decentralising Starknet — be part of the journey at @endurfi!\n\n`}
               related={["endurfi", "troves", "karnotxyz"]}
               style={{
                 display: "flex",
@@ -513,7 +541,9 @@ const Stake: React.FC = () => {
         <div className="flex flex-1 flex-col items-start">
           <Form {...form}>
             <div className="flex items-center gap-2">
-              <p className="text-xs text-[#06302B]">Enter Amount (STRK)</p>
+              <p className="text-xs text-[#06302B]">
+                Enter Amount ({lstConfig.SYMBOL})
+              </p>
               {form.formState.errors.stakeAmount && (
                 <p className="text-xs text-destructive">
                   {form.formState.errors.stakeAmount.message}
@@ -581,8 +611,10 @@ const Stake: React.FC = () => {
             <Icons.wallet className="size-3 lg:size-5" />
             <span className="hidden md:block">Balance:</span>
             <span className="font-bold">
-              {balance?.formatted ? Number(balance?.formatted).toFixed(2) : "0"}{" "}
-              STRK
+              {balance?.formatted
+                ? Number(balance?.formatted).toFixed(isBTC ? 6 : 2)
+                : "0"}{" "}
+              {lstConfig.SYMBOL}
             </span>
           </div>
         </div>
@@ -632,7 +664,7 @@ const Stake: React.FC = () => {
               <PlatformList
                 sortedPlatforms={sortedPlatforms}
                 yields={yields}
-                apy={apy}
+                apy={apy.value.strkApy}
                 selectedPlatform={selectedPlatform}
                 setSelectedPlatform={setSelectedPlatform}
               />
@@ -658,8 +690,9 @@ const Stake: React.FC = () => {
                 >
                   {selectedPlatform === "none" ? (
                     <>
-                      <strong>xSTRK</strong> is the liquid staking token (LST)
-                      of Endur, representing your staked STRK.{" "}
+                      <strong>{lstConfig.LST_SYMBOL}</strong> is the liquid
+                      staking token (LST) of Endur, representing your staked
+                      {lstConfig.SYMBOL}.{" "}
                     </>
                   ) : (
                     <>
@@ -678,7 +711,8 @@ const Stake: React.FC = () => {
             </TooltipProvider>
           </p>
           <span className="text-xs lg:text-[13px]">
-            {getCalculatedXSTRK()} xSTRK
+            {Number(getCalculatedLSTAmount()).toFixed(isBTC ? 6 : 2)}{" "}
+            {lstConfig.LST_SYMBOL}
           </span>
         </div>
 
@@ -694,10 +728,11 @@ const Stake: React.FC = () => {
                   side="right"
                   className="max-w-64 rounded-md border border-[#03624C] bg-white text-[#03624C]"
                 >
-                  <strong>xSTRK</strong> is a yield bearing token whose value
-                  will appreciate against STRK as you get more STRK rewards. The
-                  increase in exchange rate of xSTRK will determine your share
-                  of rewards.{" "}
+                  <strong>{lstConfig.LST_SYMBOL}</strong> is a yield bearing
+                  token whose value will appreciate against {lstConfig.SYMBOL}{" "}
+                  as you get more
+                  {lstConfig.SYMBOL} rewards. The increase in exchange rate of{" "}
+                  {lstConfig.LST_SYMBOL} will determine your share of rewards.{" "}
                   <Link
                     target="_blank"
                     href="https://docs.endur.fi/docs"
@@ -709,7 +744,10 @@ const Stake: React.FC = () => {
               </Tooltip>
             </TooltipProvider>
           </p>
-          <span>1 xSTRK = {exchangeRate.rate.toFixed(4)} STRK</span>
+          <span>
+            1 {lstConfig.LST_SYMBOL} = {exchangeRate.rate.toFixed(4)}{" "}
+            {lstConfig.SYMBOL}
+          </span>
         </div>
 
         <div className="flex items-center justify-between rounded-md text-xs font-medium text-[#939494] lg:text-[13px]">
@@ -775,7 +813,7 @@ const Stake: React.FC = () => {
             {IS_PAUSED
               ? "Paused"
               : selectedPlatform === "none"
-                ? "Stake STRK"
+                ? `Stake ${lstConfig.SYMBOL}`
                 : `Stake & Lend on ${selectedPlatform === "vesu" ? "Vesu" : "Nostra"}`}
           </Button>
         )}

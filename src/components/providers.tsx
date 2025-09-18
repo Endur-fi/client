@@ -24,7 +24,8 @@ interface ProvidersProps {
   children: React.ReactNode;
 }
 
-const chains = [mainnet, sepolia];
+const chains =
+  NETWORK === constants.NetworkName.SN_MAIN ? [mainnet] : [sepolia];
 
 const provider = jsonRpcProvider({
   rpc: () => {

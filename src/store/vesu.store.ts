@@ -6,6 +6,7 @@ import erc4626Abi from "@/abi/erc4626.abi.json";
 import vesuSingletonAbi from "@/abi/vesu.singleton.abi.json";
 import {
   ETH_TOKEN,
+  getProvider,
   RUSDC,
   STRK_DECIMALS,
   STRK_TOKEN,
@@ -56,7 +57,6 @@ const VESU_SINGLETON_ADDRESS_V2_DEPLOYMENT_BLOCK = 1440481;
 
 const getVTokenHoldings = async (
   address: string,
-  provider: any,
   blockNumber: BlockIdentifier,
   vToken: string,
   vTokenDeploymentBlock: number,
@@ -75,8 +75,8 @@ const getVTokenHoldings = async (
   );
   if (!isV1Deployed && !isV2Deployed) {
     return {
-      xSTRKAmount: MyNumber.fromZero(STRK_DECIMALS),
-      STRKAmount: MyNumber.fromZero(STRK_DECIMALS),
+      lstAmount: MyNumber.fromZero(STRK_DECIMALS),
+      underlyingTokenAmount: MyNumber.fromZero(STRK_DECIMALS),
     };
   }
 
@@ -86,7 +86,7 @@ const getVTokenHoldings = async (
       const contract = new Contract({
         abi: erc4626Abi,
         address: token,
-        providerOrAccount: provider,
+        providerOrAccount: getProvider(),
       });
       const shares = await contract.call("balance_of", [address], {
         blockIdentifier: blockNumber ?? BlockTag.LATEST,
@@ -96,7 +96,7 @@ const getVTokenHoldings = async (
       const contractV2 = new Contract({
         abi: erc4626Abi,
         address: assetsToken,
-        providerOrAccount: provider,
+        providerOrAccount: getProvider(),
       });
       const balance = await contractV2.call("convert_to_assets", [shares], {
         blockIdentifier: blockNumber ?? BlockTag.LATEST,
@@ -112,20 +112,21 @@ const getVTokenHoldings = async (
     balance = balance.operate("plus", bal);
   });
   return {
-    xSTRKAmount: balance,
-    STRKAmount: MyNumber.fromZero(STRK_DECIMALS),
+    lstAmount: balance,
+    underlyingTokenAmount: MyNumber.fromZero(STRK_DECIMALS),
   };
 };
 
-export const getVesuHoldings: DAppHoldingsFn = async (
-  address: string,
-  provider: any,
-  blockNumber?: BlockIdentifier,
-) => {
+export const getVesuHoldings: DAppHoldingsFn = async ({
+  address,
+  blockNumber,
+}: {
+  address: string;
+  blockNumber?: BlockIdentifier;
+}) => {
   const proms = [
     getVTokenHoldings(
       address,
-      provider,
       blockNumber ?? BlockTag.LATEST,
       VESU_XSTRK_ADDRESS,
       VESU_XSTRK_ADDRESS_DEPLOYMENT_BLOCK,
@@ -135,7 +136,6 @@ export const getVesuHoldings: DAppHoldingsFn = async (
     ),
     getVTokenHoldings(
       address,
-      provider,
       blockNumber ?? BlockTag.LATEST,
       VESU_ALTERSCOPR_XSTRK_ADDRESS,
       VESU_ALTERSCOPR_XSTRK_ADDRESS_DEPLOYMENT_BLOCK,
@@ -145,7 +145,6 @@ export const getVesuHoldings: DAppHoldingsFn = async (
     ),
     getVTokenHoldings(
       address,
-      provider,
       blockNumber ?? BlockTag.LATEST,
       VESU_RE7_rUSDC_XSTRK_ADDRESS,
       VESU_RE7_rUSDC_XSTRK_ADDRESS_DEPLOYMENT_BLOCK,
@@ -156,16 +155,16 @@ export const getVesuHoldings: DAppHoldingsFn = async (
   ];
   const res = await Promise.all(proms);
   const balance = res.reduce(
-    (acc, cur) => acc.operate("plus", cur.xSTRKAmount.toString()),
+    (acc, cur) => acc.operate("plus", cur.lstAmount.toString()),
     new MyNumber("0", STRK_DECIMALS),
   );
   const balance2 = res.reduce(
-    (acc, cur) => acc.operate("plus", cur.STRKAmount.toString()),
+    (acc, cur) => acc.operate("plus", cur.underlyingTokenAmount.toString()),
     MyNumber.fromZero(STRK_DECIMALS),
   );
   return {
-    xSTRKAmount: balance,
-    STRKAmount: balance2,
+    lstAmount: balance,
+    underlyingTokenAmount: balance2,
   };
 };
 
@@ -182,15 +181,13 @@ export const uservXSTRKBalanceAtom: DAppHoldingsAtom = atomFamily(
         userVesuxSTRKCollateralAtom(blockNumber),
       );
 
-      const xSTRKAmount1 =
-        data?.xSTRKAmount ?? new MyNumber("0", STRK_DECIMALS);
-      const xSTRKAmount2 =
-        data2?.xSTRKAmount ?? new MyNumber("0", STRK_DECIMALS);
+      const lstAmount1 = data?.lstAmount ?? new MyNumber("0", STRK_DECIMALS);
+      const lstAmount2 = data2?.lstAmount ?? new MyNumber("0", STRK_DECIMALS);
 
       return {
         data: {
-          xSTRKAmount: xSTRKAmount1.operate("plus", xSTRKAmount2.toString()),
-          STRKAmount: MyNumber.fromZero(STRK_DECIMALS),
+          lstAmount: lstAmount1.operate("plus", lstAmount2.toString()),
+          underlyingTokenAmount: MyNumber.fromZero(STRK_DECIMALS),
         },
         error,
         isLoading: !data && !error,
@@ -200,7 +197,6 @@ export const uservXSTRKBalanceAtom: DAppHoldingsAtom = atomFamily(
 
 export const getVesuxSTRKCollateral = async (
   address: string,
-  provider: any,
   poolId: string,
   debtToken: string,
   poolDeploymentBlock: number,
@@ -224,8 +220,8 @@ export const getVesuxSTRKCollateral = async (
 
   if ((!isSingletonDeployed && !isV2SingletonDeployed) || !isPoolDeployed) {
     return {
-      xSTRKAmount: MyNumber.fromZero(STRK_DECIMALS),
-      STRKAmount: MyNumber.fromZero(STRK_DECIMALS),
+      lstAmount: MyNumber.fromZero(STRK_DECIMALS),
+      underlyingTokenAmount: MyNumber.fromZero(STRK_DECIMALS),
     };
   }
 
@@ -236,7 +232,7 @@ export const getVesuxSTRKCollateral = async (
     const contract = new Contract({
       abi: vesuSingletonAbi,
       address: singletonAddress,
-      providerOrAccount: provider,
+      providerOrAccount: getProvider(),
     });
     const currentPosition: any = await contract.call(
       "position_unsafe",
@@ -253,8 +249,8 @@ export const getVesuxSTRKCollateral = async (
     // });
 
     return {
-      xSTRKAmount: new MyNumber(currentPosition[1].toString(), STRK_DECIMALS),
-      STRKAmount: MyNumber.fromZero(STRK_DECIMALS),
+      lstAmount: new MyNumber(currentPosition[1].toString(), STRK_DECIMALS),
+      underlyingTokenAmount: MyNumber.fromZero(STRK_DECIMALS),
     };
   } catch (error: any) {
     if (error.message.includes("unknown-pool")) {
@@ -263,8 +259,8 @@ export const getVesuxSTRKCollateral = async (
       console.error("getVesuxSTRKCollateral", error);
     }
     return {
-      xSTRKAmount: MyNumber.fromZero(STRK_DECIMALS),
-      STRKAmount: MyNumber.fromZero(STRK_DECIMALS),
+      lstAmount: MyNumber.fromZero(STRK_DECIMALS),
+      underlyingTokenAmount: MyNumber.fromZero(STRK_DECIMALS),
     };
   }
 };
@@ -283,15 +279,16 @@ const RE7_rUSDC_DEPLOYMENT_BLOCK = 1240391;
 export const RE7_XSTRK_POOL_DEBT_STRK = STRK_TOKEN;
 
 export const getVesuxSTRKCollateralWrapper = (): DAppHoldingsFn => {
-  return async (
-    address: string,
-    provider: any,
-    blockNumber?: BlockIdentifier,
-  ) => {
+  return async ({
+    address,
+    blockNumber,
+  }: {
+    address: string;
+    blockNumber?: BlockIdentifier;
+  }) => {
     // Re7 pool
     const output1 = getVesuxSTRKCollateral(
       address,
-      provider,
       RE7_XSTRK_POOL_ID,
       RE7_XSTRK_POOL_DEBT_STRK,
       RE7_XSTRK_DEPLOYMENT_BLOCK,
@@ -301,7 +298,6 @@ export const getVesuxSTRKCollateralWrapper = (): DAppHoldingsFn => {
     // Re7 rUSDC
     const output2 = getVesuxSTRKCollateral(
       address,
-      provider,
       RE7_XSTRK_POOL_ID,
       RUSDC,
       RE7_rUSDC_DEPLOYMENT_BLOCK,
@@ -311,7 +307,6 @@ export const getVesuxSTRKCollateralWrapper = (): DAppHoldingsFn => {
     // Alterscope
     const alterScopeBTC = getVesuxSTRKCollateral(
       address,
-      provider,
       ALTERSCOPE_XSTRK_POOL_ID,
       WBTC_TOKEN,
       ALTERSCOPE_XSTRK_POOL_ID_DEPLOYMENT_BLOCK,
@@ -319,7 +314,6 @@ export const getVesuxSTRKCollateralWrapper = (): DAppHoldingsFn => {
     );
     const alterScopeETH = getVesuxSTRKCollateral(
       address,
-      provider,
       ALTERSCOPE_XSTRK_POOL_ID,
       ETH_TOKEN,
       ALTERSCOPE_XSTRK_POOL_ID_DEPLOYMENT_BLOCK,
@@ -327,7 +321,6 @@ export const getVesuxSTRKCollateralWrapper = (): DAppHoldingsFn => {
     );
     const alterScopeUSDC = getVesuxSTRKCollateral(
       address,
-      provider,
       ALTERSCOPE_XSTRK_POOL_ID,
       USDC_TOKEN,
       ALTERSCOPE_XSTRK_POOL_ID_DEPLOYMENT_BLOCK,
@@ -335,7 +328,6 @@ export const getVesuxSTRKCollateralWrapper = (): DAppHoldingsFn => {
     );
     const alterScopeUSDT = getVesuxSTRKCollateral(
       address,
-      provider,
       ALTERSCOPE_XSTRK_POOL_ID,
       USDT_TOKEN,
       ALTERSCOPE_XSTRK_POOL_ID_DEPLOYMENT_BLOCK,
@@ -343,7 +335,6 @@ export const getVesuxSTRKCollateralWrapper = (): DAppHoldingsFn => {
     );
     const alterScopeSTRK = getVesuxSTRKCollateral(
       address,
-      provider,
       ALTERSCOPE_XSTRK_POOL_ID,
       STRK_TOKEN,
       ALTERSCOPE_XSTRK_POOL_ID_DEPLOYMENT_BLOCK,
@@ -361,13 +352,13 @@ export const getVesuxSTRKCollateralWrapper = (): DAppHoldingsFn => {
       alterScopeSTRK,
     ]);
     const sumXSTRKAmount = result.reduce(
-      (acc, cur) => acc.operate("plus", cur.xSTRKAmount.toString()),
+      (acc, cur) => acc.operate("plus", cur.lstAmount.toString()),
       new MyNumber("0", STRK_DECIMALS),
     );
     const sumSTRKAmount = MyNumber.fromZero(STRK_DECIMALS);
     return {
-      xSTRKAmount: sumXSTRKAmount,
-      STRKAmount: sumSTRKAmount,
+      lstAmount: sumXSTRKAmount,
+      underlyingTokenAmount: sumSTRKAmount,
     };
   };
 };
