@@ -66,6 +66,7 @@ import { PlatformCard } from "./platform-card";
 import Stats from "./stats";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
+import { ASSET_ICONS } from "./asset-selector";
 
 const font = Figtree({ subsets: ["latin-ext"] });
 
@@ -512,7 +513,7 @@ const Stake: React.FC = () => {
           <div className="mt-2 flex items-center justify-center">
             <TwitterShareButton
               url={getEndpoint()}
-              title={`Just staked my STRK on Endur.fi, earning ${(apy.value.strkApy * 100 + (selectedPlatform !== "none" ? getPlatformYield(selectedPlatform) : 0)).toFixed(2)}% APY! 🚀 \n\n${selectedPlatform !== "none" ? `My xSTRK is now earning an additional ${getPlatformYield(selectedPlatform).toFixed(2)}% yield on ${selectedPlatform === "vesu" ? "Vesu" : "Nostra"}! 📈\n\n` : ""}Laying the foundation for decentralising Starknet — be part of the journey at @endurfi!\n\n`}
+              title={`Just staked my ${lstConfig.SYMBOL} on Endur.fi, earning ${(apy.value.strkApy * 100 + (selectedPlatform !== "none" ? getPlatformYield(selectedPlatform) : 0)).toFixed(2)}% APY! 🚀 \n\n${selectedPlatform !== "none" ? `My ${lstConfig.LST_SYMBOL} is now earning an additional ${getPlatformYield(selectedPlatform).toFixed(2)}% yield on ${selectedPlatform === "vesu" ? "Vesu" : "Nostra"}! 📈\n\n` : ""}${lstConfig.SYMBOL !== "STRK" ? `Building the future of Bitcoin staking on Starknet` : `Laying the foundation for decentralising Starknet`} — be part of the journey at @endurfi!\n\n`}
               related={["endurfi", "troves", "karnotxyz"]}
               style={{
                 display: "flex",
@@ -541,6 +542,10 @@ const Stake: React.FC = () => {
         <div className="flex flex-1 flex-col items-start">
           <Form {...form}>
             <div className="flex items-center gap-2">
+              {ASSET_ICONS[lstConfig.SYMBOL] &&
+                React.createElement(ASSET_ICONS[lstConfig.SYMBOL], {
+                  className: "size-4",
+                })}
               <p className="text-xs text-[#06302B]">
                 Enter Amount ({lstConfig.SYMBOL})
               </p>

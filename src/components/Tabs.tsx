@@ -224,13 +224,16 @@ const Tabs = () => {
           </div>
 
           <p className="mt-2 text-sm text-[#8D9C9C]">
-            Convert your STRK and BTC tokens into <MyDottedTooltip tooltip="Liquid staking token (LST) of STRK issued by Endur">
-              xSTRK 
-            </MyDottedTooltip> and <MyDottedTooltip tooltip="xyBTC refers to Endur's family of Bitcoin Liquid Staking Tokens (LSTs), where 'x' is Endur's prefix and 'y' represents different Bitcoin variants. Examples include xWBTC, xtBTC, xLBTC, and xsBTC.">
+            Convert your STRK and BTC tokens into{" "}
+            <MyDottedTooltip tooltip="Liquid staking token (LST) of STRK issued by Endur">
+              xSTRK
+            </MyDottedTooltip>{" "}
+            and{" "}
+            <MyDottedTooltip tooltip="xyBTC refers to Endur's family of Bitcoin Liquid Staking Tokens (LSTs), where 'x' is Endur's prefix and 'y' represents different Bitcoin variants. Examples include xWBTC, xtBTC, xLBTC, and xsBTC.">
               xyBTCs
-            </MyDottedTooltip> to earn
-            staking rewards and participate in DeFi opportunities across the
-            Starknet ecosystem.
+            </MyDottedTooltip>{" "}
+            to earn staking rewards and participate in DeFi opportunities across
+            the Starknet ecosystem.
           </p>
         </div>
 

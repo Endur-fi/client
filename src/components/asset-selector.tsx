@@ -10,7 +10,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ChevronDown } from "lucide-react";
-// import wbtcSVG from '@public/wbtc.svg';
+import Image from "next/image";
 
 interface AssetSelectorProps {
   selectedAsset: string;
@@ -27,14 +27,50 @@ export const getFirstBtcAsset = () => {
   return btcAssets.length > 0 ? btcAssets[0].SYMBOL : "";
 };
 
+// Component for BTC icons using SVG files from public folder
+const BtcIcon: React.FC<{ symbol: string; className?: string }> = ({
+  symbol,
+  className,
+}) => {
+  const getIconPath = (tokenSymbol: string) => {
+    switch (tokenSymbol.toLowerCase()) {
+      case "wbtc":
+        return "/wbtc.svg";
+      case "tbtc":
+        return "/tbtc.svg";
+      case "lbtc":
+        return "/lbtc.svg";
+      case "solvbtc":
+        return "/solvbtc.svg";
+      case "tbtc1":
+      case "tbtc2":
+        return "/tbtc.svg"; // Use tbtc.svg for testnet tokens
+      default:
+        return "/wbtc.svg"; // Fallback to wbtc
+    }
+  };
+
+  return (
+    <Image
+      src={getIconPath(symbol)}
+      alt={`${symbol} icon`}
+      width={24}
+      height={24}
+      className={className}
+    />
+  );
+};
+
 export const ASSET_ICONS: Record<string, React.FC<any>> = {
   STRK: Icons.strkLogo,
-  TBTC1: Icons.btcLogo,
-  TBTC2: Icons.btcLogo,
-  WBTC: Icons.btcLogo,
-  tBTC: Icons.btcLogo,
-  LBTC: Icons.btcLogo,
-  solvBTC: Icons.btcLogo,
+  TBTC1: (props: any) => <BtcIcon symbol="TBTC1" className={props.className} />,
+  TBTC2: (props: any) => <BtcIcon symbol="TBTC2" className={props.className} />,
+  WBTC: (props: any) => <BtcIcon symbol="WBTC" className={props.className} />,
+  tBTC: (props: any) => <BtcIcon symbol="tBTC" className={props.className} />,
+  LBTC: (props: any) => <BtcIcon symbol="LBTC" className={props.className} />,
+  solvBTC: (props: any) => (
+    <BtcIcon symbol="solvBTC" className={props.className} />
+  ),
 };
 
 const AssetSelector: React.FC<AssetSelectorProps> = ({

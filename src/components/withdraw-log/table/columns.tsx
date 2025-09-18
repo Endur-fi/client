@@ -7,6 +7,7 @@ import Link from "next/link";
 
 import { Icons } from "@/components/Icons";
 import { Button } from "@/components/ui/button";
+import { ASSET_ICONS } from "@/components/asset-selector";
 import {
   Tooltip,
   TooltipContent,
@@ -91,28 +92,15 @@ export const withdrawLogColumn: ColumnDef<WithdrawLogColumn>[] = [
     cell: ({ row }) => {
       const assetType = row.original.asset || "STRK";
 
-      // Asset icon mapping - using actual icon components
+      // Asset icon mapping - using actual icon components from asset selector
       const getAssetIcon = (asset: string) => {
-        switch (asset) {
-          case "LBTC":
-            return <Icons.btcLogo className="h-5 w-5" />;
-          case "BTC":
-            return <Icons.btcLogo className="h-5 w-5" />;
-          case "WBTC":
-            return <Icons.btcLogo className="h-5 w-5" />;
-          case "tBTC":
-            return <Icons.btcLogo className="h-5 w-5" />;
-          case "solvBTC":
-            return <Icons.btcLogo className="h-5 w-5" />;
-          case "TBTC1":
-            return <Icons.btcLogo className="h-5 w-5" />;
-          case "TBTC2":
-            return <Icons.btcLogo className="h-5 w-5" />;
-          case "STRK":
-            return <Icons.strkLogo className="h-5 w-5" />;
-          default:
-            return <Icons.strkLogo className="h-5 w-5" />;
+        if (ASSET_ICONS[asset]) {
+          return React.createElement(ASSET_ICONS[asset], {
+            className: "h-5 w-5",
+          });
         }
+        // Fallback to STRK icon
+        return <Icons.strkLogo className="h-5 w-5" />;
       };
 
       return (
