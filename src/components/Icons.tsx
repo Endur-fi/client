@@ -10041,21 +10041,4 @@ export const Icons = {
       />
     </svg>
   ),
-  arrowUpDown: (props: LucideProps) => (
-    <svg
-      {...props}
-      width="13"
-      height="13"
-      viewBox="0 0 13 13"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <path
-        d="M9.83333 3.77604L9.83333 11.776M9.83333 11.776L12.5 9.10937M9.83333 11.776L7.16667 9.10937M3.16667 9.10937L3.16667 1.10937M3.16667 1.10937L0.5 3.77604M3.16667 1.10937L5.83333 3.77604"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  ),
 };
