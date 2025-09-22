@@ -58,7 +58,7 @@ import { cn, eventNames, formatNumberWithCommas } from "@/lib/utils";
 import LSTService from "@/services/lst";
 import { lstConfigAtom } from "@/store/common.store";
 import { protocolYieldsAtom } from "@/store/defi.store";
-import { exchangeRateAtom } from "@/store/lst.store";
+import { apiExchangeRateAtom } from "@/store/lst.store";
 import { snAPYAtom } from "@/store/staking.store";
 
 import { Icons } from "./Icons";
@@ -125,7 +125,7 @@ const Stake: React.FC = () => {
     token: lstConfig.ASSET_ADDRESS as `0x${string}`,
   });
 
-  const exchangeRate = useAtomValue(exchangeRateAtom);
+  const exchangeRate = useAtomValue(apiExchangeRateAtom);
   const apy = useAtomValue(snAPYAtom);
   const yields = useAtomValue(protocolYieldsAtom);
 

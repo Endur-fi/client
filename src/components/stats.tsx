@@ -154,46 +154,48 @@ const Stats: React.FC<StatsProps> = ({
             </div>
           </div>
 
-          <a href="/portfolio">
-            <div className="mt-[10px] flex items-center justify-between rounded-md bg-white px-2 py-1 text-xs text-[#17876D]">
-              <span>
-                Stake in DeFi:{" "}
-                {Number(xSTRKInDefiOnly.toFixed(isBTC ? 6 : 2)).toFixed(
-                  isBTC ? 6 : 2,
-                )}{" "}
-                {lstConfig.LST_SYMBOL}
-              </span>
-              <div className="ml-auto pl-2">
-                <TooltipProvider delayDuration={0}>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Info className="ml-[5px] size-3 text-[#17876D]" />
-                    </TooltipTrigger>
-                    <TooltipContent
-                      side="right"
-                      className="max-w-56 rounded-md border border-[#03624C] bg-white text-[#03624C]"
-                    >
-                      <div>
-                        {lstConfig.LST_SYMBOL} in third party DeFi apps. You
-                        cannot unstake this {lstConfig.LST_SYMBOL} directly.
-                        Withdraw your {lstConfig.LST_SYMBOL} from DeFi apps to
-                        unstake here.
-                      </div>
-                      <br />
-                      <div>
-                        <b>Note:</b> This is a beta feature, may not include all
-                        DApps. Click{" "}
-                        <a href="/portfolio">
-                          <b>here</b>
-                        </a>{" "}
-                        to see more details.
-                      </div>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+          {!isBTC && (
+            <a href="/portfolio">
+              <div className="mt-[10px] flex items-center justify-between rounded-md bg-white px-2 py-1 text-xs text-[#17876D]">
+                <span>
+                  Stake in DeFi:{" "}
+                  {Number(xSTRKInDefiOnly.toFixed(isBTC ? 6 : 2)).toFixed(
+                    isBTC ? 6 : 2,
+                  )}{" "}
+                  {lstConfig.LST_SYMBOL}
+                </span>
+                <div className="ml-auto pl-2">
+                  <TooltipProvider delayDuration={0}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Info className="ml-[5px] size-3 text-[#17876D]" />
+                      </TooltipTrigger>
+                      <TooltipContent
+                        side="right"
+                        className="max-w-56 rounded-md border border-[#03624C] bg-white text-[#03624C]"
+                      >
+                        <div>
+                          {lstConfig.LST_SYMBOL} in third party DeFi apps. You
+                          cannot unstake this {lstConfig.LST_SYMBOL} directly.
+                          Withdraw your {lstConfig.LST_SYMBOL} from DeFi apps to
+                          unstake here.
+                        </div>
+                        <br />
+                        <div>
+                          <b>Note:</b> This is a beta feature, may not include
+                          all DApps. Click{" "}
+                          <a href="/portfolio">
+                            <b>here</b>
+                          </a>{" "}
+                          to see more details.
+                        </div>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
               </div>
-            </div>
-          </a>
+            </a>
+          )}
         </div>
       </div>
     </>

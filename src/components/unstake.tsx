@@ -34,7 +34,7 @@ import {
   avnuQuoteAtom,
 } from "@/store/avnu.store";
 import {
-  exchangeRateAtom,
+  apiExchangeRateAtom,
   userLSTBalanceAtom,
   withdrawalQueueStateAtom,
 } from "@/store/lst.store";
@@ -273,7 +273,7 @@ const Unstake = () => {
   const [avnuLoading, setAvnuLoading] = useAtom(avnuLoadingAtom);
   const [_avnuError, setAvnuError] = useAtom(avnuErrorAtom);
 
-  const exRate = useAtomValue(exchangeRateAtom);
+  const exRate = useAtomValue(apiExchangeRateAtom);
   const currentLSTBalance = useAtomValue(userLSTBalanceAtom);
   const queueState = useAtomValue(withdrawalQueueStateAtom);
   const lstConfig = useAtomValue(lstConfigAtom)!;
