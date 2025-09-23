@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useSetAtom } from "jotai";
 import { useAccount, useBalance } from "@starknet-react/core";
-import { LST_CONFIG } from "@/constants";
+import { getLSTAssetsByCategory, getFirstBTCAsset } from "@/constants";
 import { lstConfigAtom } from "@/store/common.store"; // Adjust path if needed
 import { Icons } from "./Icons";
 import {
@@ -19,14 +19,12 @@ interface AssetSelectorProps {
   mode?: "stake" | "unstake"; // Add mode prop to determine sorting logic
 }
 
-const btcAssets = Object.values(LST_CONFIG).filter(
-  (asset: (typeof LST_CONFIG)[keyof typeof LST_CONFIG]) =>
-    asset?.SYMBOL?.toLowerCase().includes("btc"),
-);
+const btcAssets = getLSTAssetsByCategory("BTC");
 
 // Helper to get the first BTC asset symbol
 export const getFirstBtcAsset = () => {
-  return btcAssets.length > 0 ? btcAssets[0].SYMBOL : "";
+  const firstBtcAsset = getFirstBTCAsset();
+  return firstBtcAsset ? firstBtcAsset.SYMBOL : "";
 };
 
 // Custom hook to get BTC token balances

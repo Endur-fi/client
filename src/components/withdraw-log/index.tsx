@@ -19,6 +19,7 @@ import {
 } from "./table/columns";
 import { WithdrawDataTable } from "./table/data-table";
 import { tabsAtom } from "@/store/merry.store";
+import { ContractAddr } from "@strkfarm/sdk";
 
 const WithdrawLog: React.FC = () => {
   const [withdrawals, setWithdrawals] = React.useState<WithdrawLogColumn[]>([]);
@@ -53,8 +54,6 @@ const WithdrawLog: React.FC = () => {
     const withdrawalData = withdrawalLogs.value;
     const globalPendingWithdrawStatsData = globalPendingWithdrawStats?.value;
 
-    console.log(globalAmountAvailable.value, "globalAmountAvailable");
-
     setGlobalStats({
       globalPendingAmountSTRK: formatNumber(
         new MyNumber(
@@ -73,16 +72,18 @@ const WithdrawLog: React.FC = () => {
 
     // Filter withdrawals based on current tab
     const filteredWithdrawals = withdrawalData.filter((item: any) => {
-      const lstConfig = Object.values(LST_CONFIG).find(
-        (config) =>
-          config.WITHDRAWAL_QUEUE_ADDRESS.toLowerCase() ===
-          item.queue_contract.toLowerCase(),
+      const lstConfig = Object.values(LST_CONFIG).find((config) =>
+        ContractAddr.from(config.WITHDRAWAL_QUEUE_ADDRESS).eqString(
+          item.queue_contract,
+        ),
       );
 
+      const symbol = lstConfig?.SYMBOL;
+
       if (activeTab === "strk") {
-        return lstConfig?.SYMBOL === "STRK";
+        return symbol === "STRK";
       } else if (activeTab === "btc") {
-        return lstConfig?.SYMBOL?.toLowerCase().includes("btc");
+        return symbol?.toLowerCase().includes("btc");
       }
       return true;
     });
@@ -106,24 +107,27 @@ const WithdrawLog: React.FC = () => {
 
         const rank = negativeDiff <= 0 ? 1 : negativeDiff;
 
-        const lstConfig: (typeof LST_CONFIG)[keyof typeof LST_CONFIG] =
-          Object.values(LST_CONFIG).find(
-            (config) =>
-              config.WITHDRAWAL_QUEUE_ADDRESS.toLowerCase() ===
-              item.queue_contract.toLowerCase(),
-          )!;
+        const lstConfig = Object.values(LST_CONFIG).find((config) =>
+          ContractAddr.from(config.WITHDRAWAL_QUEUE_ADDRESS).eqString(
+            item.queue_contract,
+          ),
+        );
+
+        const assetSymbol = lstConfig?.SYMBOL || "Unknown";
+        const isBtcAsset = assetSymbol?.toLowerCase().includes("btc");
+        const decimalPlaces = isBtcAsset ? 6 : 2;
 
         return {
           queuePosition: item.request_id,
           amount: new MyNumber(
             item.amount,
             lstConfig?.DECIMALS || 18,
-          ).toEtherToFixedDecimals(2),
+          ).toEtherToFixedDecimals(decimalPlaces),
           status: (item.is_claimed ? "Success" : "Pending") as Status,
           claimTime: item.claim_time,
           txHash: item.tx_hash,
           rank,
-          asset: lstConfig?.SYMBOL,
+          asset: assetSymbol,
         };
       },
     );
