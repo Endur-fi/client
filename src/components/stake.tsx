@@ -195,15 +195,13 @@ const Stake: React.FC = () => {
     if (!amount || isNaN(Number(amount)) || Number(amount) <= 0) return "0";
 
     try {
-      return formatNumberWithCommas(
-        MyNumber.fromEther(amount, lstConfig.DECIMALS)
-          .operate(
-            "multipliedBy",
-            MyNumber.fromEther("1", lstConfig.DECIMALS).toString(),
-          )
-          .operate("div", exchangeRate.preciseRate.toString())
-          .toEtherStr(),
-      );
+      return MyNumber.fromEther(amount, lstConfig.DECIMALS)
+        .operate(
+          "multipliedBy",
+          MyNumber.fromEther("1", lstConfig.DECIMALS).toString(),
+        )
+        .operate("div", exchangeRate.preciseRate.toString())
+        .toEtherStr();
     } catch (error) {
       console.error("Error in getCalculatedLSTAmount", error);
       return "0";
@@ -536,6 +534,7 @@ const Stake: React.FC = () => {
       <Stats
         selectedPlatform={selectedPlatform}
         getPlatformYield={getPlatformYield}
+        mode="stake"
       />
 
       <div className="flex w-full items-center px-7 pb-1.5 pt-5 lg:gap-2">

@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useSetAtom } from "jotai";
+import { useAccount, useBalance } from "@starknet-react/core";
 import { LST_CONFIG } from "@/constants";
 import { lstConfigAtom } from "@/store/common.store"; // Adjust path if needed
 import { Icons } from "./Icons";
@@ -15,6 +16,7 @@ import Image from "next/image";
 interface AssetSelectorProps {
   selectedAsset: string;
   onChange: (assetSymbol: string) => void;
+  mode?: "stake" | "unstake"; // Add mode prop to determine sorting logic
 }
 
 const btcAssets = Object.values(LST_CONFIG).filter(
@@ -25,6 +27,156 @@ const btcAssets = Object.values(LST_CONFIG).filter(
 // Helper to get the first BTC asset symbol
 export const getFirstBtcAsset = () => {
   return btcAssets.length > 0 ? btcAssets[0].SYMBOL : "";
+};
+
+// Custom hook to get BTC token balances
+const useBtcTokenBalances = () => {
+  const { address } = useAccount();
+
+  // Get balances for each BTC token individually
+  const wbtcBalance = useBalance({
+    address,
+    token: btcAssets.find((asset) => asset.SYMBOL === "WBTC")
+      ?.ASSET_ADDRESS as `0x${string}`,
+  });
+
+  const tbtcBalance = useBalance({
+    address,
+    token: btcAssets.find((asset) => asset.SYMBOL === "tBTC")
+      ?.ASSET_ADDRESS as `0x${string}`,
+  });
+
+  const lbtcBalance = useBalance({
+    address,
+    token: btcAssets.find((asset) => asset.SYMBOL === "LBTC")
+      ?.ASSET_ADDRESS as `0x${string}`,
+  });
+
+  const solvbtcBalance = useBalance({
+    address,
+    token: btcAssets.find((asset) => asset.SYMBOL === "solvBTC")
+      ?.ASSET_ADDRESS as `0x${string}`,
+  });
+
+  const tbtc1Balance = useBalance({
+    address,
+    token: btcAssets.find((asset) => asset.SYMBOL === "TBTC1")
+      ?.ASSET_ADDRESS as `0x${string}`,
+  });
+
+  const tbtc2Balance = useBalance({
+    address,
+    token: btcAssets.find((asset) => asset.SYMBOL === "TBTC2")
+      ?.ASSET_ADDRESS as `0x${string}`,
+  });
+
+  return btcAssets.map((asset) => {
+    let balance = BigInt(0);
+
+    switch (asset.SYMBOL) {
+      case "WBTC":
+        balance = wbtcBalance.data?.value || BigInt(0);
+        break;
+      case "tBTC":
+        balance = tbtcBalance.data?.value || BigInt(0);
+        break;
+      case "LBTC":
+        balance = lbtcBalance.data?.value || BigInt(0);
+        break;
+      case "solvBTC":
+        balance = solvbtcBalance.data?.value || BigInt(0);
+        break;
+      case "TBTC1":
+        balance = tbtc1Balance.data?.value || BigInt(0);
+        break;
+      case "TBTC2":
+        balance = tbtc2Balance.data?.value || BigInt(0);
+        break;
+      default:
+        balance = BigInt(0);
+    }
+
+    return {
+      symbol: asset.SYMBOL,
+      balance,
+      asset,
+    };
+  });
+};
+
+// Custom hook to get xBTC token balances (for unstake mode)
+const useXBtcTokenBalances = () => {
+  const { address } = useAccount();
+
+  // Get balances for each xBTC token individually
+  const xwbtcBalance = useBalance({
+    address,
+    token: btcAssets.find((asset) => asset.SYMBOL === "WBTC")
+      ?.LST_ADDRESS as `0x${string}`,
+  });
+
+  const xtbtcBalance = useBalance({
+    address,
+    token: btcAssets.find((asset) => asset.SYMBOL === "tBTC")
+      ?.LST_ADDRESS as `0x${string}`,
+  });
+
+  const xlbtcBalance = useBalance({
+    address,
+    token: btcAssets.find((asset) => asset.SYMBOL === "LBTC")
+      ?.LST_ADDRESS as `0x${string}`,
+  });
+
+  const xsolvbtcBalance = useBalance({
+    address,
+    token: btcAssets.find((asset) => asset.SYMBOL === "solvBTC")
+      ?.LST_ADDRESS as `0x${string}`,
+  });
+
+  const xtbtc1Balance = useBalance({
+    address,
+    token: btcAssets.find((asset) => asset.SYMBOL === "TBTC1")
+      ?.LST_ADDRESS as `0x${string}`,
+  });
+
+  const xtbtc2Balance = useBalance({
+    address,
+    token: btcAssets.find((asset) => asset.SYMBOL === "TBTC2")
+      ?.LST_ADDRESS as `0x${string}`,
+  });
+
+  return btcAssets.map((asset) => {
+    let balance = BigInt(0);
+
+    switch (asset.SYMBOL) {
+      case "WBTC":
+        balance = xwbtcBalance.data?.value || BigInt(0);
+        break;
+      case "tBTC":
+        balance = xtbtcBalance.data?.value || BigInt(0);
+        break;
+      case "LBTC":
+        balance = xlbtcBalance.data?.value || BigInt(0);
+        break;
+      case "solvBTC":
+        balance = xsolvbtcBalance.data?.value || BigInt(0);
+        break;
+      case "TBTC1":
+        balance = xtbtc1Balance.data?.value || BigInt(0);
+        break;
+      case "TBTC2":
+        balance = xtbtc2Balance.data?.value || BigInt(0);
+        break;
+      default:
+        balance = BigInt(0);
+    }
+
+    return {
+      symbol: asset.SYMBOL,
+      balance,
+      asset,
+    };
+  });
 };
 
 // Component for BTC icons using SVG files from public folder
@@ -76,9 +228,39 @@ export const ASSET_ICONS: Record<string, React.FC<any>> = {
 const AssetSelector: React.FC<AssetSelectorProps> = ({
   selectedAsset,
   onChange,
+  mode = "stake", // Default to stake mode
 }) => {
   const setLstConfig = useSetAtom(lstConfigAtom);
   const [isOpen, setIsOpen] = useState(false);
+  const btcBalances = useBtcTokenBalances();
+  const xBtcBalances = useXBtcTokenBalances();
+
+  // Sort BTC assets based on mode
+  const sortedBtcAssets = useMemo(() => {
+    if (mode === "stake") {
+      // Sort by BTC token balance (descending)
+      return [...btcAssets].sort((a, b) => {
+        const balanceA =
+          btcBalances.find((ba) => ba.symbol === a.SYMBOL)?.balance ||
+          BigInt(0);
+        const balanceB =
+          btcBalances.find((ba) => ba.symbol === b.SYMBOL)?.balance ||
+          BigInt(0);
+        return Number(balanceB) - Number(balanceA);
+      });
+    } else {
+      // Sort by xBTC token balance (descending) - for unstake mode
+      return [...btcAssets].sort((a, b) => {
+        const balanceA =
+          xBtcBalances.find((ba) => ba.symbol === a.SYMBOL)?.balance ||
+          BigInt(0);
+        const balanceB =
+          xBtcBalances.find((ba) => ba.symbol === b.SYMBOL)?.balance ||
+          BigInt(0);
+        return Number(balanceB) - Number(balanceA);
+      });
+    }
+  }, [mode, btcBalances, xBtcBalances]);
 
   // Set initial lstConfig when component mounts or selectedAsset changes
   useEffect(() => {
@@ -120,7 +302,7 @@ const AssetSelector: React.FC<AssetSelectorProps> = ({
           </button>
         </DropdownMenuTrigger>
         <DropdownMenuContent className="w-[200px]" align="start">
-          {btcAssets.map((asset: any) => {
+          {sortedBtcAssets.map((asset: any) => {
             const AssetIcon = ASSET_ICONS[asset.SYMBOL];
             return (
               <DropdownMenuItem

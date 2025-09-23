@@ -26,11 +26,13 @@ import { lstConfigAtom } from "@/store/common.store";
 interface StatsProps {
   selectedPlatform?: Platform;
   getPlatformYield?: (platform: Platform) => number;
+  mode?: "stake" | "unstake"; // Add mode prop to determine sorting logic
 }
 
 const Stats: React.FC<StatsProps> = ({
   selectedPlatform,
   getPlatformYield,
+  mode = "stake", // Default to stake mode
 }) => {
   const apy = useAtomValue(snAPYAtom);
   const currentStaked = useAtomValue(userLSTBalanceAtom);
@@ -121,6 +123,7 @@ const Stats: React.FC<StatsProps> = ({
           <AssetSelector
             selectedAsset={selectedAsset}
             onChange={setSelectedAsset}
+            mode={mode}
           />
         )}
 

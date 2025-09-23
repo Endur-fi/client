@@ -502,7 +502,7 @@ const Unstake = () => {
 
   return (
     <div className="relative h-full w-full">
-      <Stats />
+      <Stats mode="unstake" />
 
       <div className="flex h-[88px] w-full items-center px-7 pb-3 pt-5 md:h-[84px] lg:h-fit lg:gap-2">
         <div className="flex flex-1 flex-col items-start">
