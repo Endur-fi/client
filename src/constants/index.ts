@@ -317,6 +317,8 @@ export function getProvider() {
   });
 }
 
+export const ALPHA = 0.25;
+
 export const LINKS = {
   DUNE_ANALYTICS: "https://dune.com/endurfi/xstrk-analytics",
   DASHBOARD_URL: "https://dashboard.endur.fi",
