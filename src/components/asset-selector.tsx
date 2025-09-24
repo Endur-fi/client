@@ -96,6 +96,7 @@ const useBtcTokenBalances = () => {
 
     return {
       symbol: asset.SYMBOL,
+      decimals: asset.DECIMALS,
       balance,
       asset,
     };
@@ -171,6 +172,7 @@ const useXBtcTokenBalances = () => {
 
     return {
       symbol: asset.SYMBOL,
+      decimals: asset.DECIMALS,
       balance,
       asset,
     };
@@ -238,21 +240,23 @@ const AssetSelector: React.FC<AssetSelectorProps> = ({
     if (mode === "stake") {
       // Sort by BTC token balance (descending)
       return [...btcAssets].sort((a, b) => {
+        const tokenAInfo = btcBalances.find((ba) => ba.symbol === a.SYMBOL);
+        const tokenBInfo = btcBalances.find((ba) => ba.symbol === b.SYMBOL);
         const balanceA =
-          btcBalances.find((ba) => ba.symbol === a.SYMBOL)?.balance ||
-          BigInt(0);
+          Number(tokenAInfo?.balance) / 10 ** (tokenAInfo?.decimals || 0) || 0;
         const balanceB =
-          btcBalances.find((ba) => ba.symbol === b.SYMBOL)?.balance ||
-          BigInt(0);
+          Number(tokenBInfo?.balance) / 10 ** (tokenBInfo?.decimals || 0) || 0;
         return Number(balanceB) - Number(balanceA);
       });
     }
     // Sort by xBTC token balance (descending) - for unstake mode
     return [...btcAssets].sort((a, b) => {
+      const tokenAInfo = xBtcBalances.find((ba) => ba.symbol === a.SYMBOL);
+      const tokenBInfo = xBtcBalances.find((ba) => ba.symbol === b.SYMBOL);
       const balanceA =
-        xBtcBalances.find((ba) => ba.symbol === a.SYMBOL)?.balance || BigInt(0);
+        Number(tokenAInfo?.balance) / 10 ** (tokenAInfo?.decimals || 0) || 0;
       const balanceB =
-        xBtcBalances.find((ba) => ba.symbol === b.SYMBOL)?.balance || BigInt(0);
+        Number(tokenBInfo?.balance) / 10 ** (tokenBInfo?.decimals || 0) || 0;
       return Number(balanceB) - Number(balanceA);
     });
   }, [mode, btcBalances, xBtcBalances]);
