@@ -23,101 +23,227 @@ export const xSTRK_TOKEN_MAINNET =
   "0x28d709c875c0ceac3dce7065bec5328186dc89fe254527084d1689910954b0a";
 export const xSTRK_TOKEN_MAINNET_DEPLOYMENT_BLOCK = 929092;
 export const BLOCK_NUMBER_24_NOV_2024 = 925000; // block number at Nov 24 2024 04:17:28
+export interface LSTAssetConfig {
+  SYMBOL: string;
+  ASSET_ADDRESS: string;
+  LST_SYMBOL: string;
+  DECIMALS: number;
+  CATEGORY: "STRK" | "BTC";
+  DISPLAY_NAME?: string;
+  DESCRIPTION?: string;
+  NETWORKS: {
+    SN_MAIN?: {
+      LST_ADDRESS: string;
+      WITHDRAWAL_QUEUE_ADDRESS: string;
+    };
+    SN_SEPOLIA?: {
+      LST_ADDRESS: string;
+      WITHDRAWAL_QUEUE_ADDRESS: string;
+    };
+  };
+}
 
-export const LST_CONFIG =
-  NETWORK === "SN_MAIN"
-    ? {
-        STRK: {
-          SYMBOL: "STRK",
-          ASSET_ADDRESS:
-            "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
-          LST_SYMBOL: "xSTRK",
-          LST_ADDRESS:
-            "0x028d709c875c0ceac3dce7065bec5328186dc89fe254527084d1689910954b0a",
-          WITHDRAWAL_QUEUE_ADDRESS:
-            "0x00518a66e579f9eb1603f5ffaeff95d3f013788e9c37ee94995555026b9648b6",
-          DECIMALS: 18,
-        },
-        WBTC: {
-          SYMBOL: "WBTC",
-          ASSET_ADDRESS:
-            "0x3fe2b97c1fd336e750087d68b9b867997fd64a2661ff3ca5a7c771641e8e7ac",
-          LST_SYMBOL: "xWBTC",
-          LST_ADDRESS:
-            "0x6a567e68c805323525fe1649adb80b03cddf92c23d2629a6779f54192dffc13",
-          WITHDRAWAL_QUEUE_ADDRESS:
-            "0x670cdfa77487203cdf11d58db9617988d3a8fc2b22730594ed7d193a0430f72",
-          DECIMALS: 8,
-        },
-        tBTC: {
-          SYMBOL: "tBTC",
-          ASSET_ADDRESS:
-            "0x4daa17763b286d1e59b97c283c0b8c949994c361e426a28f743c67bdfe9a32f",
-          LST_SYMBOL: "xtBTC",
-          LST_ADDRESS:
-            "0x43a35c1425a0125ef8c171f1a75c6f31ef8648edcc8324b55ce1917db3f9b91",
-          WITHDRAWAL_QUEUE_ADDRESS:
-            "0x35b194007fb5d9fd10cb1f8772ef45cced853e7b3239367de0e19ecba85d75a",
-          DECIMALS: 18,
-        },
-        LBTC: {
-          SYMBOL: "LBTC",
-          ASSET_ADDRESS:
-            "0x036834a40984312f7f7de8d31e3f6305b325389eaeea5b1c0664b2fb936461a4",
-          LST_SYMBOL: "xLBTC",
-          LST_ADDRESS:
-            "0x7dd3c80de9fcc5545f0cb83678826819c79619ed7992cc06ff81fc67cd2efe0",
-          WITHDRAWAL_QUEUE_ADDRESS:
-            "0x293caaca81259f02f17bd85de5056624626fc7cb25ff79f104c3ef07a4649ec",
-          DECIMALS: 8,
-        },
-        solvBTC: {
-          SYMBOL: "solvBTC",
-          ASSET_ADDRESS:
-            "0x0593e034dda23eea82d2ba9a30960ed42cf4a01502cc2351dc9b9881f9931a68",
-          LST_SYMBOL: "xsBTC",
-          LST_ADDRESS:
-            "0x580f3dc564a7b82f21d40d404b3842d490ae7205e6ac07b1b7af2b4a5183dc9",
-          WITHDRAWAL_QUEUE_ADDRESS:
-            "0x45f4f8affbfa6ef794f3b5eee7855bd19321745c5b442ad935cad4ae6a61006",
-          DECIMALS: 18,
-        },
-      }
-    : {
-        STRK: {
-          SYMBOL: "STRK",
-          ASSET_ADDRESS:
-            "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
-          LST_SYMBOL: "xSTRK",
-          LST_ADDRESS:
-            "0x042de5b868da876768213c48019b8d46cd484e66013ae3275f8a4b97b31fc7eb",
-          WITHDRAWAL_QUEUE_ADDRESS:
-            "0x0254cbdaf8275cb1b514ae63ccedb04a3a9996b1489829e5d6bbaf759ac100b6",
-          DECIMALS: 18,
-        },
-        TBTC1: {
-          SYMBOL: "TBTC1",
-          ASSET_ADDRESS:
-            "0x044aD07751Ad782288413C7DB42C48e1c4f6195876BCa3B6CAEF449bb4Fb8d36",
-          LST_SYMBOL: "xBTC1",
-          LST_ADDRESS:
-            "0x036A2c3C56ae806B12A84bB253cBc1a009e3da5469e6a736C483303B864C8e2B",
-          WITHDRAWAL_QUEUE_ADDRESS:
-            "0x06259eC265D650C3Edd85d6B5f563603aA247c360879437D2372AeA7e2148eda",
-          DECIMALS: 8,
-        },
-        BTC2: {
-          SYMBOL: "TBTC2",
-          ASSET_ADDRESS:
-            "0x07E97477601e5606359303cf50C050FD3bA94F66Bd041F4ed504673BA2b81696",
-          LST_SYMBOL: "xBTC2",
-          LST_ADDRESS:
-            "0x0226324F63D994834E4729dd1bab443fe50Af8E97C608b812ee1f950ceaE68c7",
-          WITHDRAWAL_QUEUE_ADDRESS:
-            "0x0502B976EC50e85cE7E71997605a7DDbB70386844670ef270b9c721Db1cbE9c0",
-          DECIMALS: 8,
-        },
+export interface LSTNetworkConfig {
+  [key: string]: LSTAssetConfig & {
+    LST_ADDRESS: string;
+    WITHDRAWAL_QUEUE_ADDRESS: string;
+  };
+}
+
+const LST_ASSETS: Record<string, LSTAssetConfig> = {
+  STRK: {
+    SYMBOL: "STRK",
+    ASSET_ADDRESS:
+      "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+    LST_SYMBOL: "xSTRK",
+    DECIMALS: 18,
+    CATEGORY: "STRK",
+    DISPLAY_NAME: "Starknet Token",
+    DESCRIPTION: "Native Starknet token for staking rewards",
+    NETWORKS: {
+      SN_MAIN: {
+        LST_ADDRESS:
+          "0x028d709c875c0ceac3dce7065bec5328186dc89fe254527084d1689910954b0a",
+        WITHDRAWAL_QUEUE_ADDRESS:
+          "0x00518a66e579f9eb1603f5ffaeff95d3f013788e9c37ee94995555026b9648b6",
+      },
+      SN_SEPOLIA: {
+        LST_ADDRESS:
+          "0x042de5b868da876768213c48019b8d46cd484e66013ae3275f8a4b97b31fc7eb",
+        WITHDRAWAL_QUEUE_ADDRESS:
+          "0x0254cbdaf8275cb1b514ae63ccedb04a3a9996b1489829e5d6bbaf759ac100b6",
+      },
+    },
+  },
+  WBTC: {
+    SYMBOL: "WBTC",
+    ASSET_ADDRESS:
+      "0x3fe2b97c1fd336e750087d68b9b867997fd64a2661ff3ca5a7c771641e8e7ac",
+    LST_SYMBOL: "xWBTC",
+    DECIMALS: 8,
+    CATEGORY: "BTC",
+    DISPLAY_NAME: "Wrapped Bitcoin",
+    DESCRIPTION: "Wrapped Bitcoin on Starknet",
+    NETWORKS: {
+      SN_MAIN: {
+        LST_ADDRESS:
+          "0x6a567e68c805323525fe1649adb80b03cddf92c23d2629a6779f54192dffc13",
+        WITHDRAWAL_QUEUE_ADDRESS:
+          "0x670cdfa77487203cdf11d58db9617988d3a8fc2b22730594ed7d193a0430f72",
+      },
+    },
+  },
+  tBTC: {
+    SYMBOL: "tBTC",
+    ASSET_ADDRESS:
+      "0x4daa17763b286d1e59b97c283c0b8c949994c361e426a28f743c67bdfe9a32f",
+    LST_SYMBOL: "xtBTC",
+    DECIMALS: 18,
+    CATEGORY: "BTC",
+    DISPLAY_NAME: "Threshold Bitcoin",
+    DESCRIPTION: "Threshold Bitcoin on Starknet",
+    NETWORKS: {
+      SN_MAIN: {
+        LST_ADDRESS:
+          "0x43a35c1425a0125ef8c171f1a75c6f31ef8648edcc8324b55ce1917db3f9b91",
+        WITHDRAWAL_QUEUE_ADDRESS:
+          "0x35b194007fb5d9fd10cb1f8772ef45cced853e7b3239367de0e19ecba85d75a",
+      },
+    },
+  },
+  LBTC: {
+    SYMBOL: "LBTC",
+    ASSET_ADDRESS:
+      "0x036834a40984312f7f7de8d31e3f6305b325389eaeea5b1c0664b2fb936461a4",
+    LST_SYMBOL: "xLBTC",
+    DECIMALS: 8,
+    CATEGORY: "BTC",
+    DISPLAY_NAME: "Lightning Bitcoin",
+    DESCRIPTION: "Lightning Bitcoin on Starknet",
+    NETWORKS: {
+      SN_MAIN: {
+        LST_ADDRESS:
+          "0x7dd3c80de9fcc5545f0cb83678826819c79619ed7992cc06ff81fc67cd2efe0",
+        WITHDRAWAL_QUEUE_ADDRESS:
+          "0x293caaca81259f02f17bd85de5056624626fc7cb25ff79f104c3ef07a4649ec",
+      },
+    },
+  },
+  solvBTC: {
+    SYMBOL: "solvBTC",
+    ASSET_ADDRESS:
+      "0x0593e034dda23eea82d2ba9a30960ed42cf4a01502cc2351dc9b9881f9931a68",
+    LST_SYMBOL: "xsBTC",
+    DECIMALS: 18,
+    CATEGORY: "BTC",
+    DISPLAY_NAME: "Solv Bitcoin",
+    DESCRIPTION: "Solv Bitcoin on Starknet",
+    NETWORKS: {
+      SN_MAIN: {
+        LST_ADDRESS:
+          "0x580f3dc564a7b82f21d40d404b3842d490ae7205e6ac07b1b7af2b4a5183dc9",
+        WITHDRAWAL_QUEUE_ADDRESS:
+          "0x45f4f8affbfa6ef794f3b5eee7855bd19321745c5b442ad935cad4ae6a61006",
+      },
+    },
+  },
+  // Testnet assets
+  TBTC1: {
+    SYMBOL: "TBTC1",
+    ASSET_ADDRESS:
+      "0x044aD07751Ad782288413C7DB42C48e1c4f6195876BCa3B6CAEF449bb4Fb8d36",
+    LST_SYMBOL: "xBTC1",
+    DECIMALS: 8,
+    CATEGORY: "BTC",
+    DISPLAY_NAME: "Test Bitcoin 1",
+    DESCRIPTION: "Test Bitcoin asset 1 on Sepolia",
+    NETWORKS: {
+      SN_SEPOLIA: {
+        LST_ADDRESS:
+          "0x036A2c3C56ae806B12A84bB253cBc1a009e3da5469e6a736C483303B864C8e2B",
+        WITHDRAWAL_QUEUE_ADDRESS:
+          "0x06259eC265D650C3Edd85d6B5f563603aA247c360879437D2372AeA7e2148eda",
+      },
+    },
+  },
+  TBTC2: {
+    SYMBOL: "TBTC2",
+    ASSET_ADDRESS:
+      "0x07E97477601e5606359303cf50C050FD3bA94F66Bd041F4ed504673BA2b81696",
+    LST_SYMBOL: "xBTC2",
+    DECIMALS: 8,
+    CATEGORY: "BTC",
+    DISPLAY_NAME: "Test Bitcoin 2",
+    DESCRIPTION: "Test Bitcoin asset 2 on Sepolia",
+    NETWORKS: {
+      SN_SEPOLIA: {
+        LST_ADDRESS:
+          "0x0226324F63D994834E4729dd1bab443fe50Af8E97C608b812ee1f950ceaE68c7",
+        WITHDRAWAL_QUEUE_ADDRESS:
+          "0x0502B976EC50e85cE7E71997605a7DDbB70386844670ef270b9c721Db1cbE9c0",
+      },
+    },
+  },
+};
+
+function buildLSTConfig(network: string): LSTNetworkConfig {
+  const config: LSTNetworkConfig = {};
+
+  const networkAssets =
+    network === "SN_MAIN"
+      ? ["STRK", "WBTC", "tBTC", "LBTC", "solvBTC"] // Mainnet assets
+      : ["STRK", "TBTC1", "TBTC2"]; // Testnet assets
+
+  networkAssets.forEach((assetKey) => {
+    const baseAsset = LST_ASSETS[assetKey];
+    const networkConfig =
+      baseAsset?.NETWORKS[network as keyof typeof baseAsset.NETWORKS];
+
+    if (baseAsset && networkConfig) {
+      config[assetKey] = {
+        ...baseAsset,
+        LST_ADDRESS: networkConfig.LST_ADDRESS,
+        WITHDRAWAL_QUEUE_ADDRESS: networkConfig.WITHDRAWAL_QUEUE_ADDRESS,
       };
+    }
+  });
+
+  return config;
+}
+
+export const LST_CONFIG = buildLSTConfig(NETWORK);
+
+export const getLSTAssetsByCategory = (
+  category: "STRK" | "BTC",
+): (LSTAssetConfig & {
+  LST_ADDRESS: string;
+  WITHDRAWAL_QUEUE_ADDRESS: string;
+})[] => {
+  return Object.values(LST_CONFIG).filter(
+    (asset) => asset.CATEGORY === category,
+  );
+};
+
+export const getLSTAssetBySymbol = (
+  symbol: string,
+):
+  | (LSTAssetConfig & { LST_ADDRESS: string; WITHDRAWAL_QUEUE_ADDRESS: string })
+  | undefined => {
+  return Object.values(LST_CONFIG).find((asset) => asset.SYMBOL === symbol);
+};
+
+export const getFirstBTCAsset = ():
+  | (LSTAssetConfig & { LST_ADDRESS: string; WITHDRAWAL_QUEUE_ADDRESS: string })
+  | undefined => {
+  return getLSTAssetsByCategory("BTC")[0];
+};
+
+export const getSTRKAsset = (): LSTAssetConfig & {
+  LST_ADDRESS: string;
+  WITHDRAWAL_QUEUE_ADDRESS: string;
+} => {
+  return LST_CONFIG.STRK;
+};
 
 export const WBTC_TOKEN =
   "0x03fe2b97c1fd336e750087d68b9b867997fd64a2661ff3ca5a7c771641e8e7ac";
@@ -138,8 +264,10 @@ export const BTC_ORACLE_CONTRACT =
 
 export const IS_PAUSED = process.env.NEXT_PUBLIC_IS_PAUSED === "true";
 
-export const SN_STAKING_ADRESS = process.env
-  .NEXT_PUBLIC_SN_STAKING_ADDRESS as `0x${string}`;
+export const SN_STAKING_ADRESS =
+  NETWORK === "SN_MAIN"
+    ? "0x00ca1702e64c81d9a07b86bd2c540188d92a2c73cf5cc0e508d949015e7e84a7"
+    : "0x03745ab04a431fc02871a139be6b93d9260b0ff3e779ad9c8b377183b23109f1";
 
 export const SN_MINTING_CURVE_ADRESS =
   NETWORK === "SN_MAIN"

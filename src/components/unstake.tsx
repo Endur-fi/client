@@ -34,7 +34,7 @@ import {
   avnuQuoteAtom,
 } from "@/store/avnu.store";
 import {
-  exchangeRateAtom,
+  apiExchangeRateAtom,
   userLSTBalanceAtom,
   withdrawalQueueStateAtom,
 } from "@/store/lst.store";
@@ -44,6 +44,7 @@ import Stats from "./stats";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { lstConfigAtom } from "@/store/common.store";
+import { ASSET_ICONS } from "./asset-selector";
 
 const formSchema = z.object({
   unstakeAmount: z.string().refine(
@@ -272,7 +273,7 @@ const Unstake = () => {
   const [avnuLoading, setAvnuLoading] = useAtom(avnuLoadingAtom);
   const [_avnuError, setAvnuError] = useAtom(avnuErrorAtom);
 
-  const exRate = useAtomValue(exchangeRateAtom);
+  const exRate = useAtomValue(apiExchangeRateAtom);
   const currentLSTBalance = useAtomValue(userLSTBalanceAtom);
   const queueState = useAtomValue(withdrawalQueueStateAtom);
   const lstConfig = useAtomValue(lstConfigAtom)!;
@@ -501,11 +502,15 @@ const Unstake = () => {
 
   return (
     <div className="relative h-full w-full">
-      <Stats />
+      <Stats mode="unstake" />
 
       <div className="flex h-[88px] w-full items-center px-7 pb-3 pt-5 md:h-[84px] lg:h-fit lg:gap-2">
         <div className="flex flex-1 flex-col items-start">
           <div className="flex items-center gap-2">
+            {ASSET_ICONS[lstConfig.SYMBOL] &&
+              React.createElement(ASSET_ICONS[lstConfig.SYMBOL], {
+                className: "size-4",
+              })}
             <p className="text-xs text-[#06302B]">
               Enter Amount ({lstConfig.LST_SYMBOL})
             </p>
@@ -586,7 +591,7 @@ const Unstake = () => {
             <span className="hidden md:block">Balance:</span>
             <span className="font-bold">
               {Number(
-                currentLSTBalance.value.toEtherToFixedDecimals(2),
+                currentLSTBalance.value.toEtherToFixedDecimals(isBTC ? 6 : 2),
               ).toFixed(isBTC ? 6 : 2)}{" "}
               {lstConfig.LST_SYMBOL}
             </span>
