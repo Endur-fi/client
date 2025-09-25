@@ -5,7 +5,7 @@ import React from "react";
 
 import { formatNumberWithCommas } from "@/lib/utils";
 import { userEkuboxSTRKPositions } from "@/store/ekubo.store";
-import { exchangeRateAtom, userLSTBalanceAtom } from "@/store/lst.store";
+import { apiExchangeRateAtom, userLSTBalanceAtom } from "@/store/lst.store";
 import { userLSTNostraBalance } from "@/store/nostra.store";
 import { snAPYAtom } from "@/store/staking.store";
 import { uservXSTRKBalanceAtom } from "@/store/vesu.store";
@@ -22,12 +22,12 @@ export const totalXSTRKAcrossDefiHoldingsAtom = atom((get) => {
   const opusBalance = get(userOpusBalanceAtom(undefined));
   const strkfarmXSTRKBalance = get(getSTRKFarmBalanceAtom(undefined));
   const value =
-    // Number(vesuBalance.data.xSTRKAmount.toEtherToFixedDecimals(2)) +
+    Number(vesuBalance.data.lstAmount.toEtherToFixedDecimals(2)) +
     Number(nostraBalance.data.lstAmount.toEtherToFixedDecimals(2)) +
-    // Number(ekuboBalance.data.xSTRKAmount.toEtherToFixedDecimals(2)) +
+    Number(ekuboBalance.data.lstAmount.toEtherToFixedDecimals(2)) +
     Number(lstBalance.value.toEtherToFixedDecimals(2));
-  // Number(strkfarmXSTRKBalance.data.xSTRKAmount.toEtherToFixedDecimals(2)) +
-  // Number(opusBalance.data.xSTRKAmount.toEtherToFixedDecimals(2));
+  Number(strkfarmXSTRKBalance.data.lstAmount.toEtherToFixedDecimals(2)) +
+    Number(opusBalance.data.lstAmount.toEtherToFixedDecimals(2));
   if (Number.isNaN(value)) {
     return 0;
   }
@@ -38,7 +38,7 @@ const Stats: React.FC = () => {
   const strkPrice = useAtomValue(assetPriceAtom);
   const apy = useAtomValue(snAPYAtom);
   const currentLSTBalance = useAtomValue(userLSTBalanceAtom);
-  const exchangeRate = useAtomValue(exchangeRateAtom);
+  const exchangeRate = useAtomValue(apiExchangeRateAtom);
 
   const totalXSTRK = useAtomValue(totalXSTRKAcrossDefiHoldingsAtom);
 

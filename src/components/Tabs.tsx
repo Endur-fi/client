@@ -14,7 +14,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { IS_PAUSED, LST_CONFIG } from "@/constants";
+import { IS_PAUSED, getLSTAssetsByCategory, getSTRKAsset } from "@/constants";
 import { cn } from "@/lib/utils";
 import { isMerryChristmasAtom, tabsAtom } from "@/store/merry.store";
 import { toast } from "@/hooks/use-toast";
@@ -48,6 +48,8 @@ const Tabs = () => {
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const apy = useAtomValue(snAPYAtom);
 
+  console.log("Apy", apy.value);
+
   const isMerry = useAtomValue(isMerryChristmasAtom);
   const { address } = useAccount();
 
@@ -56,13 +58,12 @@ const Tabs = () => {
 
   React.useEffect(() => {
     if (activeTab === "strk") {
-      setLSTConfig(LST_CONFIG.STRK);
+      setLSTConfig(getSTRKAsset());
     } else {
-      const firstBTCAsset = Object.values(LST_CONFIG).filter(
-        (asset: (typeof LST_CONFIG)[keyof typeof LST_CONFIG]) =>
-          asset?.SYMBOL?.toLowerCase().includes("btc"),
-      )[0];
-      setLSTConfig(firstBTCAsset);
+      const firstBTCAsset = getLSTAssetsByCategory("BTC")[0];
+      if (firstBTCAsset) {
+        setLSTConfig(firstBTCAsset);
+      }
     }
   }, [activeTab, setLSTConfig]);
 
@@ -224,13 +225,16 @@ const Tabs = () => {
           </div>
 
           <p className="mt-2 text-sm text-[#8D9C9C]">
-            Convert your STRK and BTC tokens into <MyDottedTooltip tooltip="Liquid staking token (LST) of STRK issued by Endur">
-              xSTRK 
-            </MyDottedTooltip> and <MyDottedTooltip tooltip="xyBTC refers to Endur's family of Bitcoin Liquid Staking Tokens (LSTs), where 'x' is Endur's prefix and 'y' represents different Bitcoin variants. Examples include xWBTC, xtBTC, xLBTC, and xsBTC.">
+            Convert your STRK and BTC tokens into{" "}
+            <MyDottedTooltip tooltip="Liquid staking token (LST) of STRK issued by Endur">
+              xSTRK
+            </MyDottedTooltip>{" "}
+            and{" "}
+            <MyDottedTooltip tooltip="xyBTC refers to Endur's family of Bitcoin Liquid Staking Tokens (LSTs), where 'x' is Endur's prefix and 'y' represents different Bitcoin variants. Examples include xWBTC, xtBTC, xLBTC, and xsBTC.">
               xyBTCs
-            </MyDottedTooltip> to earn
-            staking rewards and participate in DeFi opportunities across the
-            Starknet ecosystem.
+            </MyDottedTooltip>{" "}
+            to earn staking rewards and participate in DeFi opportunities across
+            the Starknet ecosystem.
           </p>
         </div>
 

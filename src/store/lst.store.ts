@@ -11,6 +11,20 @@ import {
 import MyNumber from "@/lib/MyNumber";
 import LSTService from "@/services/lst";
 
+// LST Stats API types
+interface LSTStatsResponse {
+  asset: string;
+  assetAddress: string;
+  lstAddress: string;
+  tvlUsd: number;
+  tvlAsset: number;
+  apy: number;
+  apyInPercentage: string;
+  exchangeRate: number;
+  preciseExchangeRate: string;
+  error?: string;
+}
+
 import {
   currentBlockAtom,
   lstConfigAtom,
@@ -512,4 +526,61 @@ export const exchangeRateByBlockAtom = atomFamily((blockNumber?: number) => {
       isLoading: totalStaked.isLoading || totalSupply.isLoading,
     };
   });
+});
+
+export const lstStatsQueryAtom = atomWithQuery(() => ({
+  queryKey: ["lstStats"],
+  queryFn: async (): Promise<LSTStatsResponse[]> => {
+    try {
+      const response = await fetch("/api/lst/stats");
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error("lstStatsQueryAtom error:", error);
+      throw error;
+    }
+  },
+  refetchInterval: 60000,
+  staleTime: 30000,
+}));
+
+export const apiExchangeRateAtom = atom((get) => {
+  const { data, error, isLoading } = get(lstStatsQueryAtom);
+  const lstConfig = get(lstConfigAtom);
+
+  if (isLoading || error || !data || !lstConfig) {
+    return {
+      rate: 0,
+      preciseRate: MyNumber.fromZero(),
+      isLoading,
+      error,
+    };
+  }
+
+  const lstStats = data.find(
+    (stats) =>
+      stats.lstAddress?.toLowerCase() === lstConfig.LST_ADDRESS?.toLowerCase(),
+  );
+
+  if (!lstStats || lstStats.error) {
+    return {
+      rate: 0,
+      preciseRate: MyNumber.fromZero(),
+      isLoading: false,
+      error: lstStats?.error || "LST stats not found",
+    };
+  }
+
+  return {
+    rate: lstStats.exchangeRate,
+    preciseRate: MyNumber.fromZero().operate(
+      "plus",
+      lstStats.preciseExchangeRate,
+    ),
+    isLoading: false,
+    error: null,
+  };
 });

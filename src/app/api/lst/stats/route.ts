@@ -101,11 +101,31 @@ export async function GET(_req: Request) {
         value.DECIMALS,
       );
 
+      const totalSupply = await lstService.getTotalSupply(
+        value.LST_ADDRESS,
+        value.DECIMALS,
+      );
+
       if (balance && assetPrice) {
         const tvlAsset = Number(
           new MyNumber(balance.toString(), value.DECIMALS).toEtherStr(),
         );
         const tvlUsd = assetPrice * tvlAsset;
+
+        let exchangeRate = 0;
+        let preciseExchangeRate = "0";
+
+        if (totalSupply && !totalSupply.isZero()) {
+          exchangeRate =
+            Number(balance.toEtherStr()) / Number(totalSupply.toEtherStr());
+          preciseExchangeRate = balance
+            .operate(
+              "multipliedBy",
+              MyNumber.fromEther("1", value.DECIMALS).toString(),
+            )
+            .operate("div", totalSupply.toString())
+            .toString();
+        }
 
         results.push({
           asset: value.SYMBOL,
@@ -115,6 +135,8 @@ export async function GET(_req: Request) {
           tvlAsset,
           apy,
           apyInPercentage: `${apyInPercentage}%`,
+          exchangeRate,
+          preciseExchangeRate,
         });
       } else {
         results.push({

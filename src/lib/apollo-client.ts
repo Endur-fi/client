@@ -15,7 +15,7 @@ const defaultOptions: DefaultOptions = {
 
 const apolloClient = new ApolloClient({
   uri: isMainnet()
-    ? "https://graphql.mainnet.endur.fi"
+    ? "https://endur-graphql-api-v2.onrender.com"
     : "https://graphql.sepolia.endur.fi",
   // uri: "http://localhost:4000",
   cache: new InMemoryCache(),

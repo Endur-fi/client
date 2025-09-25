@@ -5,7 +5,7 @@ import { atomFamily } from "jotai/utils";
 import { AtomFamily } from "jotai/vanilla/utils/atomFamily";
 import { BlockIdentifier } from "starknet";
 import { assetPriceAtom, lstConfigAtom, userAddressAtom } from "./common.store";
-import { exchangeRateAtom } from "./lst.store";
+import { apiExchangeRateAtom } from "./lst.store";
 import { snAPYAtom } from "./staking.store";
 
 interface VesuAPIResponse {
@@ -152,7 +152,7 @@ const vesuYieldQueryAtom = atomWithQuery(() => ({
 }));
 
 const ekuboYieldQueryAtom = atomWithQuery((get) => ({
-  queryKey: ["ekuboYield", get(exchangeRateAtom)],
+  queryKey: ["ekuboYield", get(apiExchangeRateAtom)],
   queryFn: async (): Promise<ProtocolYield> => {
     try {
       const response = await fetch(
@@ -174,7 +174,7 @@ const ekuboYieldQueryAtom = atomWithQuery((get) => ({
         return Number(tvlB) - Number(tvlA);
       })[0];
 
-      const xSTRKExchangeRate = get(exchangeRateAtom).rate || 1;
+      const xSTRKExchangeRate = get(apiExchangeRateAtom).rate || 1;
       const tvlInSTRK =
         BigInt(Number(mostLiquidPool.tvl0_total) * xSTRKExchangeRate) +
         BigInt(mostLiquidPool.tvl1_total);

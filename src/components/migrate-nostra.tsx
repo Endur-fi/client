@@ -14,7 +14,7 @@ import { toast, useToast } from "@/hooks/use-toast";
 import { cn, formatNumberWithCommas } from "@/lib/utils";
 import { lstConfigAtom, providerAtom } from "@/store/common.store";
 import {
-  exchangeRateAtom,
+  apiExchangeRateAtom,
   nstStrkWithdrawalFeeAtom,
   userNstSTRKBalanceAtom,
 } from "@/store/lst.store";
@@ -46,7 +46,7 @@ const MigrateNostra = () => {
   const rpcProvider = useAtomValue(providerAtom);
   const nstStrkBalanceRes = useAtomValue(userNstSTRKBalanceAtom);
   const nstStrkWithdrawal = useAtomValue(nstStrkWithdrawalFeeAtom);
-  const exchangeRate = useAtomValue(exchangeRateAtom);
+  const exchangeRate = useAtomValue(apiExchangeRateAtom);
   const stakingApy = useAtomValue(snAPYAtom);
   const nostraLendApy = useAtomValue(nostraLendYieldAtom);
 
