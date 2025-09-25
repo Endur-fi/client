@@ -71,63 +71,110 @@ const MobileNav = () => {
               exit={{ opacity: 0 }}
               className="absolute inset-x-0 top-16 z-50 flex w-fit flex-col items-start justify-start gap-4 rounded-lg border border-[#17876D33] bg-[#DCECE8] px-2 py-3"
             >
-              <Link
-                href={referrer ? `/?referrer=${referrer}` : "/"}
-                className={cn(
-                  "flex w-full cursor-pointer flex-row items-center gap-2 text-nowrap rounded-md p-2 px-3 text-sm font-semibold text-[#03624C] transition-all hover:bg-[#17876D] hover:text-white",
-                  {
-                    "bg-[#17876D] text-white": pathname === "/",
-                  },
-                )}
-              >
-                <FlameIcon className="-ml-0.5 size-5" />
-                Liquid Staking
-              </Link>
+              <div className="w-full">
+                <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-[#03624C]">
+                  STRK
+                </h3>
+                <div className="space-y-1">
+                  <Link
+                    href={referrer ? `/strk?referrer=${referrer}` : "/strk"}
+                    className={cn(
+                      "flex w-full cursor-pointer flex-row items-center gap-2 text-nowrap rounded-md p-2 px-3 text-sm font-semibold text-[#03624C] transition-all hover:bg-[#17876D] hover:text-white",
+                      {
+                        "bg-[#17876D] text-white": pathname === "/strk",
+                      },
+                    )}
+                  >
+                    <FlameIcon className="-ml-0.5 size-5" />
+                    Liquid Staking
+                  </Link>
 
-              <Link
-                href={referrer ? `/defi?referrer=${referrer}` : "/defi"}
-                className={cn(
-                  "flex w-full cursor-pointer flex-row items-center gap-2 text-nowrap rounded-md p-2 px-3 text-sm font-semibold text-[#03624C] transition-all hover:bg-[#17876D] hover:text-white",
-                  {
-                    "bg-[#17876D] text-white": pathname === "/defi",
-                  },
-                )}
-              >
-                <HandCoinsIcon className="-ml-0.5 size-5" />
-                DeFi with xSTRK
-              </Link>
+                  <Link
+                    href={referrer ? `/defi?referrer=${referrer}` : "/defi"}
+                    className={cn(
+                      "flex w-full cursor-pointer flex-row items-center gap-2 text-nowrap rounded-md p-2 px-3 text-sm font-semibold text-[#03624C] transition-all hover:bg-[#17876D] hover:text-white",
+                      {
+                        "bg-[#17876D] text-white": pathname === "/defi",
+                      },
+                    )}
+                  >
+                    <HandCoinsIcon className="-ml-0.5 size-5" />
+                    DeFi with xSTRK
+                  </Link>
 
-              <Link
-                href={LINKS.DUNE_ANALYTICS}
-                className={cn(
-                  "flex w-full cursor-pointer flex-row items-center gap-2 text-nowrap rounded-md p-2 px-3 text-sm font-semibold text-[#03624C] transition-all hover:bg-[#17876D] hover:text-white",
-                )}
-              >
-                <ChartColumnDecreasingIcon className="size-5" />
-                xSTRK Analytics
-              </Link>
+                  <Link
+                    href={LINKS.DUNE_ANALYTICS}
+                    className="flex w-full cursor-pointer flex-row items-center gap-2 text-nowrap rounded-md p-2 px-3 text-sm font-semibold text-[#03624C] transition-all hover:bg-[#17876D] hover:text-white"
+                  >
+                    <ChartColumnDecreasingIcon className="size-5" />
+                    xSTRK Analytics
+                  </Link>
+
+                  <Link
+                    href="/portfolio"
+                    className={cn(
+                      "flex w-full cursor-pointer flex-row items-center gap-2 text-nowrap rounded-md p-2 px-3 text-sm font-semibold text-[#03624C] transition-all hover:bg-[#17876D] hover:text-white",
+                      {
+                        "bg-[#17876D] text-white": pathname === "/portfolio",
+                      },
+                    )}
+                  >
+                    <UserIcon className="-ml-0.5 size-5" />
+                    xSTRK Portfolio
+                  </Link>
+                </div>
+              </div>
+
+              <div className="w-full">
+                <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-[#03624C]">
+                  BTC
+                </h3>
+                <div className="space-y-2">
+                  <Link
+                    href={referrer ? `/btc?referrer=${referrer}` : "/btc"}
+                    className={cn(
+                      "flex w-full cursor-pointer flex-row items-center gap-2 text-nowrap rounded-md p-3 text-sm font-semibold text-[#03624C] transition-all hover:bg-[#17876D] hover:text-white",
+                      {
+                        "bg-[#17876D] text-white": pathname === "/btc",
+                      },
+                    )}
+                  >
+                    <FlameIcon className="-ml-0.5 size-5" />
+                    Liquid Staking
+                  </Link>
+
+                  <div className="flex w-full cursor-not-allowed flex-row items-center gap-2 text-nowrap rounded-md p-3 text-sm font-semibold text-[#03624C] opacity-50 transition-all">
+                    <HandCoinsIcon className="-ml-0.5 size-5" />
+                    <div>
+                      <p>DeFi with xyBTCs</p>
+                      <p className="text-xs text-[#8D9C9C]">Coming soon</p>
+                    </div>
+                  </div>
+
+                  <div className="flex w-full cursor-not-allowed flex-row items-center gap-2 text-nowrap rounded-md p-3 text-sm font-semibold text-[#03624C] opacity-50 transition-all">
+                    <ChartColumnDecreasingIcon className="size-5" />
+                    <div>
+                      <p>xyBTC Analytics</p>
+                      <p className="text-xs text-[#8D9C9C]">Coming soon</p>
+                    </div>
+                  </div>
+
+                  <div className="flex w-full cursor-not-allowed flex-row items-center gap-2 text-nowrap rounded-md p-3 text-sm font-semibold text-[#03624C] opacity-50 transition-all">
+                    <UserIcon className="-ml-0.5 size-5" />
+                    <div>
+                      <p>xyBTCs Portfolio</p>
+                      <p className="text-xs text-[#8D9C9C]">Coming soon</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
 
               <Link
                 href={LINKS.DASHBOARD_URL}
-                className={cn(
-                  "flex w-full cursor-pointer flex-row items-center gap-2 text-nowrap rounded-md p-2 px-3 text-sm font-semibold text-[#03624C] transition-all hover:bg-[#17876D] hover:text-white",
-                )}
+                className="flex w-full cursor-pointer flex-row items-center gap-2 text-nowrap rounded-md p-2 px-3 text-sm font-semibold text-[#03624C] transition-all hover:bg-[#17876D] hover:text-white"
               >
                 <GaugeIcon className="-ml-0.5 size-5" />
                 Staking Dashboard
-              </Link>
-
-              <Link
-                href="/portfolio"
-                className={cn(
-                  "flex w-full cursor-pointer flex-row items-center gap-2 text-nowrap rounded-md p-2 px-3 text-sm font-semibold text-[#03624C] transition-all hover:bg-[#17876D] hover:text-white",
-                  {
-                    "bg-[#17876D] text-white": pathname === "/portfolio",
-                  },
-                )}
-              >
-                <UserIcon className="-ml-0.5 size-5" />
-                Portfolio
               </Link>
 
               <Link
@@ -139,7 +186,7 @@ const MobileNav = () => {
                   },
                 )}
               >
-                <ChartSplineIcon className="-ml-0.5 size-5" />
+                <ChartSplineIcon className="size-5" />
                 Leaderboard
               </Link>
             </motion.div>

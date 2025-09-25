@@ -73,7 +73,7 @@ const Tabs = () => {
     } else if (pathname === "/strk") {
       setActiveTab("strk");
     } else {
-      setActiveTab("strk");
+      setActiveTab("btc");
     }
   }, [pathname, setActiveTab]);
 
@@ -243,7 +243,7 @@ const Tabs = () => {
           <ShadCNTabs
             onValueChange={(value) => handleTabChange(value)}
             value={activeTab}
-            defaultValue="strk"
+            defaultValue="btc"
             className="col-span-2 h-full w-full lg:mt-0"
           >
             <TabsList
