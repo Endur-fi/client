@@ -95,7 +95,7 @@ export function AppSidebar() {
         </SidebarMenu>
       </SidebarHeader>
 
-      <SidebarContent className={cn("overflow-hidden bg-[#AACBC433] pt-5", {})}>
+      <SidebarContent className={cn("overflow-y-auto bg-[#AACBC433] pt-5", {})}>
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu className="space-y-1.5">

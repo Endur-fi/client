@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import React from "react";
+import { ChevronDown, ChevronRight } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
@@ -19,6 +20,8 @@ import { UserIcon } from "./ui/user";
 
 const MobileNav = () => {
   const [open, setOpen] = React.useState(false);
+  const [strkExpanded, setStrkExpanded] = React.useState(false);
+  const [btcExpanded, setBtcExpanded] = React.useState(false);
   const menuRef = React.useRef<HTMLDivElement>(null);
   const iconRef = React.useRef<HTMLDivElement | null>(null);
 
@@ -69,104 +72,125 @@ const MobileNav = () => {
               }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="absolute inset-x-0 top-16 z-50 flex w-fit flex-col items-start justify-start gap-4 rounded-lg border border-[#17876D33] bg-[#DCECE8] px-2 py-3"
+              className="absolute inset-x-0 top-16 z-50 flex max-h-[80vh] w-fit flex-col items-start justify-start gap-4 overflow-y-auto rounded-lg border border-[#17876D33] bg-[#DCECE8] px-2 py-3"
             >
+              {/* Liquid Staking - Always on top */}
               <div className="w-full">
-                <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-[#03624C]">
-                  STRK
-                </h3>
-                <div className="space-y-1">
-                  <Link
-                    href={referrer ? `/strk?referrer=${referrer}` : "/strk"}
-                    className={cn(
-                      "flex w-full cursor-pointer flex-row items-center gap-2 text-nowrap rounded-md p-2 px-3 text-sm font-semibold text-[#03624C] transition-all hover:bg-[#17876D] hover:text-white",
-                      {
-                        "bg-[#17876D] text-white": pathname === "/strk",
-                      },
-                    )}
-                  >
-                    <FlameIcon className="-ml-0.5 size-5" />
-                    Liquid Staking
-                  </Link>
-
-                  <Link
-                    href={referrer ? `/defi?referrer=${referrer}` : "/defi"}
-                    className={cn(
-                      "flex w-full cursor-pointer flex-row items-center gap-2 text-nowrap rounded-md p-2 px-3 text-sm font-semibold text-[#03624C] transition-all hover:bg-[#17876D] hover:text-white",
-                      {
-                        "bg-[#17876D] text-white": pathname === "/defi",
-                      },
-                    )}
-                  >
-                    <HandCoinsIcon className="-ml-0.5 size-5" />
-                    DeFi with xSTRK
-                  </Link>
-
-                  <Link
-                    href={LINKS.DUNE_ANALYTICS}
-                    className="flex w-full cursor-pointer flex-row items-center gap-2 text-nowrap rounded-md p-2 px-3 text-sm font-semibold text-[#03624C] transition-all hover:bg-[#17876D] hover:text-white"
-                  >
-                    <ChartColumnDecreasingIcon className="size-5" />
-                    xSTRK Analytics
-                  </Link>
-
-                  <Link
-                    href="/portfolio"
-                    className={cn(
-                      "flex w-full cursor-pointer flex-row items-center gap-2 text-nowrap rounded-md p-2 px-3 text-sm font-semibold text-[#03624C] transition-all hover:bg-[#17876D] hover:text-white",
-                      {
-                        "bg-[#17876D] text-white": pathname === "/portfolio",
-                      },
-                    )}
-                  >
-                    <UserIcon className="-ml-0.5 size-5" />
-                    xSTRK Portfolio
-                  </Link>
-                </div>
+                <Link
+                  href={
+                    pathname === "/btc"
+                      ? referrer
+                        ? `/btc?referrer=${referrer}`
+                        : "/btc"
+                      : referrer
+                        ? `/strk?referrer=${referrer}`
+                        : "/strk"
+                  }
+                  className={cn(
+                    "flex w-full cursor-pointer flex-row items-center gap-2 text-nowrap rounded-md p-2 px-3 text-sm font-semibold text-[#03624C] transition-all hover:bg-[#17876D] hover:text-white",
+                    {
+                      "bg-[#17876D] text-white":
+                        pathname === "/strk" || pathname === "/btc",
+                    },
+                  )}
+                >
+                  <FlameIcon className="-ml-0.5 size-5" />
+                  Liquid Staking
+                </Link>
               </div>
 
               <div className="w-full">
-                <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-[#03624C]">
-                  BTC
-                </h3>
-                <div className="space-y-2">
-                  <Link
-                    href={referrer ? `/btc?referrer=${referrer}` : "/btc"}
-                    className={cn(
-                      "flex w-full cursor-pointer flex-row items-center gap-2 text-nowrap rounded-md p-3 text-sm font-semibold text-[#03624C] transition-all hover:bg-[#17876D] hover:text-white",
-                      {
-                        "bg-[#17876D] text-white": pathname === "/btc",
-                      },
-                    )}
-                  >
-                    <FlameIcon className="-ml-0.5 size-5" />
-                    Liquid Staking
-                  </Link>
+                <button
+                  onClick={() => setStrkExpanded(!strkExpanded)}
+                  className="mb-2 flex w-full items-center justify-between text-xs font-semibold uppercase tracking-wide text-[#03624C] transition-colors hover:text-[#17876D]"
+                >
+                  <span>STRK</span>
+                  {strkExpanded ? (
+                    <ChevronDown className="size-4" />
+                  ) : (
+                    <ChevronRight className="size-4" />
+                  )}
+                </button>
 
-                  <div className="flex w-full cursor-not-allowed flex-row items-center gap-2 text-nowrap rounded-md p-3 text-sm font-semibold text-[#03624C] opacity-50 transition-all">
-                    <HandCoinsIcon className="-ml-0.5 size-5" />
-                    <div>
-                      <p>DeFi with xyBTCs</p>
-                      <p className="text-xs text-[#8D9C9C]">Coming soon</p>
+                {strkExpanded && (
+                  <div className="space-y-1">
+                    <Link
+                      href={referrer ? `/defi?referrer=${referrer}` : "/defi"}
+                      className={cn(
+                        "flex w-full cursor-pointer flex-row items-center gap-2 text-nowrap rounded-md p-2 px-3 text-sm font-semibold text-[#03624C] transition-all hover:bg-[#17876D] hover:text-white",
+                        {
+                          "bg-[#17876D] text-white": pathname === "/defi",
+                        },
+                      )}
+                    >
+                      <HandCoinsIcon className="-ml-0.5 size-5" />
+                      DeFi with xSTRK
+                    </Link>
+
+                    <Link
+                      href={LINKS.DUNE_ANALYTICS}
+                      className="flex w-full cursor-pointer flex-row items-center gap-2 text-nowrap rounded-md p-2 px-3 text-sm font-semibold text-[#03624C] transition-all hover:bg-[#17876D] hover:text-white"
+                    >
+                      <ChartColumnDecreasingIcon className="size-5" />
+                      xSTRK Analytics
+                    </Link>
+
+                    <Link
+                      href="/portfolio"
+                      className={cn(
+                        "flex w-full cursor-pointer flex-row items-center gap-2 text-nowrap rounded-md p-2 px-3 text-sm font-semibold text-[#03624C] transition-all hover:bg-[#17876D] hover:text-white",
+                        {
+                          "bg-[#17876D] text-white": pathname === "/portfolio",
+                        },
+                      )}
+                    >
+                      <UserIcon className="-ml-0.5 size-5" />
+                      xSTRK Portfolio
+                    </Link>
+                  </div>
+                )}
+              </div>
+
+              <div className="w-full">
+                <button
+                  onClick={() => setBtcExpanded(!btcExpanded)}
+                  className="mb-2 flex w-full items-center justify-between text-xs font-semibold uppercase tracking-wide text-[#03624C] transition-colors hover:text-[#17876D]"
+                >
+                  <span>BTC</span>
+                  {btcExpanded ? (
+                    <ChevronDown className="size-4" />
+                  ) : (
+                    <ChevronRight className="size-4" />
+                  )}
+                </button>
+
+                {btcExpanded && (
+                  <div className="space-y-1">
+                    <div className="flex w-full cursor-not-allowed flex-row items-center gap-2 text-nowrap rounded-md p-2 px-3 text-sm font-semibold text-[#03624C] opacity-50 transition-all">
+                      <HandCoinsIcon className="-ml-0.5 size-5" />
+                      <div>
+                        <p>DeFi with xyBTCs</p>
+                        <p className="text-xs text-[#8D9C9C]">Coming soon</p>
+                      </div>
+                    </div>
+
+                    <div className="flex w-full cursor-not-allowed flex-row items-center gap-2 text-nowrap rounded-md p-2 px-3 text-sm font-semibold text-[#03624C] opacity-50 transition-all">
+                      <ChartColumnDecreasingIcon className="size-5" />
+                      <div>
+                        <p>xyBTC Analytics</p>
+                        <p className="text-xs text-[#8D9C9C]">Coming soon</p>
+                      </div>
+                    </div>
+
+                    <div className="flex w-full cursor-not-allowed flex-row items-center gap-2 text-nowrap rounded-md p-2 px-3 text-sm font-semibold text-[#03624C] opacity-50 transition-all">
+                      <UserIcon className="-ml-0.5 size-5" />
+                      <div>
+                        <p>xyBTCs Portfolio</p>
+                        <p className="text-xs text-[#8D9C9C]">Coming soon</p>
+                      </div>
                     </div>
                   </div>
-
-                  <div className="flex w-full cursor-not-allowed flex-row items-center gap-2 text-nowrap rounded-md p-3 text-sm font-semibold text-[#03624C] opacity-50 transition-all">
-                    <ChartColumnDecreasingIcon className="size-5" />
-                    <div>
-                      <p>xyBTC Analytics</p>
-                      <p className="text-xs text-[#8D9C9C]">Coming soon</p>
-                    </div>
-                  </div>
-
-                  <div className="flex w-full cursor-not-allowed flex-row items-center gap-2 text-nowrap rounded-md p-3 text-sm font-semibold text-[#03624C] opacity-50 transition-all">
-                    <UserIcon className="-ml-0.5 size-5" />
-                    <div>
-                      <p>xyBTCs Portfolio</p>
-                      <p className="text-xs text-[#8D9C9C]">Coming soon</p>
-                    </div>
-                  </div>
-                </div>
+                )}
               </div>
 
               <Link
