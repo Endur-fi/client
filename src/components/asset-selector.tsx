@@ -22,7 +22,7 @@ interface AssetSelectorProps {
 const btcAssets = getLSTAssetsByCategory("BTC");
 
 // Helper to get the first BTC asset symbol
-export const getFirstBtcAsset = () => {
+export const getFirstBtcAsset = (): string => {
   const firstBtcAsset = getFirstBTCAsset();
   return firstBtcAsset ? firstBtcAsset.SYMBOL : "";
 };
@@ -246,18 +246,16 @@ const AssetSelector: React.FC<AssetSelectorProps> = ({
           BigInt(0);
         return Number(balanceB) - Number(balanceA);
       });
-    } else {
-      // Sort by xBTC token balance (descending) - for unstake mode
-      return [...btcAssets].sort((a, b) => {
-        const balanceA =
-          xBtcBalances.find((ba) => ba.symbol === a.SYMBOL)?.balance ||
-          BigInt(0);
-        const balanceB =
-          xBtcBalances.find((ba) => ba.symbol === b.SYMBOL)?.balance ||
-          BigInt(0);
-        return Number(balanceB) - Number(balanceA);
-      });
     }
+
+    // Sort by xBTC token balance (descending) - for unstake mode
+    return [...btcAssets].sort((a, b) => {
+      const balanceA =
+        xBtcBalances.find((ba) => ba.symbol === a.SYMBOL)?.balance || BigInt(0);
+      const balanceB =
+        xBtcBalances.find((ba) => ba.symbol === b.SYMBOL)?.balance || BigInt(0);
+      return Number(balanceB) - Number(balanceA);
+    });
   }, [mode, btcBalances, xBtcBalances]);
 
   // Set initial lstConfig when component mounts or selectedAsset changes

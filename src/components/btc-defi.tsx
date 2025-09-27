@@ -1,6 +1,5 @@
 "use client";
 
-import { useAtomValue } from "jotai";
 import React, { useMemo } from "react";
 
 import { useSidebar } from "@/components/ui/sidebar";

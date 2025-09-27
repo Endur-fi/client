@@ -23,6 +23,15 @@ import AssetSelector, { getFirstBtcAsset } from "./asset-selector";
 import { tabsAtom } from "@/store/merry.store";
 import { lstConfigAtom } from "@/store/common.store";
 
+const platformConfig = (lstConfig: any) => {
+  return {
+    trovesHyper: {
+      platform: "Troves",
+      name: `Trove's Hyper ${lstConfig.LST_SYMBOL} Vault`,
+    },
+  };
+};
+
 interface StatsProps {
   selectedPlatform?: Platform;
   getPlatformYield?: (platform: Platform) => number;
@@ -80,7 +89,7 @@ const Stats: React.FC<StatsProps> = ({
                 >
                   {!selectedPlatform || selectedPlatform === "none"
                     ? "Estimated current compounded annualised yield on staking in terms of STRK."
-                    : `Estimated yield including both staking and lending on ${selectedPlatform === "vesu" ? "Vesu" : "Nostra"}.`}
+                    : `Estimated yield including both staking and lending on ${platformConfig(lstConfig)[selectedPlatform]?.platform || "DeFi platform"}.`}
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>

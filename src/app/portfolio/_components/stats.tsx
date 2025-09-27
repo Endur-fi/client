@@ -25,8 +25,8 @@ export const totalXSTRKAcrossDefiHoldingsAtom = atom((get) => {
     Number(vesuBalance.data.lstAmount.toEtherToFixedDecimals(2)) +
     Number(nostraBalance.data.lstAmount.toEtherToFixedDecimals(2)) +
     Number(ekuboBalance.data.lstAmount.toEtherToFixedDecimals(2)) +
-    Number(lstBalance.value.toEtherToFixedDecimals(2));
-  Number(strkfarmXSTRKBalance.data.lstAmount.toEtherToFixedDecimals(2)) +
+    Number(lstBalance.value.toEtherToFixedDecimals(2)) +
+    Number(strkfarmXSTRKBalance.data.lstAmount.toEtherToFixedDecimals(2)) +
     Number(opusBalance.data.lstAmount.toEtherToFixedDecimals(2));
   if (Number.isNaN(value)) {
     return 0;

@@ -1,7 +1,7 @@
 import React from "react";
 
 import { Card } from "@/components/ui/card";
-import { cn, formatNumber } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { useAtomValue } from "jotai";
 import { lstConfigAtom } from "@/store/common.store";
 

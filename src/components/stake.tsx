@@ -19,9 +19,7 @@ import { TwitterShareButton } from "react-share";
 import { Call, Contract } from "starknet";
 import * as z from "zod";
 
-import ekuboStrkfarmAbi from "@/abi/ekubo_strkfarm.abi.json";
 import erc4626Abi from "@/abi/erc4626.abi.json";
-import ixstrkAbi from "@/abi/ixstrk.abi.json";
 import vxstrkAbi from "@/abi/vxstrk.abi.json";
 import {
   Collapsible,
@@ -55,7 +53,7 @@ import { useTransactionHandler } from "@/hooks/use-transactions";
 import { useWalletConnection } from "@/hooks/use-wallet-connection";
 import { MyAnalytics } from "@/lib/analytics";
 import MyNumber from "@/lib/MyNumber";
-import { cn, eventNames, formatNumberWithCommas } from "@/lib/utils";
+import { cn, eventNames } from "@/lib/utils";
 import LSTService from "@/services/lst";
 import { lstConfigAtom } from "@/store/common.store";
 import { protocolYieldsAtom } from "@/store/defi.store";
