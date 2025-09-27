@@ -597,7 +597,11 @@ export type SupportedDApp =
   | "nostra"
   | "haiko"
   | "opus"
-  | "endur";
+  | "endur"
+  | "ekuboBTCxWBTC"
+  | "ekuboBTCxtBTC"
+  | "ekuboBTCxLBTC"
+  | "ekuboBTCxsBTC";
 
 export interface ProtocolStats {
   value: number | null;

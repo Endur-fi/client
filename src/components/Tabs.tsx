@@ -393,7 +393,6 @@ const Tabs = () => {
               )}
             </TabsContent>
 
-            {/* BTC Tab Content - Coming Soon */}
             <TabsContent
               value="btc"
               className="h-full pb-3 focus-visible:ring-0 focus-visible:ring-offset-0 lg:pb-0"

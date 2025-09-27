@@ -214,22 +214,31 @@ const SidebarMenuItems = () => {
             <SidebarMenuItem className="mb-2">
               <SidebarMenuButton
                 asChild
-                className="transition-all hover:bg-[#17876D] hover:text-white"
-                onMouseEnter={() => setTriggerDefiIconAnimation(true)}
-                onMouseLeave={() => setTriggerDefiIconAnimation(false)}
+                className={cn(
+                  "transition-all hover:bg-[#17876D] hover:text-white",
+                  {
+                    "bg-[#17876D] text-white": pathname === "/defi-btc",
+                  },
+                )}
+                onMouseEnter={() =>
+                  pathname !== "/defi-btc" && setTriggerDefiIconAnimation(true)
+                }
+                onMouseLeave={() =>
+                  pathname !== "/defi-btc" && setTriggerDefiIconAnimation(false)
+                }
               >
-                <div className="flex cursor-not-allowed flex-row items-center gap-2 text-nowrap rounded-md px-3 py-2 text-base font-semibold text-[#03624C] opacity-50 transition-all">
+                <Link
+                  href={
+                    referrer ? `/defi-btc?referrer=${referrer}` : "/defi-btc"
+                  }
+                  className="flex cursor-pointer flex-row items-center gap-2 text-nowrap rounded-md text-base font-semibold text-[#03624C] transition-all"
+                >
                   <HandCoinsIcon
                     className="-ml-0.5 size-5"
                     triggerAnimation={triggerDefiIconAnimation}
                   />
-                  {open && (
-                    <div>
-                      <p>DeFi with xyBTCs</p>
-                      <p className="text-xs text-[#8D9C9C]">Coming soon</p>
-                    </div>
-                  )}
-                </div>
+                  {open && "DeFi with xyBTCs"}
+                </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
 
