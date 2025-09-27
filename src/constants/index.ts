@@ -35,10 +35,12 @@ export interface LSTAssetConfig {
     SN_MAIN?: {
       LST_ADDRESS: string;
       WITHDRAWAL_QUEUE_ADDRESS: string;
+      TROVES_HYPER_VAULT_ADDRESS?: string;
     };
     SN_SEPOLIA?: {
       LST_ADDRESS: string;
       WITHDRAWAL_QUEUE_ADDRESS: string;
+      TROVES_HYPER_VAULT_ADDRESS?: string;
     };
   };
 }
@@ -47,6 +49,7 @@ export interface LSTNetworkConfig {
   [key: string]: LSTAssetConfig & {
     LST_ADDRESS: string;
     WITHDRAWAL_QUEUE_ADDRESS: string;
+    TROVES_HYPER_VAULT_ADDRESS?: string;
   };
 }
 
@@ -66,6 +69,8 @@ const LST_ASSETS: Record<string, LSTAssetConfig> = {
           "0x028d709c875c0ceac3dce7065bec5328186dc89fe254527084d1689910954b0a",
         WITHDRAWAL_QUEUE_ADDRESS:
           "0x00518a66e579f9eb1603f5ffaeff95d3f013788e9c37ee94995555026b9648b6",
+        TROVES_HYPER_VAULT_ADDRESS:
+          "0x046c7a54c82b1fe374353859f554a40b8bd31d3e30f742901579e7b57b1b5960",
       },
       SN_SEPOLIA: {
         LST_ADDRESS:
@@ -90,6 +95,8 @@ const LST_ASSETS: Record<string, LSTAssetConfig> = {
           "0x6a567e68c805323525fe1649adb80b03cddf92c23d2629a6779f54192dffc13",
         WITHDRAWAL_QUEUE_ADDRESS:
           "0x670cdfa77487203cdf11d58db9617988d3a8fc2b22730594ed7d193a0430f72",
+        TROVES_HYPER_VAULT_ADDRESS:
+          "0x02da9d0f96a46b453f55604313785dc866424240b1c6811d13bef594343db818",
       },
     },
   },
@@ -108,6 +115,8 @@ const LST_ASSETS: Record<string, LSTAssetConfig> = {
           "0x43a35c1425a0125ef8c171f1a75c6f31ef8648edcc8324b55ce1917db3f9b91",
         WITHDRAWAL_QUEUE_ADDRESS:
           "0x35b194007fb5d9fd10cb1f8772ef45cced853e7b3239367de0e19ecba85d75a",
+        TROVES_HYPER_VAULT_ADDRESS:
+          "0x0047d5f68477e5637ce0e56436c6b5eee5a354e6828995dae106b11a48679328",
       },
     },
   },
@@ -126,6 +135,8 @@ const LST_ASSETS: Record<string, LSTAssetConfig> = {
           "0x7dd3c80de9fcc5545f0cb83678826819c79619ed7992cc06ff81fc67cd2efe0",
         WITHDRAWAL_QUEUE_ADDRESS:
           "0x293caaca81259f02f17bd85de5056624626fc7cb25ff79f104c3ef07a4649ec",
+        TROVES_HYPER_VAULT_ADDRESS:
+          "0x038e96a301428d204ab4553799aa386a0f14a5ef9b30a5830be1814e4fb8da1c",
       },
     },
   },
@@ -144,6 +155,8 @@ const LST_ASSETS: Record<string, LSTAssetConfig> = {
           "0x580f3dc564a7b82f21d40d404b3842d490ae7205e6ac07b1b7af2b4a5183dc9",
         WITHDRAWAL_QUEUE_ADDRESS:
           "0x45f4f8affbfa6ef794f3b5eee7855bd19321745c5b442ad935cad4ae6a61006",
+        TROVES_HYPER_VAULT_ADDRESS:
+          "0x00437ef1e7d0f100b2e070b7a65cafec0b2be31b0290776da8b4112f5473d8d9",
       },
     },
   },
@@ -204,6 +217,7 @@ function buildLSTConfig(network: string): LSTNetworkConfig {
         ...baseAsset,
         LST_ADDRESS: networkConfig.LST_ADDRESS,
         WITHDRAWAL_QUEUE_ADDRESS: networkConfig.WITHDRAWAL_QUEUE_ADDRESS,
+        TROVES_HYPER_VAULT_ADDRESS: networkConfig.TROVES_HYPER_VAULT_ADDRESS,
       };
     }
   });

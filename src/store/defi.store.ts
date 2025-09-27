@@ -7,6 +7,7 @@ import { BlockIdentifier } from "starknet";
 import { assetPriceAtom, lstConfigAtom, userAddressAtom } from "./common.store";
 import { apiExchangeRateAtom } from "./lst.store";
 import { snAPYAtom } from "./staking.store";
+import { LSTAssetConfig } from "@/constants";
 
 interface VesuAPIResponse {
   data: {
@@ -407,6 +408,64 @@ const strkFarmEkuboYieldQueryAtom = atomWithQuery((get) => ({
   refetchInterval: 60000,
 }));
 
+const trovesHyperYieldQueryAtom = atomWithQuery((get) => ({
+  queryKey: ["trovesHyperYield", get(lstConfigAtom)] as [
+    string,
+    LSTAssetConfig | undefined,
+  ],
+  queryFn: async ({
+    queryKey,
+  }: {
+    queryKey: [string, LSTAssetConfig | undefined];
+  }): Promise<ProtocolYield> => {
+    const [, lstConfig] = queryKey;
+
+    const hostname = "https://beta.troves.fi";
+    const res = await fetch(`${hostname}/api/strategies`);
+    const data = await res.json();
+    const strategies = data.strategies;
+    const strategy = strategies.find(
+      (strategy: any) =>
+        strategy.id === `hyper_${lstConfig!.LST_SYMBOL.toLocaleLowerCase()}`,
+    );
+
+    if (!strategy) {
+      return {
+        value: 0,
+        isLoading: false,
+        error: "Failed to find strategy",
+      };
+    }
+
+    const { data: price, isLoading } = get(assetPriceAtom);
+    const { value: baseApy } = get(snAPYAtom);
+
+    if (!price) {
+      return {
+        value: 0,
+        isLoading: false,
+        error: "Failed to fetch STRK price",
+      };
+    }
+
+    const totalSupplied = strategy.tvlUsd / price;
+
+    const isSTRK = lstConfig!.SYMBOL === "STRK";
+
+    const apy = isSTRK
+      ? strategy.apy - baseApy.strkApy
+      : strategy.apy - baseApy.btcApy;
+
+    return {
+      value: apy * 100,
+      totalSupplied: totalSupplied ?? 0,
+      isLoading,
+      error: "Failed to fetch APY",
+    };
+  },
+  refetchInterval: 60000,
+}));
+
 const haikoYieldQueryAtom = atomWithQuery(() => ({
   queryKey: ["haikoYield"],
   queryFn: async (): Promise<ProtocolYield> => {
@@ -515,9 +574,20 @@ export const haikoYieldAtom = atom<ProtocolStats>((get) => {
   };
 });
 
+export const trovesHyperYieldAtom = atom<ProtocolStats>((get) => {
+  const { data, error } = get(trovesHyperYieldQueryAtom);
+  return {
+    value: error || !data ? null : data.value,
+    totalSupplied: error || !data ? 0 : (data.totalSupplied ?? 0),
+    error,
+    isLoading: !data && !error,
+  };
+});
+
 export type SupportedDApp =
   | "strkfarm"
   | "strkfarmEkubo"
+  | "trovesHyper"
   | "vesu"
   | "avnu"
   | "fibrous"
@@ -541,6 +611,7 @@ export const protocolYieldsAtom = atom<
 >((get) => ({
   strkfarm: get(strkFarmYieldAtom),
   strkfarmEkubo: get(strkFarmEkuboYieldAtom),
+  trovesHyper: get(trovesHyperYieldAtom),
   vesu: get(vesuYieldAtom),
   ekubo: get(ekuboYieldAtom),
   nostraDex: get(nostraLPYieldAtom),
