@@ -354,7 +354,7 @@ export const btcProtocolConfigs: Partial<
       "Lend xWBTC on Vesu to earn yield and access leveraged strategies",
     action: {
       type: "lend",
-      link: "https://vesu.xyz/lend",
+      link: "http://vesu.xyz/earn?onlyV2Markets=true&includeIsolatedMarkets=true",
       buttonText: "Lend xWBTC",
       onClick: () => {
         MyAnalytics.track(eventNames.OPPORTUNITIES, {
@@ -375,7 +375,7 @@ export const btcProtocolConfigs: Partial<
       "Lend xtBTC on Vesu to earn yield and access leveraged strategies",
     action: {
       type: "lend",
-      link: "https://vesu.xyz/lend",
+      link: "http://vesu.xyz/earn?onlyV2Markets=true&includeIsolatedMarkets=true",
       buttonText: "Lend xtBTC",
       onClick: () => {
         MyAnalytics.track(eventNames.OPPORTUNITIES, {
@@ -396,7 +396,7 @@ export const btcProtocolConfigs: Partial<
       "Lend xLBTC on Vesu to earn yield and access leveraged strategies",
     action: {
       type: "lend",
-      link: "https://vesu.xyz/lend",
+      link: "http://vesu.xyz/earn?onlyV2Markets=true&includeIsolatedMarkets=true",
       buttonText: "Lend xLBTC",
       onClick: () => {
         MyAnalytics.track(eventNames.OPPORTUNITIES, {
@@ -417,7 +417,7 @@ export const btcProtocolConfigs: Partial<
       "Lend xsBTC on Vesu to earn yield and access leveraged strategies",
     action: {
       type: "lend",
-      link: "https://vesu.xyz/lend",
+      link: "http://vesu.xyz/earn?onlyV2Markets=true&includeIsolatedMarkets=true",
       buttonText: "Lend xsBTC",
       onClick: () => {
         MyAnalytics.track(eventNames.OPPORTUNITIES, {
