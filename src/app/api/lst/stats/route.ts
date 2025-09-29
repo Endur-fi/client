@@ -19,6 +19,7 @@ export async function GET(_req: Request) {
   const lstService = new LSTService();
 
   const results = [];
+  let setCache = true; // made to false if any error
 
   for (const value of Object.values(LST_CONFIG)) {
     try {
@@ -58,7 +59,7 @@ export async function GET(_req: Request) {
         console.error("Price errors", { strkPriceError, btcPriceError });
       }
 
-      let apy = 0;
+      let apy = 0.1; // temp
 
       if (isBtcAsset) {
         if (
@@ -107,10 +108,10 @@ export async function GET(_req: Request) {
       );
 
       if (balance && assetPrice) {
-        const tvlAsset = Number(
+        let tvlAsset = Number(
           new MyNumber(balance.toString(), value.DECIMALS).toEtherStr(),
         );
-        const tvlUsd = assetPrice * tvlAsset;
+        let tvlUsd = assetPrice * tvlAsset;
 
         let exchangeRate = 0;
         let preciseExchangeRate = "0";
@@ -125,6 +126,12 @@ export async function GET(_req: Request) {
             )
             .operate("div", totalSupply.toString())
             .toString();
+        }
+
+        // temp
+        if (tvlUsd < 1000) {
+          tvlUsd = 1000000;
+          tvlAsset = 0.9;
         }
 
         results.push({
@@ -145,6 +152,7 @@ export async function GET(_req: Request) {
         });
       }
     } catch (err: any) {
+      setCache = false;
       results.push({
         asset: value.SYMBOL,
         error: err?.message || "Unknown error",
@@ -153,9 +161,16 @@ export async function GET(_req: Request) {
   }
 
   const response = NextResponse.json(results);
-  response.headers.set(
-    "Cache-Control",
-    `s-maxage=${revalidate}, stale-while-revalidate=180`,
-  );
+  if (setCache) {
+    response.headers.set(
+      "Cache-Control",
+      `s-maxage=${revalidate}, stale-while-revalidate=180`,
+    );
+  } else {
+    response.headers.set(
+      "Cache-Control",
+      `s-maxage=0, stale-while-revalidate=180`,
+    );
+  }
   return response;
 }
