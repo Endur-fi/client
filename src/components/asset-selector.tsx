@@ -22,7 +22,7 @@ interface AssetSelectorProps {
 const btcAssets = getLSTAssetsByCategory("BTC");
 
 // Helper to get the first BTC asset symbol
-export const getFirstBtcAsset = () => {
+export const getFirstBtcAsset = (): string => {
   const firstBtcAsset = getFirstBTCAsset();
   return firstBtcAsset ? firstBtcAsset.SYMBOL : "";
 };

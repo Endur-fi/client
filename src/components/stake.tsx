@@ -19,9 +19,7 @@ import { TwitterShareButton } from "react-share";
 import { Call, Contract } from "starknet";
 import * as z from "zod";
 
-import ekuboStrkfarmAbi from "@/abi/ekubo_strkfarm.abi.json";
 import erc4626Abi from "@/abi/erc4626.abi.json";
-import ixstrkAbi from "@/abi/ixstrk.abi.json";
 import vxstrkAbi from "@/abi/vxstrk.abi.json";
 import {
   Collapsible,
@@ -45,6 +43,7 @@ import {
 import {
   getEndpoint,
   IS_PAUSED,
+  LSTAssetConfig,
   NOSTRA_iXSTRK_ADDRESS,
   REWARD_FEES,
   VESU_vXSTRK_ADDRESS,
@@ -83,31 +82,22 @@ const formSchema = z.object({
 
 export type FormValues = z.infer<typeof formSchema>;
 
-export type Platform = "none" | "vesu" | "nostraLending" | "strkfarmEkubo";
+export type Platform = "none" | "trovesHyper";
 
 const PLATFORMS = {
-  VESU: "vesu",
-  // NOSTRA: "nostraLending",
-  // STRKFARM_EKUBO: "strkfarmEkubo",
+  TROVES_HYPER: "trovesHyper",
 } as const;
 
-const PLATFORM_CONFIG = {
-  vesu: {
-    name: "Vesu",
-    icon: <Icons.vesuLogo className="h-6 w-6 rounded-full" />,
-    key: "vesu" as const,
-  },
-  nostraLending: {
-    name: "Nostra",
-    icon: <Icons.nostraLogo className="h-6 w-6" />,
-    key: "nostraLending" as const,
-  },
-  // strkfarmEkubo: {
-  //   name: "STRKFarm's Ekubo xSTRK/STRK Vault",
-  //   icon: <Icons.strkfarmLogo className="size-6" />,
-  //   key: "strkfarmEkubo" as const,
-  // },
-} as const;
+const platformConfig = (lstConfig: LSTAssetConfig) => {
+  return {
+    trovesHyper: {
+      platfrom: "Troves",
+      name: `Trove's Hyper ${lstConfig.LST_SYMBOL} Vault`,
+      icon: <Icons.trovesLogoLight className="size-6" />,
+      key: "trovesHyper" as const,
+    },
+  };
+};
 
 const Stake: React.FC = () => {
   const [showShareModal, setShowShareModal] = React.useState(false);
@@ -128,6 +118,7 @@ const Stake: React.FC = () => {
   const exchangeRate = useAtomValue(apiExchangeRateAtom);
   const apy = useAtomValue(snAPYAtom);
   const yields = useAtomValue(protocolYieldsAtom);
+  console.log("yields", yields);
 
   const referrer = searchParams.get("referrer");
 
@@ -169,16 +160,22 @@ const Stake: React.FC = () => {
     }
 
     if (balance && percentage === 100) {
-      if (Number(balance?.formatted) < 1) {
-        form.setValue("stakeAmount", "0");
-        form.clearErrors("stakeAmount");
-        return;
-      }
+      // For BTC tokens, use the full balance since they're often less than 1
+      // For other tokens, reserve 1 unit for gas fees
+      if (isBTC) {
+        form.setValue("stakeAmount", Number(balance?.formatted).toFixed(8));
+      } else {
+        if (Number(balance?.formatted) < 1) {
+          form.setValue("stakeAmount", "0");
+          form.clearErrors("stakeAmount");
+          return;
+        }
 
-      form.setValue(
-        "stakeAmount",
-        (Number(balance?.formatted) - 1).toFixed(isBTC ? 6 : 2),
-      );
+        form.setValue(
+          "stakeAmount",
+          (Number(balance?.formatted) - 1).toFixed(2),
+        );
+      }
       form.clearErrors("stakeAmount");
       return;
     }
@@ -297,11 +294,12 @@ const Stake: React.FC = () => {
         address: lstConfig.LST_ADDRESS,
       });
 
+      console.log("hyper address", lstConfig.TROVES_HYPER_VAULT_ADDRESS);
       const lendingAddress =
-        selectedPlatform === "vesu"
-          ? VESU_vXSTRK_ADDRESS
-          : selectedPlatform === "strkfarmEkubo"
-            ? "" // TODO: update the address
+        selectedPlatform === "trovesHyper"
+          ? lstConfig.TROVES_HYPER_VAULT_ADDRESS // TODO: update the address
+          : selectedPlatform === "vesu"
+            ? VESU_vXSTRK_ADDRESS
             : NOSTRA_iXSTRK_ADDRESS;
 
       const approveCall = lstContract.populate("approve", [
@@ -309,60 +307,26 @@ const Stake: React.FC = () => {
         lstAmount,
       ]);
 
-      if (selectedPlatform === "vesu") {
+      if (selectedPlatform === "trovesHyper") {
+        const trovesHyperContract = new Contract({
+          abi: vxstrkAbi,
+          address: lstConfig.TROVES_HYPER_VAULT_ADDRESS!,
+        });
+
+        const lendingCall = trovesHyperContract.populate("deposit", [
+          lstAmount,
+          address,
+        ]);
+        calls.push(approveCall, lendingCall);
+      } else if (selectedPlatform === "vesu") {
         const vesuContract = new Contract({
           abi: vxstrkAbi,
           address: VESU_vXSTRK_ADDRESS,
         });
+
         const lendingCall = vesuContract.populate("deposit", [
           lstAmount,
           address,
-        ]);
-        calls.push(approveCall, lendingCall);
-      } else if (selectedPlatform === "strkfarmEkubo") {
-        // const config = getMainnetConfig();
-        // const pricer = new PricerFromApi(config, await Global.getTokens());
-        // const clVault = new EkuboCLVault(
-        //   config,
-        //   pricer,
-        //   EkuboCLVaultStrategies[0],
-        // );
-
-        // const input: DualActionAmount = {
-        //   token0: {
-        //     amount: Web3Number.fromWei('0', 18),
-        //     tokenInfo: {
-        //       name: 'STRK',
-        //       symbol: 'STRK',
-        //       address: STRK_TOKEN,
-        //     },
-        //   },
-        //   token1: {
-        //     amount: strkAmount,
-        //     tokenInfo: 0,
-        //   },
-        // };
-
-        // const output = await clVault.matchInputAmounts(input);
-
-        // TODO: update the address
-        const strkFarmEkuboContract = new Contract({
-          abi: ekuboStrkfarmAbi,
-          address: "",
-        });
-        const lendingCall = strkFarmEkuboContract.populate("deposit", [
-          lstAmount,
-          address,
-        ]);
-        calls.push(approveCall, lendingCall);
-      } else {
-        const nostraContract = new Contract({
-          abi: ixstrkAbi,
-          address: NOSTRA_iXSTRK_ADDRESS,
-        });
-        const lendingCall = nostraContract.populate("mint", [
-          address,
-          lstAmount,
         ]);
         calls.push(approveCall, lendingCall);
       }
@@ -374,52 +338,20 @@ const Stake: React.FC = () => {
   const getPlatformYield = (platform: Platform) => {
     if (platform === "none") return 0;
     const key =
-      platform === "vesu"
-        ? "vesu"
-        : platform === "strkfarmEkubo"
-          ? "strkfarmEkubo"
+      platform === "trovesHyper"
+        ? "trovesHyper"
+        : platform === "vesu"
+          ? "vesu"
           : "nostraLending";
     return yields[key]?.value ?? 0;
   };
 
   const sortPlatforms = (platforms: string[], yields: any) => {
-    const regularPlatforms = platforms.filter(
-      // @ts-ignore
-      (p) => p !== PLATFORMS.STRKFARM_EKUBO,
-    );
-    const strkfarmPlatform = platforms.find(
-      // @ts-ignore
-      (p) => p === PLATFORMS.STRKFARM_EKUBO,
-    );
-
-    const sortedRegular = regularPlatforms.sort((a, b) => {
+    return platforms.sort((a, b) => {
       const apyA = yields[a]?.value || 0;
       const apyB = yields[b]?.value || 0;
       return apyB - apyA;
     });
-
-    if (!strkfarmPlatform) return sortedRegular;
-
-    // @ts-ignore
-    const strkfarmAPY = yields[PLATFORMS.STRKFARM_EKUBO]?.value || 0;
-    const highestRegularAPY =
-      sortedRegular.length > 0 ? yields[sortedRegular[0]]?.value || 0 : 0;
-
-    if (strkfarmAPY >= highestRegularAPY) {
-      return [strkfarmPlatform, ...sortedRegular];
-    }
-    const insertIndex = sortedRegular.findIndex(
-      (platform) => (yields[platform]?.value || 0) < strkfarmAPY,
-    );
-
-    if (insertIndex === -1) {
-      return [...sortedRegular, strkfarmPlatform];
-    }
-    return [
-      ...sortedRegular.slice(0, insertIndex),
-      strkfarmPlatform,
-      ...sortedRegular.slice(insertIndex),
-    ];
   };
 
   const sortedPlatforms = React.useMemo(() => {
@@ -441,10 +373,11 @@ const Stake: React.FC = () => {
     setSelectedPlatform,
   }) => {
     return (
-      <div className="flex w-full items-center gap-2">
+      <div className="flex w-full flex-col gap-3">
         {sortedPlatforms.map((platform) => {
           const config = getPlatformConfig(platform);
           const yieldData = getYieldData(platform, yields);
+          console.log("yieldData", yieldData);
 
           if (!config) {
             console.warn(`Platform configuration missing for: ${platform}`);
@@ -475,7 +408,8 @@ const Stake: React.FC = () => {
   };
 
   const getPlatformConfig = (platform: string) => {
-    return PLATFORM_CONFIG[platform as keyof typeof PLATFORM_CONFIG];
+    const config = platformConfig(lstConfig);
+    return config[platform as keyof typeof config];
   };
 
   const getYieldData = (platform: string, yields: any) => {
@@ -511,7 +445,7 @@ const Stake: React.FC = () => {
           <div className="mt-2 flex items-center justify-center">
             <TwitterShareButton
               url={getEndpoint()}
-              title={`Just staked my ${lstConfig.SYMBOL} on Endur.fi, earning ${(apy.value.strkApy * 100 + (selectedPlatform !== "none" ? getPlatformYield(selectedPlatform) : 0)).toFixed(2)}% APY! 🚀 \n\n${selectedPlatform !== "none" ? `My ${lstConfig.LST_SYMBOL} is now earning an additional ${getPlatformYield(selectedPlatform).toFixed(2)}% yield on ${selectedPlatform === "vesu" ? "Vesu" : "Nostra"}! 📈\n\n` : ""}${lstConfig.SYMBOL !== "STRK" ? `Building the future of Bitcoin staking on Starknet` : `Laying the foundation for decentralising Starknet`} — be part of the journey at @endurfi!\n\n`}
+              title={`Just staked my ${lstConfig.SYMBOL} on Endur.fi, earning ${(apy.value.strkApy * 100 + (selectedPlatform !== "none" ? getPlatformYield(selectedPlatform) : 0)).toFixed(2)}% APY! 🚀 \n\n${selectedPlatform !== "none" ? `My ${lstConfig.LST_SYMBOL} is now earning an additional ${getPlatformYield(selectedPlatform).toFixed(2)}% yield on ${getPlatformConfig(selectedPlatform).platfrom}! 📈\n\n` : ""}${lstConfig.SYMBOL !== "STRK" ? `Building the future of Bitcoin staking on Starknet` : `Laying the foundation for decentralising Starknet`} — be part of the journey at @endurfi!\n\n`}
               related={["endurfi", "troves", "karnotxyz"]}
               style={{
                 display: "flex",
@@ -668,7 +602,7 @@ const Stake: React.FC = () => {
               <PlatformList
                 sortedPlatforms={sortedPlatforms}
                 yields={yields}
-                apy={apy.value.strkApy}
+                apy={isBTC ? apy.value.btcApy : apy.value.strkApy}
                 selectedPlatform={selectedPlatform}
                 setSelectedPlatform={setSelectedPlatform}
               />
@@ -818,7 +752,7 @@ const Stake: React.FC = () => {
               ? "Paused"
               : selectedPlatform === "none"
                 ? `Stake ${lstConfig.SYMBOL}`
-                : `Stake & Lend on ${selectedPlatform === "vesu" ? "Vesu" : "Nostra"}`}
+                : `Stake & Lend on ${selectedPlatform === "trovesHyper" ? "Troves" : selectedPlatform === "vesu" ? "Vesu" : "Platform"}`}
           </Button>
         )}
       </div>

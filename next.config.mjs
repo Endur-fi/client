@@ -127,7 +127,7 @@ const nextConfig = {
     return [
       {
         source: "/strkfarm/:path*",
-        destination: "https://app.strkfarm.com/:path*",
+        destination: "https://beta.troves.fi/:path*",
       },
     ];
   },
