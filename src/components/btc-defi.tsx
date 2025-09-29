@@ -20,7 +20,7 @@ import {
   vesuBTCxLBTCYieldAtom,
   vesuBTCxsBTCYieldAtom,
 } from "@/store/defi.store";
-import { atom, useAtom } from "jotai";
+import { useAtom } from "jotai";
 
 import DefiCard, {
   ProtocolAction,
