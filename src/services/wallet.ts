@@ -54,12 +54,12 @@ export class WalletConnector {
       },
     }) as unknown as StarknetkitConnector;
 
-    const foredefiConnector = new InjectedConnector({
-      options: {
-        id: "fordefi",
-        name: "Fordefi",
-      },
-    }) as unknown as StarknetkitConnector;
+    // const foredefiConnector = new InjectedConnector({
+    //   options: {
+    //     id: "fordefi",
+    //     name: "Fordefi",
+    //   },
+    // }) as unknown as StarknetkitConnector;
 
     const braavosMobile = BraavosMobileConnector.init({
       inAppBrowserOptions: {},
@@ -91,7 +91,7 @@ export class WalletConnector {
       argentXConnector,
       braavosConnector,
       keplrConnector,
-      foredefiConnector,
+      // foredefiConnector,
     ];
 
     // put uninstall wallets at the end
