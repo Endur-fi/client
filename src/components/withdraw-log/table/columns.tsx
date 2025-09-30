@@ -1,11 +1,13 @@
 "use client";
 
+import React from "react";
 import { ColumnDef } from "@tanstack/react-table";
 import { Info } from "lucide-react";
 import Link from "next/link";
 
 import { Icons } from "@/components/Icons";
 import { Button } from "@/components/ui/button";
+import { ASSET_ICONS } from "@/components/asset-selector";
 import {
   Tooltip,
   TooltipContent,
@@ -18,6 +20,15 @@ import {
   convertFutureTimestamp,
   formatNumberWithCommas,
 } from "@/lib/utils";
+import { useAtomValue } from "jotai";
+import { lstConfigAtom } from "@/store/common.store";
+
+// Custom component for amount cell that can use hooks
+const AmountCell: React.FC<{ amount: string }> = ({ amount }) => {
+  const lstConfig = useAtomValue(lstConfigAtom)!;
+  const isBTC = lstConfig.SYMBOL?.toLowerCase().includes("btc");
+  return <>{formatNumberWithCommas(amount, isBTC ? 6 : 2)}</>;
+};
 
 export type Status = "Success" | "Pending";
 
@@ -61,9 +72,9 @@ export const withdrawLogColumn: ColumnDef<WithdrawLogColumn>[] = [
 
       return (
         <div className="flex flex-col items-start gap-1">
-          {status !== "Success" && (
+          {/* {status !== "Success" && (
             <span className="text-sm font-normal">Rank - {rank}</span>
-          )}
+          )} */}
           <span
             className={cn("text-xs text-[#939494]", {
               "text-sm font-normal text-black/70": status === "Success",
@@ -81,26 +92,15 @@ export const withdrawLogColumn: ColumnDef<WithdrawLogColumn>[] = [
     cell: ({ row }) => {
       const assetType = row.original.asset || "STRK";
 
-      // Asset icon mapping - using actual icon components
+      // Asset icon mapping - using actual icon components from asset selector
       const getAssetIcon = (asset: string) => {
-        switch (asset) {
-          case "LBTC":
-            return <Icons.btcLogo className="h-5 w-5" />;
-          case "BTC":
-            return <Icons.btcLogo className="h-5 w-5" />;
-          case "WBTC":
-            return <Icons.btcLogo className="h-5 w-5" />;
-          case "tBTC":
-            return <Icons.btcLogo className="h-5 w-5" />;
-          case "TBTC1":
-            return <Icons.btcLogo className="h-5 w-5" />;
-          case "TBTC2":
-            return <Icons.btcLogo className="h-5 w-5" />;
-          case "STRK":
-            return <Icons.strkLogo className="h-5 w-5" />;
-          default:
-            return <Icons.strkLogo className="h-5 w-5" />;
+        if (ASSET_ICONS[asset]) {
+          return React.createElement(ASSET_ICONS[asset], {
+            className: "h-5 w-5",
+          });
         }
+        // Fallback to STRK icon
+        return <Icons.strkLogo className="h-5 w-5" />;
       };
 
       return (
@@ -126,7 +126,7 @@ export const withdrawLogColumn: ColumnDef<WithdrawLogColumn>[] = [
     },
     cell: ({ row }) => {
       const amount = row.original.amount;
-      return formatNumberWithCommas(amount);
+      return <AmountCell amount={amount} />;
     },
     sortingFn: (rowA, rowB, _columnId) => {
       return Number(rowA.original.amount) - Number(rowB.original.amount);

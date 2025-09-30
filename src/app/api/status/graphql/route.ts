@@ -5,11 +5,21 @@ import { Contract } from "starknet";
 import WqAbi from "@/abi/wq.abi.json";
 import apolloClient from "@/lib/apollo-client";
 
-import { getProvider, WITHDRAWAL_QUEUE_ADDRESS } from "@/constants";
+import { getProvider } from "@/constants";
 
 export const revalidate = 0;
 
-export async function GET(_req: Request) {
+export async function GET(_req: Request, context: any) {
+  const { params } = context;
+
+  const withdrawlQueueAddress = params.withdrawlQueueAddress;
+
+  if (!withdrawlQueueAddress) {
+    return NextResponse.json({
+      error: "Withdrawal Queue Address Required",
+    });
+  }
+
   const provider = getProvider();
 
   if (!provider) {
@@ -18,7 +28,7 @@ export async function GET(_req: Request) {
 
   const wqContract = new Contract({
     abi: WqAbi,
-    address: WITHDRAWAL_QUEUE_ADDRESS,
+    address: withdrawlQueueAddress,
     providerOrAccount: provider,
   });
 

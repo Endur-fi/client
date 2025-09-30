@@ -1,10 +1,13 @@
 import React from "react";
 
 import { Card } from "@/components/ui/card";
-import { cn, formatNumber } from "@/lib/utils";
+import { cn } from "@/lib/utils";
+import { useAtomValue } from "jotai";
+import { lstConfigAtom } from "@/store/common.store";
 
 interface PlatformCardProps {
   name: string;
+  description: React.ReactNode | string;
   icon: React.ReactNode;
   apy: number | null;
   xstrkLent: number | null;
@@ -15,6 +18,7 @@ interface PlatformCardProps {
 
 export function PlatformCard({
   name,
+  description,
   icon,
   apy,
   xstrkLent,
@@ -22,27 +26,29 @@ export function PlatformCard({
   onClick,
   baseApy,
 }: PlatformCardProps) {
+  const lstConfig = useAtomValue(lstConfigAtom)!;
+  const isBtc = lstConfig.LST_SYMBOL.toLowerCase().includes("btc");
   return (
     <Card
       onClick={onClick}
       className={cn(
-        "group relative w-[49.2%] cursor-pointer border p-3 transition-all duration-200",
-        "bg-white/50 hover:bg-white",
-        "border-gray-100 hover:border-[#17876D]",
-        "shadow-sm hover:shadow",
-        isSelected && "!border-[#17876D] !bg-white !shadow",
-        {
-          "!w-full py-3": name.includes("Troves"),
-        },
+        "group relative w-full cursor-pointer border p-4 transition-all duration-200",
+        "bg-white",
+        "border-gray-200",
+        "shadow-sm",
+        isSelected && "!border-[#17876D] !bg-white !shadow-md",
+        !isSelected && "opacity-60 grayscale-[0.3]",
+        isSelected && "hover:border-[#17876D] hover:bg-white",
+        !isSelected && "hover:border-[#17876D]",
       )}
     >
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-3">
           <div
             className={cn(
-              "transition-opacity duration-200",
-              "opacity-40 group-hover:opacity-100",
-              isSelected && "opacity-100",
+              "flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 transition-all duration-200",
+              "group-hover:bg-gray-50",
+              isSelected && "bg-gray-50",
             )}
           >
             {icon}
@@ -50,8 +56,8 @@ export function PlatformCard({
           <div>
             <div
               className={cn(
-                "text-sm font-medium transition-colors duration-200",
-                "text-gray-400 group-hover:text-[#03624C]",
+                "text-sm font-semibold transition-colors duration-200",
+                "text-gray-700 group-hover:text-[#03624C]",
                 isSelected && "text-[#03624C]",
               )}
             >
@@ -59,18 +65,27 @@ export function PlatformCard({
             </div>
             <div
               className={cn(
+                "text-[12px] transition-colors duration-200",
+                "text-gray-700",
+                // isSelected && "text-[#03624C]",
+              )}
+            >
+              {description}
+            </div>
+            <div
+              className={cn(
                 "text-xs transition-colors duration-200",
-                "text-gray-400 group-hover:text-gray-500",
-                isSelected && "text-gray-500",
+                "text-gray-500 group-hover:text-gray-600",
+                isSelected && "text-gray-600",
               )}
             >
               APY:{" "}
-              {apy && baseApy ? (
+              {typeof apy === "number" && typeof baseApy === "number" ? (
                 <span
                   className={cn(
-                    "text-gray-400 transition-colors duration-200",
-                    "group-hover:text-[#03624C]",
-                    isSelected && "text-[#03624C]",
+                    "text-gray-500 transition-colors duration-200",
+                    "group-hover:text-gray-600",
+                    isSelected && "text-gray-600",
                   )}
                 >
                   {(baseApy * 100).toFixed(2)}%{" "}
@@ -87,13 +102,13 @@ export function PlatformCard({
         <div className="text-right">
           <div
             className={cn(
-              "text-lg font-semibold transition-colors duration-200",
-              "text-gray-400 group-hover:text-[#03624C]",
+              "text-lg font-bold transition-colors duration-200",
+              "text-gray-700 group-hover:text-[#03624C]",
               isSelected && "text-[#03624C]",
             )}
           >
             {typeof xstrkLent === "number" ? (
-              `${formatNumber(xstrkLent, 2, true)}`
+              `${xstrkLent.toFixed(isBtc ? 8 : 2)}`
             ) : (
               <span className="inline-block h-5 w-12 animate-pulse rounded bg-gray-200" />
             )}
@@ -101,8 +116,8 @@ export function PlatformCard({
           <div
             className={cn(
               "text-xs transition-colors duration-200",
-              "text-gray-400 group-hover:text-gray-500",
-              isSelected && "text-gray-500",
+              "text-gray-500 group-hover:text-gray-600",
+              isSelected && "text-gray-600",
             )}
           >
             Supplied

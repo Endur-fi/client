@@ -16,6 +16,26 @@
     <priority>0.9</priority>
   </url>
   <url>
+    <loc>https://app.endur.fi/lbtc</loc>
+    <lastmod>2025-08-01T13:50:45+01:00</lastmod>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://app.endur.fi/wbtc</loc>
+    <lastmod>2025-08-01T13:50:45+01:00</lastmod>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://app.endur.fi/tbtc</loc>
+    <lastmod>2025-08-01T13:50:45+01:00</lastmod>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://app.endur.fi/solvbtc</loc>
+    <lastmod>2025-08-01T13:50:45+01:00</lastmod>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://app.endur.fi/defi</loc>
     <lastmod>2025-08-01T14:08:31+01:00</lastmod>
     <priority>0.9</priority>

@@ -24,7 +24,7 @@ export class WalletConnector {
     const hostname =
       typeof window !== "undefined" ? window.location.hostname : "";
 
-    const mobileConnector = ArgentMobileConnector.init({
+    const argentMobileConnector = ArgentMobileConnector.init({
       options: {
         dappName: "Endurfi",
         url: hostname,
@@ -53,6 +53,13 @@ export class WalletConnector {
         name: "Keplr",
       },
     }) as unknown as StarknetkitConnector;
+
+    // const foredefiConnector = new InjectedConnector({
+    //   options: {
+    //     id: "fordefi",
+    //     name: "Fordefi",
+    //   },
+    // }) as unknown as StarknetkitConnector;
 
     const braavosMobile = BraavosMobileConnector.init({
       inAppBrowserOptions: {},
@@ -84,6 +91,7 @@ export class WalletConnector {
       argentXConnector,
       braavosConnector,
       keplrConnector,
+      // foredefiConnector,
     ];
 
     // put uninstall wallets at the end
@@ -105,14 +113,14 @@ export class WalletConnector {
 
     if (isMainnet) {
       if (isInArgentMobileAppBrowser()) {
-        return [mobileConnector];
+        return [argentMobileConnector];
       } else if (isInBraavosMobileAppBrowser()) {
         return [braavosMobile];
       } else if (this.isMobile) {
-        return [mobileConnector, braavosMobile, webWalletConnector];
+        return [argentMobileConnector, braavosMobile, webWalletConnector];
       }
 
-      sortedConnectors.push(mobileConnector);
+      // sortedConnectors.push(argentMobileConnector);
       sortedConnectors.push(webWalletConnector);
       return sortedConnectors;
     }

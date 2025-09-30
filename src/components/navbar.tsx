@@ -1,16 +1,11 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 
-import {
-  useAccount,
-  useDisconnect,
-  useProvider,
-  useSwitchChain,
-} from "@starknet-react/core";
+import { useAccount, useDisconnect, useProvider } from "@starknet-react/core";
 import { useAtom, useSetAtom } from "jotai";
 import { X } from "lucide-react";
 import React from "react";
-import { constants, num } from "starknet";
+import { constants } from "starknet";
 import { disconnect } from "starknetkit";
 
 import { getProvider, NETWORK } from "@/constants";
@@ -49,11 +44,11 @@ const Navbar = ({ className }: { className?: string }) => {
       : constants.StarknetChainId.SN_SEPOLIA;
   }, []);
 
-  const { switchChain, error } = useSwitchChain({
-    params: {
-      chainId: requiredChainId,
-    },
-  });
+  // const { switchChain, error } = useSwitchChain({
+  //   params: {
+  //     chainId: requiredChainId,
+  //   },
+  // });
 
   // set tracking person
   React.useEffect(() => {
@@ -63,20 +58,20 @@ const Navbar = ({ className }: { className?: string }) => {
   }, [address]);
 
   // switch chain if not on the required chain
-  React.useEffect(() => {
-    if (
-      chainId &&
-      chainId.toString() !== num.getDecimalString(requiredChainId)
-    ) {
-      switchChain();
-    }
-  }, [chainId]);
+  // React.useEffect(() => {
+  //   if (
+  //     chainId &&
+  //     chainId.toString() !== num.getDecimalString(requiredChainId)
+  //   ) {
+  //     switchChain();
+  //   }
+  // }, [chainId]);
 
-  React.useEffect(() => {
-    if (error) {
-      console.error("switchChain error", error);
-    }
-  }, [error]);
+  // React.useEffect(() => {
+  //   if (error) {
+  //     console.error("switchChain error", error);
+  //   }
+  // }, [error]);
 
   // attempt to connect wallet on load
   React.useEffect(() => {
