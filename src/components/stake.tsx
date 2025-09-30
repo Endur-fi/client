@@ -354,10 +354,24 @@ const Stake: React.FC = () => {
     });
   };
 
+  const getPlatformConfig = (platform: string) => {
+    const config = platformConfig(lstConfig);
+    return config[platform as keyof typeof config];
+  };
+
   const sortedPlatforms = React.useMemo(() => {
     const allPlatforms = Object.values(PLATFORMS);
     return sortPlatforms(allPlatforms, yields);
   }, [yields]);
+
+  const hasPositiveYields = React.useMemo(() => {
+    return sortedPlatforms.some((platform) => {
+      const config = getPlatformConfig(platform);
+      if (!config) return false;
+      const yieldData = yields[config.key];
+      return (yieldData?.value ?? 0) > 0;
+    });
+  }, [sortedPlatforms, yields]);
 
   const PlatformList: React.FC<{
     sortedPlatforms: string[];
@@ -405,11 +419,6 @@ const Stake: React.FC = () => {
         })}
       </div>
     );
-  };
-
-  const getPlatformConfig = (platform: string) => {
-    const config = platformConfig(lstConfig);
-    return config[platform as keyof typeof config];
   };
 
   const getYieldData = (platform: string, yields: any) => {
@@ -558,58 +567,60 @@ const Stake: React.FC = () => {
         </div>
       </div>
 
-      <div className="px-7">
-        <Collapsible
-          open={isLendingOpen}
-          onOpenChange={(open) => {
-            setIsLendingOpen(open);
-            if (!open) {
-              setSelectedPlatform("none");
-            }
-          }}
-        >
-          <div className="flex items-center gap-2">
-            <CollapsibleTrigger className="flex items-center gap-1 text-sm font-medium text-[#17876D] hover:opacity-80">
-              <h3 className="font-semibold">Stake & Earn</h3>
-              <span className="text-[#8D9C9C]">(optional)</span>
-              <ChevronDown className="size-3 text-[#8D9C9C] transition-transform duration-200 data-[state=open]:rotate-180" />
-            </CollapsibleTrigger>
-            <TooltipProvider delayDuration={0}>
-              <Tooltip>
-                <TooltipTrigger>
-                  <Info className="size-3 text-[#3F6870] lg:text-[#8D9C9C]" />
-                </TooltipTrigger>
-                <TooltipContent
-                  side="right"
-                  className="max-w-72 rounded-md border border-[#03624C] bg-white p-3 text-[#03624C]"
-                >
-                  <p className="mb-2">
-                    You can earn additional yield by lending your xSTRK on DeFi
-                    platforms. Your base staking rewards will continue to
-                    accumulate.
-                  </p>
-                  <p className="text-xs text-[#8D9C9C]">
-                    Note: These are third-party protocols not affiliated with
-                    Endur. Please DYOR and understand the risks before using any
-                    DeFi platform.
-                  </p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </div>
-          <CollapsibleContent className="mt-2">
-            <div className="flex flex-wrap items-center gap-2">
-              <PlatformList
-                sortedPlatforms={sortedPlatforms}
-                yields={yields}
-                apy={isBTC ? apy.value.btcApy : apy.value.strkApy}
-                selectedPlatform={selectedPlatform}
-                setSelectedPlatform={setSelectedPlatform}
-              />
+      {hasPositiveYields && (
+        <div className="px-7">
+          <Collapsible
+            open={isLendingOpen}
+            onOpenChange={(open) => {
+              setIsLendingOpen(open);
+              if (!open) {
+                setSelectedPlatform("none");
+              }
+            }}
+          >
+            <div className="flex items-center gap-2">
+              <CollapsibleTrigger className="flex items-center gap-1 text-sm font-medium text-[#17876D] hover:opacity-80">
+                <h3 className="font-semibold">Stake & Earn</h3>
+                <span className="text-[#8D9C9C]">(optional)</span>
+                <ChevronDown className="size-3 text-[#8D9C9C] transition-transform duration-200 data-[state=open]:rotate-180" />
+              </CollapsibleTrigger>
+              <TooltipProvider delayDuration={0}>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <Info className="size-3 text-[#3F6870] lg:text-[#8D9C9C]" />
+                  </TooltipTrigger>
+                  <TooltipContent
+                    side="right"
+                    className="max-w-72 rounded-md border border-[#03624C] bg-white p-3 text-[#03624C]"
+                  >
+                    <p className="mb-2">
+                      You can earn additional yield by lending your xSTRK on
+                      DeFi platforms. Your base staking rewards will continue to
+                      accumulate.
+                    </p>
+                    <p className="text-xs text-[#8D9C9C]">
+                      Note: These are third-party protocols not affiliated with
+                      Endur. Please DYOR and understand the risks before using
+                      any DeFi platform.
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </div>
-          </CollapsibleContent>
-        </Collapsible>
-      </div>
+            <CollapsibleContent className="mt-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <PlatformList
+                  sortedPlatforms={sortedPlatforms}
+                  yields={yields}
+                  apy={isBTC ? apy.value.btcApy : apy.value.strkApy}
+                  selectedPlatform={selectedPlatform}
+                  setSelectedPlatform={setSelectedPlatform}
+                />
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
+        </div>
+      )}
 
       <div className="my-5 h-px w-full rounded-full bg-[#AACBC480]" />
 

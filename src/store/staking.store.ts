@@ -90,7 +90,7 @@ const strkPriceAtom = atom((get) => {
   return error || !data ? 0 : data;
 });
 
-const btcPriceAtom = atom((get) => {
+export const btcPriceAtom = atom((get) => {
   const { data, error } = get(btcPriceQueryAtom);
   return error || !data ? 0 : data;
 });

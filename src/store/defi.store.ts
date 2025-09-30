@@ -6,7 +6,7 @@ import { AtomFamily } from "jotai/vanilla/utils/atomFamily";
 import { BlockIdentifier } from "starknet";
 import { assetPriceAtom, lstConfigAtom, userAddressAtom } from "./common.store";
 import { apiExchangeRateAtom } from "./lst.store";
-import { snAPYAtom } from "./staking.store";
+import { snAPYAtom, btcPriceAtom } from "./staking.store";
 import { LSTAssetConfig } from "@/constants";
 
 interface VesuAPIResponse {
@@ -467,8 +467,8 @@ const trovesHyperYieldQueryAtom = atomWithQuery((get) => ({
 }));
 
 // BTC Troves Hyper Vault atoms
-const trovesHyperxWBTCYieldQueryAtom = atomWithQuery(() => ({
-  queryKey: ["trovesHyperxWBTCYield"],
+const trovesHyperxWBTCYieldQueryAtom = atomWithQuery((get) => ({
+  queryKey: ["trovesHyperxWBTCYield", get(btcPriceAtom)],
   queryFn: async (): Promise<ProtocolYield> => {
     try {
       const hostname = "https://beta.troves.fi";
@@ -488,7 +488,8 @@ const trovesHyperxWBTCYieldQueryAtom = atomWithQuery(() => ({
         };
       }
 
-      const totalSupplied = strategy.tvlUsd / 50000; // Approximate BTC price
+      const btcPrice = get(btcPriceAtom) as number;
+      const totalSupplied = btcPrice > 0 ? strategy.tvlUsd / btcPrice : 0;
 
       // Handle null APY values
       const apy = strategy.apy !== null ? strategy.apy * 100 : 0;
@@ -510,8 +511,8 @@ const trovesHyperxWBTCYieldQueryAtom = atomWithQuery(() => ({
   refetchInterval: 60000,
 }));
 
-const trovesHyperBTCxtBTCYieldQueryAtom = atomWithQuery(() => ({
-  queryKey: ["trovesHyperBTCxtBTCYield"],
+const trovesHyperBTCxtBTCYieldQueryAtom = atomWithQuery((get) => ({
+  queryKey: ["trovesHyperBTCxtBTCYield", get(btcPriceAtom)],
   queryFn: async (): Promise<ProtocolYield> => {
     const hostname = "https://beta.troves.fi";
     const res = await fetch(`${hostname}/api/strategies`);
@@ -529,7 +530,8 @@ const trovesHyperBTCxtBTCYieldQueryAtom = atomWithQuery(() => ({
       };
     }
 
-    const totalSupplied = strategy.tvlUsd / 50000; // Approximate BTC price
+    const btcPrice = get(btcPriceAtom);
+    const totalSupplied = btcPrice > 0 ? strategy.tvlUsd / btcPrice : 0;
 
     // Handle null APY values
     const apy = strategy.apy !== null ? strategy.apy * 100 : 0;
@@ -543,8 +545,8 @@ const trovesHyperBTCxtBTCYieldQueryAtom = atomWithQuery(() => ({
   refetchInterval: 60000,
 }));
 
-const trovesHyperBTCxLBTCYieldQueryAtom = atomWithQuery(() => ({
-  queryKey: ["trovesHyperBTCxLBTCYield"],
+const trovesHyperBTCxLBTCYieldQueryAtom = atomWithQuery((get) => ({
+  queryKey: ["trovesHyperBTCxLBTCYield", get(btcPriceAtom)],
   queryFn: async (): Promise<ProtocolYield> => {
     const hostname = "https://beta.troves.fi";
     const res = await fetch(`${hostname}/api/strategies`);
@@ -562,7 +564,8 @@ const trovesHyperBTCxLBTCYieldQueryAtom = atomWithQuery(() => ({
       };
     }
 
-    const totalSupplied = strategy.tvlUsd / 50000; // Approximate BTC price
+    const btcPrice = get(btcPriceAtom);
+    const totalSupplied = btcPrice > 0 ? strategy.tvlUsd / btcPrice : 0;
 
     // Handle null APY values
     const apy = strategy.apy !== null ? strategy.apy * 100 : 0;
@@ -576,8 +579,8 @@ const trovesHyperBTCxLBTCYieldQueryAtom = atomWithQuery(() => ({
   refetchInterval: 60000,
 }));
 
-const trovesHyperBTCxsBTCYieldQueryAtom = atomWithQuery(() => ({
-  queryKey: ["trovesHyperBTCxsBTCYield"],
+const trovesHyperBTCxsBTCYieldQueryAtom = atomWithQuery((get) => ({
+  queryKey: ["trovesHyperBTCxsBTCYield", get(btcPriceAtom)],
   queryFn: async (): Promise<ProtocolYield> => {
     const hostname = "https://beta.troves.fi";
     const res = await fetch(`${hostname}/api/strategies`);
@@ -595,7 +598,8 @@ const trovesHyperBTCxsBTCYieldQueryAtom = atomWithQuery(() => ({
       };
     }
 
-    const totalSupplied = strategy.tvlUsd / 50000; // Approximate BTC price
+    const btcPrice = get(btcPriceAtom);
+    const totalSupplied = btcPrice > 0 ? strategy.tvlUsd / btcPrice : 0;
 
     // Handle null APY values
     const apy = strategy.apy !== null ? strategy.apy * 100 : 0;
@@ -610,8 +614,8 @@ const trovesHyperBTCxsBTCYieldQueryAtom = atomWithQuery(() => ({
 }));
 
 // BTC Troves Ekubo Concentrated Liquidity atoms
-const trovesEkuboBTCxWBTCYieldQueryAtom = atomWithQuery(() => ({
-  queryKey: ["trovesEkuboBTCxWBTCYield"],
+const trovesEkuboBTCxWBTCYieldQueryAtom = atomWithQuery((get) => ({
+  queryKey: ["trovesEkuboBTCxWBTCYield", get(btcPriceAtom)],
   queryFn: async (): Promise<ProtocolYield> => {
     try {
       const hostname = "https://beta.troves.fi";
@@ -631,7 +635,8 @@ const trovesEkuboBTCxWBTCYieldQueryAtom = atomWithQuery(() => ({
         };
       }
 
-      const totalSupplied = strategy.tvlUsd / 50000; // Approximate BTC price
+      const btcPrice = get(btcPriceAtom) as number;
+      const totalSupplied = btcPrice > 0 ? strategy.tvlUsd / btcPrice : 0;
 
       const apy = strategy.apy * 100;
 
@@ -652,8 +657,8 @@ const trovesEkuboBTCxWBTCYieldQueryAtom = atomWithQuery(() => ({
   refetchInterval: 60000,
 }));
 
-const trovesEkuboBTCxtBTCYieldQueryAtom = atomWithQuery(() => ({
-  queryKey: ["trovesEkuboBTCxtBTCYield"],
+const trovesEkuboBTCxtBTCYieldQueryAtom = atomWithQuery((get) => ({
+  queryKey: ["trovesEkuboBTCxtBTCYield", get(btcPriceAtom)],
   queryFn: async (): Promise<ProtocolYield> => {
     const hostname = "https://beta.troves.fi";
     const res = await fetch(`${hostname}/api/strategies`);
@@ -671,7 +676,8 @@ const trovesEkuboBTCxtBTCYieldQueryAtom = atomWithQuery(() => ({
       };
     }
 
-    const totalSupplied = strategy.tvlUsd / 50000; // Approximate BTC price
+    const btcPrice = get(btcPriceAtom);
+    const totalSupplied = btcPrice > 0 ? strategy.tvlUsd / btcPrice : 0;
 
     // Handle null APY values
     const apy = strategy.apy !== null ? strategy.apy * 100 : 0;
@@ -685,8 +691,8 @@ const trovesEkuboBTCxtBTCYieldQueryAtom = atomWithQuery(() => ({
   refetchInterval: 60000,
 }));
 
-const trovesEkuboBTCxLBTCYieldQueryAtom = atomWithQuery(() => ({
-  queryKey: ["trovesEkuboBTCxLBTCYield"],
+const trovesEkuboBTCxLBTCYieldQueryAtom = atomWithQuery((get) => ({
+  queryKey: ["trovesEkuboBTCxLBTCYield", get(btcPriceAtom)],
   queryFn: async (): Promise<ProtocolYield> => {
     const hostname = "https://beta.troves.fi";
     const res = await fetch(`${hostname}/api/strategies`);
@@ -704,7 +710,8 @@ const trovesEkuboBTCxLBTCYieldQueryAtom = atomWithQuery(() => ({
       };
     }
 
-    const totalSupplied = strategy.tvlUsd / 50000; // Approximate BTC price
+    const btcPrice = get(btcPriceAtom);
+    const totalSupplied = btcPrice > 0 ? strategy.tvlUsd / btcPrice : 0;
 
     // Handle null APY values
     const apy = strategy.apy !== null ? strategy.apy * 100 : 0;
@@ -718,8 +725,8 @@ const trovesEkuboBTCxLBTCYieldQueryAtom = atomWithQuery(() => ({
   refetchInterval: 60000,
 }));
 
-const trovesEkuboBTCxsBTCYieldQueryAtom = atomWithQuery(() => ({
-  queryKey: ["trovesEkuboBTCxsBTCYield"],
+const trovesEkuboBTCxsBTCYieldQueryAtom = atomWithQuery((get) => ({
+  queryKey: ["trovesEkuboBTCxsBTCYield", get(btcPriceAtom)],
   queryFn: async (): Promise<ProtocolYield> => {
     const hostname = "https://beta.troves.fi";
     const res = await fetch(`${hostname}/api/strategies`);
@@ -737,7 +744,8 @@ const trovesEkuboBTCxsBTCYieldQueryAtom = atomWithQuery(() => ({
       };
     }
 
-    const totalSupplied = strategy.tvlUsd / 50000; // Approximate BTC price
+    const btcPrice = get(btcPriceAtom);
+    const totalSupplied = btcPrice > 0 ? strategy.tvlUsd / btcPrice : 0;
 
     // Handle null APY values
     const apy = strategy.apy !== null ? strategy.apy * 100 : 0;
