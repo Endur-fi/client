@@ -35,6 +35,7 @@ export function PlatformCard({
         "border-gray-200 hover:border-[#17876D]",
         "shadow-sm hover:shadow-md",
         isSelected && "!border-[#17876D] !bg-white !shadow-md",
+        !isSelected && "opacity-60",
       )}
     >
       <div className="flex items-center justify-between">

@@ -266,7 +266,7 @@ const Tabs = () => {
               <h1 className="text-xl font-bold text-black">Starknet Staking</h1>
             </div>
             <Link
-              href="https://endur.fi/audit"
+              href="https://docs.endur.fi/docs/security"
               target="_blank"
               className="flex w-fit items-center gap-1 rounded-full border border-[#17876D33] bg-[#17876D1A] px-3 py-1 transition-opacity hover:opacity-80 md:mt-0"
             >
