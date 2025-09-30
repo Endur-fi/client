@@ -546,7 +546,7 @@ const BtcDefi: React.FC = () => {
       })}
     >
       <h1 className="text-2xl font-semibold tracking-[-1%] text-black">
-        Earn extra yield by using your xyBTC on DeFi platforms
+        Earn extra yield by using your xyBTCs on DeFi platforms
       </h1>
 
       <div className="mt-6">

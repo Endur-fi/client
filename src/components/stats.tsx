@@ -1,6 +1,7 @@
 import { useAtomValue } from "jotai";
 import { Info } from "lucide-react";
 import React, { useMemo } from "react";
+import { useRouter } from "next/navigation";
 
 import {
   Tooltip,
@@ -43,6 +44,7 @@ const Stats: React.FC<StatsProps> = ({
   getPlatformYield,
   mode = "stake", // Default to stake mode
 }) => {
+  const router = useRouter();
   const apy = useAtomValue(snAPYAtom);
   const currentStaked = useAtomValue(userLSTBalanceAtom);
   const totalStaked = useAtomValue(totalStakedAtom);
@@ -53,8 +55,31 @@ const Stats: React.FC<StatsProps> = ({
 
   const totalXSTRKAcrossDefi = useAtomValue(totalXSTRKAcrossDefiHoldingsAtom);
 
-  const [selectedAsset, setSelectedAsset] =
-    React.useState<string>(getFirstBtcAsset());
+  const [selectedAsset, setSelectedAsset] = React.useState<string>(
+    lstConfig?.SYMBOL || getFirstBtcAsset(),
+  );
+
+  const handleAssetChange = (assetSymbol: string) => {
+    setSelectedAsset(assetSymbol);
+
+    if (activeTab === "btc") {
+      const pathMap: Record<string, string> = {
+        LBTC: "/lbtc",
+        WBTC: "/wbtc",
+        tBTC: "/tbtc",
+        solvBTC: "/solvbtc",
+      };
+
+      const newPath = pathMap[assetSymbol] || "/btc";
+      router.push(newPath);
+    }
+  };
+
+  React.useEffect(() => {
+    if (lstConfig?.SYMBOL && activeTab === "btc") {
+      setSelectedAsset(lstConfig.SYMBOL);
+    }
+  }, [lstConfig?.SYMBOL, activeTab]);
 
   // Memoize APY values to prevent re-renders from async calculations
   const memoizedApyValue = useMemo(() => {
@@ -131,7 +156,7 @@ const Stats: React.FC<StatsProps> = ({
         ) : (
           <AssetSelector
             selectedAsset={selectedAsset}
-            onChange={setSelectedAsset}
+            onChange={handleAssetChange}
             mode={mode}
           />
         )}
