@@ -36,21 +36,6 @@ export async function GET(_req: Request) {
       },
       stakeUSDValue: 500,
     },
-    {
-      name: "Avnu",
-      address: "",
-      staked: {
-        STRK: {
-          amount: 0,
-          usdValue: 0,
-        },
-        BTC: {
-          amount: 0,
-          usdValue: 0,
-        },
-      },
-      stakeUSDValue: 250,
-    },
   ];
 
   // ! update this hardcoded logic too
