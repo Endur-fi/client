@@ -56,7 +56,7 @@ import MyNumber from "@/lib/MyNumber";
 import { cn, eventNames } from "@/lib/utils";
 import LSTService from "@/services/lst";
 import { lstConfigAtom } from "@/store/common.store";
-import { protocolYieldsAtom } from "@/store/defi.store";
+import { protocolYieldsAtom, type SupportedDApp } from "@/store/defi.store";
 import { apiExchangeRateAtom } from "@/store/lst.store";
 import { tabsAtom } from "@/store/merry.store";
 import { snAPYAtom } from "@/store/staking.store";
@@ -90,12 +90,31 @@ const PLATFORMS = {
 } as const;
 
 const platformConfig = (lstConfig: LSTAssetConfig) => {
+  // Determine the correct yield key based on the LST symbol
+  let yieldKey: string;
+  switch (lstConfig.LST_SYMBOL) {
+    case "xWBTC":
+      yieldKey = "hyperxWBTC";
+      break;
+    case "xtBTC":
+      yieldKey = "hyperBTCxtBTC";
+      break;
+    case "xLBTC":
+      yieldKey = "hyperBTCxLBTC";
+      break;
+    case "xsBTC":
+      yieldKey = "hyperBTCxsBTC";
+      break;
+    default:
+      yieldKey = "trovesHyper";
+  }
+
   return {
     trovesHyper: {
       platform: "Troves",
       name: `Trove's Hyper ${lstConfig.LST_SYMBOL} Vault`,
       icon: <Icons.trovesLogoLight className="size-6" />,
-      key: "trovesHyper" as const,
+      key: yieldKey as SupportedDApp,
     },
   };
 };
