@@ -59,7 +59,7 @@ export async function GET(_req: Request) {
         console.error("Price errors", { strkPriceError, btcPriceError });
       }
 
-      let apy = 0; 
+      let apy = 0;
 
       if (isBtcAsset) {
         if (
@@ -108,10 +108,10 @@ export async function GET(_req: Request) {
       );
 
       if (balance && assetPrice) {
-        let tvlAsset = Number(
+        const tvlAsset = Number(
           new MyNumber(balance.toString(), value.DECIMALS).toEtherStr(),
         );
-        let tvlUsd = assetPrice * tvlAsset;
+        const tvlUsd = assetPrice * tvlAsset;
 
         let exchangeRate = 0;
         let preciseExchangeRate = "0";

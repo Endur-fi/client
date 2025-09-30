@@ -115,7 +115,18 @@ const platformConfig = (lstConfig: LSTAssetConfig) => {
       name: `Troves' Hyper ${lstConfig.LST_SYMBOL} Vault`,
       icon: <Icons.trovesLogoLight className="size-6" />,
       key: yieldKey as SupportedDApp,
-      description: <p>Leveraged liquidation risk managed vault. <a href={`https://beta.troves.fi/strategy/hyper_${lstConfig.LST_SYMBOL.toLowerCase()}`} target="_blank" className="text-blue-600 underline">Read more</a></p>,
+      description: (
+        <p>
+          Leveraged liquidation risk managed vault.{" "}
+          <a
+            href={`https://beta.troves.fi/strategy/hyper_${lstConfig.LST_SYMBOL.toLowerCase()}`}
+            target="_blank"
+            className="text-blue-600 underline"
+          >
+            Read more
+          </a>
+        </p>
+      ),
     },
   };
 };

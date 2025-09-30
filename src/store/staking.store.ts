@@ -148,7 +148,7 @@ export const snAPYAtom = atom((get) => {
   return {
     value: {
       strkApy,
-      btcApy
+      btcApy,
     },
     isLoading:
       yearlyMintRes.isLoading ||

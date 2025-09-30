@@ -64,7 +64,7 @@ export function PlatformCard({
             <div
               className={cn(
                 "text-[12px] transition-colors duration-200",
-                "text-gray-700 ",
+                "text-gray-700",
                 // isSelected && "text-[#03624C]",
               )}
             >
