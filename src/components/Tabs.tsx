@@ -57,25 +57,76 @@ const Tabs = () => {
   const { connectWallet } = useWalletConnection();
 
   React.useEffect(() => {
-    if (activeTab === "strk") {
-      setLSTConfig(getSTRKAsset());
-    } else {
-      const firstBTCAsset = getLSTAssetsByCategory("BTC")[0];
-      if (firstBTCAsset) {
-        setLSTConfig(firstBTCAsset);
-      }
-    }
-  }, [activeTab, setLSTConfig]);
+    console.log("Pathname Effect - pathname:", pathname);
 
-  React.useEffect(() => {
     if (pathname === "/btc") {
       setActiveTab("btc");
     } else if (pathname === "/strk") {
       setActiveTab("strk");
+    } else if (pathname === "/lbtc") {
+      setActiveTab("btc");
+    } else if (pathname === "/wbtc") {
+      setActiveTab("btc");
+    } else if (pathname === "/tbtc") {
+      setActiveTab("btc");
+    } else if (pathname === "/solvbtc") {
+      setActiveTab("btc");
     } else {
       setActiveTab("btc");
     }
   }, [pathname, setActiveTab]);
+
+  React.useEffect(() => {
+    if (activeTab === "strk") {
+      setLSTConfig(getSTRKAsset());
+    } else {
+      const btcAssets = getLSTAssetsByCategory("BTC");
+      console.log(
+        "Available BTC assets:",
+        btcAssets.map((asset) => asset.SYMBOL),
+      );
+
+      // Check for specific BTC token routes
+      if (pathname === "/lbtc") {
+        const lbtcAsset = btcAssets.find((asset) => asset.SYMBOL === "LBTC");
+        console.log("Looking for LBTC asset:", lbtcAsset);
+        if (lbtcAsset) {
+          console.log("Setting LST config to LBTC:", lbtcAsset);
+          setLSTConfig(lbtcAsset);
+          return;
+        }
+      } else if (pathname === "/wbtc") {
+        const wbtcAsset = btcAssets.find((asset) => asset.SYMBOL === "WBTC");
+        console.log("Looking for WBTC asset:", wbtcAsset);
+        if (wbtcAsset) {
+          setLSTConfig(wbtcAsset);
+          return;
+        }
+      } else if (pathname === "/tbtc") {
+        const tbtcAsset = btcAssets.find((asset) => asset.SYMBOL === "tBTC");
+        console.log("Looking for tBTC asset:", tbtcAsset);
+        if (tbtcAsset) {
+          setLSTConfig(tbtcAsset);
+          return;
+        }
+      } else if (pathname === "/solvbtc") {
+        const solvbtcAsset = btcAssets.find(
+          (asset) => asset.SYMBOL === "solvBTC",
+        );
+        console.log("Looking for solvBTC asset:", solvbtcAsset);
+        if (solvbtcAsset) {
+          setLSTConfig(solvbtcAsset);
+          return;
+        }
+      }
+
+      const firstBTCAsset = btcAssets[0];
+      console.log("Using default BTC asset:", firstBTCAsset);
+      if (firstBTCAsset) {
+        setLSTConfig(firstBTCAsset);
+      }
+    }
+  }, [activeTab, pathname, setLSTConfig]);
 
   function getMessage() {
     if (activeSubTab === "unstake") {
