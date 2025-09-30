@@ -58,6 +58,7 @@ import LSTService from "@/services/lst";
 import { lstConfigAtom } from "@/store/common.store";
 import { protocolYieldsAtom } from "@/store/defi.store";
 import { apiExchangeRateAtom } from "@/store/lst.store";
+import { tabsAtom } from "@/store/merry.store";
 import { snAPYAtom } from "@/store/staking.store";
 
 import { Icons } from "./Icons";
@@ -91,7 +92,7 @@ const PLATFORMS = {
 const platformConfig = (lstConfig: LSTAssetConfig) => {
   return {
     trovesHyper: {
-      platfrom: "Troves",
+      platform: "Troves",
       name: `Trove's Hyper ${lstConfig.LST_SYMBOL} Vault`,
       icon: <Icons.trovesLogoLight className="size-6" />,
       key: "trovesHyper" as const,
@@ -103,7 +104,7 @@ const Stake: React.FC = () => {
   const [showShareModal, setShowShareModal] = React.useState(false);
   const [selectedPlatform, setSelectedPlatform] =
     React.useState<Platform>("none");
-  const [isLendingOpen, setIsLendingOpen] = React.useState(false);
+  const [isLendingOpen, setIsLendingOpen] = React.useState(true);
 
   const searchParams = useSearchParams();
 
@@ -118,6 +119,7 @@ const Stake: React.FC = () => {
   const exchangeRate = useAtomValue(apiExchangeRateAtom);
   const apy = useAtomValue(snAPYAtom);
   const yields = useAtomValue(protocolYieldsAtom);
+  const activeTab = useAtomValue(tabsAtom);
   console.log("yields", yields);
 
   const referrer = searchParams.get("referrer");
@@ -337,13 +339,8 @@ const Stake: React.FC = () => {
 
   const getPlatformYield = (platform: Platform) => {
     if (platform === "none") return 0;
-    const key =
-      platform === "trovesHyper"
-        ? "trovesHyper"
-        : platform === "vesu"
-          ? "vesu"
-          : "nostraLending";
-    return yields[key]?.value ?? 0;
+    const yieldData = getYieldData(platform, yields);
+    return yieldData?.value ?? 0;
   };
 
   const sortPlatforms = (platforms: string[], yields: any) => {
@@ -454,7 +451,7 @@ const Stake: React.FC = () => {
           <div className="mt-2 flex items-center justify-center">
             <TwitterShareButton
               url={getEndpoint()}
-              title={`Just staked my ${lstConfig.SYMBOL} on Endur.fi, earning ${(apy.value.strkApy * 100 + (selectedPlatform !== "none" ? getPlatformYield(selectedPlatform) : 0)).toFixed(2)}% APY! 🚀 \n\n${selectedPlatform !== "none" ? `My ${lstConfig.LST_SYMBOL} is now earning an additional ${getPlatformYield(selectedPlatform).toFixed(2)}% yield on ${getPlatformConfig(selectedPlatform).platfrom}! 📈\n\n` : ""}${lstConfig.SYMBOL !== "STRK" ? `Building the future of Bitcoin staking on Starknet` : `Laying the foundation for decentralising Starknet`} — be part of the journey at @endurfi!\n\n`}
+              title={`Just staked my ${lstConfig.SYMBOL} on Endur.fi, earning ${((activeTab === "strk" ? apy.value.strkApy : apy.value.btcApy) * 100 + (selectedPlatform !== "none" ? getPlatformYield(selectedPlatform) : 0)).toFixed(2)}% APY! 🚀 \n\n${selectedPlatform !== "none" ? `My ${lstConfig.LST_SYMBOL} is now earning an additional ${getPlatformYield(selectedPlatform).toFixed(2)}% yield on ${getPlatformConfig(selectedPlatform).platform}! 📈\n\n` : ""}${lstConfig.SYMBOL !== "STRK" ? `Building the future of Bitcoin staking on Starknet` : `Laying the foundation for decentralising Starknet`} — be part of the journey at @endurfi!\n\n`}
               related={["endurfi", "troves", "karnotxyz"]}
               style={{
                 display: "flex",
@@ -612,7 +609,9 @@ const Stake: React.FC = () => {
                 <PlatformList
                   sortedPlatforms={sortedPlatforms}
                   yields={yields}
-                  apy={isBTC ? apy.value.btcApy : apy.value.strkApy}
+                  apy={
+                    activeTab === "strk" ? apy.value.strkApy : apy.value.btcApy
+                  }
                   selectedPlatform={selectedPlatform}
                   setSelectedPlatform={setSelectedPlatform}
                 />
