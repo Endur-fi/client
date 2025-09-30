@@ -436,13 +436,13 @@ const Stake: React.FC = () => {
               baseApy={apy}
               xstrkLent={yieldData?.totalSupplied ?? 0}
               isSelected={selectedPlatform === platform}
-              onClick={() =>
-                setSelectedPlatform(
+              onClick={() => {
+                const newSelection =
                   selectedPlatform === platform
                     ? "none"
-                    : (platform as Platform),
-                )
-              }
+                    : (platform as Platform);
+                setSelectedPlatform(newSelection);
+              }}
             />
           );
         })}
