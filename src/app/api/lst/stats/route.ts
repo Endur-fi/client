@@ -59,7 +59,7 @@ export async function GET(_req: Request) {
         console.error("Price errors", { strkPriceError, btcPriceError });
       }
 
-      let apy = 0.1; // temp
+      let apy = 0; 
 
       if (isBtcAsset) {
         if (
@@ -126,12 +126,6 @@ export async function GET(_req: Request) {
             )
             .operate("div", totalSupply.toString())
             .toString();
-        }
-
-        // temp
-        if (tvlUsd < 1000) {
-          tvlUsd = 1000000;
-          tvlAsset = 0.9;
         }
 
         results.push({

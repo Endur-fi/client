@@ -133,7 +133,7 @@ const Tabs = () => {
       return (
         <p>
           Unstake requests go into a Withdrawal Queue and are processed when
-          STRK is available. While instant unstaking isn{"'"}t possible due to
+          STRK/BTC is available. While instant unstaking isn{"'"}t possible due to
           staking design, the average wait time is about 2 days now but can take
           longer.{" "}
           <Link
@@ -149,7 +149,7 @@ const Tabs = () => {
       return (
         <p>
           Staking rewards are automatically claimed and compounded, gradually
-          increasing the value of your xSTRK over time.
+          increasing the value of your xSTRK/xyBTCs over time.
         </p>
       );
     }
@@ -557,7 +557,7 @@ const Tabs = () => {
           </ShadCNTabs>
         </div>
 
-        <p
+        {/* <p
           className={cn(
             "mt-4 flex items-center text-xs text-[#707D7D] lg:mb-1 lg:mt-auto lg:text-sm",
           )}
@@ -578,7 +578,7 @@ const Tabs = () => {
           >
             Karnot
           </Link>
-        </p>
+        </p> */}
       </div>
     </div>
   );

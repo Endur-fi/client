@@ -7,6 +7,7 @@ import { lstConfigAtom } from "@/store/common.store";
 
 interface PlatformCardProps {
   name: string;
+  description: React.ReactNode | string;
   icon: React.ReactNode;
   apy: number | null;
   xstrkLent: number | null;
@@ -17,6 +18,7 @@ interface PlatformCardProps {
 
 export function PlatformCard({
   name,
+  description,
   icon,
   apy,
   xstrkLent,
@@ -58,6 +60,15 @@ export function PlatformCard({
               )}
             >
               {name}
+            </div>
+            <div
+              className={cn(
+                "text-[12px] transition-colors duration-200",
+                "text-gray-700 ",
+                // isSelected && "text-[#03624C]",
+              )}
+            >
+              {description}
             </div>
             <div
               className={cn(

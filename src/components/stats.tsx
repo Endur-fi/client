@@ -29,6 +29,7 @@ const platformConfig = (lstConfig: any) => {
     trovesHyper: {
       platform: "Troves",
       name: `Trove's Hyper ${lstConfig.LST_SYMBOL} Vault`,
+      description: <p>Leveraged liquidation risk managed vault. Read all risks here</p>,
     },
   };
 };

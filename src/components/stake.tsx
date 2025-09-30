@@ -112,9 +112,10 @@ const platformConfig = (lstConfig: LSTAssetConfig) => {
   return {
     trovesHyper: {
       platform: "Troves",
-      name: `Trove's Hyper ${lstConfig.LST_SYMBOL} Vault`,
+      name: `Troves' Hyper ${lstConfig.LST_SYMBOL} Vault`,
       icon: <Icons.trovesLogoLight className="size-6" />,
       key: yieldKey as SupportedDApp,
+      description: <p>Leveraged liquidation risk managed vault. <a href={`https://beta.troves.fi/strategy/hyper_${lstConfig.LST_SYMBOL.toLowerCase()}`} target="_blank" className="text-blue-600 underline">Read more</a></p>,
     },
   };
 };
@@ -418,6 +419,7 @@ const Stake: React.FC = () => {
             <PlatformCard
               key={platform}
               name={config.name}
+              description={config.description}
               icon={config.icon}
               apy={yieldData?.value ?? 0}
               baseApy={apy}
@@ -470,7 +472,7 @@ const Stake: React.FC = () => {
           <div className="mt-2 flex items-center justify-center">
             <TwitterShareButton
               url={getEndpoint()}
-              title={`Just staked my ${lstConfig.SYMBOL} on Endur.fi, earning ${((activeTab === "strk" ? apy.value.strkApy : apy.value.btcApy) * 100 + (selectedPlatform !== "none" ? getPlatformYield(selectedPlatform) : 0)).toFixed(2)}% APY! 🚀 \n\n${selectedPlatform !== "none" ? `My ${lstConfig.LST_SYMBOL} is now earning an additional ${getPlatformYield(selectedPlatform).toFixed(2)}% yield on ${getPlatformConfig(selectedPlatform).platform}! 📈\n\n` : ""}${lstConfig.SYMBOL !== "STRK" ? `Building the future of Bitcoin staking on Starknet` : `Laying the foundation for decentralising Starknet`} — be part of the journey at @endurfi!\n\n`}
+              title={`Just staked my ${lstConfig.SYMBOL} on Endur.fi, earning ${((activeTab === "strk" ? apy.value.strkApy : apy.value.btcApy) * 100 + (selectedPlatform !== "none" ? getPlatformYield(selectedPlatform) : 0)).toFixed(2)}% APY! 🚀 \n\n${selectedPlatform !== "none" ? `My ${lstConfig.LST_SYMBOL} is now with an additional ${getPlatformYield(selectedPlatform).toFixed(2)}% yield on ${getPlatformConfig(selectedPlatform).platform}! 📈\n\n` : ""}${lstConfig.SYMBOL !== "STRK" ? `Building the future of Bitcoin staking on Starknet` : `Laying the foundation for decentralising Starknet`} — be part of the journey at @endurfi!\n\n`}
               related={["endurfi", "troves", "karnotxyz"]}
               style={{
                 display: "flex",
@@ -781,7 +783,7 @@ const Stake: React.FC = () => {
               ? "Paused"
               : selectedPlatform === "none"
                 ? `Stake ${lstConfig.SYMBOL}`
-                : `Stake & Lend on ${selectedPlatform === "trovesHyper" ? "Troves" : selectedPlatform === "vesu" ? "Vesu" : "Platform"}`}
+                : `Stake & Invest on ${selectedPlatform === "trovesHyper" ? "Troves" : selectedPlatform === "vesu" ? "Vesu" : "Platform"}`}
           </Button>
         )}
       </div>
