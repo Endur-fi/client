@@ -31,11 +31,13 @@ export function PlatformCard({
       onClick={onClick}
       className={cn(
         "group relative w-full cursor-pointer border p-4 transition-all duration-200",
-        "bg-white hover:bg-white",
-        "border-gray-200 hover:border-[#17876D]",
-        "shadow-sm hover:shadow-md",
+        "bg-white",
+        "border-gray-200",
+        "shadow-sm",
         isSelected && "!border-[#17876D] !bg-white !shadow-md",
-        !isSelected && "opacity-60",
+        !isSelected && "opacity-60 grayscale-[0.3]",
+        isSelected && "hover:border-[#17876D] hover:bg-white",
+        !isSelected && "hover:border-[#17876D]",
       )}
     >
       <div className="flex items-center justify-between">
