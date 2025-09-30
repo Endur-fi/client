@@ -5,13 +5,13 @@ import Image from "next/image";
 import React from "react";
 
 import { useSidebar } from "@/components/ui/sidebar";
-import { LEADERBOARD_ANALYTICS_EVENTS } from "@/constants";
+import { isMainnet, LEADERBOARD_ANALYTICS_EVENTS } from "@/constants";
 import {
   GET_ALL_USERS_WITH_DETAILS,
   GET_USER_COMPLETE_DETAILS,
 } from "@/constants/queries";
 import { MyAnalytics } from "@/lib/analytics";
-import apolloClient from "@/lib/apollo-client";
+import { defaultOptions } from "@/lib/apollo-client";
 import { cn } from "@/lib/utils";
 
 import CheckEligibility, {
@@ -19,6 +19,7 @@ import CheckEligibility, {
 } from "./_components/check-eligibility";
 import { columns, type SizeColumn } from "./_components/table/columns";
 import { DataTable } from "./_components/table/data-table";
+import { ApolloClient, InMemoryCache } from "@apollo/client";
 
 const PAGINATION_LIMIT = 100;
 
@@ -66,6 +67,15 @@ interface LeaderboardCache {
   currentUserInfo: CurrentUserInfo;
   userCompleteInfo: UserCompleteDetailsApiResponse | null;
 }
+
+const apolloClient = new ApolloClient({
+  uri: isMainnet()
+    ? "https://graphql.mainnet.endur.fi"
+    : "https://graphql.sepolia.endur.fi",
+  // uri: "http://localhost:4000",
+  cache: new InMemoryCache(),
+  defaultOptions,
+});
 
 const CACHE_EXPIRY_MS = 6 * 60 * 60 * 1000; // 6 hours in milliseconds
 let leaderboardCache: LeaderboardCache | null = null;
@@ -300,6 +310,33 @@ const AnnouncementBanner = React.memo(
 );
 AnnouncementBanner.displayName = "AnnouncementBanner";
 
+const BtcStakingInfoBanner = React.memo(() => (
+  <div className="mt-4 flex items-center gap-3 rounded-md border border-[#17876D]/20 bg-[#17876D]/5 px-4 py-3">
+    <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-[#17876D]/10">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className="text-[#17876D]"
+      >
+        <circle cx="12" cy="12" r="10"></circle>
+        <path d="M12 16v-4"></path>
+        <path d="M12 8h.01"></path>
+      </svg>
+    </div>
+    <p className="text-sm font-medium text-[#021B1A]">
+      Points for BTC staking will be added soon
+    </p>
+  </div>
+));
+BtcStakingInfoBanner.displayName = "BtcStakingInfoBanner";
+
 const EmptyState = React.memo(() => (
   <div className="py-8 text-center">
     <p className="text-[#021B1A]">No leaderboard data available</p>
@@ -403,6 +440,8 @@ const Leaderboard: React.FC = () => {
             More Info.
           </a>
         </p>
+
+        <BtcStakingInfoBanner />
 
         <AnnouncementBanner
           userCompleteInfo={userCompleteInfo}

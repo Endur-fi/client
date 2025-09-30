@@ -2,7 +2,7 @@ import { ApolloClient, DefaultOptions, InMemoryCache } from "@apollo/client";
 
 import { isMainnet } from "@/constants";
 
-const defaultOptions: DefaultOptions = {
+export const defaultOptions: DefaultOptions = {
   watchQuery: {
     fetchPolicy: "no-cache",
     errorPolicy: "ignore",
