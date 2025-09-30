@@ -24,8 +24,8 @@ export const lstConfigAtom = atom<(typeof LST_CONFIG)[keyof typeof LST_CONFIG]>(
 
 export const assetPriceAtom = atomWithQuery((get) => {
   return {
-    queryKey: ["assetPrice"],
-    queryFn: async ({ queryKey }: any): Promise<number> => {
+    queryKey: ["assetPrice", get(lstConfigAtom)],
+    queryFn: async ({ queryKey: _queryKey }: any): Promise<number> => {
       try {
         const lstConfig = get(lstConfigAtom);
 
@@ -39,6 +39,7 @@ export const assetPriceAtom = atomWithQuery((get) => {
       }
     },
     refetchInterval: 60000,
+    staleTime: 0,
   };
 });
 
