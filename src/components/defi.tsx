@@ -36,7 +36,7 @@ export const protocolConfigs: Partial<Record<SupportedDApp, ProtocolConfig>> = {
     description: "Leveraged xSTRK strategy on Vesu",
     action: {
       type: "lend",
-      link: "https://app.strkfarm.com/strategy/xstrk_sensei",
+      link: "https://beta.troves.fi/strategy/xstrk_sensei",
       buttonText: "Invest",
       onClick: () => {
         MyAnalytics.track(eventNames.OPPORTUNITIES, {
@@ -63,7 +63,7 @@ export const protocolConfigs: Partial<Record<SupportedDApp, ProtocolConfig>> = {
       "Auto-managed liquidity vault for Ekubo’s xSTRK/STRK pool. Rebalances range and compounds fees and rewards automatically.",
     action: {
       type: "pool",
-      link: "https://app.strkfarm.xyz/strategy/ekubo_cl_xstrkstrk",
+      link: "https://beta.troves.fi/strategy/ekubo_cl_xstrkstrk",
       buttonText: "Add Liquidity",
       onClick: () => {
         MyAnalytics.track(eventNames.OPPORTUNITIES, {
