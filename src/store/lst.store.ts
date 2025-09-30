@@ -379,15 +379,23 @@ export const exchangeRateAtom = atom((get) => {
 
 export const totalStakedUSDAtom = atom((get) => {
   const { data: price, isLoading: isPriceLoading } = get(assetPriceAtom);
+  const lstConfig = get(lstConfigAtom);
 
   const totalStaked = get(totalStakedAtom);
   const isLoading = totalStaked.isLoading || isPriceLoading;
 
-  if (!price)
+  if (!price || !lstConfig || isLoading)
     return {
       value: 0,
       isLoading,
     };
+
+  console.log("tvl price", price);
+  console.log("tvl total staked", totalStaked.value.toEtherToFixedDecimals(4));
+  console.log(
+    "tvl",
+    Number(totalStaked.value.toEtherToFixedDecimals(4)) * price,
+  );
 
   return {
     value: Number(totalStaked.value.toEtherToFixedDecimals(4)) * price || 0,
