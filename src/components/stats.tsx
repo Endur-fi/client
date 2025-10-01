@@ -1,7 +1,7 @@
 import { useAtomValue } from "jotai";
 import { Info } from "lucide-react";
 import React, { useMemo } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 import {
   Tooltip,
@@ -55,6 +55,8 @@ const Stats: React.FC<StatsProps> = ({
   const activeTab = useAtomValue(tabsAtom);
   const lstConfig = useAtomValue(lstConfigAtom)!;
   const isBTC = lstConfig.SYMBOL?.toLowerCase().includes("btc");
+  const searchParams = useSearchParams();
+  const referrer = searchParams.get("referrer");
 
   const totalXSTRKAcrossDefi = useAtomValue(totalXSTRKAcrossDefiHoldingsAtom);
 
@@ -74,7 +76,7 @@ const Stats: React.FC<StatsProps> = ({
       };
 
       const newPath = pathMap[assetSymbol] || "/btc";
-      router.push(newPath);
+      router.push(referrer ? `${newPath}?referrer=${referrer}` : newPath);
     }
   };
 
