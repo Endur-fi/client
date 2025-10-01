@@ -420,7 +420,7 @@ const trovesHyperYieldQueryAtom = atomWithQuery((get) => ({
   }): Promise<ProtocolYield> => {
     const [, lstConfig] = queryKey;
 
-    const hostname = "https://beta.troves.fi";
+    const hostname = "https://app.troves.fi";
     const res = await fetch(`${hostname}/api/strategies`);
     const data = await res.json();
     const strategies = data.strategies;
@@ -471,7 +471,7 @@ const trovesHyperxWBTCYieldQueryAtom = atomWithQuery((get) => ({
   queryKey: ["trovesHyperxWBTCYield", get(btcPriceAtom)],
   queryFn: async (): Promise<ProtocolYield> => {
     try {
-      const hostname = "https://beta.troves.fi";
+      const hostname = "https://app.troves.fi";
       const res = await fetch(`${hostname}/api/strategies`);
       const data = await res.json();
       const strategies = data.strategies;
@@ -514,7 +514,7 @@ const trovesHyperxWBTCYieldQueryAtom = atomWithQuery((get) => ({
 const trovesHyperBTCxtBTCYieldQueryAtom = atomWithQuery((get) => ({
   queryKey: ["trovesHyperBTCxtBTCYield", get(btcPriceAtom)],
   queryFn: async (): Promise<ProtocolYield> => {
-    const hostname = "https://beta.troves.fi";
+    const hostname = "https://app.troves.fi";
     const res = await fetch(`${hostname}/api/strategies`);
     const data = await res.json();
     const strategies = data.strategies;
@@ -548,7 +548,7 @@ const trovesHyperBTCxtBTCYieldQueryAtom = atomWithQuery((get) => ({
 const trovesHyperBTCxLBTCYieldQueryAtom = atomWithQuery((get) => ({
   queryKey: ["trovesHyperBTCxLBTCYield", get(btcPriceAtom)],
   queryFn: async (): Promise<ProtocolYield> => {
-    const hostname = "https://beta.troves.fi";
+    const hostname = "https://app.troves.fi";
     const res = await fetch(`${hostname}/api/strategies`);
     const data = await res.json();
     const strategies = data.strategies;
@@ -582,7 +582,7 @@ const trovesHyperBTCxLBTCYieldQueryAtom = atomWithQuery((get) => ({
 const trovesHyperBTCxsBTCYieldQueryAtom = atomWithQuery((get) => ({
   queryKey: ["trovesHyperBTCxsBTCYield", get(btcPriceAtom)],
   queryFn: async (): Promise<ProtocolYield> => {
-    const hostname = "https://beta.troves.fi";
+    const hostname = "https://app.troves.fi";
     const res = await fetch(`${hostname}/api/strategies`);
     const data = await res.json();
     const strategies = data.strategies;
@@ -618,7 +618,7 @@ const trovesEkuboBTCxWBTCYieldQueryAtom = atomWithQuery((get) => ({
   queryKey: ["trovesEkuboBTCxWBTCYield", get(btcPriceAtom)],
   queryFn: async (): Promise<ProtocolYield> => {
     try {
-      const hostname = "https://beta.troves.fi";
+      const hostname = "https://app.troves.fi";
       const res = await fetch(`${hostname}/api/strategies`);
       const data = await res.json();
       const strategies = data.strategies;
@@ -660,7 +660,7 @@ const trovesEkuboBTCxWBTCYieldQueryAtom = atomWithQuery((get) => ({
 const trovesEkuboBTCxtBTCYieldQueryAtom = atomWithQuery((get) => ({
   queryKey: ["trovesEkuboBTCxtBTCYield", get(btcPriceAtom)],
   queryFn: async (): Promise<ProtocolYield> => {
-    const hostname = "https://beta.troves.fi";
+    const hostname = "https://app.troves.fi";
     const res = await fetch(`${hostname}/api/strategies`);
     const data = await res.json();
     const strategies = data.strategies;
@@ -694,7 +694,7 @@ const trovesEkuboBTCxtBTCYieldQueryAtom = atomWithQuery((get) => ({
 const trovesEkuboBTCxLBTCYieldQueryAtom = atomWithQuery((get) => ({
   queryKey: ["trovesEkuboBTCxLBTCYield", get(btcPriceAtom)],
   queryFn: async (): Promise<ProtocolYield> => {
-    const hostname = "https://beta.troves.fi";
+    const hostname = "https://app.troves.fi";
     const res = await fetch(`${hostname}/api/strategies`);
     const data = await res.json();
     const strategies = data.strategies;
@@ -728,7 +728,7 @@ const trovesEkuboBTCxLBTCYieldQueryAtom = atomWithQuery((get) => ({
 const trovesEkuboBTCxsBTCYieldQueryAtom = atomWithQuery((get) => ({
   queryKey: ["trovesEkuboBTCxsBTCYield", get(btcPriceAtom)],
   queryFn: async (): Promise<ProtocolYield> => {
-    const hostname = "https://beta.troves.fi";
+    const hostname = "https://app.troves.fi";
     const res = await fetch(`${hostname}/api/strategies`);
     const data = await res.json();
     const strategies = data.strategies;

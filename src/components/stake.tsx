@@ -119,7 +119,7 @@ const platformConfig = (lstConfig: LSTAssetConfig) => {
         <p>
           Leveraged liquidation risk managed vault.{" "}
           <a
-            href={`https://beta.troves.fi/strategy/hyper_${lstConfig.LST_SYMBOL.toLowerCase()}`}
+            href={`https://app.troves.fi/strategy/hyper_${lstConfig.LST_SYMBOL.toLowerCase()}`}
             target="_blank"
             className="text-blue-600 underline"
           >

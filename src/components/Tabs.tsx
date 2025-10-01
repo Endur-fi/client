@@ -35,12 +35,14 @@ import { snAPYAtom } from "@/store/staking.store";
 import { useWalletConnection } from "@/hooks/use-wallet-connection";
 import { lstConfigAtom } from "@/store/common.store";
 import { MyDottedTooltip } from "./my-tooltip";
+import { useSearchParams } from "next/navigation";
 
 const Tabs = () => {
   const router = useRouter();
   const pathname = usePathname();
 
   const [lstConfig, setLSTConfig] = useAtom(lstConfigAtom);
+  const searchParams = useSearchParams();
 
   const [activeTab, setActiveTab] = useAtom(tabsAtom);
   const [activeSubTab, setActiveSubTab] = React.useState("stake");
@@ -55,6 +57,8 @@ const Tabs = () => {
 
   const { isPinned } = useSidebar();
   const { connectWallet } = useWalletConnection();
+
+  const referrer = searchParams.get("referrer");
 
   React.useEffect(() => {
     console.log("Pathname Effect - pathname:", pathname);
@@ -161,9 +165,9 @@ const Tabs = () => {
     setActiveTab(tab);
 
     if (tab === "btc") {
-      router.push("/btc", { scroll: false });
+      router.push(referrer ? `/btc?referrer=${referrer}` : "/btc", { scroll: false });
     } else if (tab === "strk") {
-      router.push("/strk", { scroll: false });
+      router.push(referrer ? `/strk?referrer=${referrer}` : "/strk", { scroll: false });
     }
   };
 
