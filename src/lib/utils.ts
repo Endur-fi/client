@@ -30,10 +30,12 @@ export function formatNumber(
 ): string {
   const numberValue = typeof num === "string" ? Number(num) : num;
 
-  if (numberValue >= 1_000_000) {
-    return `${(numberValue / 1_000_000).toFixed(decimals ?? 2)}${caps ? "M" : "m"}`;
-  } else if (numberValue >= 1_000) {
-    return `${(numberValue / 1_000).toFixed(decimals ?? 2)}${caps ? "K" : "k"}`;
+  console.log("numberValue", numberValue);
+
+  if (numberValue >= 1000000) {
+    return `${(numberValue / 1000000).toFixed(decimals ?? 2)}${caps ? "M" : "m"}`;
+  } else if (numberValue >= 1000) {
+    return `${(numberValue / 1000).toFixed(decimals ?? 2)}${caps ? "K" : "k"}`;
   }
   return `${numberValue}`;
 }
