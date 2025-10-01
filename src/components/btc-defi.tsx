@@ -61,7 +61,7 @@ export const btcProtocolConfigs: Partial<
       "Auto-managed liquidity vault for Ekubo's xWBTC/WBTC pool. Rebalances range and compounds fees and rewards automatically.",
     action: {
       type: "pool",
-      link: "https://beta.troves.fi/strategy/ekubo_cl_xwbtcwbtc",
+      link: "https://app.troves.fi/strategy/ekubo_cl_xwbtcwbtc",
       buttonText: "Add Liquidity",
       onClick: () => {
         MyAnalytics.track(eventNames.OPPORTUNITIES, {
@@ -88,7 +88,7 @@ export const btcProtocolConfigs: Partial<
       "Auto-managed liquidity vault for Ekubo's xtBTC/tBTC pool. Rebalances range and compounds fees and rewards automatically.",
     action: {
       type: "pool",
-      link: "https://beta.troves.fi/strategy/ekubo_cl_xtbtctbtc",
+      link: "https://app.troves.fi/strategy/ekubo_cl_xtbtctbtc",
       buttonText: "Add Liquidity",
       onClick: () => {
         MyAnalytics.track(eventNames.OPPORTUNITIES, {
@@ -115,7 +115,7 @@ export const btcProtocolConfigs: Partial<
       "Auto-managed liquidity vault for Ekubo's xLBTC/LBTC pool. Rebalances range and compounds fees and rewards automatically.",
     action: {
       type: "pool",
-      link: "https://beta.troves.fi/strategy/ekubo_cl_xlbtclbtc",
+      link: "https://app.troves.fi/strategy/ekubo_cl_xlbtclbtc",
       buttonText: "Add Liquidity",
       onClick: () => {
         MyAnalytics.track(eventNames.OPPORTUNITIES, {
@@ -142,7 +142,7 @@ export const btcProtocolConfigs: Partial<
       "Auto-managed liquidity vault for Ekubo's xsBTC/solvBTC pool. Rebalances range and compounds fees and rewards automatically.",
     action: {
       type: "pool",
-      link: "https://beta.troves.fi/strategy/ekubo_cl_xsbtcsolvbtc",
+      link: "https://app.troves.fi/strategy/ekubo_cl_xsbtcsolvbtc",
       buttonText: "Add Liquidity",
       onClick: () => {
         MyAnalytics.track(eventNames.OPPORTUNITIES, {
@@ -169,7 +169,7 @@ export const btcProtocolConfigs: Partial<
       "Automated hyper vault strategy for xWBTC. Maximizes yield through advanced DeFi strategies and auto-compounding.",
     action: {
       type: "vault",
-      link: "https://beta.troves.fi/strategy/hyper_xwbtc",
+      link: "https://app.troves.fi/strategy/hyper_xwbtc",
       buttonText: "Invest",
       onClick: () => {
         MyAnalytics.track(eventNames.OPPORTUNITIES, {
@@ -195,7 +195,7 @@ export const btcProtocolConfigs: Partial<
       "Automated hyper vault strategy for xtBTC. Maximizes yield through advanced DeFi strategies and auto-compounding.",
     action: {
       type: "vault",
-      link: "https://beta.troves.fi/strategy/hyper_xtbtc",
+      link: "https://app.troves.fi/strategy/hyper_xtbtc",
       buttonText: "Invest",
       onClick: () => {
         MyAnalytics.track(eventNames.OPPORTUNITIES, {
@@ -221,7 +221,7 @@ export const btcProtocolConfigs: Partial<
       "Automated hyper vault strategy for xsBTC. Maximizes yield through advanced DeFi strategies and auto-compounding.",
     action: {
       type: "vault",
-      link: "https://beta.troves.fi/strategy/hyper_xsbtc",
+      link: "https://app.troves.fi/strategy/hyper_xsbtc",
       buttonText: "Invest",
       onClick: () => {
         MyAnalytics.track(eventNames.OPPORTUNITIES, {
@@ -247,7 +247,7 @@ export const btcProtocolConfigs: Partial<
       "Automated hyper vault strategy for xLBTC. Maximizes yield through advanced DeFi strategies and auto-compounding.",
     action: {
       type: "vault",
-      link: "https://beta.troves.fi/strategy/hyper_xlbtc",
+      link: "https://app.troves.fi/strategy/hyper_xlbtc",
       buttonText: "Invest",
       onClick: () => {
         MyAnalytics.track(eventNames.OPPORTUNITIES, {
