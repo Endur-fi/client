@@ -41,7 +41,6 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import {
-  getEndpoint,
   IS_PAUSED,
   LSTAssetConfig,
   NOSTRA_iXSTRK_ADDRESS,

@@ -165,9 +165,13 @@ const Tabs = () => {
     setActiveTab(tab);
 
     if (tab === "btc") {
-      router.push(referrer ? `/btc?referrer=${referrer}` : "/btc", { scroll: false });
+      router.push(referrer ? `/btc?referrer=${referrer}` : "/btc", {
+        scroll: false,
+      });
     } else if (tab === "strk") {
-      router.push(referrer ? `/strk?referrer=${referrer}` : "/strk", { scroll: false });
+      router.push(referrer ? `/strk?referrer=${referrer}` : "/strk", {
+        scroll: false,
+      });
     }
   };
 
