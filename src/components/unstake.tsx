@@ -147,7 +147,7 @@ const YouWillGetSection = ({
         <InfoTooltip content={tooltipContent} />
       </p>
       <span className="text-xs lg:text-[13px]">
-        {Number(amount).toFixed(isBTC ? 6 : 2)} {lstConfig.LST_SYMBOL}
+        {Number(amount).toFixed(isBTC ? 6 : 2)} {lstConfig.SYMBOL}
       </span>
     </div>
   );
@@ -299,17 +299,22 @@ const Unstake = () => {
 
   const { handleTransaction } = useTransactionHandler();
 
-  const youWillGet = React.useMemo(() => {
-    if (form.getValues("unstakeAmount") && txnDapp === "endur") {
-      return (Number(form.getValues("unstakeAmount")) * exRate.rate).toFixed(2);
-    }
-    return "0";
-  }, [exRate.rate, form.watch("unstakeAmount"), txnDapp]);
-
   const dexRate = React.useMemo(() => {
     if (!avnuQuote) return 0;
     return Number(avnuQuote.buyAmount) / Number(avnuQuote.sellAmount);
   }, [avnuQuote]);
+
+  const youWillGet = React.useMemo(() => {
+    const unstakeAmount = form.getValues("unstakeAmount");
+    if (!unstakeAmount) return "0";
+
+    if (txnDapp === "endur") {
+      return (Number(unstakeAmount) * exRate.rate).toFixed(isBTC ? 6 : 2);
+    } else if (txnDapp === "dex" && avnuQuote) {
+      return (Number(unstakeAmount) * dexRate).toFixed(isBTC ? 6 : 2);
+    }
+    return "0";
+  }, [exRate.rate, form.watch("unstakeAmount"), txnDapp, avnuQuote, dexRate]);
 
   const waitingTime = React.useMemo(() => {
     return "~7 days";
@@ -601,7 +606,7 @@ const Unstake = () => {
 
       <Tabs
         value={txnDapp}
-        defaultValue="dex"
+        defaultValue="endur"
         className="w-full max-w-none pt-1"
         onValueChange={(value) => setTxnDapp(value as "endur" | "dex")}
       >
@@ -668,11 +673,7 @@ const Unstake = () => {
           <div className="my-5 h-px w-full rounded-full bg-[#AACBC480]" />
           <div className="space-y-3 px-7">
             <YouWillGetSection
-              amount={formatNumber(
-                Number(form.getValues("unstakeAmount") || 0) *
-                  (avnuQuote ? dexRate : 0),
-                2,
-              )}
+              amount={formatNumber(youWillGet, 2)}
               tooltipContent="Instant unstaking via Avnu DEX. The amount you receive will be based on current market rates."
             />
             <div className="flex items-center justify-between rounded-md text-xs font-medium text-[#939494] lg:text-[13px]">
