@@ -21,7 +21,7 @@ import { Icons } from "./Icons";
 import { type Platform } from "./stake";
 import { totalXSTRKAcrossDefiHoldingsAtom } from "@/app/portfolio/_components/stats";
 import AssetSelector, { getFirstBtcAsset } from "./asset-selector";
-import { tabsAtom } from "@/store/merry.store";
+import { tabsAtom, activeSubTabAtom } from "@/store/merry.store";
 import { lstConfigAtom } from "@/store/common.store";
 
 const platformConfig = (lstConfig: any) => {
@@ -53,6 +53,7 @@ const Stats: React.FC<StatsProps> = ({
   const totalStaked = useAtomValue(totalStakedAtom);
   const totalStakedUSD = useAtomValue(totalStakedUSDAtom);
   const activeTab = useAtomValue(tabsAtom);
+  const activeSubTab = useAtomValue(activeSubTabAtom);
   const lstConfig = useAtomValue(lstConfigAtom)!;
   const isBTC = lstConfig.SYMBOL?.toLowerCase().includes("btc");
   const searchParams = useSearchParams();
@@ -76,7 +77,16 @@ const Stats: React.FC<StatsProps> = ({
       };
 
       const newPath = pathMap[assetSymbol] || "/btc";
-      router.push(referrer ? `${newPath}?referrer=${referrer}` : newPath);
+
+      const queryParams = new URLSearchParams();
+      if (referrer) queryParams.set("referrer", referrer);
+      if (activeSubTab && activeSubTab !== "stake")
+        queryParams.set("tab", activeSubTab);
+
+      const queryString = queryParams.toString();
+      const finalPath = queryString ? `${newPath}?${queryString}` : newPath;
+
+      router.push(finalPath);
     }
   };
 

@@ -1,6 +1,6 @@
 import MyNumber from "@/lib/MyNumber";
-import { Atom, atom } from "jotai";
-import { atomWithQuery } from "jotai-tanstack-query";
+import { Atom, atom, WritableAtom } from "jotai";
+import { atomWithQuery, AtomWithQueryResult } from "jotai-tanstack-query";
 import { atomFamily } from "jotai/utils";
 import { AtomFamily } from "jotai/vanilla/utils/atomFamily";
 import { BlockIdentifier } from "starknet";
@@ -420,7 +420,7 @@ const trovesHyperYieldQueryAtom = atomWithQuery((get) => ({
   }): Promise<ProtocolYield> => {
     const [, lstConfig] = queryKey;
 
-    const hostname = "https://app.troves.fi";
+    const hostname = "https://beta.troves.fi";
     const res = await fetch(`${hostname}/api/strategies`);
     const data = await res.json();
     const strategies = data.strategies;
@@ -467,28 +467,27 @@ const trovesHyperYieldQueryAtom = atomWithQuery((get) => ({
 }));
 
 // BTC Troves Hyper Vault atoms
-const trovesHyperxWBTCYieldQueryAtom = atomWithQuery((get) => ({
-  queryKey: ["trovesHyperxWBTCYield", get(btcPriceAtom)],
-  queryFn: async (): Promise<ProtocolYield> => {
-    try {
-      const hostname = "https://app.troves.fi";
+const createTrovesYieldQueryAtom = (strategyId: string, queryKey: string) =>
+  atomWithQuery((get) => ({
+    queryKey: [queryKey, get(btcPriceAtom)],
+    queryFn: async (): Promise<ProtocolYield> => {
+      const hostname = "https://beta.troves.fi";
       const res = await fetch(`${hostname}/api/strategies`);
       const data = await res.json();
       const strategies = data.strategies;
-
       const strategy = strategies.find(
-        (strategy: any) => strategy.id === "hyper_xwbtc",
+        (strategy: any) => strategy.id === strategyId,
       );
 
       if (!strategy) {
         return {
           value: 0,
           isLoading: false,
-          error: "Failed to find hyper_xwbtc strategy",
+          error: `Failed to find ${strategyId} strategy`,
         };
       }
 
-      const btcPrice = get(btcPriceAtom) as number;
+      const btcPrice = get(btcPriceAtom);
       const totalSupplied = btcPrice > 0 ? strategy.tvlUsd / btcPrice : 0;
 
       // Handle null APY values
@@ -499,265 +498,50 @@ const trovesHyperxWBTCYieldQueryAtom = atomWithQuery((get) => ({
         totalSupplied: totalSupplied ?? 0,
         isLoading: false,
       };
-    } catch (error) {
-      console.error("Error fetching hyper_xwbtc strategy:", error);
-      return {
-        value: 0,
-        isLoading: false,
-        error: "Failed to fetch hyper_xwbtc strategy",
-      };
-    }
-  },
-  refetchInterval: 60000,
-}));
+    },
+    refetchInterval: 60000,
+  }));
 
-const trovesHyperBTCxtBTCYieldQueryAtom = atomWithQuery((get) => ({
-  queryKey: ["trovesHyperBTCxtBTCYield", get(btcPriceAtom)],
-  queryFn: async (): Promise<ProtocolYield> => {
-    const hostname = "https://app.troves.fi";
-    const res = await fetch(`${hostname}/api/strategies`);
-    const data = await res.json();
-    const strategies = data.strategies;
-    const strategy = strategies.find(
-      (strategy: any) => strategy.id === "hyper_xtbtc",
-    );
+const trovesHyperxWBTCYieldQueryAtom = createTrovesYieldQueryAtom(
+  "hyper_xwbtc",
+  "trovesHyperxWBTCYield",
+);
 
-    if (!strategy) {
-      return {
-        value: 0,
-        isLoading: false,
-        error: "Failed to find hyper_xtbtc strategy",
-      };
-    }
+const trovesHyperxtBTCYieldQueryAtom = createTrovesYieldQueryAtom(
+  "hyper_xtbtc",
+  "trovesHyperxtBTCYield",
+);
 
-    const btcPrice = get(btcPriceAtom);
-    const totalSupplied = btcPrice > 0 ? strategy.tvlUsd / btcPrice : 0;
+const trovesHyperxLBTCYieldQueryAtom = createTrovesYieldQueryAtom(
+  "hyper_xlbtc",
+  "trovesHyperBTCxLBTCYield",
+);
 
-    // Handle null APY values
-    const apy = strategy.apy !== null ? strategy.apy * 100 : 0;
-
-    return {
-      value: apy,
-      totalSupplied: totalSupplied ?? 0,
-      isLoading: false,
-    };
-  },
-  refetchInterval: 60000,
-}));
-
-const trovesHyperBTCxLBTCYieldQueryAtom = atomWithQuery((get) => ({
-  queryKey: ["trovesHyperBTCxLBTCYield", get(btcPriceAtom)],
-  queryFn: async (): Promise<ProtocolYield> => {
-    const hostname = "https://app.troves.fi";
-    const res = await fetch(`${hostname}/api/strategies`);
-    const data = await res.json();
-    const strategies = data.strategies;
-    const strategy = strategies.find(
-      (strategy: any) => strategy.id === "hyper_xlbtc",
-    );
-
-    if (!strategy) {
-      return {
-        value: 0,
-        isLoading: false,
-        error: "Failed to find hyper_xlbtc strategy",
-      };
-    }
-
-    const btcPrice = get(btcPriceAtom);
-    const totalSupplied = btcPrice > 0 ? strategy.tvlUsd / btcPrice : 0;
-
-    // Handle null APY values
-    const apy = strategy.apy !== null ? strategy.apy * 100 : 0;
-
-    return {
-      value: apy,
-      totalSupplied: totalSupplied ?? 0,
-      isLoading: false,
-    };
-  },
-  refetchInterval: 60000,
-}));
-
-const trovesHyperBTCxsBTCYieldQueryAtom = atomWithQuery((get) => ({
-  queryKey: ["trovesHyperBTCxsBTCYield", get(btcPriceAtom)],
-  queryFn: async (): Promise<ProtocolYield> => {
-    const hostname = "https://app.troves.fi";
-    const res = await fetch(`${hostname}/api/strategies`);
-    const data = await res.json();
-    const strategies = data.strategies;
-    const strategy = strategies.find(
-      (strategy: any) => strategy.id === "hyper_xsbtc",
-    );
-
-    if (!strategy) {
-      return {
-        value: 0,
-        isLoading: false,
-        error: "Failed to find hyper_xsbtc strategy",
-      };
-    }
-
-    const btcPrice = get(btcPriceAtom);
-    const totalSupplied = btcPrice > 0 ? strategy.tvlUsd / btcPrice : 0;
-
-    // Handle null APY values
-    const apy = strategy.apy !== null ? strategy.apy * 100 : 0;
-
-    return {
-      value: apy,
-      totalSupplied: totalSupplied ?? 0,
-      isLoading: false,
-    };
-  },
-  refetchInterval: 60000,
-}));
+const trovesHyperxsBTCYieldQueryAtom = createTrovesYieldQueryAtom(
+  "hyper_xsbtc",
+  "trovesHyperxsBTCYield",
+);
 
 // BTC Troves Ekubo Concentrated Liquidity atoms
-const trovesEkuboBTCxWBTCYieldQueryAtom = atomWithQuery((get) => ({
-  queryKey: ["trovesEkuboBTCxWBTCYield", get(btcPriceAtom)],
-  queryFn: async (): Promise<ProtocolYield> => {
-    try {
-      const hostname = "https://app.troves.fi";
-      const res = await fetch(`${hostname}/api/strategies`);
-      const data = await res.json();
-      const strategies = data.strategies;
+const trovesEkuboBTCxWBTCYieldQueryAtom = createTrovesYieldQueryAtom(
+  "ekubo_cl_xwbtcwbtc",
+  "trovesEkuboBTCxWBTCYield",
+);
 
-      const strategy = strategies.find(
-        (strategy: any) => strategy.id === "ekubo_cl_xwbtcwbtc",
-      );
+const trovesEkuboBTCxtBTCYieldQueryAtom = createTrovesYieldQueryAtom(
+  "ekubo_cl_xtbtctbtc",
+  "trovesEkuboBTCxtBTCYield",
+);
 
-      if (!strategy) {
-        return {
-          value: 0,
-          isLoading: false,
-          error: "Failed to find ekubo_cl_xwbtcwbtc strategy",
-        };
-      }
+const trovesEkuboBTCxLBTCYieldQueryAtom = createTrovesYieldQueryAtom(
+  "ekubo_cl_xlbtclbtc",
+  "trovesEkuboBTCxLBTCYield",
+);
 
-      const btcPrice = get(btcPriceAtom) as number;
-      const totalSupplied = btcPrice > 0 ? strategy.tvlUsd / btcPrice : 0;
-
-      const apy = strategy.apy * 100;
-
-      return {
-        value: apy,
-        totalSupplied: totalSupplied ?? 0,
-        isLoading: false,
-      };
-    } catch (error) {
-      console.error("Error fetching ekubo_cl_xwbtcwbtc strategy:", error);
-      return {
-        value: 0,
-        isLoading: false,
-        error: "Failed to fetch ekubo_cl_xwbtcwbtc strategy",
-      };
-    }
-  },
-  refetchInterval: 60000,
-}));
-
-const trovesEkuboBTCxtBTCYieldQueryAtom = atomWithQuery((get) => ({
-  queryKey: ["trovesEkuboBTCxtBTCYield", get(btcPriceAtom)],
-  queryFn: async (): Promise<ProtocolYield> => {
-    const hostname = "https://app.troves.fi";
-    const res = await fetch(`${hostname}/api/strategies`);
-    const data = await res.json();
-    const strategies = data.strategies;
-    const strategy = strategies.find(
-      (strategy: any) => strategy.id === "ekubo_cl_xtbtctbtc",
-    );
-
-    if (!strategy) {
-      return {
-        value: 0,
-        isLoading: false,
-        error: "Failed to find ekubo_cl_xtbtctbtc strategy",
-      };
-    }
-
-    const btcPrice = get(btcPriceAtom);
-    const totalSupplied = btcPrice > 0 ? strategy.tvlUsd / btcPrice : 0;
-
-    // Handle null APY values
-    const apy = strategy.apy !== null ? strategy.apy * 100 : 0;
-
-    return {
-      value: apy,
-      totalSupplied: totalSupplied ?? 0,
-      isLoading: false,
-    };
-  },
-  refetchInterval: 60000,
-}));
-
-const trovesEkuboBTCxLBTCYieldQueryAtom = atomWithQuery((get) => ({
-  queryKey: ["trovesEkuboBTCxLBTCYield", get(btcPriceAtom)],
-  queryFn: async (): Promise<ProtocolYield> => {
-    const hostname = "https://app.troves.fi";
-    const res = await fetch(`${hostname}/api/strategies`);
-    const data = await res.json();
-    const strategies = data.strategies;
-    const strategy = strategies.find(
-      (strategy: any) => strategy.id === "ekubo_cl_xlbtclbtc",
-    );
-
-    if (!strategy) {
-      return {
-        value: 0,
-        isLoading: false,
-        error: "Failed to find ekubo_cl_xlbtclbtc strategy",
-      };
-    }
-
-    const btcPrice = get(btcPriceAtom);
-    const totalSupplied = btcPrice > 0 ? strategy.tvlUsd / btcPrice : 0;
-
-    // Handle null APY values
-    const apy = strategy.apy !== null ? strategy.apy * 100 : 0;
-
-    return {
-      value: apy,
-      totalSupplied: totalSupplied ?? 0,
-      isLoading: false,
-    };
-  },
-  refetchInterval: 60000,
-}));
-
-const trovesEkuboBTCxsBTCYieldQueryAtom = atomWithQuery((get) => ({
-  queryKey: ["trovesEkuboBTCxsBTCYield", get(btcPriceAtom)],
-  queryFn: async (): Promise<ProtocolYield> => {
-    const hostname = "https://app.troves.fi";
-    const res = await fetch(`${hostname}/api/strategies`);
-    const data = await res.json();
-    const strategies = data.strategies;
-    const strategy = strategies.find(
-      (strategy: any) => strategy.id === "ekubo_cl_xsbtcsolvbtc",
-    );
-
-    if (!strategy) {
-      return {
-        value: 0,
-        isLoading: false,
-        error: "Failed to find ekubo_cl_xsbtcsolvbtc strategy",
-      };
-    }
-
-    const btcPrice = get(btcPriceAtom);
-    const totalSupplied = btcPrice > 0 ? strategy.tvlUsd / btcPrice : 0;
-
-    // Handle null APY values
-    const apy = strategy.apy !== null ? strategy.apy * 100 : 0;
-
-    return {
-      value: apy,
-      totalSupplied: totalSupplied ?? 0,
-      isLoading: false,
-    };
-  },
-  refetchInterval: 60000,
-}));
+const trovesEkuboBTCxsBTCYieldQueryAtom = createTrovesYieldQueryAtom(
+  "ekubo_cl_xsbtcsolvbtc",
+  "trovesEkuboBTCxsBTCYield",
+);
 
 const haikoYieldQueryAtom = atomWithQuery(() => ({
   queryKey: ["haikoYield"],
@@ -878,86 +662,51 @@ export const trovesHyperYieldAtom = atom<ProtocolStats>((get) => {
 });
 
 // BTC Troves Hyper Vault yield atoms
-export const trovesHyperxWBTCYieldAtom = atom<ProtocolStats>((get) => {
-  const { data, error } = get(trovesHyperxWBTCYieldQueryAtom);
-  return {
-    value: error || !data ? null : data.value,
-    totalSupplied: error || !data ? 0 : (data.totalSupplied ?? 0),
-    error,
-    isLoading: !data && !error,
-  };
-});
+const createTrovesYieldAtom = (
+  queryAtom: WritableAtom<AtomWithQueryResult<ProtocolYield, Error>, [], void>,
+) =>
+  atom<ProtocolStats>((get) => {
+    const { data, error } = get(queryAtom);
+    return {
+      value: error || !data ? null : data.value,
+      totalSupplied: error || !data ? 0 : (data.totalSupplied ?? 0),
+      error,
+      isLoading: !data && !error,
+    };
+  });
 
-export const trovesHyperBTCxtBTCYieldAtom = atom<ProtocolStats>((get) => {
-  const { data, error } = get(trovesHyperBTCxtBTCYieldQueryAtom);
-  return {
-    value: error || !data ? null : data.value,
-    totalSupplied: error || !data ? 0 : (data.totalSupplied ?? 0),
-    error,
-    isLoading: !data && !error,
-  };
-});
+export const trovesHyperxWBTCYieldAtom = createTrovesYieldAtom(
+  trovesHyperxWBTCYieldQueryAtom,
+);
 
-export const trovesHyperBTCxLBTCYieldAtom = atom<ProtocolStats>((get) => {
-  const { data, error } = get(trovesHyperBTCxLBTCYieldQueryAtom);
-  return {
-    value: error || !data ? null : data.value,
-    totalSupplied: error || !data ? 0 : (data.totalSupplied ?? 0),
-    error,
-    isLoading: !data && !error,
-  };
-});
+export const trovesHyperxtBTCYieldAtom = createTrovesYieldAtom(
+  trovesHyperxtBTCYieldQueryAtom,
+);
 
-export const trovesHyperBTCxsBTCYieldAtom = atom<ProtocolStats>((get) => {
-  const { data, error } = get(trovesHyperBTCxsBTCYieldQueryAtom);
-  return {
-    value: error || !data ? null : data.value,
-    totalSupplied: error || !data ? 0 : (data.totalSupplied ?? 0),
-    error,
-    isLoading: !data && !error,
-  };
-});
+export const trovesHyperxLBTCYieldAtom = createTrovesYieldAtom(
+  trovesHyperxLBTCYieldQueryAtom,
+);
+
+export const trovesHyperxsBTCYieldAtom = createTrovesYieldAtom(
+  trovesHyperxsBTCYieldQueryAtom,
+);
 
 // BTC Troves Ekubo Concentrated Liquidity yield atoms
-export const trovesEkuboBTCxWBTCYieldAtom = atom<ProtocolStats>((get) => {
-  const { data, error } = get(trovesEkuboBTCxWBTCYieldQueryAtom);
-  return {
-    value: error || !data ? null : data.value,
-    totalSupplied: error || !data ? 0 : (data.totalSupplied ?? 0),
-    error,
-    isLoading: !data && !error,
-  };
-});
+export const trovesEkuboBTCxWBTCYieldAtom = createTrovesYieldAtom(
+  trovesEkuboBTCxWBTCYieldQueryAtom,
+);
 
-export const trovesEkuboBTCxtBTCYieldAtom = atom<ProtocolStats>((get) => {
-  const { data, error } = get(trovesEkuboBTCxtBTCYieldQueryAtom);
-  return {
-    value: error || !data ? null : data.value,
-    totalSupplied: error || !data ? 0 : (data.totalSupplied ?? 0),
-    error,
-    isLoading: !data && !error,
-  };
-});
+export const trovesEkuboBTCxtBTCYieldAtom = createTrovesYieldAtom(
+  trovesEkuboBTCxtBTCYieldQueryAtom,
+);
 
-export const trovesEkuboBTCxLBTCYieldAtom = atom<ProtocolStats>((get) => {
-  const { data, error } = get(trovesEkuboBTCxLBTCYieldQueryAtom);
-  return {
-    value: error || !data ? null : data.value,
-    totalSupplied: error || !data ? 0 : (data.totalSupplied ?? 0),
-    error,
-    isLoading: !data && !error,
-  };
-});
+export const trovesEkuboBTCxLBTCYieldAtom = createTrovesYieldAtom(
+  trovesEkuboBTCxLBTCYieldQueryAtom,
+);
 
-export const trovesEkuboBTCxsBTCYieldAtom = atom<ProtocolStats>((get) => {
-  const { data, error } = get(trovesEkuboBTCxsBTCYieldQueryAtom);
-  return {
-    value: error || !data ? null : data.value,
-    totalSupplied: error || !data ? 0 : (data.totalSupplied ?? 0),
-    error,
-    isLoading: !data && !error,
-  };
-});
+export const trovesEkuboBTCxsBTCYieldAtom = createTrovesYieldAtom(
+  trovesEkuboBTCxsBTCYieldQueryAtom,
+);
 
 // Vesu BTC yield atoms - using staging API as requested
 const vesuBTCxWBTCYieldQueryAtom = atomWithQuery(() => ({
@@ -1287,10 +1036,11 @@ export type SupportedDApp =
   | "ekuboBTCxtBTC"
   | "ekuboBTCxLBTC"
   | "ekuboBTCxsBTC"
+  | "hyperxSTRK"
   | "hyperxWBTC"
-  | "hyperBTCxtBTC"
-  | "hyperBTCxsBTC"
-  | "hyperBTCxLBTC"
+  | "hyperxtBTC"
+  | "hyperxsBTC"
+  | "hyperxLBTC"
   | "avnuBTCxWBTC"
   | "avnuBTCxtBTC"
   | "avnuBTCxLBTC"
@@ -1312,11 +1062,11 @@ export const protocolYieldsAtom = atom<
 >((get) => ({
   strkfarm: get(strkFarmYieldAtom),
   strkfarmEkubo: get(strkFarmEkuboYieldAtom),
-  trovesHyper: get(trovesHyperYieldAtom),
-  hyperxWBTC: get(trovesHyperxWBTCYieldAtom),
-  hyperBTCxtBTC: get(trovesHyperBTCxtBTCYieldAtom),
-  hyperBTCxLBTC: get(trovesHyperBTCxLBTCYieldAtom),
-  hyperBTCxsBTC: get(trovesHyperBTCxsBTCYieldAtom),
+  hyperxSTRK: get(trovesHyperYieldAtom),
+  hyperxWBTC: get(trovesHyperYieldAtom),
+  hyperxtBTC: get(trovesHyperYieldAtom),
+  hyperxLBTC: get(trovesHyperYieldAtom),
+  hyperxsBTC: get(trovesHyperYieldAtom),
   vesu: get(vesuYieldAtom),
   ekubo: get(ekuboYieldAtom),
   nostraDex: get(nostraLPYieldAtom),

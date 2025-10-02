@@ -86,27 +86,30 @@ export type FormValues = z.infer<typeof formSchema>;
 export type Platform = "none" | "trovesHyper";
 
 const PLATFORMS = {
-  TROVES_HYPER: "trovesHyper",
+  HYPER_HYPER: "trovesHyper",
 } as const;
 
 const platformConfig = (lstConfig: LSTAssetConfig) => {
   // Determine the correct yield key based on the LST symbol
   let yieldKey: string;
   switch (lstConfig.LST_SYMBOL) {
+    case "xSTRK":
+      yieldKey = "hyperxSTRK";
+      break;
     case "xWBTC":
       yieldKey = "hyperxWBTC";
       break;
     case "xtBTC":
-      yieldKey = "hyperBTCxtBTC";
+      yieldKey = "hyperxtBTC";
       break;
     case "xLBTC":
-      yieldKey = "hyperBTCxLBTC";
+      yieldKey = "hyperxLBTC";
       break;
     case "xsBTC":
-      yieldKey = "hyperBTCxsBTC";
+      yieldKey = "hyperxsBTC";
       break;
     default:
-      yieldKey = "trovesHyper";
+      throw new Error("Invalid LST config");
   }
 
   return {
@@ -327,7 +330,6 @@ const Stake: React.FC = () => {
         address: lstConfig.LST_ADDRESS,
       });
 
-      console.log("hyper address", lstConfig.TROVES_HYPER_VAULT_ADDRESS);
       const lendingAddress =
         selectedPlatform === "trovesHyper"
           ? lstConfig.TROVES_HYPER_VAULT_ADDRESS // TODO: update the address
@@ -397,6 +399,7 @@ const Stake: React.FC = () => {
       const config = getPlatformConfig(platform);
       if (!config) return false;
       const yieldData = yields[config.key];
+      console.log("yieldData", yieldData);
       return (yieldData?.value ?? 0) > 0;
     });
   }, [sortedPlatforms, yields]);
@@ -419,7 +422,6 @@ const Stake: React.FC = () => {
         {sortedPlatforms.map((platform) => {
           const config = getPlatformConfig(platform);
           const yieldData = getYieldData(platform, yields);
-          console.log("yieldData", yieldData);
 
           if (!config) {
             console.warn(`Platform configuration missing for: ${platform}`);
