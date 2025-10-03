@@ -71,7 +71,7 @@ const nextConfig = {
               ],
             },
             compress: {
-              drop_console: true,
+              drop_console: false, // Keep console statements for error logging
               drop_debugger: true,
             },
           };

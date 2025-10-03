@@ -450,6 +450,7 @@ const Unstake = () => {
       );
     } catch (error) {
       console.error("AVNU DEX Swap error", error);
+      throw new Error(error instanceof Error ? error.message : String(error));
     } finally {
       setAvnuLoading(false);
     }
