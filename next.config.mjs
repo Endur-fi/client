@@ -85,7 +85,7 @@ const nextConfig = {
       ? {}
       : {
           removeConsole: {
-            exclude: ["error"],
+            exclude: ["error", "warn", "info"],
           },
         },
   async redirects() {
