@@ -181,8 +181,8 @@ const Stats: React.FC<StatsProps> = ({
             <span>
               Available stake:{" "}
               {Number(
-                currentStaked.value.toEtherToFixedDecimals(isBTC ? 6 : 2),
-              ).toFixed(isBTC ? 6 : 2)}{" "}
+                currentStaked.value.toEtherToFixedDecimals(isBTC ? 8 : 2),
+              ).toFixed(isBTC ? 8 : 2)}{" "}
               {lstConfig.LST_SYMBOL}
             </span>
             <div className="ml-auto pl-2">
@@ -211,8 +211,8 @@ const Stats: React.FC<StatsProps> = ({
               <div className="mt-[10px] flex items-center justify-between rounded-md bg-white px-2 py-1 text-xs text-[#17876D]">
                 <span>
                   Stake in DeFi:{" "}
-                  {Number(xSTRKInDefiOnly.toFixed(isBTC ? 6 : 2)).toFixed(
-                    isBTC ? 6 : 2,
+                  {Number(xSTRKInDefiOnly.toFixed(isBTC ? 8 : 2)).toFixed(
+                    isBTC ? 8 : 2,
                   )}{" "}
                   {lstConfig.LST_SYMBOL}
                 </span>

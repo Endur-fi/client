@@ -420,7 +420,7 @@ const trovesHyperYieldQueryAtom = atomWithQuery((get) => ({
   }): Promise<ProtocolYield> => {
     const [, lstConfig] = queryKey;
 
-    const hostname = "https://beta.troves.fi";
+    const hostname = "https://app.troves.fi";
     const res = await fetch(`${hostname}/api/strategies`);
     const data = await res.json();
     const strategies = data.strategies;
@@ -471,13 +471,15 @@ const createTrovesYieldQueryAtom = (strategyId: string, queryKey: string) =>
   atomWithQuery((get) => ({
     queryKey: [queryKey, get(btcPriceAtom)],
     queryFn: async (): Promise<ProtocolYield> => {
-      const hostname = "https://beta.troves.fi";
+      const hostname = "https://app.troves.fi";
       const res = await fetch(`${hostname}/api/strategies`);
       const data = await res.json();
       const strategies = data.strategies;
+      console.log("strategies", strategies);
       const strategy = strategies.find(
         (strategy: any) => strategy.id === strategyId,
       );
+      console.log("strategy", strategy);
 
       if (!strategy) {
         return {

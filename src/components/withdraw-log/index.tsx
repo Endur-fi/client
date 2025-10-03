@@ -23,6 +23,7 @@ import { ContractAddr } from "@strkfarm/sdk";
 
 const WithdrawLog: React.FC = () => {
   const [withdrawals, setWithdrawals] = React.useState<WithdrawLogColumn[]>([]);
+  console.log("withdrawals", withdrawals);
   const [_globalStats, setGlobalStats] = React.useState({
     globalPendingAmountSTRK: "0",
     globalPendingRequests: "0",
@@ -30,6 +31,7 @@ const WithdrawLog: React.FC = () => {
   });
 
   const withdrawalLogs = useAtomValue(withdrawLogsAtom);
+  console.log("withdrawalLogs", withdrawalLogs);
   const globalPendingWithdrawStats = useAtomValue(
     globalPendingWithdrawStatsAtom,
   );
@@ -113,15 +115,17 @@ const WithdrawLog: React.FC = () => {
           ),
         );
 
-        const assetSymbol = lstConfig?.SYMBOL || "Unknown";
-        const isBtcAsset = assetSymbol?.toLowerCase().includes("btc");
-        const decimalPlaces = isBtcAsset ? 6 : 2;
+        if (!lstConfig) return;
+
+        const assetSymbol = lstConfig.SYMBOL;
+        const isBtcAsset = assetSymbol.toLowerCase().includes("btc");
+        const decimalPlaces = isBtcAsset ? 8 : 2;
 
         return {
           queuePosition: item.request_id,
           amount: new MyNumber(
             item.amount,
-            lstConfig?.DECIMALS || 18,
+            lstConfig.DECIMALS,
           ).toEtherToFixedDecimals(decimalPlaces),
           status: (item.is_claimed ? "Success" : "Pending") as Status,
           claimTime: item.claim_time,
