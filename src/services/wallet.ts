@@ -31,21 +31,21 @@ export class WalletConnector {
         chainId: constants.NetworkName.SN_MAIN,
       },
       inAppBrowserOptions: {},
-    }) as StarknetkitConnector;
+    });
 
     const argentXConnector = new InjectedConnector({
       options: {
         id: "argentX",
         name: "Argent X",
       },
-    }) as unknown as StarknetkitConnector;
+    });
 
     const braavosConnector = new InjectedConnector({
       options: {
         id: "braavos",
         name: "Braavos",
       },
-    }) as unknown as StarknetkitConnector;
+    });
 
     const keplrConnector = new InjectedConnector({
       options: {
@@ -59,15 +59,15 @@ export class WalletConnector {
         id: "fordefi",
         name: "Fordefi",
       },
-    }) as unknown as StarknetkitConnector;
+    });
 
     const braavosMobile = BraavosMobileConnector.init({
       inAppBrowserOptions: {},
-    }) as StarknetkitConnector;
+    });
 
     const webWalletConnector = new WebWalletConnector({
       url: "https://web.argent.xyz",
-    }) as StarknetkitConnector;
+    });
 
     const isMainnet = NETWORK === constants.NetworkName.SN_MAIN;
 
