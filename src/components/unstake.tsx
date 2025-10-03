@@ -442,6 +442,8 @@ const Unstake = () => {
             description: (
               <div className="flex items-center gap-2 text-red-500">
                 <Info className="size-5" />
+                {error.name}
+                {error.stack}
                 {error.message}
               </div>
             ),
