@@ -85,27 +85,30 @@ export type FormValues = z.infer<typeof formSchema>;
 export type Platform = "none" | "trovesHyper";
 
 const PLATFORMS = {
-  TROVES_HYPER: "trovesHyper",
+  HYPER_HYPER: "trovesHyper",
 } as const;
 
 const platformConfig = (lstConfig: LSTAssetConfig) => {
   // Determine the correct yield key based on the LST symbol
   let yieldKey: string;
   switch (lstConfig.LST_SYMBOL) {
+    case "xSTRK":
+      yieldKey = "hyperxSTRK";
+      break;
     case "xWBTC":
       yieldKey = "hyperxWBTC";
       break;
     case "xtBTC":
-      yieldKey = "hyperBTCxtBTC";
+      yieldKey = "hyperxtBTC";
       break;
     case "xLBTC":
-      yieldKey = "hyperBTCxLBTC";
+      yieldKey = "hyperxLBTC";
       break;
     case "xsBTC":
-      yieldKey = "hyperBTCxsBTC";
+      yieldKey = "hyperxsBTC";
       break;
     default:
-      yieldKey = "trovesHyper";
+      throw new Error("Invalid LST config");
   }
 
   return {
@@ -214,7 +217,7 @@ const Stake: React.FC = () => {
 
     if (balance) {
       const calculatedAmount = (Number(balance?.formatted) * percentage) / 100;
-      form.setValue("stakeAmount", calculatedAmount.toFixed(isBTC ? 6 : 2));
+      form.setValue("stakeAmount", calculatedAmount.toFixed(isBTC ? 8 : 2));
       form.clearErrors("stakeAmount");
     }
   };
@@ -326,7 +329,6 @@ const Stake: React.FC = () => {
         address: lstConfig.LST_ADDRESS,
       });
 
-      console.log("hyper address", lstConfig.TROVES_HYPER_VAULT_ADDRESS);
       const lendingAddress =
         selectedPlatform === "trovesHyper"
           ? lstConfig.TROVES_HYPER_VAULT_ADDRESS // TODO: update the address
@@ -388,14 +390,25 @@ const Stake: React.FC = () => {
 
   const sortedPlatforms = React.useMemo(() => {
     const allPlatforms = Object.values(PLATFORMS);
-    return sortPlatforms(allPlatforms, yields);
-  }, [yields]);
+    // Filter out trovesHyper platform for xWBTC and xtBTC
+    const filteredPlatforms = allPlatforms.filter((platform) => {
+      if (
+        platform === "trovesHyper" &&
+        (lstConfig.LST_SYMBOL === "xWBTC" || lstConfig.LST_SYMBOL === "xtBTC")
+      ) {
+        return false;
+      }
+      return true;
+    });
+    return sortPlatforms(filteredPlatforms, yields);
+  }, [yields, lstConfig.LST_SYMBOL]);
 
   const hasPositiveYields = React.useMemo(() => {
     return sortedPlatforms.some((platform) => {
       const config = getPlatformConfig(platform);
       if (!config) return false;
       const yieldData = yields[config.key];
+      console.log("yieldData", yieldData);
       return (yieldData?.value ?? 0) > 0;
     });
   }, [sortedPlatforms, yields]);
@@ -418,7 +431,6 @@ const Stake: React.FC = () => {
         {sortedPlatforms.map((platform) => {
           const config = getPlatformConfig(platform);
           const yieldData = getYieldData(platform, yields);
-          console.log("yieldData", yieldData);
 
           if (!config) {
             console.warn(`Platform configuration missing for: ${platform}`);
@@ -587,7 +599,7 @@ const Stake: React.FC = () => {
             <span className="hidden md:block">Balance:</span>
             <span className="font-bold">
               {balance?.formatted
-                ? Number(balance?.formatted).toFixed(isBTC ? 6 : 2)
+                ? Number(balance?.formatted).toFixed(isBTC ? 8 : 2)
                 : "0"}{" "}
               {lstConfig.SYMBOL}
             </span>
@@ -670,7 +682,7 @@ const Stake: React.FC = () => {
                   {selectedPlatform === "none" ? (
                     <>
                       <strong>{lstConfig.LST_SYMBOL}</strong> is the liquid
-                      staking token (LST) of Endur, representing your staked
+                      staking token (LST) of Endur, representing your staked{" "}
                       {lstConfig.SYMBOL}.{" "}
                     </>
                   ) : (
@@ -690,7 +702,7 @@ const Stake: React.FC = () => {
             </TooltipProvider>
           </p>
           <span className="text-xs lg:text-[13px]">
-            {Number(getCalculatedLSTAmount()).toFixed(isBTC ? 6 : 2)}{" "}
+            {Number(getCalculatedLSTAmount()).toFixed(isBTC ? 8 : 2)}{" "}
             {lstConfig.LST_SYMBOL}
           </span>
         </div>
@@ -709,9 +721,9 @@ const Stake: React.FC = () => {
                 >
                   <strong>{lstConfig.LST_SYMBOL}</strong> is a yield bearing
                   token whose value will appreciate against {lstConfig.SYMBOL}{" "}
-                  as you get more
-                  {lstConfig.SYMBOL} rewards. The increase in exchange rate of{" "}
-                  {lstConfig.LST_SYMBOL} will determine your share of rewards.{" "}
+                  as you get more {lstConfig.SYMBOL} rewards. The increase in
+                  exchange rate of {lstConfig.LST_SYMBOL} will determine your
+                  share of rewards.{" "}
                   <Link
                     target="_blank"
                     href="https://docs.endur.fi/docs"

@@ -154,6 +154,8 @@ export async function GET(_req: Request) {
     }
   }
 
+  console.log("results", results);
+
   const response = NextResponse.json(results);
   if (setCache) {
     response.headers.set(

@@ -15,19 +15,11 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { getExplorerEndpoint } from "@/constants";
-import {
-  cn,
-  convertFutureTimestamp,
-  formatNumberWithCommas,
-} from "@/lib/utils";
-import { useAtomValue } from "jotai";
-import { lstConfigAtom } from "@/store/common.store";
+import { cn, convertFutureTimestamp } from "@/lib/utils";
 
 // Custom component for amount cell that can use hooks
 const AmountCell: React.FC<{ amount: string }> = ({ amount }) => {
-  const lstConfig = useAtomValue(lstConfigAtom)!;
-  const isBTC = lstConfig.SYMBOL?.toLowerCase().includes("btc");
-  return <>{formatNumberWithCommas(amount, isBTC ? 6 : 2)}</>;
+  return <>{amount}</>;
 };
 
 export type Status = "Success" | "Pending";

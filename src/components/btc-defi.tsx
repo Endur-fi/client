@@ -8,9 +8,9 @@ import { cn, eventNames } from "@/lib/utils";
 import {
   SupportedDApp,
   trovesHyperxWBTCYieldAtom,
-  trovesHyperBTCxtBTCYieldAtom,
-  trovesHyperBTCxLBTCYieldAtom,
-  trovesHyperBTCxsBTCYieldAtom,
+  trovesHyperxtBTCYieldAtom,
+  trovesHyperxLBTCYieldAtom,
+  trovesHyperxsBTCYieldAtom,
   trovesEkuboBTCxWBTCYieldAtom,
   trovesEkuboBTCxtBTCYieldAtom,
   trovesEkuboBTCxLBTCYieldAtom,
@@ -179,7 +179,7 @@ export const btcProtocolConfigs: Partial<
       },
     },
   },
-  hyperBTCxtBTC: {
+  hyperxtBTC: {
     tokens: [
       { icon: <Icons.btcLogo className="size-[22px]" />, name: "xtBTC" },
     ],
@@ -205,7 +205,7 @@ export const btcProtocolConfigs: Partial<
       },
     },
   },
-  hyperBTCxsBTC: {
+  hyperxsBTC: {
     tokens: [
       { icon: <Icons.btcLogo className="size-[22px]" />, name: "xsBTC" },
     ],
@@ -231,7 +231,7 @@ export const btcProtocolConfigs: Partial<
       },
     },
   },
-  hyperBTCxLBTC: {
+  hyperxLBTC: {
     tokens: [
       { icon: <Icons.btcLogo className="size-[22px]" />, name: "xLBTC" },
     ],
@@ -440,9 +440,9 @@ const BtcDefi: React.FC = () => {
 
   // Troves Hyper Vault yields
   const [trovesHyperxWBTCYield] = useAtom(trovesHyperxWBTCYieldAtom);
-  const [trovesHyperXtBTCYield] = useAtom(trovesHyperBTCxtBTCYieldAtom);
-  const [trovesHyperXLBTCYield] = useAtom(trovesHyperBTCxLBTCYieldAtom);
-  const [trovesHyperXsBTCYield] = useAtom(trovesHyperBTCxsBTCYieldAtom);
+  const [trovesHyperxtBTCYield] = useAtom(trovesHyperxtBTCYieldAtom);
+  const [trovesHyperxLBTCYield] = useAtom(trovesHyperxLBTCYieldAtom);
+  const [trovesHyperxsBTCYield] = useAtom(trovesHyperxsBTCYieldAtom);
 
   // Troves Ekubo yields
   const [trovesEkuboXWBTCYield] = useAtom(trovesEkuboBTCxWBTCYieldAtom);
@@ -466,12 +466,12 @@ const BtcDefi: React.FC = () => {
           yieldA = vesuXsBTCYield?.value ?? -Infinity;
         else if (a === "hyperxWBTC")
           yieldA = trovesHyperxWBTCYield?.value ?? -Infinity;
-        else if (a === "hyperBTCxtBTC")
-          yieldA = trovesHyperXtBTCYield?.value ?? -Infinity;
-        else if (a === "hyperBTCxLBTC")
-          yieldA = trovesHyperXLBTCYield?.value ?? -Infinity;
-        else if (a === "hyperBTCxsBTC")
-          yieldA = trovesHyperXsBTCYield?.value ?? -Infinity;
+        else if (a === "hyperxtBTC")
+          yieldA = trovesHyperxtBTCYield?.value ?? -Infinity;
+        else if (a === "hyperxLBTC")
+          yieldA = trovesHyperxLBTCYield?.value ?? -Infinity;
+        else if (a === "hyperxsBTC")
+          yieldA = trovesHyperxsBTCYield?.value ?? -Infinity;
         else if (a === "ekuboBTCxWBTC")
           yieldA = trovesEkuboXWBTCYield?.value ?? -Infinity;
         else if (a === "ekuboBTCxtBTC")
@@ -498,12 +498,12 @@ const BtcDefi: React.FC = () => {
           yieldB = vesuXsBTCYield?.value ?? -Infinity;
         else if (b === "hyperxWBTC")
           yieldB = trovesHyperxWBTCYield?.value ?? -Infinity;
-        else if (b === "hyperBTCxtBTC")
-          yieldB = trovesHyperXtBTCYield?.value ?? -Infinity;
-        else if (b === "hyperBTCxLBTC")
-          yieldB = trovesHyperXLBTCYield?.value ?? -Infinity;
-        else if (b === "hyperBTCxsBTC")
-          yieldB = trovesHyperXsBTCYield?.value ?? -Infinity;
+        else if (b === "hyperxtBTC")
+          yieldB = trovesHyperxtBTCYield?.value ?? -Infinity;
+        else if (b === "hyperxLBTC")
+          yieldB = trovesHyperxLBTCYield?.value ?? -Infinity;
+        else if (b === "hyperxsBTC")
+          yieldB = trovesHyperxsBTCYield?.value ?? -Infinity;
         else if (b === "ekuboBTCxWBTC")
           yieldB = trovesEkuboXWBTCYield?.value ?? -Infinity;
         else if (b === "ekuboBTCxtBTC")
@@ -530,9 +530,9 @@ const BtcDefi: React.FC = () => {
     vesuXLBTCYield,
     vesuXsBTCYield,
     trovesHyperxWBTCYield,
-    trovesHyperXtBTCYield,
-    trovesHyperXLBTCYield,
-    trovesHyperXsBTCYield,
+    trovesHyperxtBTCYield,
+    trovesHyperxLBTCYield,
+    trovesHyperxsBTCYield,
     trovesEkuboXWBTCYield,
     trovesEkuboXtBTCYield,
     trovesEkuboXLBTCYield,
@@ -608,23 +608,23 @@ const BtcDefi: React.FC = () => {
                 error: trovesHyperxWBTCYield?.error ?? null,
                 isLoading: trovesHyperxWBTCYield?.isLoading ?? false,
               };
-            } else if (protocol === "hyperBTCxtBTC") {
+            } else if (protocol === "hyperxtBTC") {
               yieldData = {
-                value: trovesHyperXtBTCYield?.value ?? null,
-                error: trovesHyperXtBTCYield?.error ?? null,
-                isLoading: trovesHyperXtBTCYield?.isLoading ?? false,
+                value: trovesHyperxtBTCYield?.value ?? null,
+                error: trovesHyperxtBTCYield?.error ?? null,
+                isLoading: trovesHyperxtBTCYield?.isLoading ?? false,
               };
-            } else if (protocol === "hyperBTCxLBTC") {
+            } else if (protocol === "hyperxLBTC") {
               yieldData = {
-                value: trovesHyperXLBTCYield?.value ?? null,
-                error: trovesHyperXLBTCYield?.error ?? null,
-                isLoading: trovesHyperXLBTCYield?.isLoading ?? false,
+                value: trovesHyperxLBTCYield?.value ?? null,
+                error: trovesHyperxLBTCYield?.error ?? null,
+                isLoading: trovesHyperxLBTCYield?.isLoading ?? false,
               };
-            } else if (protocol === "hyperBTCxsBTC") {
+            } else if (protocol === "hyperxsBTC") {
               yieldData = {
-                value: trovesHyperXsBTCYield?.value ?? null,
-                error: trovesHyperXsBTCYield?.error ?? null,
-                isLoading: trovesHyperXsBTCYield?.isLoading ?? false,
+                value: trovesHyperxsBTCYield?.value ?? null,
+                error: trovesHyperxsBTCYield?.error ?? null,
+                isLoading: trovesHyperxsBTCYield?.isLoading ?? false,
               };
             } else if (protocol === "ekuboBTCxWBTC") {
               yieldData = {

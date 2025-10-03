@@ -46,11 +46,40 @@ const getExchangeRate = async (
   }
 };
 
-export async function GET(_req: Request, context: any) {
+export async function GET(req: Request, context: any) {
   const { params } = context;
+  const { searchParams } = new URL(req.url);
   const nDays = Number(params.nDays);
-  const lstAddress = params.lstAddress;
-  const decimals = params.decimals;
+  const lstAddress = searchParams.get("lstAddress");
+  const decimalsStr = searchParams.get("decimals");
+
+  if (!lstAddress) {
+    return NextResponse.json(
+      {
+        error: "lstAddress parameter is required",
+      },
+      { status: 400 },
+    );
+  }
+
+  if (!decimalsStr) {
+    return NextResponse.json(
+      {
+        error: "decimals parameter is required",
+      },
+      { status: 400 },
+    );
+  }
+
+  const decimals = Number(decimalsStr);
+  if (isNaN(decimals)) {
+    return NextResponse.json(
+      {
+        error: "decimals must be a valid number",
+      },
+      { status: 400 },
+    );
+  }
 
   // days is the time period of blocks we need
   // gapDays is the gap between each block in days (to avoid too much computation)

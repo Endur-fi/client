@@ -147,7 +147,7 @@ const YouWillGetSection = ({
         <InfoTooltip content={tooltipContent} />
       </p>
       <span className="text-xs lg:text-[13px]">
-        {Number(amount).toFixed(isBTC ? 6 : 2)} {lstConfig.SYMBOL}
+        {Number(amount).toFixed(isBTC ? 8 : 2)} {lstConfig.SYMBOL}
       </span>
     </div>
   );
@@ -309,9 +309,9 @@ const Unstake = () => {
     if (!unstakeAmount) return "0";
 
     if (txnDapp === "endur") {
-      return (Number(unstakeAmount) * exRate.rate).toFixed(isBTC ? 6 : 2);
+      return (Number(unstakeAmount) * exRate.rate).toFixed(isBTC ? 8 : 2);
     } else if (txnDapp === "dex" && avnuQuote) {
-      return (Number(unstakeAmount) * dexRate).toFixed(isBTC ? 6 : 2);
+      return (Number(unstakeAmount) * dexRate).toFixed(isBTC ? 8 : 2);
     }
     return "0";
   }, [exRate.rate, form.watch("unstakeAmount"), txnDapp, avnuQuote, dexRate]);
@@ -397,7 +397,7 @@ const Unstake = () => {
 
     if (amount) {
       const calculatedAmount = (amount * percentage) / 100;
-      form.setValue("unstakeAmount", calculatedAmount.toFixed(isBTC ? 6 : 2));
+      form.setValue("unstakeAmount", calculatedAmount.toFixed(isBTC ? 8 : 2));
       form.clearErrors("unstakeAmount");
     }
   };
@@ -596,8 +596,8 @@ const Unstake = () => {
             <span className="hidden md:block">Balance:</span>
             <span className="font-bold">
               {Number(
-                currentLSTBalance.value.toEtherToFixedDecimals(isBTC ? 6 : 2),
-              ).toFixed(isBTC ? 6 : 2)}{" "}
+                currentLSTBalance.value.toEtherToFixedDecimals(isBTC ? 8 : 2),
+              ).toFixed(isBTC ? 8 : 2)}{" "}
               {lstConfig.LST_SYMBOL}
             </span>
           </div>
@@ -643,7 +643,7 @@ const Unstake = () => {
           <div className="my-5 h-px w-full rounded-full bg-[#AACBC480]" />
           <div className="space-y-3 px-7">
             <YouWillGetSection
-              amount={formatNumber(youWillGet, 2)}
+              amount={youWillGet}
               tooltipContent={`You will receive the equivalent amount of ${lstConfig.SYMBOL} for the ${lstConfig.LST_SYMBOL} you are unstaking. The amount of ${lstConfig.SYMBOL} you receive will be based on the current exchange rate of ${lstConfig.LST_SYMBOL} to ${lstConfig.SYMBOL}.`}
             />
             <FeeSection />
