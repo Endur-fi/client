@@ -16,7 +16,11 @@ import {
 } from "@/components/ui/tooltip";
 import { IS_PAUSED, getLSTAssetsByCategory, getSTRKAsset } from "@/constants";
 import { cn } from "@/lib/utils";
-import { isMerryChristmasAtom, tabsAtom } from "@/store/merry.store";
+import {
+  isMerryChristmasAtom,
+  tabsAtom,
+  activeSubTabAtom,
+} from "@/store/merry.store";
 import { toast } from "@/hooks/use-toast";
 import { validateEmail } from "@/lib/utils";
 import { checkSubscription, subscribeUser } from "@/lib/api";
@@ -45,7 +49,7 @@ const Tabs = () => {
   const searchParams = useSearchParams();
 
   const [activeTab, setActiveTab] = useAtom(tabsAtom);
-  const [activeSubTab, setActiveSubTab] = React.useState("stake");
+  const [activeSubTab, setActiveSubTab] = useAtom(activeSubTabAtom);
   const [waitlistEmail, setWaitlistEmail] = React.useState("");
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const apy = useAtomValue(snAPYAtom);
@@ -59,6 +63,7 @@ const Tabs = () => {
   const { connectWallet } = useWalletConnection();
 
   const referrer = searchParams.get("referrer");
+  const tabParam = searchParams.get("tab");
 
   React.useEffect(() => {
     console.log("Pathname Effect - pathname:", pathname);
@@ -79,6 +84,13 @@ const Tabs = () => {
       setActiveTab("btc");
     }
   }, [pathname, setActiveTab]);
+
+  // Set activeSubTab from URL parameter
+  React.useEffect(() => {
+    if (tabParam && ["stake", "unstake", "withdraw"].includes(tabParam)) {
+      setActiveSubTab(tabParam);
+    }
+  }, [tabParam, setActiveSubTab]);
 
   React.useEffect(() => {
     if (activeTab === "strk") {
@@ -165,9 +177,13 @@ const Tabs = () => {
     setActiveTab(tab);
 
     if (tab === "btc") {
-      router.push(referrer ? `/btc?referrer=${referrer}` : "/btc", { scroll: false });
+      router.push(referrer ? `/btc?referrer=${referrer}` : "/btc", {
+        scroll: false,
+      });
     } else if (tab === "strk") {
-      router.push(referrer ? `/strk?referrer=${referrer}` : "/strk", { scroll: false });
+      router.push(referrer ? `/strk?referrer=${referrer}` : "/strk", {
+        scroll: false,
+      });
     }
   };
 

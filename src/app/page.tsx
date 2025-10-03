@@ -11,7 +11,7 @@ export default function Home() {
     // Capture search parameters
     const params = searchParams.toString();
     const redirectUrl = params ? `/btc?${params}` : "/btc";
-    
+
     console.log(`redirecting to ${redirectUrl}`);
     router.push(redirectUrl);
   }, [router, searchParams]);
