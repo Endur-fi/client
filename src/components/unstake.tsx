@@ -448,6 +448,8 @@ const Unstake = () => {
           });
         },
       );
+    } catch (error) {
+      console.error("AVNU DEX Swap error", error);
     } finally {
       setAvnuLoading(false);
     }
