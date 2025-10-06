@@ -5,9 +5,8 @@ import { useAccount, useProvider } from "@starknet-react/core";
 import { useAtom, useSetAtom } from "jotai";
 import { X } from "lucide-react";
 import React from "react";
-import { constants } from "starknet";
 
-import { getProvider, NETWORK } from "@/constants";
+import { getProvider } from "@/constants";
 import { toast } from "@/hooks/use-toast";
 import { useWalletConnection } from "@/hooks/use-wallet-connection";
 import { MyAnalytics } from "@/lib/analytics";
@@ -26,7 +25,7 @@ const Navbar = ({ className }: { className?: string }) => {
   // init analytics
   MyAnalytics.init();
 
-  const { address, connector, chainId } = useAccount();
+  const { address, connector } = useAccount();
   const { provider } = useProvider();
   const { connectWallet, disconnectWallet } = useWalletConnection();
 
@@ -36,53 +35,12 @@ const Navbar = ({ className }: { className?: string }) => {
   const [_, setLastWallet] = useAtom(lastWalletAtom);
   const setProvider = useSetAtom(providerAtom);
 
-  const requiredChainId = React.useMemo(() => {
-    return NETWORK === constants.NetworkName.SN_MAIN
-      ? constants.StarknetChainId.SN_MAIN
-      : constants.StarknetChainId.SN_SEPOLIA;
-  }, []);
-
-  // const { switchChain, error } = useSwitchChain({
-  //   params: {
-  //     chainId: requiredChainId,
-  //   },
-  // });
-
   // set tracking person
   React.useEffect(() => {
     if (address) {
       MyAnalytics.setPerson(address);
     }
   }, [address]);
-
-  // switch chain if not on the required chain
-  // React.useEffect(() => {
-  //   if (
-  //     chainId &&
-  //     chainId.toString() !== num.getDecimalString(requiredChainId)
-  //   ) {
-  //     switchChain();
-  //   }
-  // }, [chainId]);
-
-  // React.useEffect(() => {
-  //   if (error) {
-  //     console.error("switchChain error", error);
-  //   }
-  // }, [error]);
-
-  // attempt to connect wallet on load
-  React.useEffect(() => {
-    // Add a small delay to ensure the app is fully loaded
-    const timer = setTimeout(() => {
-      connectWallet("neverAsk").catch((error) => {
-        // Silently handle connection errors on initial load
-        console.debug("Auto-connect failed:", error);
-      });
-    }, 100);
-
-    return () => clearTimeout(timer);
-  }, []);
 
   React.useEffect(() => {
     if (connector) {

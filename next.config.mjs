@@ -71,7 +71,7 @@ const nextConfig = {
               ],
             },
             compress: {
-              drop_console: false, // Keep console statements for error logging
+              drop_console: true,
               drop_debugger: true,
             },
           };
@@ -85,7 +85,7 @@ const nextConfig = {
       ? {}
       : {
           removeConsole: {
-            exclude: ["error", "warn", "info"],
+            exclude: ["error"],
           },
         },
   async redirects() {
