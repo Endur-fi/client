@@ -407,7 +407,7 @@ const Unstake = () => {
 
     await connectWallet();
 
-    if (!account) return;
+    // if (!account) return;
 
     MyAnalytics.track(eventNames.UNSTAKE_CLICK, {
       address,
