@@ -405,10 +405,9 @@ const Unstake = () => {
   const handleDexSwap = async () => {
     if (!address || !avnuQuote) return;
 
-    const walletAccount = await connectWallet();
-    console.log("walletAccount", walletAccount);
+    await connectWallet();
 
-    if (!walletAccount) return;
+    if (!account) return;
 
     MyAnalytics.track(eventNames.UNSTAKE_CLICK, {
       address,
@@ -419,7 +418,7 @@ const Unstake = () => {
     setAvnuLoading(true);
     try {
       await executeAvnuSwap(
-        walletAccount as AccountInterface,
+        account as AccountInterface,
         avnuQuote,
         () => {
           toast({

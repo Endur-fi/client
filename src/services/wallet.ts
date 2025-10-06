@@ -1,5 +1,4 @@
 import { InjectedConnector } from "@starknet-react/core";
-import { constants } from "starknet";
 import { StarknetkitConnector } from "starknetkit";
 import {
   ArgentMobileConnector,
@@ -24,15 +23,7 @@ export class WalletConnector {
     const hostname =
       typeof window !== "undefined" ? window.location.hostname : "";
 
-    const argentMobileConnector = ArgentMobileConnector.init({
-      options: {
-        dappName: "Endurfi",
-        url: hostname,
-        chainId: constants.NetworkName.SN_MAIN,
-      },
-      inAppBrowserOptions: {},
-    });
-
+    // Desktop/Extension wallets
     const argentXConnector = new InjectedConnector({
       options: {
         id: "argentX",
@@ -54,76 +45,65 @@ export class WalletConnector {
       },
     }) as unknown as StarknetkitConnector;
 
-    const foredefiConnector = new InjectedConnector({
+    const fordefiConnector = new InjectedConnector({
       options: {
         id: "fordefi",
         name: "Fordefi",
       },
     });
 
-    const braavosMobile = BraavosMobileConnector.init({
+    // Mobile connectors
+    const argentMobileConnector = ArgentMobileConnector.init({
+      options: {
+        dappName: "Endur.fi",
+        url: hostname,
+        chainId: NETWORK,
+      },
       inAppBrowserOptions: {},
     });
 
+    const braavosMobileConnector = BraavosMobileConnector.init({
+      inAppBrowserOptions: {},
+    });
+
+    // Web wallet (email login)
     const webWalletConnector = new WebWalletConnector({
       url: "https://web.argent.xyz",
     });
 
-    const isMainnet = NETWORK === constants.NetworkName.SN_MAIN;
+    // Check if we're in mobile app browsers
+    const isInArgentMobile = isInArgentMobileAppBrowser();
+    const isInBraavosMobile = isInBraavosMobileAppBrowser();
 
-    const isInstalled = [
-      argentXConnector,
-      braavosConnector,
-      keplrConnector,
-    ].map((wallet) => {
-      return {
-        id: wallet.id,
-        isInstalled:
-          typeof window === "undefined"
-            ? false
-            : window[`starknet_${wallet.id}`] !== undefined,
-      };
-    });
-
-    // console.warn("isInstalled", isInstalled);
-
-    const defaultConnectors = [
-      argentXConnector,
-      braavosConnector,
-      keplrConnector,
-      foredefiConnector,
-    ];
-
-    // put uninstall wallets at the end
-    const sortedConnectors: any[] = defaultConnectors.sort((a, b) => {
-      const aInstalled = isInstalled.find(
-        (wallet) => wallet.id === a.id,
-      )?.isInstalled;
-      const bInstalled = isInstalled.find(
-        (wallet) => wallet.id === b.id,
-      )?.isInstalled;
-
-      if (aInstalled && bInstalled) {
-        return 0;
-      } else if (aInstalled) {
-        return -1;
-      }
-      return 1;
-    });
-
-    if (isMainnet) {
-      if (isInArgentMobileAppBrowser()) {
-        return [argentMobileConnector];
-      } else if (isInBraavosMobileAppBrowser()) {
-        return [braavosMobile];
-      } else if (this.isMobile) {
-        return [argentMobileConnector, braavosMobile, webWalletConnector];
-      }
-
-      // sortedConnectors.push(argentMobileConnector);
-      sortedConnectors.push(webWalletConnector);
-      return sortedConnectors;
+    // Return appropriate connectors based on environment
+    if (isInArgentMobile) {
+      return [argentMobileConnector];
     }
-    return sortedConnectors;
+
+    if (isInBraavosMobile) {
+      return [braavosMobileConnector];
+    }
+
+    // For mobile devices, prioritize mobile connectors
+    if (this.isMobile) {
+      return [
+        argentMobileConnector,
+        braavosMobileConnector,
+        webWalletConnector,
+        argentXConnector,
+        braavosConnector,
+        keplrConnector,
+        fordefiConnector,
+      ];
+    }
+
+    // For desktop, only show extension wallets and web wallet (no mobile connectors)
+    return [
+      argentXConnector,
+      braavosConnector,
+      keplrConnector,
+      fordefiConnector,
+      webWalletConnector,
+    ];
   }
 }

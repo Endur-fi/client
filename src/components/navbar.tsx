@@ -6,7 +6,6 @@ import { useAtom, useSetAtom } from "jotai";
 import { X } from "lucide-react";
 import React from "react";
 import { constants } from "starknet";
-import { disconnect } from "starknetkit";
 
 import { getProvider, NETWORK } from "@/constants";
 import { toast } from "@/hooks/use-toast";
@@ -29,8 +28,7 @@ const Navbar = ({ className }: { className?: string }) => {
 
   const { address, connector, chainId } = useAccount();
   const { provider } = useProvider();
-  const { disconnectAsync } = useDisconnect();
-  const { connectWallet, config } = useWalletConnection();
+  const { connectWallet, disconnectWallet } = useWalletConnection();
 
   const { isMobile } = useSidebar();
 
@@ -75,10 +73,15 @@ const Navbar = ({ className }: { className?: string }) => {
 
   // attempt to connect wallet on load
   React.useEffect(() => {
-    connectWallet({
-      ...config,
-      modalMode: "neverAsk",
-    });
+    // Add a small delay to ensure the app is fully loaded
+    const timer = setTimeout(() => {
+      connectWallet("neverAsk").catch((error) => {
+        // Silently handle connection errors on initial load
+        console.debug("Auto-connect failed:", error);
+      });
+    }, 100);
+
+    return () => clearTimeout(timer);
   }, []);
 
   React.useEffect(() => {
@@ -149,7 +152,7 @@ const Navbar = ({ className }: { className?: string }) => {
                   </div>
 
                   <X
-                    onClick={() => (disconnect(), disconnectAsync())}
+                    onClick={() => disconnectWallet()}
                     className="size-4 text-[#3F6870]"
                   />
                 </div>
@@ -167,7 +170,7 @@ const Navbar = ({ className }: { className?: string }) => {
                   </div>
 
                   <X
-                    onClick={() => (disconnect(), disconnectAsync())}
+                    onClick={() => disconnectWallet()}
                     className="size-3 text-[#3F6870] md:size-4"
                   />
                 </div>
