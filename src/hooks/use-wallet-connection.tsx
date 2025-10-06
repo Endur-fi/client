@@ -38,10 +38,10 @@ export function useWalletConnection() {
         // Connect using starknet-react
         await connectAsync({ connector: result.connector });
         return result.connector;
-      } else {
-        console.warn("No connector returned from starknetkit connect");
-        return null;
       }
+
+      console.warn("No connector returned from starknetkit connect");
+      return null;
     } catch (error) {
       console.error("Failed to connect wallet:", error);
       // Don't throw error for neverAsk mode to avoid breaking auto-connect
