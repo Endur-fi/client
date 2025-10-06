@@ -445,11 +445,6 @@ const Unstake = () => {
                 <div className="max-h-32 flex-1 space-y-1 overflow-y-auto">
                   <div className="font-semibold">{error.name}</div>
                   <div className="text-sm">{error.message}</div>
-                  {error.stack && (
-                    <pre className="whitespace-pre-wrap break-words text-xs">
-                      {error.stack}
-                    </pre>
-                  )}
                 </div>
               </div>
             ),
