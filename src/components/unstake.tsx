@@ -440,14 +440,19 @@ const Unstake = () => {
           toast({
             itemID: "unstake",
             description: (
-              <div className="flex items-center gap-2 text-red-500">
-                <Info className="size-5" />
-                {error.message}
+              <div className="flex gap-2 text-red-500">
+                <Info className="mt-0.5 size-5 flex-shrink-0" />
+                <div className="max-h-32 flex-1 space-y-1 overflow-y-auto">
+                  <div className="font-semibold">{error.name}</div>
+                  <div className="text-sm">{error.message}</div>
+                </div>
               </div>
             ),
           });
         },
       );
+    } catch (error) {
+      console.error("AVNU DEX Swap error", error);
     } finally {
       setAvnuLoading(false);
     }
