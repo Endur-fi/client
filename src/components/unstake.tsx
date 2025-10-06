@@ -405,10 +405,6 @@ const Unstake = () => {
   const handleDexSwap = async () => {
     if (!address || !avnuQuote) return;
 
-    await connectWallet();
-
-    // if (!account) return;
-
     MyAnalytics.track(eventNames.UNSTAKE_CLICK, {
       address,
       amount: Number(form.getValues("unstakeAmount")),
