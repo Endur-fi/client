@@ -129,21 +129,25 @@ const platformConfig = (lstConfig: LSTAssetConfig) => {
           </a>
         </p>
       ),
+      isMaxedOut: lstConfig.TROVES_VAULT_MAXED_OUT,
     },
   };
 };
 
 const Stake: React.FC = () => {
   const [showShareModal, setShowShareModal] = React.useState(false);
+  const [showMaxedOutModal, setShowMaxedOutModal] = React.useState(false);
   const [selectedPlatform, setSelectedPlatform] =
     React.useState<Platform>("none");
-  const [isLendingOpen, setIsLendingOpen] = React.useState(true);
 
   const searchParams = useSearchParams();
 
   const { address } = useAccount();
   const { connectWallet } = useWalletConnection();
   const lstConfig = useAtomValue(lstConfigAtom)!;
+  const [isLendingOpen, setIsLendingOpen] = React.useState(
+    !lstConfig.TROVES_VAULT_MAXED_OUT,
+  );
   const { data: balance } = useBalance({
     address,
     token: lstConfig.ASSET_ADDRESS as `0x${string}`,
@@ -390,26 +394,16 @@ const Stake: React.FC = () => {
 
   const sortedPlatforms = React.useMemo(() => {
     const allPlatforms = Object.values(PLATFORMS);
-    // Filter out trovesHyper platform for xWBTC and xtBTC
-    const filteredPlatforms = allPlatforms.filter((platform) => {
-      if (
-        platform === "trovesHyper" &&
-        (lstConfig.LST_SYMBOL === "xWBTC" || lstConfig.LST_SYMBOL === "xtBTC")
-      ) {
-        return false;
-      }
-      return true;
-    });
-    return sortPlatforms(filteredPlatforms, yields);
-  }, [yields, lstConfig.LST_SYMBOL]);
+    return sortPlatforms(allPlatforms, yields);
+  }, [yields]);
 
   const hasPositiveYields = React.useMemo(() => {
     return sortedPlatforms.some((platform) => {
       const config = getPlatformConfig(platform);
       if (!config) return false;
       const yieldData = yields[config.key];
-      console.log("yieldData", yieldData);
-      return (yieldData?.value ?? 0) > 0;
+
+      return !config.isMaxedOut && (yieldData?.value ?? 0) > 0;
     });
   }, [sortedPlatforms, yields]);
 
@@ -437,17 +431,23 @@ const Stake: React.FC = () => {
             return null;
           }
 
+          const isMaxedOut = config.isMaxedOut;
+
           return (
             <PlatformCard
               key={platform}
               name={config.name}
               description={config.description}
               icon={config.icon}
-              apy={yieldData?.value ?? 0}
+              apy={isMaxedOut ? -1 : (yieldData?.value ?? 0)} // Use -1 to indicate maxed out
               baseApy={apy}
               xstrkLent={yieldData?.totalSupplied ?? 0}
               isSelected={selectedPlatform === platform}
               onClick={() => {
+                if (isMaxedOut) {
+                  setShowMaxedOutModal(true);
+                  return;
+                }
                 const newSelection =
                   selectedPlatform === platform
                     ? "none"
@@ -511,6 +511,19 @@ const Stake: React.FC = () => {
               <Icons.X className="size-4 shrink-0" />
             </TwitterShareButton>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showMaxedOutModal} onOpenChange={setShowMaxedOutModal}>
+        <DialogContent className={cn(font.className, "p-8 sm:max-w-md")}>
+          <DialogHeader>
+            <DialogTitle className="text-center text-xl font-semibold text-[#17876D]">
+              Vault Maxed Out
+            </DialogTitle>
+            <DialogDescription className="!mt-3 text-center text-sm text-[#8D9C9C]">
+              The vault is currently maxed out, may open in future.
+            </DialogDescription>
+          </DialogHeader>
         </DialogContent>
       </Dialog>
 
@@ -607,7 +620,7 @@ const Stake: React.FC = () => {
         </div>
       </div>
 
-      {hasPositiveYields && (
+      {sortedPlatforms.length > 0 && (
         <div className="px-7">
           <Collapsible
             open={isLendingOpen}
