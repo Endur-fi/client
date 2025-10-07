@@ -136,7 +136,7 @@ export function getReferralUrl(referralCode: string) {
 
 export function convertFutureTimestamp(unixTimestamp: number): string {
   const currentTime = Date.now();
-  const futureTime = unixTimestamp * 1000; // Convert to milliseconds
+  const futureTime = (unixTimestamp + 24 * 60 * 60) * 1000; // Add 24 hours (86400 seconds) and convert to milliseconds
   const difference = futureTime - currentTime;
 
   if (difference <= 0) {
