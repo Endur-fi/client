@@ -12,7 +12,13 @@ import { AccountInterface, Contract } from "starknet";
 import * as z from "zod";
 
 import erc4626Abi from "@/abi/erc4626.abi.json";
-import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormMessage,
+} from "@/components/ui/form";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Tooltip,
@@ -514,29 +520,24 @@ const Unstake = () => {
     <div className="relative h-full w-full">
       <Stats mode="unstake" />
 
-      <div className="flex h-[88px] w-full items-center px-7 pb-3 pt-5 md:h-[84px] lg:h-fit lg:gap-2">
+      <div className="flex w-full items-start px-7 pb-2 pt-5 lg:gap-2">
         <div className="flex flex-1 flex-col items-start">
-          <div className="flex items-center gap-2">
-            {ASSET_ICONS[lstConfig.SYMBOL] &&
-              React.createElement(ASSET_ICONS[lstConfig.SYMBOL], {
-                className: "size-4",
-              })}
-            <p className="text-xs text-[#06302B]">
-              Enter Amount ({lstConfig.LST_SYMBOL})
-            </p>
-            {form.formState.errors.unstakeAmount && (
-              <p className="text-xs text-destructive">
-                {form.formState.errors.unstakeAmount.message}
-              </p>
-            )}
-          </div>
           <Form {...form}>
+            <div className="flex items-center gap-2">
+              {ASSET_ICONS[lstConfig.SYMBOL] &&
+                React.createElement(ASSET_ICONS[lstConfig.SYMBOL], {
+                  className: "size-4",
+                })}
+              <p className="text-xs text-[#06302B]">
+                Enter Amount ({lstConfig.LST_SYMBOL})
+              </p>
+            </div>
             <form onSubmit={form.handleSubmit(onSubmit)} className="w-full">
               <FormField
                 control={form.control}
                 name="unstakeAmount"
                 render={({ field }) => (
-                  <FormItem className="relative space-y-1">
+                  <FormItem className="space-y-1">
                     <FormControl>
                       <div className="relative">
                         <Input
@@ -546,14 +547,7 @@ const Unstake = () => {
                         />
                       </div>
                     </FormControl>
-                    {/* {form.getValues("unstakeAmount").toLowerCase() ===
-                    "xstrk" ? (
-                      <p className="absolute -bottom-4 left-0 text-xs font-medium text-green-500 transition-all lg:left-1 lg:-ml-1">
-                        Merry Christmas!
-                      </p>
-                    ) : (
-                      <FormMessage className="absolute -bottom-5 left-0 text-xs lg:left-1" />
-                    )}{" "} */}
+                    <FormMessage className="text-xs text-destructive" />
                   </FormItem>
                 )}
               />
@@ -561,7 +555,7 @@ const Unstake = () => {
           </Form>
         </div>
 
-        <div className="mt-px flex flex-col items-end">
+        <div className="flex flex-col items-end">
           <div className="hidden text-[#8D9C9C] lg:block">
             <button
               onClick={() => handleQuickUnstakePrice(25)}

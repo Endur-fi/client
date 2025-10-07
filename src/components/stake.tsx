@@ -33,7 +33,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormMessage,
+} from "@/components/ui/form";
 import {
   Tooltip,
   TooltipContent,
@@ -533,7 +539,7 @@ const Stake: React.FC = () => {
         mode="stake"
       />
 
-      <div className="flex w-full items-center px-7 pb-1.5 pt-5 lg:gap-2">
+      <div className="flex w-full items-start px-7 pb-2 pt-5 lg:gap-2">
         <div className="flex flex-1 flex-col items-start">
           <Form {...form}>
             <div className="flex items-center gap-2">
@@ -544,18 +550,13 @@ const Stake: React.FC = () => {
               <p className="text-xs text-[#06302B]">
                 Enter Amount ({lstConfig.SYMBOL})
               </p>
-              {form.formState.errors.stakeAmount && (
-                <p className="text-xs text-destructive">
-                  {form.formState.errors.stakeAmount.message}
-                </p>
-              )}
             </div>
             <form onSubmit={form.handleSubmit(onSubmit)} className="w-full">
               <FormField
                 control={form.control}
                 name="stakeAmount"
                 render={({ field }) => (
-                  <FormItem className="relative space-y-1">
+                  <FormItem className="space-y-1">
                     <FormControl>
                       <div className="relative">
                         <Input
@@ -565,6 +566,7 @@ const Stake: React.FC = () => {
                         />
                       </div>
                     </FormControl>
+                    <FormMessage className="text-xs text-destructive" />
                   </FormItem>
                 )}
               />
