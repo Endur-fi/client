@@ -521,7 +521,10 @@ const Stake: React.FC = () => {
       </Dialog>
 
       <Dialog open={showMaxedOutModal} onOpenChange={setShowMaxedOutModal}>
-        <DialogContent className={cn(font.className, "p-8 sm:max-w-md")}>
+        <DialogContent
+          className={cn(font.className, "p-8 sm:max-w-md")}
+          hideCloseIcon
+        >
           <DialogHeader>
             <DialogTitle className="text-center text-xl font-semibold text-[#17876D]">
               Vault Maxed Out
@@ -530,6 +533,14 @@ const Stake: React.FC = () => {
               The vault is currently maxed out, may open in future.
             </DialogDescription>
           </DialogHeader>
+          <div className="mt-6 flex justify-center">
+            <Button
+              onClick={() => setShowMaxedOutModal(false)}
+              className="rounded-lg bg-[#17876D] px-6 py-2 text-sm font-semibold text-white hover:bg-[#17876D]/90 focus:outline-none focus:ring-0"
+            >
+              OK
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
 
