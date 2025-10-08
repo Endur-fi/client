@@ -48,7 +48,7 @@ export async function getNostraHoldingsByToken(
       deploymentBlocksOfNostraContracts[nostraToken],
     )
   ) {
-    return MyNumber.fromZero();
+    return MyNumber.fromZero(STRK_DECIMALS);
   }
 
   const balance = await contract.call("balance_of", [address], {
@@ -72,7 +72,7 @@ function getNostraHoldings(nostraToken: string): DAppHoldingsFn {
     );
     return {
       lstAmount,
-      underlyingTokenAmount: MyNumber.fromZero(),
+      underlyingTokenAmount: MyNumber.fromZero(STRK_DECIMALS),
     };
   };
 }
@@ -122,8 +122,8 @@ export const getNostraDexHoldings: DAppHoldingsFn = async ({
     )
   ) {
     return {
-      lstAmount: MyNumber.fromZero(),
-      underlyingTokenAmount: MyNumber.fromZero(),
+      lstAmount: MyNumber.fromZero(STRK_DECIMALS),
+      underlyingTokenAmount: MyNumber.fromZero(STRK_DECIMALS),
     };
   }
 
@@ -195,8 +195,8 @@ export const usernxSTRKBalance = atomFamily((blockNumber?: number) =>
       value:
         error || !data
           ? {
-              lstAmount: MyNumber.fromZero(),
-              underlyingTokenAmount: MyNumber.fromZero(),
+              lstAmount: MyNumber.fromZero(STRK_DECIMALS),
+              underlyingTokenAmount: MyNumber.fromZero(STRK_DECIMALS),
             }
           : data,
       error,
@@ -213,8 +213,8 @@ export const usernxSTRKcBalance = atomFamily((blockNumber?: number) =>
       value:
         error || !data
           ? {
-              lstAmount: MyNumber.fromZero(),
-              underlyingTokenAmount: MyNumber.fromZero(),
+              lstAmount: MyNumber.fromZero(STRK_DECIMALS),
+              underlyingTokenAmount: MyNumber.fromZero(STRK_DECIMALS),
             }
           : data,
       error,
@@ -231,8 +231,8 @@ export const userixSTRKBalance = atomFamily((blockNumber?: number) =>
       value:
         error || !data
           ? {
-              lstAmount: MyNumber.fromZero(),
-              underlyingTokenAmount: MyNumber.fromZero(),
+              lstAmount: MyNumber.fromZero(STRK_DECIMALS),
+              underlyingTokenAmount: MyNumber.fromZero(STRK_DECIMALS),
             }
           : data,
       error,
@@ -249,8 +249,8 @@ export const userixSTRKcBalance = atomFamily((blockNumber?: number) =>
       value:
         error || !data
           ? {
-              lstAmount: MyNumber.fromZero(),
-              underlyingTokenAmount: MyNumber.fromZero(),
+              lstAmount: MyNumber.fromZero(STRK_DECIMALS),
+              underlyingTokenAmount: MyNumber.fromZero(STRK_DECIMALS),
             }
           : data,
       error,
@@ -267,8 +267,8 @@ export const userdxSTRKBalance = atomFamily((blockNumber?: number) =>
       value:
         error || !data
           ? {
-              lstAmount: MyNumber.fromZero(),
-              underlyingTokenAmount: MyNumber.fromZero(),
+              lstAmount: MyNumber.fromZero(STRK_DECIMALS),
+              underlyingTokenAmount: MyNumber.fromZero(STRK_DECIMALS),
             }
           : data,
       error,
