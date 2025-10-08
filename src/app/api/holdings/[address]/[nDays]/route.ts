@@ -268,11 +268,11 @@ export async function getNostraLendingHoldings(
       return {
         lstAmount: holdings.reduce(
           (acc, cur) => acc.operate("plus", cur.toString()),
-          MyNumber.fromZero(),
+          MyNumber.fromZero(STRK_DECIMALS),
         ),
         underlyingTokenAmount: holdings.reduce(
           (acc, cur) => acc.operate("plus", cur.toString()),
-          MyNumber.fromZero(),
+          MyNumber.fromZero(STRK_DECIMALS),
         ),
       };
     }),
