@@ -12,7 +12,13 @@ import { AccountInterface, Contract } from "starknet";
 import * as z from "zod";
 
 import erc4626Abi from "@/abi/erc4626.abi.json";
-import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormMessage,
+} from "@/components/ui/form";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Tooltip,
@@ -147,7 +153,7 @@ const YouWillGetSection = ({
         <InfoTooltip content={tooltipContent} />
       </p>
       <span className="text-xs lg:text-[13px]">
-        {Number(amount).toFixed(isBTC ? 6 : 2)} {lstConfig.SYMBOL}
+        {Number(amount).toFixed(isBTC ? 8 : 2)} {lstConfig.SYMBOL}
       </span>
     </div>
   );
@@ -309,9 +315,9 @@ const Unstake = () => {
     if (!unstakeAmount) return "0";
 
     if (txnDapp === "endur") {
-      return (Number(unstakeAmount) * exRate.rate).toFixed(isBTC ? 6 : 2);
+      return (Number(unstakeAmount) * exRate.rate).toFixed(isBTC ? 8 : 2);
     } else if (txnDapp === "dex" && avnuQuote) {
-      return (Number(unstakeAmount) * dexRate).toFixed(isBTC ? 6 : 2);
+      return (Number(unstakeAmount) * dexRate).toFixed(isBTC ? 8 : 2);
     }
     return "0";
   }, [exRate.rate, form.watch("unstakeAmount"), txnDapp, avnuQuote, dexRate]);
@@ -397,7 +403,7 @@ const Unstake = () => {
 
     if (amount) {
       const calculatedAmount = (amount * percentage) / 100;
-      form.setValue("unstakeAmount", calculatedAmount.toFixed(isBTC ? 6 : 2));
+      form.setValue("unstakeAmount", calculatedAmount.toFixed(isBTC ? 8 : 2));
       form.clearErrors("unstakeAmount");
     }
   };
@@ -440,14 +446,19 @@ const Unstake = () => {
           toast({
             itemID: "unstake",
             description: (
-              <div className="flex items-center gap-2 text-red-500">
-                <Info className="size-5" />
-                {error.message}
+              <div className="flex gap-2 text-red-500">
+                <Info className="mt-0.5 size-5 flex-shrink-0" />
+                <div className="max-h-32 flex-1 space-y-1 overflow-y-auto">
+                  <div className="font-semibold">{error.name}</div>
+                  <div className="text-sm">{error.message}</div>
+                </div>
               </div>
             ),
           });
         },
       );
+    } catch (error) {
+      console.error("AVNU DEX Swap error", error);
     } finally {
       setAvnuLoading(false);
     }
@@ -509,29 +520,24 @@ const Unstake = () => {
     <div className="relative h-full w-full">
       <Stats mode="unstake" />
 
-      <div className="flex h-[88px] w-full items-center px-7 pb-3 pt-5 md:h-[84px] lg:h-fit lg:gap-2">
+      <div className="flex w-full items-start px-7 pb-2 pt-5 lg:gap-2">
         <div className="flex flex-1 flex-col items-start">
-          <div className="flex items-center gap-2">
-            {ASSET_ICONS[lstConfig.SYMBOL] &&
-              React.createElement(ASSET_ICONS[lstConfig.SYMBOL], {
-                className: "size-4",
-              })}
-            <p className="text-xs text-[#06302B]">
-              Enter Amount ({lstConfig.LST_SYMBOL})
-            </p>
-            {form.formState.errors.unstakeAmount && (
-              <p className="text-xs text-destructive">
-                {form.formState.errors.unstakeAmount.message}
-              </p>
-            )}
-          </div>
           <Form {...form}>
+            <div className="flex items-center gap-2">
+              {ASSET_ICONS[lstConfig.SYMBOL] &&
+                React.createElement(ASSET_ICONS[lstConfig.SYMBOL], {
+                  className: "size-4",
+                })}
+              <p className="text-xs text-[#06302B]">
+                Enter Amount ({lstConfig.LST_SYMBOL})
+              </p>
+            </div>
             <form onSubmit={form.handleSubmit(onSubmit)} className="w-full">
               <FormField
                 control={form.control}
                 name="unstakeAmount"
                 render={({ field }) => (
-                  <FormItem className="relative space-y-1">
+                  <FormItem className="space-y-1">
                     <FormControl>
                       <div className="relative">
                         <Input
@@ -541,14 +547,7 @@ const Unstake = () => {
                         />
                       </div>
                     </FormControl>
-                    {/* {form.getValues("unstakeAmount").toLowerCase() ===
-                    "xstrk" ? (
-                      <p className="absolute -bottom-4 left-0 text-xs font-medium text-green-500 transition-all lg:left-1 lg:-ml-1">
-                        Merry Christmas!
-                      </p>
-                    ) : (
-                      <FormMessage className="absolute -bottom-5 left-0 text-xs lg:left-1" />
-                    )}{" "} */}
+                    <FormMessage className="text-xs text-destructive" />
                   </FormItem>
                 )}
               />
@@ -556,7 +555,7 @@ const Unstake = () => {
           </Form>
         </div>
 
-        <div className="mt-px flex flex-col items-end">
+        <div className="flex flex-col items-end">
           <div className="hidden text-[#8D9C9C] lg:block">
             <button
               onClick={() => handleQuickUnstakePrice(25)}
@@ -596,8 +595,8 @@ const Unstake = () => {
             <span className="hidden md:block">Balance:</span>
             <span className="font-bold">
               {Number(
-                currentLSTBalance.value.toEtherToFixedDecimals(isBTC ? 6 : 2),
-              ).toFixed(isBTC ? 6 : 2)}{" "}
+                currentLSTBalance.value.toEtherToFixedDecimals(isBTC ? 8 : 2),
+              ).toFixed(isBTC ? 8 : 2)}{" "}
               {lstConfig.LST_SYMBOL}
             </span>
           </div>
@@ -643,7 +642,7 @@ const Unstake = () => {
           <div className="my-5 h-px w-full rounded-full bg-[#AACBC480]" />
           <div className="space-y-3 px-7">
             <YouWillGetSection
-              amount={formatNumber(youWillGet, 2)}
+              amount={youWillGet}
               tooltipContent={`You will receive the equivalent amount of ${lstConfig.SYMBOL} for the ${lstConfig.LST_SYMBOL} you are unstaking. The amount of ${lstConfig.SYMBOL} you receive will be based on the current exchange rate of ${lstConfig.LST_SYMBOL} to ${lstConfig.SYMBOL}.`}
             />
             <FeeSection />

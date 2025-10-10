@@ -80,7 +80,13 @@ export function WithdrawDataTable<TData, TValue>({
     const statusCol = table.getColumn("status");
 
     if (statusCol) {
-      statusCol.setFilterValue(showPendingOnly ? "Pending" : "");
+      if (showPendingOnly) {
+        statusCol.setFilterValue(
+          (value: string) => value === "Pending" || value === "Ready",
+        );
+      } else {
+        statusCol.setFilterValue("");
+      }
     }
   }, [data, showPendingOnly, table, pageSize]);
 

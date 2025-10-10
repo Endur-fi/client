@@ -47,6 +47,7 @@ const PortfolioPage: React.FC = () => {
   const [holdings, setHoldings] = React.useState<HoldingInfo[]>([]);
   const [lastUpdated, setLastUpdated] = React.useState<Date | null>(null);
   const [isFetchError, setIsFetchError] = React.useState(false);
+  const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
 
   const timeRange = useAtomValue(chartFilter);
   const { address } = useAccount();
@@ -114,11 +115,36 @@ const PortfolioPage: React.FC = () => {
         console.log("fetching holdings");
         setHoldings([]);
         setIsFetchError(false);
+        setErrorMessage(null);
         const res = await fetch(
           `/api/holdings/${address}/${timeRange.slice(0, -1)}`,
         );
-        const data = await res.json();
-        // console.error("data", data);
+
+        // Check if the response is ok
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+
+        // Check if response has content
+        const text = await res.text();
+        if (!text) {
+          throw new Error("Empty response from server");
+        }
+
+        let data;
+        try {
+          data = JSON.parse(text);
+        } catch (parseError) {
+          console.error("JSON parse error:", parseError);
+          console.error("Response text:", text);
+          throw new Error("Invalid JSON response from server");
+        }
+
+        // Check if the response contains an error
+        if (data.error) {
+          throw new Error(data.error);
+        }
+
         if (data) {
           // ? ADD_NEW_PROTOCOL: Update this
           const blocks: BlockInfo[] = data.blocks;
@@ -176,6 +202,9 @@ const PortfolioPage: React.FC = () => {
       } catch (error) {
         console.error("Error fetching data:", error);
         setIsFetchError(true);
+        setErrorMessage(
+          error instanceof Error ? error.message : "Unknown error occurred",
+        );
       }
     };
     fetchData();
@@ -249,7 +278,7 @@ const PortfolioPage: React.FC = () => {
           <Chart
             chartData={summaryPieChartHoldings}
             lastUpdated={lastUpdated}
-            error={isFetchError ? "Failed to fetch data" : null}
+            error={isFetchError ? errorMessage || "Failed to fetch data" : null}
           />
         </div>
 

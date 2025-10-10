@@ -33,7 +33,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormMessage,
+} from "@/components/ui/form";
 import {
   Tooltip,
   TooltipContent,
@@ -85,27 +91,30 @@ export type FormValues = z.infer<typeof formSchema>;
 export type Platform = "none" | "trovesHyper";
 
 const PLATFORMS = {
-  TROVES_HYPER: "trovesHyper",
+  HYPER_HYPER: "trovesHyper",
 } as const;
 
 const platformConfig = (lstConfig: LSTAssetConfig) => {
   // Determine the correct yield key based on the LST symbol
   let yieldKey: string;
   switch (lstConfig.LST_SYMBOL) {
+    case "xSTRK":
+      yieldKey = "hyperxSTRK";
+      break;
     case "xWBTC":
       yieldKey = "hyperxWBTC";
       break;
     case "xtBTC":
-      yieldKey = "hyperBTCxtBTC";
+      yieldKey = "hyperxtBTC";
       break;
     case "xLBTC":
-      yieldKey = "hyperBTCxLBTC";
+      yieldKey = "hyperxLBTC";
       break;
     case "xsBTC":
-      yieldKey = "hyperBTCxsBTC";
+      yieldKey = "hyperxsBTC";
       break;
     default:
-      yieldKey = "trovesHyper";
+      throw new Error("Invalid LST config");
   }
 
   return {
@@ -126,21 +135,25 @@ const platformConfig = (lstConfig: LSTAssetConfig) => {
           </a>
         </p>
       ),
+      isMaxedOut: lstConfig.TROVES_VAULT_MAXED_OUT,
     },
   };
 };
 
 const Stake: React.FC = () => {
   const [showShareModal, setShowShareModal] = React.useState(false);
+  const [showMaxedOutModal, setShowMaxedOutModal] = React.useState(false);
   const [selectedPlatform, setSelectedPlatform] =
     React.useState<Platform>("none");
-  const [isLendingOpen, setIsLendingOpen] = React.useState(true);
 
   const searchParams = useSearchParams();
 
   const { address } = useAccount();
   const { connectWallet } = useWalletConnection();
   const lstConfig = useAtomValue(lstConfigAtom)!;
+  const [isLendingOpen, setIsLendingOpen] = React.useState(
+    !lstConfig.TROVES_VAULT_MAXED_OUT,
+  );
   const { data: balance } = useBalance({
     address,
     token: lstConfig.ASSET_ADDRESS as `0x${string}`,
@@ -214,7 +227,7 @@ const Stake: React.FC = () => {
 
     if (balance) {
       const calculatedAmount = (Number(balance?.formatted) * percentage) / 100;
-      form.setValue("stakeAmount", calculatedAmount.toFixed(isBTC ? 6 : 2));
+      form.setValue("stakeAmount", calculatedAmount.toFixed(isBTC ? 8 : 2));
       form.clearErrors("stakeAmount");
     }
   };
@@ -326,7 +339,6 @@ const Stake: React.FC = () => {
         address: lstConfig.LST_ADDRESS,
       });
 
-      console.log("hyper address", lstConfig.TROVES_HYPER_VAULT_ADDRESS);
       const lendingAddress =
         selectedPlatform === "trovesHyper"
           ? lstConfig.TROVES_HYPER_VAULT_ADDRESS // TODO: update the address
@@ -396,7 +408,8 @@ const Stake: React.FC = () => {
       const config = getPlatformConfig(platform);
       if (!config) return false;
       const yieldData = yields[config.key];
-      return (yieldData?.value ?? 0) > 0;
+
+      return !config.isMaxedOut && (yieldData?.value ?? 0) > 0;
     });
   }, [sortedPlatforms, yields]);
 
@@ -418,12 +431,13 @@ const Stake: React.FC = () => {
         {sortedPlatforms.map((platform) => {
           const config = getPlatformConfig(platform);
           const yieldData = getYieldData(platform, yields);
-          console.log("yieldData", yieldData);
 
           if (!config) {
             console.warn(`Platform configuration missing for: ${platform}`);
             return null;
           }
+
+          const isMaxedOut = config.isMaxedOut;
 
           return (
             <PlatformCard
@@ -431,11 +445,15 @@ const Stake: React.FC = () => {
               name={config.name}
               description={config.description}
               icon={config.icon}
-              apy={yieldData?.value ?? 0}
+              apy={isMaxedOut ? -1 : (yieldData?.value ?? 0)} // Use -1 to indicate maxed out
               baseApy={apy}
               xstrkLent={yieldData?.totalSupplied ?? 0}
               isSelected={selectedPlatform === platform}
               onClick={() => {
+                if (isMaxedOut) {
+                  setShowMaxedOutModal(true);
+                  return;
+                }
                 const newSelection =
                   selectedPlatform === platform
                     ? "none"
@@ -502,13 +520,37 @@ const Stake: React.FC = () => {
         </DialogContent>
       </Dialog>
 
+      <Dialog open={showMaxedOutModal} onOpenChange={setShowMaxedOutModal}>
+        <DialogContent
+          className={cn(font.className, "p-8 sm:max-w-md")}
+          hideCloseIcon
+        >
+          <DialogHeader>
+            <DialogTitle className="text-center text-xl font-semibold text-[#17876D]">
+              Vault Maxed Out
+            </DialogTitle>
+            <DialogDescription className="!mt-3 text-center text-sm text-[#8D9C9C]">
+              The vault is currently maxed out, may open in future.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="mt-6 flex justify-center">
+            <Button
+              onClick={() => setShowMaxedOutModal(false)}
+              className="rounded-lg bg-[#17876D] px-6 py-2 text-sm font-semibold text-white hover:bg-[#17876D]/90 focus:outline-none focus:ring-0"
+            >
+              OK
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <Stats
         selectedPlatform={selectedPlatform}
         getPlatformYield={getPlatformYield}
         mode="stake"
       />
 
-      <div className="flex w-full items-center px-7 pb-1.5 pt-5 lg:gap-2">
+      <div className="flex w-full items-start px-7 pb-2 pt-5 lg:gap-2">
         <div className="flex flex-1 flex-col items-start">
           <Form {...form}>
             <div className="flex items-center gap-2">
@@ -519,18 +561,13 @@ const Stake: React.FC = () => {
               <p className="text-xs text-[#06302B]">
                 Enter Amount ({lstConfig.SYMBOL})
               </p>
-              {form.formState.errors.stakeAmount && (
-                <p className="text-xs text-destructive">
-                  {form.formState.errors.stakeAmount.message}
-                </p>
-              )}
             </div>
             <form onSubmit={form.handleSubmit(onSubmit)} className="w-full">
               <FormField
                 control={form.control}
                 name="stakeAmount"
                 render={({ field }) => (
-                  <FormItem className="relative space-y-1">
+                  <FormItem className="space-y-1">
                     <FormControl>
                       <div className="relative">
                         <Input
@@ -540,6 +577,7 @@ const Stake: React.FC = () => {
                         />
                       </div>
                     </FormControl>
+                    <FormMessage className="text-xs text-destructive" />
                   </FormItem>
                 )}
               />
@@ -587,7 +625,7 @@ const Stake: React.FC = () => {
             <span className="hidden md:block">Balance:</span>
             <span className="font-bold">
               {balance?.formatted
-                ? Number(balance?.formatted).toFixed(isBTC ? 6 : 2)
+                ? Number(balance?.formatted).toFixed(isBTC ? 8 : 2)
                 : "0"}{" "}
               {lstConfig.SYMBOL}
             </span>
@@ -595,7 +633,7 @@ const Stake: React.FC = () => {
         </div>
       </div>
 
-      {hasPositiveYields && (
+      {sortedPlatforms.length > 0 && (
         <div className="px-7">
           <Collapsible
             open={isLendingOpen}
@@ -670,7 +708,7 @@ const Stake: React.FC = () => {
                   {selectedPlatform === "none" ? (
                     <>
                       <strong>{lstConfig.LST_SYMBOL}</strong> is the liquid
-                      staking token (LST) of Endur, representing your staked
+                      staking token (LST) of Endur, representing your staked{" "}
                       {lstConfig.SYMBOL}.{" "}
                     </>
                   ) : (
@@ -690,7 +728,7 @@ const Stake: React.FC = () => {
             </TooltipProvider>
           </p>
           <span className="text-xs lg:text-[13px]">
-            {Number(getCalculatedLSTAmount()).toFixed(isBTC ? 6 : 2)}{" "}
+            {Number(getCalculatedLSTAmount()).toFixed(isBTC ? 8 : 2)}{" "}
             {lstConfig.LST_SYMBOL}
           </span>
         </div>
@@ -709,9 +747,9 @@ const Stake: React.FC = () => {
                 >
                   <strong>{lstConfig.LST_SYMBOL}</strong> is a yield bearing
                   token whose value will appreciate against {lstConfig.SYMBOL}{" "}
-                  as you get more
-                  {lstConfig.SYMBOL} rewards. The increase in exchange rate of{" "}
-                  {lstConfig.LST_SYMBOL} will determine your share of rewards.{" "}
+                  as you get more {lstConfig.SYMBOL} rewards. The increase in
+                  exchange rate of {lstConfig.LST_SYMBOL} will determine your
+                  share of rewards.{" "}
                   <Link
                     target="_blank"
                     href="https://docs.endur.fi/docs"

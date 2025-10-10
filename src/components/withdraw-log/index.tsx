@@ -5,6 +5,9 @@ import React from "react";
 
 import MyNumber from "@/lib/MyNumber";
 import { formatNumber, formatNumberWithCommas } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { useWalletConnection } from "@/hooks/use-wallet-connection";
 
 import { STRK_DECIMALS, LST_CONFIG } from "@/constants";
 import {
@@ -23,6 +26,7 @@ import { ContractAddr } from "@strkfarm/sdk";
 
 const WithdrawLog: React.FC = () => {
   const [withdrawals, setWithdrawals] = React.useState<WithdrawLogColumn[]>([]);
+  console.log("withdrawals", withdrawals);
   const [_globalStats, setGlobalStats] = React.useState({
     globalPendingAmountSTRK: "0",
     globalPendingRequests: "0",
@@ -30,6 +34,7 @@ const WithdrawLog: React.FC = () => {
   });
 
   const withdrawalLogs = useAtomValue(withdrawLogsAtom);
+  console.log("withdrawalLogs", withdrawalLogs);
   const globalPendingWithdrawStats = useAtomValue(
     globalPendingWithdrawStatsAtom,
   );
@@ -37,6 +42,7 @@ const WithdrawLog: React.FC = () => {
   const activeTab = useAtomValue(tabsAtom);
 
   const { address } = useAccount();
+  const { connectWallet } = useWalletConnection();
 
   const _yourPendingWithdrawalsAmount = React.useMemo(
     () =>
@@ -113,21 +119,29 @@ const WithdrawLog: React.FC = () => {
           ),
         );
 
-        const assetSymbol = lstConfig?.SYMBOL || "Unknown";
-        const isBtcAsset = assetSymbol?.toLowerCase().includes("btc");
-        const decimalPlaces = isBtcAsset ? 6 : 2;
+        if (!lstConfig) return;
+
+        const assetSymbol = lstConfig.SYMBOL;
+        const isBtcAsset = assetSymbol.toLowerCase().includes("btc");
+        const decimalPlaces = isBtcAsset ? 8 : 2;
 
         return {
           queuePosition: item.request_id,
           amount: new MyNumber(
             item.amount,
-            lstConfig?.DECIMALS || 18,
+            lstConfig.DECIMALS,
           ).toEtherToFixedDecimals(decimalPlaces),
-          status: (item.is_claimed ? "Success" : "Pending") as Status,
+          status: (item.is_claimed
+            ? "Success"
+            : item.is_rejected
+              ? "Ready"
+              : "Pending") as Status,
           claimTime: item.claim_time,
           txHash: item.tx_hash,
           rank,
           asset: assetSymbol,
+          queueContract: item.queue_contract,
+          requestId: item.request_id,
         };
       },
     );
@@ -143,16 +157,43 @@ const WithdrawLog: React.FC = () => {
 
   if (!address) {
     return (
-      <div className="relative flex h-full items-center justify-center gap-2">
-        Please connect wallet to see your withdraw log
+      <div className="relative h-full w-full">
+        <Card className="mx-auto w-full max-w-md border-0 bg-transparent shadow-none">
+          <CardContent className="flex flex-col items-center justify-center space-y-4 p-6 text-center sm:p-8">
+            <div className="space-y-2">
+              <h3 className="text-base font-semibold text-foreground sm:text-lg">
+                Connect Your Wallet
+              </h3>
+              <p className="px-2 text-xs text-muted-foreground sm:text-sm">
+                Please connect your wallet to view your withdrawal transaction
+                history and logs.
+              </p>
+            </div>
+            <Button
+              onClick={() => connectWallet()}
+              className="w-full rounded-md bg-[#17876D] px-6 py-2 font-medium text-white transition-colors hover:bg-[#17876D] sm:w-auto"
+            >
+              Connect wallet
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
   if (withdrawalLogs.isLoading)
     return (
-      <div className="relative flex h-full items-center justify-center gap-2">
-        Loading your withdrawals <Loader className="size-5 animate-spin" />
+      <div className="relative h-full w-full">
+        <Card className="mx-auto w-full max-w-md border-0 bg-transparent shadow-none">
+          <CardContent className="flex flex-col items-center justify-center space-y-4 p-6 text-center sm:p-8">
+            <div className="flex items-center gap-2">
+              <Loader className="size-5 animate-spin" />
+              <span className="text-xs text-muted-foreground sm:text-sm">
+                Loading your withdrawals...
+              </span>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     );
 

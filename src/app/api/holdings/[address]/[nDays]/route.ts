@@ -19,6 +19,7 @@ import {
   getVesuHoldings,
   getVesuxSTRKCollateralWrapper,
 } from "@/store/vesu.store";
+import { STRK_DECIMALS, xSTRK_TOKEN_MAINNET } from "@/constants";
 import axios from "axios";
 import { NextResponse } from "next/server";
 
@@ -40,14 +41,19 @@ export async function GET(_req: Request, context: any) {
   const nDays = Number(params.nDays);
 
   // get blocks to use for the chart
-  const host = process.env.HOSTNAME ?? "http://localhost:3000";
+  const host =
+    process.env.NODE_ENV === "development"
+      ? "http://localhost:3000"
+      : (process.env.HOSTNAME ?? "http://localhost:3000");
   if (!host) {
     return NextResponse.json({
       error: "Invalid host",
     });
   }
   try {
-    const result = await axios.get(`${host}/api/blocks/${nDays}`);
+    const result = await axios.get(
+      `${host}/api/blocks/${nDays}?lstAddress=${xSTRK_TOKEN_MAINNET}&decimals=${STRK_DECIMALS}`,
+    );
     if (!result?.data) {
       return NextResponse.json({
         error: "Invalid blocks",
@@ -201,7 +207,7 @@ export async function getAllEkuboXSTRKSTRKHoldings(
   );
 }
 
-async function getAllVesuCollateralHoldings(
+async function _getAllVesuCollateralHoldings(
   address: string,
   blocks: BlockInfo[],
 ) {
@@ -262,11 +268,11 @@ export async function getNostraLendingHoldings(
       return {
         lstAmount: holdings.reduce(
           (acc, cur) => acc.operate("plus", cur.toString()),
-          MyNumber.fromZero(),
+          MyNumber.fromZero(STRK_DECIMALS),
         ),
         underlyingTokenAmount: holdings.reduce(
           (acc, cur) => acc.operate("plus", cur.toString()),
-          MyNumber.fromZero(),
+          MyNumber.fromZero(STRK_DECIMALS),
         ),
       };
     }),

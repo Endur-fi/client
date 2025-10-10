@@ -1,14 +1,12 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 
-import { useAccount, useDisconnect, useProvider } from "@starknet-react/core";
+import { useAccount, useProvider } from "@starknet-react/core";
 import { useAtom, useSetAtom } from "jotai";
 import { X } from "lucide-react";
 import React from "react";
-import { constants } from "starknet";
-import { disconnect } from "starknetkit";
 
-import { getProvider, NETWORK } from "@/constants";
+import { getProvider } from "@/constants";
 import { toast } from "@/hooks/use-toast";
 import { useWalletConnection } from "@/hooks/use-wallet-connection";
 import { MyAnalytics } from "@/lib/analytics";
@@ -27,10 +25,9 @@ const Navbar = ({ className }: { className?: string }) => {
   // init analytics
   MyAnalytics.init();
 
-  const { address, connector, chainId } = useAccount();
+  const { address, connector } = useAccount();
   const { provider } = useProvider();
-  const { disconnectAsync } = useDisconnect();
-  const { connectWallet, config } = useWalletConnection();
+  const { connectWallet, disconnectWallet } = useWalletConnection();
 
   const { isMobile } = useSidebar();
 
@@ -38,48 +35,12 @@ const Navbar = ({ className }: { className?: string }) => {
   const [_, setLastWallet] = useAtom(lastWalletAtom);
   const setProvider = useSetAtom(providerAtom);
 
-  const requiredChainId = React.useMemo(() => {
-    return NETWORK === constants.NetworkName.SN_MAIN
-      ? constants.StarknetChainId.SN_MAIN
-      : constants.StarknetChainId.SN_SEPOLIA;
-  }, []);
-
-  // const { switchChain, error } = useSwitchChain({
-  //   params: {
-  //     chainId: requiredChainId,
-  //   },
-  // });
-
   // set tracking person
   React.useEffect(() => {
     if (address) {
       MyAnalytics.setPerson(address);
     }
   }, [address]);
-
-  // switch chain if not on the required chain
-  // React.useEffect(() => {
-  //   if (
-  //     chainId &&
-  //     chainId.toString() !== num.getDecimalString(requiredChainId)
-  //   ) {
-  //     switchChain();
-  //   }
-  // }, [chainId]);
-
-  // React.useEffect(() => {
-  //   if (error) {
-  //     console.error("switchChain error", error);
-  //   }
-  // }, [error]);
-
-  // attempt to connect wallet on load
-  React.useEffect(() => {
-    connectWallet({
-      ...config,
-      modalMode: "neverAsk",
-    });
-  }, []);
 
   React.useEffect(() => {
     if (connector) {
@@ -149,7 +110,7 @@ const Navbar = ({ className }: { className?: string }) => {
                   </div>
 
                   <X
-                    onClick={() => (disconnect(), disconnectAsync())}
+                    onClick={() => disconnectWallet()}
                     className="size-4 text-[#3F6870]"
                   />
                 </div>
@@ -167,7 +128,7 @@ const Navbar = ({ className }: { className?: string }) => {
                   </div>
 
                   <X
-                    onClick={() => (disconnect(), disconnectAsync())}
+                    onClick={() => disconnectWallet()}
                     className="size-3 text-[#3F6870] md:size-4"
                   />
                 </div>

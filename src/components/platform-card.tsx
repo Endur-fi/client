@@ -80,7 +80,9 @@ export function PlatformCard({
               )}
             >
               APY:{" "}
-              {typeof apy === "number" && typeof baseApy === "number" ? (
+              {apy === -1 ? (
+                <span className="font-semibold text-orange-600">Maxed out</span>
+              ) : typeof apy === "number" && typeof baseApy === "number" ? (
                 <span
                   className={cn(
                     "text-gray-500 transition-colors duration-200",
