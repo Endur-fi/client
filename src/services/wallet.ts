@@ -61,6 +61,13 @@ export class WalletConnector {
       },
     }) as unknown as StarknetkitConnector;
 
+    const xverseConnector = new InjectedConnector({
+      options: {
+        id: "xverse",
+        name: "Xverse",
+      },
+    }) as unknown as StarknetkitConnector;
+
     const braavosMobile = BraavosMobileConnector.init({
       inAppBrowserOptions: {},
     }) as StarknetkitConnector;
@@ -85,12 +92,11 @@ export class WalletConnector {
       };
     });
 
-    // console.warn("isInstalled", isInstalled);
-
     const defaultConnectors = [
       argentXConnector,
       braavosConnector,
       keplrConnector,
+      xverseConnector,
       foredefiConnector,
     ];
 
@@ -117,10 +123,9 @@ export class WalletConnector {
       } else if (isInBraavosMobileAppBrowser()) {
         return [braavosMobile];
       } else if (this.isMobile) {
-        return [argentMobileConnector, braavosMobile, webWalletConnector];
+        return [braavosMobile, webWalletConnector];
       }
 
-      // sortedConnectors.push(argentMobileConnector);
       sortedConnectors.push(webWalletConnector);
       return sortedConnectors;
     }
