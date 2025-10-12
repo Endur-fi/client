@@ -131,17 +131,11 @@ const WithdrawLog: React.FC = () => {
             item.amount,
             lstConfig.DECIMALS,
           ).toEtherToFixedDecimals(decimalPlaces),
-          status: (item.is_claimed
-            ? "Success"
-            : item.is_rejected
-              ? "Ready"
-              : "Pending") as Status,
+          status: (item.is_claimed ? "Success" : "Pending") as Status,
           claimTime: item.claim_time,
           txHash: item.tx_hash,
           rank,
           asset: assetSymbol,
-          queueContract: item.queue_contract,
-          requestId: item.request_id,
         };
       },
     );
