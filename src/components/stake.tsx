@@ -9,7 +9,7 @@ import {
 } from "@starknet-react/core";
 
 import { useAtomValue } from "jotai";
-import { ChevronDown, Info } from "lucide-react";
+import { AlertCircleIcon, ChevronDown, Info } from "lucide-react";
 import { Figtree } from "next/font/google";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -72,6 +72,7 @@ import Stats from "./stats";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { ASSET_ICONS } from "./asset-selector";
+import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
 
 const font = Figtree({ subsets: ["latin-ext"] });
 
@@ -121,7 +122,7 @@ const platformConfig = (lstConfig: LSTAssetConfig) => {
     trovesHyper: {
       platform: "Troves",
       name: `Troves' Hyper ${lstConfig.LST_SYMBOL} Vault`,
-      icon: <Icons.trovesLogoLight className="size-6" />,
+      icon: <Icons.trovesLogoLight className="size-8" />,
       key: yieldKey as SupportedDApp,
       description: (
         <p>
@@ -152,7 +153,8 @@ const Stake: React.FC = () => {
   const { connectWallet } = useWalletConnection();
   const lstConfig = useAtomValue(lstConfigAtom)!;
   const [isLendingOpen, setIsLendingOpen] = React.useState(
-    !lstConfig.TROVES_VAULT_MAXED_OUT,
+    // !lstConfig.TROVES_VAULT_MAXED_OUT,
+    true,
   );
   const { data: balance } = useBalance({
     address,
@@ -300,6 +302,7 @@ const Stake: React.FC = () => {
         ),
       });
     }
+
     // track stake button click
     MyAnalytics.track(eventNames.STAKE_CLICK, {
       address,
@@ -491,32 +494,72 @@ const Stake: React.FC = () => {
             <DialogTitle className="text-center text-3xl font-semibold text-[#17876D]">
               Thank you for taking a step towards decentralizing Starknet!
             </DialogTitle>
-            <DialogDescription className="!mt-5 text-center text-sm">
+
+            {selectedPlatform === "trovesHyper" && (
+              <p className="!mt-5 text-center text-sm text-muted-foreground">
+                You&apos;ve successfully staked your asset with <br />{" "}
+                <Link
+                  href={`https://app.troves.fi/strategy/hyper_${lstConfig.LST_SYMBOL.toLowerCase()}`}
+                  target="_blank"
+                  className="font-bold text-[#17876D] hover:underline"
+                >
+                  {" "}
+                  Troves Vault
+                </Link>
+              </p>
+            )}
+            <DialogDescription
+              className={cn("!mt-5 text-center text-sm", {
+                hidden: selectedPlatform === "trovesHyper",
+              })}
+            >
               While your stake is being processed, if you like Endur, do you
               mind sharing on X/Twitter?
             </DialogDescription>
-          </DialogHeader>
 
-          <div className="mt-2 flex items-center justify-center">
-            <TwitterShareButton
-              url={`https://endur.fi`}
-              title={`Just staked my ${lstConfig.SYMBOL} on @endurfi, earning ${((activeTab === "strk" ? apy.value.strkApy : apy.value.btcApy) * 100 + (selectedPlatform !== "none" ? getPlatformYield(selectedPlatform) : 0)).toFixed(2)}% APY! 🚀 \n\n${selectedPlatform !== "none" ? `My ${lstConfig.LST_SYMBOL} is now with an additional ${getPlatformYield(selectedPlatform).toFixed(2)}% yield on ${getPlatformConfig(selectedPlatform).platform}! 📈\n\n` : ""}${lstConfig.SYMBOL !== "STRK" ? `Building the future of Bitcoin staking on Starknet` : `Laying the foundation for decentralising Starknet`} with Endur!\n\n`}
-              related={["endurfi", "troves", "karnotxyz"]}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: ".6rem",
-                padding: ".5rem 1rem",
-                borderRadius: "8px",
-                backgroundColor: "#17876D",
-                color: "white",
-                textWrap: "nowrap",
-              }}
-            >
-              Share on
-              <Icons.X className="size-4 shrink-0" />
-            </TwitterShareButton>
-          </div>
+            <div className="!mt-6 flex items-center justify-center">
+              <TwitterShareButton
+                url={`https://endur.fi`}
+                title={`Just staked my ${lstConfig.SYMBOL} on @endurfi, earning ${((activeTab === "strk" ? apy.value.strkApy : apy.value.btcApy) * 100 + (selectedPlatform !== "none" ? getPlatformYield(selectedPlatform) : 0)).toFixed(2)}% APY! 🚀 \n\n${selectedPlatform !== "none" ? `My ${lstConfig.LST_SYMBOL} is now with an additional ${getPlatformYield(selectedPlatform).toFixed(2)}% yield on ${getPlatformConfig(selectedPlatform).platform}! 📈\n\n` : ""}${lstConfig.SYMBOL !== "STRK" ? `Building the future of Bitcoin staking on Starknet` : `Laying the foundation for decentralising Starknet`} with Endur!\n\n`}
+                related={["endurfi", "troves", "karnotxyz"]}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: ".6rem",
+                  padding: ".5rem 2rem",
+                  borderRadius: "12px",
+                  backgroundColor: "#17876D",
+                  color: "white",
+                  textWrap: "nowrap",
+                }}
+              >
+                Share on
+                <Icons.X className="size-4 shrink-0" />
+              </TwitterShareButton>
+            </div>
+
+            {selectedPlatform === "trovesHyper" && (
+              <Alert className="!mt-8 border border-[#03624C] bg-[#E5EFED] p-4 text-[#03624C]">
+                <AlertCircleIcon className="size-4 !text-[#03624C]" />
+                <AlertTitle className="text-base font-semibold leading-[1]">
+                  Important
+                </AlertTitle>
+                <AlertDescription className="mt-2 flex flex-col items-start -space-y-0.5 text-[#5B616D]">
+                  <p>Your staked balance is now managed by Troves Vault.</p>
+                  <p>
+                    View your position and rewards on Troves.{" "}
+                    <Link
+                      href={`https://app.troves.fi/strategy/hyper_${lstConfig.LST_SYMBOL.toLowerCase()}`}
+                      target="_blank"
+                      className="font-semibold text-[#03624C] underline"
+                    >
+                      Link.
+                    </Link>
+                  </p>
+                </AlertDescription>
+              </Alert>
+            )}
+          </DialogHeader>
         </DialogContent>
       </Dialog>
 
