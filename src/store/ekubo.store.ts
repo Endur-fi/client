@@ -198,6 +198,7 @@ export const userEkuboxSTRKPositions: DAppHoldingsAtom = atomFamily(
     }),
 );
 
+// TODO: remove if not needed
 const _getHistory = async (positionId: string) => {
   try {
     const res = await axios.get(

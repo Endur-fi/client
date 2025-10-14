@@ -108,6 +108,7 @@ const PortfolioPage: React.FC = () => {
   }, [yields, sortedProtocols, holdings]);
 
   React.useEffect(() => {
+	// TODO [future scope]: Move this to service
     const fetchData = async () => {
       if (!address) return;
 
@@ -251,6 +252,7 @@ const PortfolioPage: React.FC = () => {
         </span>
       </h1>
 
+	{/* TODO: separate this as a component in the same file */}
       <div
         className="mb-4 rounded-lg border border-[#17876D] bg-[#e7f0ef] p-4 text-xs text-[#17876D] dark:bg-gray-800 dark:text-blue-400 lg:text-sm"
         role="alert"
@@ -292,9 +294,11 @@ const PortfolioPage: React.FC = () => {
           </h2>
         )}
         <div className="">
+		  {/* // TODO: change the name to [DefiInformation]  */}
           {!isMobile && <DataTable columns={columns} data={defiCards} />}
 
           {isMobile &&
+			//   TODO: move to [DefiInformation] => separate DefiCards component
             defiCards.map((card, idx) => (
               <div
                 key={idx}

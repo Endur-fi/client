@@ -25,6 +25,7 @@ export interface ProtocolConfig {
   action?: ProtocolAction;
 }
 
+// TODO: move this to constant or utils maybe [bcs used in portfolio-page]
 export const protocolConfigs: Partial<Record<SupportedDApp, ProtocolConfig>> = {
   strkfarm: {
     tokens: [

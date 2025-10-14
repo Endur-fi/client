@@ -45,7 +45,7 @@ const Tabs = () => {
   const router = useRouter();
   const pathname = usePathname();
 
-  const [lstConfig, setLSTConfig] = useAtom(lstConfigAtom);
+  const [lstConfig, setLSTConfig] = useAtom(lstConfigAtom); //DOUBT: why is this needed?
   const searchParams = useSearchParams();
 
   const [activeTab, setActiveTab] = useAtom(tabsAtom);
@@ -68,6 +68,28 @@ const Tabs = () => {
   React.useEffect(() => {
     console.log("Pathname Effect - pathname:", pathname);
 
+	/*
+	TODO: handle the current token tab from the query param with the help of token object constant.
+		const tokens = {
+			strk: {
+				tab: "strk",
+				variants: ["strk"],
+				defaultVariant: "strk",
+			},
+			btc: {
+				tab: "btc",
+				variants: ["lbtc", "wbtc", "tbtc", "solvbtc"],
+				defaultVariant: "lbtc",
+			}
+		}
+
+		const currentToken = tokens[tabParam] || tokens.btc;
+		const queryVariant = {//select it from query [variant]}
+		setActiveTab(currentToken.tab);
+		const currentVariant = currenToken.variants.includes(queryVariant)?queryVariant:currentToken.defaultVariant;
+		setCurrentVariant(currentVariant) //should be set where needed
+	*/
+
     if (pathname === "/btc") {
       setActiveTab("btc");
     } else if (pathname === "/strk") {
@@ -86,13 +108,14 @@ const Tabs = () => {
   }, [pathname, setActiveTab]);
 
   // Set activeSubTab from URL parameter
+  // TODO: remove
   React.useEffect(() => {
     if (tabParam && ["stake", "unstake", "withdraw"].includes(tabParam)) {
       setActiveSubTab(tabParam);
     }
   }, [tabParam, setActiveSubTab]);
 
-  React.useEffect(() => {
+  React.useEffect(() => { //TODO: if lstConfig is not needed, then remove this useEffect.
     if (activeTab === "strk") {
       setLSTConfig(getSTRKAsset());
     } else {
@@ -176,7 +199,7 @@ const Tabs = () => {
 
     setActiveTab(tab);
 
-    if (tab === "btc") {
+    if (tab === "btc") { //TODO: use tab variable and add a check before it using array and includes
       router.push(referrer ? `/btc?referrer=${referrer}` : "/btc", {
         scroll: false,
       });
@@ -193,7 +216,7 @@ const Tabs = () => {
     setActiveSubTab(subTab);
   };
 
-  const handleWaitlistSubmit = async (e: React.FormEvent) => {
+  const handleWaitlistSubmit = async (e: React.FormEvent) => { //TODO: remove if not needed
     e.preventDefault();
 
     if (!address) {
@@ -259,7 +282,9 @@ const Tabs = () => {
           "lg:-ml-56": isPinned,
         })}
       >
-        {IS_PAUSED && (
+        {(IS_PAUSED) && (
+			// TODO: separate this as a component and only keep whether it should be shown or not in this file [PausedMessageBox]
+			// DOUBT: But before that is it just a message or kind of maintenance mode where other things should be not displayed?
           <div className="-top-[3.25rem] mt-2 w-fit text-balance rounded-lg border border-amber-600 bg-amber-200 px-5 py-2 text-center text-sm text-yellow-700 lg:absolute lg:mt-0">
             Endur is currently undergoing a scheduled upgrade to support Staking
             V3.{" "}
@@ -276,8 +301,8 @@ const Tabs = () => {
         <div
           className={cn("mt-6 w-full max-w-xl lg:mt-0", {
             "mb-7 xl:mb-0": !isMerry,
-            // "mb-7 lg:mb-12": isMerry,
-            // "mb-7 lg:mb-7": isMerry && activeTab === "withdraw",
+            // "mb-7 lg:mb-12": isMerry, //TODO: remove
+            // "mb-7 lg:mb-7": isMerry && activeTab === "withdraw", //TODO: remove
           })}
         >
           <div className="flex flex-wrap items-center gap-3 lg:mt-7">
@@ -309,6 +334,7 @@ const Tabs = () => {
           </p>
         </div>
 
+		{/* TODO: separate as TokenTabs or something */}
         {/* Main Tabs - STRK and BTC */}
         <div className="w-full max-w-xl">
           <ShadCNTabs
@@ -395,6 +421,7 @@ const Tabs = () => {
                       className="group relative rounded-none border-none bg-transparent text-sm font-medium text-[#8D9C9C] focus-visible:ring-0 focus-visible:ring-offset-0 data-[state=active]:border-t-0 data-[state=active]:shadow-none lg:text-base"
                     >
                       Withdraw log
+					  {/* TODO: make this a separate common component [InfoTooltip] */}
                       <TooltipProvider delayDuration={0}>
                         <Tooltip>
                           <TooltipTrigger
@@ -577,6 +604,7 @@ const Tabs = () => {
           </ShadCNTabs>
         </div>
 
+		{/* TODO: remove if not needed */}
         {/* <p
           className={cn(
             "mt-4 flex items-center text-xs text-[#707D7D] lg:mb-1 lg:mt-auto lg:text-sm",

@@ -43,11 +43,13 @@ export const assetPriceAtom = atomWithQuery((get) => {
   };
 });
 
+// DOUBT: explain
 export const lastWalletAtom = createAtomWithStorage<null | string>(
   "ENDURFI_LAST_WALLET",
   null,
 );
 
+//DOUBT: explain
 export function createAtomWithStorage<T>(
   key: string,
   defaultValue: T,

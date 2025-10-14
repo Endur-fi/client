@@ -410,7 +410,7 @@ const Unstake = () => {
 
   const handleDexSwap = async () => {
     if (!address || !avnuQuote) return;
-
+// DOUBT: explain
     MyAnalytics.track(eventNames.UNSTAKE_CLICK, {
       address,
       amount: Number(form.getValues("unstakeAmount")),
@@ -555,6 +555,7 @@ const Unstake = () => {
           </Form>
         </div>
 
+		{/* TODO: Use QuickFillAndBalance component */}
         <div className="flex flex-col items-end">
           <div className="hidden text-[#8D9C9C] lg:block">
             <button
@@ -603,6 +604,7 @@ const Unstake = () => {
         </div>
       </div>
 
+	{/* TODO: separate this component in the same file */}
       <Tabs
         value={txnDapp}
         defaultValue="endur"

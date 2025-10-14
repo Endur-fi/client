@@ -41,9 +41,10 @@ export function formatNumber(
 }
 
 export function formatNumberWithCommas(
-  value: number | string,
-  decimals?: number,
+	value: number | string,
+	decimals?: number,
 ): string {
+// TODO: why are we not using this => num.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})
   const numberValue = typeof value === "string" ? Number(value) : value;
 
   if (isNaN(numberValue)) {
@@ -189,6 +190,7 @@ export async function getAssetPrice(isSTRK: boolean = true): Promise<number> {
   return Number(data) / 10 ** 8;
 }
 
+// TODO: separate types
 // Types for the result object with discriminated union
 type Success<T> = {
   data: T;

@@ -9,6 +9,7 @@ import { apiExchangeRateAtom } from "./lst.store";
 import { snAPYAtom, btcPriceAtom } from "./staking.store";
 import { LSTAssetConfig } from "@/constants";
 
+// TODO: separate the types
 interface VesuAPIResponse {
   data: {
     assets: Array<{
@@ -94,6 +95,7 @@ const convertVesuValue = (value: string, decimals: number): number => {
   return numValue / Math.pow(10, decimals);
 };
 
+// TODO: remove if not needed
 const findEndurPair = (pairs: EkuboPair[]): EkuboPair | undefined => {
   return pairs.find(
     (pair) =>
@@ -710,6 +712,7 @@ export const trovesEkuboBTCxsBTCYieldAtom = createTrovesYieldAtom(
   trovesEkuboBTCxsBTCYieldQueryAtom,
 );
 
+// TODO: seems like below four functions have similar request response - can be standardised
 // Vesu BTC yield atoms - using staging API as requested
 const vesuBTCxWBTCYieldQueryAtom = atomWithQuery(() => ({
   queryKey: ["vesuBTCxWBTCYield"],
@@ -980,6 +983,7 @@ const vesuBTCxsBTCYieldQueryAtom = atomWithQuery(() => ({
   refetchInterval: 60000,
 }));
 
+// TODO: below functions can also be standardised similar to createTrovesYieldAtom
 export const vesuBTCxWBTCYieldAtom = atom<ProtocolStats>((get) => {
   const { data, error } = get(vesuBTCxWBTCYieldQueryAtom);
   return {

@@ -26,6 +26,7 @@ const SIDEBAR_WIDTH_MOBILE = "18rem";
 const SIDEBAR_WIDTH_ICON = "4rem";
 const SIDEBAR_KEYBOARD_SHORTCUT = "b";
 
+// TODO: move this to separate file
 type SidebarContext = {
   state: "expanded" | "collapsed";
   open: boolean;
@@ -115,7 +116,7 @@ const SidebarProvider = React.forwardRef<
 
       window.addEventListener("keydown", handleKeyDown);
       return () => window.removeEventListener("keydown", handleKeyDown);
-    }, [isPinned, toggleSidebar]);
+    }, [isPinned, toggleSidebar]); //TODO: remove this dependencies and move the handleKeyDown function out from useeffect
 
     // We add a state so that we can do data-state="expanded" or "collapsed".
     // This makes it easier to style the sidebar with Tailwind classes.

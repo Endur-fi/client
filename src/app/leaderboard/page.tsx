@@ -23,6 +23,7 @@ import { ApolloClient, InMemoryCache } from "@apollo/client";
 
 const PAGINATION_LIMIT = 100;
 
+// TODO: move these interfaces to separate file
 interface AllUsersApiResponse {
   users: {
     user_address: string;
@@ -80,6 +81,7 @@ const apolloClient = new ApolloClient({
 const CACHE_EXPIRY_MS = 6 * 60 * 60 * 1000; // 6 hours in milliseconds
 let leaderboardCache: LeaderboardCache | null = null;
 
+// TODO - move to separate file
 const useLeaderboardData = () => {
   const [state, setState] = React.useState<LeaderboardState>({
     data: [],

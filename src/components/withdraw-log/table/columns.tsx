@@ -108,6 +108,7 @@ export const withdrawLogColumn: ColumnDef<WithdrawLogColumn>[] = [
       return (
         <div className="flex items-center gap-2">
           Log ID
+		  {/* TODO: use InfoTooltip */}
           <TooltipProvider delayDuration={0}>
             <Tooltip>
               <TooltipTrigger className="ml-1" tabIndex={-1} asChild>
@@ -234,7 +235,7 @@ export const withdrawLogColumn: ColumnDef<WithdrawLogColumn>[] = [
               <span className="text-[#939494] transition-all">
                 {convertFutureTimestamp(row.original.claimTime as any)}
               </span>
-
+				{/* TODO: use InfoTooltip */}
               <TooltipProvider delayDuration={0}>
                 <Tooltip>
                   <TooltipTrigger className="ml-1" tabIndex={-1} asChild>

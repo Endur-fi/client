@@ -94,9 +94,11 @@ const PLATFORMS = {
   HYPER_HYPER: "trovesHyper",
 } as const;
 
+// TODO: can shift this to utils if it is same as stats' platformConfig
 const platformConfig = (lstConfig: LSTAssetConfig) => {
   // Determine the correct yield key based on the LST symbol
   let yieldKey: string;
+  //TODO: you can use object [key value pair], that will be short and clean
   switch (lstConfig.LST_SYMBOL) {
     case "xSTRK":
       yieldKey = "hyperxSTRK";
@@ -260,6 +262,8 @@ const Stake: React.FC = () => {
     ) {
       return toast({
         description: (
+			// TODO: as the same component is being used, make a wrapper in the same file, can be in same function (onsubmit)
+			// make an erroObject and use it conditionally
           <div className="flex items-center gap-2">
             <Info className="size-5" />
             Invalid stake amount
@@ -306,6 +310,7 @@ const Stake: React.FC = () => {
       amount: Number(values.stakeAmount),
     });
 
+	// DOUBT: explain the flow
     const underlyingTokenAmount = MyNumber.fromEther(
       values.stakeAmount,
       lstConfig.DECIMALS,
@@ -400,9 +405,11 @@ const Stake: React.FC = () => {
 
   const sortedPlatforms = React.useMemo(() => {
     const allPlatforms = Object.values(PLATFORMS);
+	// TODO: can use the logic here itself of sortPlatforms instead of making separate function
     return sortPlatforms(allPlatforms, yields);
   }, [yields]);
 
+// TODO: remove if not needed  
   const hasPositiveYields = React.useMemo(() => {
     return sortedPlatforms.some((platform) => {
       const config = getPlatformConfig(platform);
@@ -413,6 +420,7 @@ const Stake: React.FC = () => {
     });
   }, [sortedPlatforms, yields]);
 
+//   TODO: components should not be inside any component, the Stake component render/rerender will rerender platformList as well
   const PlatformList: React.FC<{
     sortedPlatforms: string[];
     yields: any;
@@ -466,12 +474,13 @@ const Stake: React.FC = () => {
       </div>
     );
   };
-
+// DOUBT: what's the reason to have this and getPlatformYield separate?
   const getYieldData = (platform: string, yields: any) => {
     const config = getPlatformConfig(platform);
     return config ? yields[config.key] : null;
   };
 
+//   TODO: Understand handleTransaction Function and reevaluate how the below code is needed - Neel's Task
   React.useEffect(() => {
     handleTransaction("STAKE", {
       form,
@@ -485,6 +494,7 @@ const Stake: React.FC = () => {
 
   return (
     <div className="relative h-full w-full">
+		{/* TODO: separate the thank you modal [ThankYouDialog] */}
       <Dialog open={showShareModal} onOpenChange={setShowShareModal}>
         <DialogContent className={cn(font.className, "p-16 sm:max-w-xl")}>
           <DialogHeader>
@@ -520,6 +530,7 @@ const Stake: React.FC = () => {
         </DialogContent>
       </Dialog>
 
+	{/* TODO: Separate this [MaxedOutDialog] */}
       <Dialog open={showMaxedOutModal} onOpenChange={setShowMaxedOutModal}>
         <DialogContent
           className={cn(font.className, "p-8 sm:max-w-md")}
@@ -585,6 +596,7 @@ const Stake: React.FC = () => {
           </Form>
         </div>
 
+		{/* TODO: separate this as this same can be used in unstake folder [QuickFillAndBalance] */}
         <div className="flex flex-col items-end">
           <div className="hidden text-[#8D9C9C] lg:block">
             <button
@@ -634,6 +646,7 @@ const Stake: React.FC = () => {
       </div>
 
       {sortedPlatforms.length > 0 && (
+		// TODO: make a separate component in the same file
         <div className="px-7">
           <Collapsible
             open={isLendingOpen}
@@ -650,6 +663,7 @@ const Stake: React.FC = () => {
                 <span className="text-[#8D9C9C]">(optional)</span>
                 <ChevronDown className="size-3 text-[#8D9C9C] transition-transform duration-200 data-[state=open]:rotate-180" />
               </CollapsibleTrigger>
+			  {/* TODO: use [InfoTooltip] */}
               <TooltipProvider delayDuration={0}>
                 <Tooltip>
                   <TooltipTrigger>
@@ -659,6 +673,7 @@ const Stake: React.FC = () => {
                     side="right"
                     className="max-w-72 rounded-md border border-[#03624C] bg-white p-3 text-[#03624C]"
                   >
+					{/* TODO: you can keep the content (if large) of the tooltips in a separate component for cleaner approach */}
                     <p className="mb-2">
                       You can earn additional yield by lending your xSTRK on
                       DeFi platforms. Your base staking rewards will continue to
@@ -696,6 +711,7 @@ const Stake: React.FC = () => {
         <div className="flex items-center justify-between rounded-md text-xs font-bold text-[#03624C] lg:text-[13px]">
           <p className="flex items-center gap-1">
             {selectedPlatform === "none" ? "You will get" : "You will lend"}
+			  {/* TODO: use [InfoTooltip] */}
             <TooltipProvider delayDuration={0}>
               <Tooltip>
                 <TooltipTrigger>
@@ -736,6 +752,7 @@ const Stake: React.FC = () => {
         <div className="flex items-center justify-between rounded-md text-xs font-medium text-[#939494] lg:text-[13px]">
           <p className="flex items-center gap-1">
             Exchange rate
+			  {/* TODO: use [InfoTooltip] */}
             <TooltipProvider delayDuration={0}>
               <Tooltip>
                 <TooltipTrigger>
@@ -770,6 +787,7 @@ const Stake: React.FC = () => {
         <div className="flex items-center justify-between rounded-md text-xs font-medium text-[#939494] lg:text-[13px]">
           <p className="flex items-center gap-1">
             Reward fees
+			  {/* TODO: use [InfoTooltip] */}
             <TooltipProvider delayDuration={0}>
               <Tooltip>
                 <TooltipTrigger>

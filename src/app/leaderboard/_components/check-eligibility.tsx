@@ -1178,3 +1178,7 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
 };
 
 export default React.memo(CheckEligibility);
+
+// TODO: components are already separated 
+// but functionality of each component should be handled by that particular component only.
+// so start with that first
