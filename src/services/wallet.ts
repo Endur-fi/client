@@ -52,6 +52,13 @@ export class WalletConnector {
       },
     });
 
+    const okx = new InjectedConnector({
+      options: {
+        id: "okxwallet",
+        name: "OKX",
+      },
+    });
+
     const xverseConnector = new InjectedConnector({
       options: {
         id: "xverse",
@@ -107,6 +114,7 @@ export class WalletConnector {
       keplrConnector,
       xverseConnector,
       fordefiConnector,
+      okx,
       webWalletConnector,
     ];
   }
