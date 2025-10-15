@@ -52,6 +52,20 @@ export class WalletConnector {
       },
     });
 
+    const okx = new InjectedConnector({
+      options: {
+        id: "okxwallet",
+        name: "OKX",
+      },
+    });
+
+    const xverseConnector = new InjectedConnector({
+      options: {
+        id: "xverse",
+        name: "Xverse",
+      },
+    }) as unknown as StarknetkitConnector;
+
     // Mobile connectors
     const argentMobileConnector = ArgentMobileConnector.init({
       options: {
@@ -90,9 +104,6 @@ export class WalletConnector {
         argentMobileConnector,
         braavosMobileConnector,
         webWalletConnector,
-        argentXConnector,
-        braavosConnector,
-        keplrConnector,
       ];
     }
 
@@ -101,7 +112,9 @@ export class WalletConnector {
       argentXConnector,
       braavosConnector,
       keplrConnector,
+      xverseConnector,
       fordefiConnector,
+      okx,
       webWalletConnector,
     ];
   }

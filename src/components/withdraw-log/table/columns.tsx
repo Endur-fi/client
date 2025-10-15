@@ -2,10 +2,8 @@
 
 import React from "react";
 import { ColumnDef } from "@tanstack/react-table";
-import { Info, Loader } from "lucide-react";
+import { Info } from "lucide-react";
 import Link from "next/link";
-import { Contract } from "starknet";
-import { useAccount } from "@starknet-react/core";
 
 import { Icons } from "@/components/Icons";
 import { Button } from "@/components/ui/button";
@@ -16,78 +14,15 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { getExplorerEndpoint, getProvider } from "@/constants";
+import { getExplorerEndpoint } from "@/constants";
 import { cn, convertFutureTimestamp } from "@/lib/utils";
-import { useToast } from "@/hooks/use-toast";
-import WqAbi from "@/abi/wq.abi.json";
 
 // Custom component for amount cell that can use hooks
 const AmountCell: React.FC<{ amount: string }> = ({ amount }) => {
   return <>{amount}</>;
 };
 
-// Claim button component for rejected withdrawal requests
-const ClaimButton: React.FC<{
-  queueContract: string;
-  requestId: string;
-  asset: string;
-}> = ({ queueContract, requestId, asset }) => {
-  const [isLoading, setIsLoading] = React.useState(false);
-  const { address, account } = useAccount();
-  const { toast } = useToast();
-
-  const handleClaim = async () => {
-    if (!address || !account) {
-      toast({
-        description: "Please connect your wallet to claim",
-      });
-      return;
-    }
-
-    setIsLoading(true);
-
-    try {
-      const provider = getProvider();
-      const contract = new Contract({
-        abi: WqAbi,
-        address: queueContract,
-        providerOrAccount: account,
-      });
-
-      const claimCall = contract.populate("claim_withdrawal", [requestId]);
-
-      const result = await account.execute([claimCall]);
-
-      toast({
-        description: `Claim transaction submitted for ${asset}`,
-      });
-
-      console.log("Claim transaction result:", result);
-    } catch (error) {
-      console.error("Error claiming withdrawal:", error);
-      toast({
-        description: "Failed to claim withdrawal. Please try again.",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  return (
-    <button
-      onClick={handleClaim}
-      disabled={isLoading}
-      className="group mr-1 flex w-fit items-center justify-end gap-1 text-xs transition-all disabled:opacity-50"
-    >
-      <span className="text-[#939494] underline transition-all group-hover:text-blue-500">
-        {isLoading ? "Claiming..." : "Claim"}
-      </span>
-      {isLoading && <Loader className="size-4 animate-spin text-[#939494]" />}
-    </button>
-  );
-};
-
-export type Status = "Success" | "Pending" | "Ready";
+export type Status = "Success" | "Pending";
 
 export type WithdrawLogColumn = {
   queuePosition: string;
@@ -97,8 +32,6 @@ export type WithdrawLogColumn = {
   txHash: string;
   rank: number;
   asset?: string;
-  queueContract?: string;
-  requestId?: string;
 };
 
 export const withdrawLogColumn: ColumnDef<WithdrawLogColumn>[] = [
@@ -206,15 +139,9 @@ export const withdrawLogColumn: ColumnDef<WithdrawLogColumn>[] = [
                 status === "Success",
               "border-[#4C1100]/10 bg-[#FFEDD1] text-[#4C1100]":
                 status === "Pending",
-              "border-[#03624C]/10 bg-[#E3EFEC]/30 text-[#03624C]":
-                status === "Ready",
             })}
           >
-            {status === "Success"
-              ? "Withdraw"
-              : status === "Ready"
-                ? "Ready"
-                : "Pending"}
+            {status === "Success" ? "Withdraw" : "Pending"}
           </span>
 
           {status === "Success" && (
@@ -251,14 +178,6 @@ export const withdrawLogColumn: ColumnDef<WithdrawLogColumn>[] = [
                 </Tooltip>
               </TooltipProvider>
             </p>
-          )}
-
-          {status === "Ready" && (
-            <ClaimButton
-              queueContract={row.original.queueContract!}
-              requestId={row.original.requestId!}
-              asset={row.original.asset || "STRK"}
-            />
           )}
         </div>
       );
