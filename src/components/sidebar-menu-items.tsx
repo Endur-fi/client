@@ -112,20 +112,23 @@ const SidebarMenuItems = () => {
                 className={cn(
                   "transition-all hover:bg-[#17876D] hover:text-white",
                   {
-                    "bg-[#17876D] text-white": pathname === "/defi",
+                    "bg-[#17876D] text-white": pathname === "/strk/defi",
                   },
                 )}
                 onMouseEnter={() =>
-                  pathname !== "/defi" && setTriggerDefiIconAnimation(true)
+                  pathname !== "/strk/defi" && setTriggerDefiIconAnimation(true)
                 }
                 onMouseLeave={() =>
-                  pathname !== "/defi" && setTriggerDefiIconAnimation(false)
+                  pathname !== "/strk/defi" &&
+                  setTriggerDefiIconAnimation(false)
                 }
               >
                 <Link
-                  href={referrer ? `/defi?referrer=${referrer}` : "/defi"}
+                  href={
+                    referrer ? `/strk/defi?referrer=${referrer}` : "/strk/defi"
+                  }
                   className={cn(
-                    "group/defi flex cursor-pointer flex-row items-center gap-2 text-nowrap rounded-md text-base font-semibold text-[#03624C] transition-all",
+                    "flex cursor-pointer flex-row items-center gap-2 text-nowrap rounded-md text-base font-semibold text-[#03624C] transition-all",
                   )}
                 >
                   <HandCoinsIcon
@@ -164,20 +167,20 @@ const SidebarMenuItems = () => {
                 className={cn(
                   "transition-all hover:bg-[#17876D] hover:text-white",
                   {
-                    "bg-[#17876D] text-white": pathname === "/portfolio",
+                    "bg-[#17876D] text-white": pathname === "/strk/portfolio",
                   },
                 )}
                 onMouseEnter={() =>
-                  pathname !== "/portfolio" &&
+                  pathname !== "/strk/portfolio" &&
                   setTriggerPortfolioIconAnimation(true)
                 }
                 onMouseLeave={() =>
-                  pathname !== "/portfolio" &&
+                  pathname !== "/strk/portfolio" &&
                   setTriggerPortfolioIconAnimation(false)
                 }
               >
                 <Link
-                  href="/portfolio"
+                  href="/strk/portfolio"
                   className="flex cursor-pointer flex-row items-center gap-2 text-nowrap rounded-md text-base font-semibold text-[#03624C] transition-all"
                 >
                   <UserIcon
@@ -217,19 +220,19 @@ const SidebarMenuItems = () => {
                 className={cn(
                   "transition-all hover:bg-[#17876D] hover:text-white",
                   {
-                    "bg-[#17876D] text-white": pathname === "/defi-btc",
+                    "bg-[#17876D] text-white": pathname === "/btc/defi",
                   },
                 )}
                 onMouseEnter={() =>
-                  pathname !== "/defi-btc" && setTriggerDefiIconAnimation(true)
+                  pathname !== "/btc/defi" && setTriggerDefiIconAnimation(true)
                 }
                 onMouseLeave={() =>
-                  pathname !== "/defi-btc" && setTriggerDefiIconAnimation(false)
+                  pathname !== "/btc/defi" && setTriggerDefiIconAnimation(false)
                 }
               >
                 <Link
                   href={
-                    referrer ? `/defi-btc?referrer=${referrer}` : "/defi-btc"
+                    referrer ? `/btc/defi?referrer=${referrer}` : "/btc/defi"
                   }
                   className="flex cursor-pointer flex-row items-center gap-2 text-nowrap rounded-md text-base font-semibold text-[#03624C] transition-all"
                 >
