@@ -3,7 +3,7 @@
 import * as React from "react";
 import * as RechartsPrimitive from "recharts";
 
-import { chartConfig } from "@/app/portfolio/_components/defi-holding";
+import { chartConfig } from "@/components/strk-portfolio-page/_components/defi-holding";
 import { cn, formatNumberWithCommas } from "@/lib/utils";
 import { type SupportedDApp } from "@/store/defi.store";
 
