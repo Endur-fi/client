@@ -45,7 +45,7 @@ const Tabs = () => {
   const router = useRouter();
   const pathname = usePathname();
 
-  const [lstConfig, setLSTConfig] = useAtom(lstConfigAtom); //DOUBT: why is this needed?
+  const [lstConfig, setLSTConfig] = useAtom(lstConfigAtom);
   const searchParams = useSearchParams();
 
   const [activeTab, setActiveTab] = useAtom(tabsAtom);
@@ -65,30 +65,9 @@ const Tabs = () => {
   const referrer = searchParams.get("referrer");
   const tabParam = searchParams.get("tab");
 
+//   TODO: this will be removed after new structure is implemented
   React.useEffect(() => {
     console.log("Pathname Effect - pathname:", pathname);
-
-	/*
-	TODO: handle the current token tab from the query param with the help of token object constant.
-		const tokens = {
-			strk: {
-				tab: "strk",
-				variants: ["strk"],
-				defaultVariant: "strk",
-			},
-			btc: {
-				tab: "btc",
-				variants: ["lbtc", "wbtc", "tbtc", "solvbtc"],
-				defaultVariant: "lbtc",
-			}
-		}
-
-		const currentToken = tokens[tabParam] || tokens.btc;
-		const queryVariant = {//select it from query [variant]}
-		setActiveTab(currentToken.tab);
-		const currentVariant = currenToken.variants.includes(queryVariant)?queryVariant:currentToken.defaultVariant;
-		setCurrentVariant(currentVariant) //should be set where needed
-	*/
 
     if (pathname === "/btc") {
       setActiveTab("btc");
@@ -115,7 +94,7 @@ const Tabs = () => {
     }
   }, [tabParam, setActiveSubTab]);
 
-  React.useEffect(() => { //TODO: if lstConfig is not needed, then remove this useEffect.
+  React.useEffect(() => { //TODO: revisit (Neel's Task)
     if (activeTab === "strk") {
       setLSTConfig(getSTRKAsset());
     } else {
@@ -298,6 +277,7 @@ const Tabs = () => {
           </div>
         )}
 
+		{/* TODO: separate this as a <Header> component in the same file */}
         <div
           className={cn("mt-6 w-full max-w-xl lg:mt-0", {
             "mb-7 xl:mb-0": !isMerry,
@@ -334,7 +314,10 @@ const Tabs = () => {
           </p>
         </div>
 
-		{/* TODO: separate as TokenTabs or something */}
+		{/* TODO: remove the shadcn tabs for the btc and strk tabs 
+			Reason: when we switch the shadcn tab it already renders the element and because we navigate to different route (for eg /strk) it again renders the same thing
+			on using the simple approach (that is native elements like div and js to handle the toggle) issue will be solved and it is a clean approach as well
+		*/}
         {/* Main Tabs - STRK and BTC */}
         <div className="w-full max-w-xl">
           <ShadCNTabs
@@ -378,6 +361,7 @@ const Tabs = () => {
               </TabsTrigger>
             </TabsList>
 
+			  {/* TODO: separate the component and use the same component for strk and btc (can name it as <TokenTab>)  */}
             {/* STRK Tab Content */}
             <TabsContent
               value="strk"

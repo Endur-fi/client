@@ -170,6 +170,7 @@ export const eventNames = {
 };
 
 export async function getAssetPrice(isSTRK: boolean = true): Promise<number> {
+	// TODO: if we can use constants/getProvider use that here
   const provider = new RpcProvider({
     nodeUrl:
       process.env.NEXT_PUBLIC_CHAIN_ID === "SN_MAIN"

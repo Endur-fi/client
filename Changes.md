@@ -1,12 +1,12 @@
 General:
 1. keep code grouped in a file as in all the states together, functions together - meaning if there is a function group nothing should be there between two function. -applies to stores, component, services, utils, hooks
 2. Every significant function should have a comment explaining what the function is doing in brief
-
+3. should not use atom for global constant, rather use constant files to store as a simple const
 
 --routes:
 // keep support for old routes - configure in next.config
 token=[strk, btc]
-/:token?variant=:variant
+/:token
 /:token/defi
 /:token/portfolio
 /leaderboard
@@ -15,13 +15,11 @@ token=[strk, btc]
 
 src/features/
 - staking
+	use this staking component in page.tsx of each token and variants (strk, btc, wbtc, lbtc...)
 	index:
-		1. current token and variant will be passed as a query param
-		2. handle the current token tab from the query param with the help of token object constant.
-		2. There should be a dashboard or landing page before Tabs.
-		3. It will have <TokenTabs> and all the things which will be present on the dashboard.
+		1. variant will be passed as a prop
+		2. set active tab using this variant prop. use object to map variants with token
 
-	component/TokenTabs:
 	component/TokenTab:
 	component/StakeSubTab
 	component/PlatformCard:
@@ -42,10 +40,10 @@ src/features/
 	... other components for data-table
 
 - leaderboard
-	...
+	... other components for leaderboard
 
 - eligibility
-	...
+	... other components for eligibility
 
 -- Common Components
 src/components/
