@@ -20,23 +20,23 @@ src/features/
 		1. variant will be passed as a prop
 		2. set active tab using this variant prop. use object to map variants with token
 
-	component/TokenTab:
-	component/StakeSubTab
-	component/PlatformCard:
-	component/UnstakeSubTab	
-	component/WithdrawSubTab
-		component/WithdrawTable [TODO: Revisit]
-		component/WithdrawColumns
-	component/QuickFillAndBalance
-	component/Stats
-	component/AssetSelector -> AssetDropdown
+	components/TokenTab:
+	components/StakeSubTab
+	components/PlatformCard:
+	components/UnstakeSubTab	
+	components/WithdrawSubTab
+		components/WithdrawTable [TODO: Revisit]
+		components/WithdrawColumns
+	components/QuickFillAndBalance
+	components/Stats
+	components/AssetSelector -> AssetDropdown
 
 - portfolio
 	index:
-	component/Stats
-	component/Chart
-	component/DefiHoldings
-	component/data-table => component/DefiInformation
+	components/Stats
+	components/Chart
+	components/DefiHoldings
+	components/data-table => components/DefiInformation
 	... other components for data-table
 
 - leaderboard
@@ -51,6 +51,3 @@ src/components/
 - ThankYouDialog
 - MaxedOutDialog
 - InfoTooltip (set info icon color with prop and tooltip content as children)
-
-State management:
-1
