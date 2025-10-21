@@ -5,6 +5,7 @@ import { Info } from "lucide-react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import React from "react";
+import { useSearchParams } from "next/navigation";
 import { useAccount } from "@starknet-react/core";
 
 import { Icons } from "@/components/Icons";
@@ -15,15 +16,17 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { IS_PAUSED, getLSTAssetsByCategory, getSTRKAsset } from "@/constants";
-import { cn } from "@/lib/utils";
+import { cn, validateEmail } from "@/lib/utils";
 import {
   isMerryChristmasAtom,
   tabsAtom,
   activeSubTabAtom,
 } from "@/store/merry.store";
-import { toast } from "@/hooks/use-toast";
-import { validateEmail } from "@/lib/utils";
+import { snAPYAtom } from "@/store/staking.store";
+import { lstConfigAtom } from "@/store/common.store";
+import { useWalletConnection } from "@/hooks/use-wallet-connection";
 import { checkSubscription, subscribeUser } from "@/lib/api";
+import { toast } from "@/hooks/use-toast";
 
 import Stake from "./stake";
 import { useSidebar } from "./ui/sidebar";
@@ -35,11 +38,46 @@ import {
 } from "./ui/tabs";
 import Unstake from "./unstake";
 import WithdrawLog from "./withdraw-log";
-import { snAPYAtom } from "@/store/staking.store";
-import { useWalletConnection } from "@/hooks/use-wallet-connection";
-import { lstConfigAtom } from "@/store/common.store";
 import { MyDottedTooltip } from "./my-tooltip";
-import { useSearchParams } from "next/navigation";
+
+const Header = React.memo(({ isMerry }: { isMerry: boolean }) => (
+  <div
+    className={cn("mt-6 w-full max-w-xl lg:mt-0", {
+      "mb-7 xl:mb-0": !isMerry,
+      // "mb-7 lg:mb-12": isMerry, //TODO: remove
+      // "mb-7 lg:mb-7": isMerry && activeTab === "withdraw", //TODO: remove
+    })}
+  >
+    <div className="flex flex-wrap items-center gap-3 lg:mt-7">
+      <div className="flex items-center gap-2">
+        <Icons.strkLogo className="size-8" />
+        <h1 className="text-xl font-bold text-black">Starknet Staking</h1>
+      </div>
+      <Link
+        href="https://docs.endur.fi/docs/security"
+        target="_blank"
+        className="flex w-fit items-center gap-1 rounded-full border border-[#17876D33] bg-[#17876D1A] px-3 py-1 transition-opacity hover:opacity-80 md:mt-0"
+      >
+        <Icons.shield className="size-3.5 text-[#17876D]" />
+        <span className="text-xs text-[#17876D]">Secure and audited</span>
+      </Link>
+    </div>
+
+    <p className="mt-2 text-sm text-[#8D9C9C]">
+      Convert your STRK and BTC tokens into{" "}
+      <MyDottedTooltip tooltip="Liquid staking token (LST) of STRK issued by Endur">
+        xSTRK
+      </MyDottedTooltip>{" "}
+      and{" "}
+      <MyDottedTooltip tooltip="xyBTC refers to Endur's family of Bitcoin Liquid Staking Tokens (LSTs), where 'x' is Endur's prefix and 'y' represents different Bitcoin variants. Examples include xWBTC, xtBTC, xLBTC, and xsBTC.">
+        xyBTCs
+      </MyDottedTooltip>{" "}
+      to earn staking rewards and participate in DeFi opportunities across the
+      Starknet ecosystem.
+    </p>
+  </div>
+));
+Header.displayName = "Header";
 
 const Tabs = () => {
   const router = useRouter();
@@ -65,7 +103,7 @@ const Tabs = () => {
   const referrer = searchParams.get("referrer");
   const tabParam = searchParams.get("tab");
 
-//   TODO: this will be removed after new structure is implemented
+  //   TODO: this will be removed after new structure is implemented
   React.useEffect(() => {
     console.log("Pathname Effect - pathname:", pathname);
 
@@ -94,7 +132,8 @@ const Tabs = () => {
     }
   }, [tabParam, setActiveSubTab]);
 
-  React.useEffect(() => { //TODO: revisit (Neel's Task)
+  React.useEffect(() => {
+    //TODO: revisit (Neel's Task)
     if (activeTab === "strk") {
       setLSTConfig(getSTRKAsset());
     } else {
@@ -178,7 +217,8 @@ const Tabs = () => {
 
     setActiveTab(tab);
 
-    if (tab === "btc") { //TODO: use tab variable and add a check before it using array and includes
+    if (tab === "btc") {
+      //TODO: use tab variable and add a check before it using array and includes
       router.push(referrer ? `/btc?referrer=${referrer}` : "/btc", {
         scroll: false,
       });
@@ -195,7 +235,8 @@ const Tabs = () => {
     setActiveSubTab(subTab);
   };
 
-  const handleWaitlistSubmit = async (e: React.FormEvent) => { //TODO: remove if not needed
+  const handleWaitlistSubmit = async (e: React.FormEvent) => {
+    //TODO: remove if not needed
     e.preventDefault();
 
     if (!address) {
@@ -261,9 +302,9 @@ const Tabs = () => {
           "lg:-ml-56": isPinned,
         })}
       >
-        {(IS_PAUSED) && (
-			// TODO: separate this as a component and only keep whether it should be shown or not in this file [PausedMessageBox]
-			// DOUBT: But before that is it just a message or kind of maintenance mode where other things should be not displayed?
+        {IS_PAUSED && (
+          // TODO: separate this as a component and only keep whether it should be shown or not in this file [PausedMessageBox]
+          // DOUBT: But before that is it just a message or kind of maintenance mode where other things should be not displayed?
           <div className="-top-[3.25rem] mt-2 w-fit text-balance rounded-lg border border-amber-600 bg-amber-200 px-5 py-2 text-center text-sm text-yellow-700 lg:absolute lg:mt-0">
             Endur is currently undergoing a scheduled upgrade to support Staking
             V3.{" "}
@@ -277,44 +318,9 @@ const Tabs = () => {
           </div>
         )}
 
-		{/* TODO: separate this as a <Header> component in the same file */}
-        <div
-          className={cn("mt-6 w-full max-w-xl lg:mt-0", {
-            "mb-7 xl:mb-0": !isMerry,
-            // "mb-7 lg:mb-12": isMerry, //TODO: remove
-            // "mb-7 lg:mb-7": isMerry && activeTab === "withdraw", //TODO: remove
-          })}
-        >
-          <div className="flex flex-wrap items-center gap-3 lg:mt-7">
-            <div className="flex items-center gap-2">
-              <Icons.strkLogo className="size-8" />
-              <h1 className="text-xl font-bold text-black">Starknet Staking</h1>
-            </div>
-            <Link
-              href="https://docs.endur.fi/docs/security"
-              target="_blank"
-              className="flex w-fit items-center gap-1 rounded-full border border-[#17876D33] bg-[#17876D1A] px-3 py-1 transition-opacity hover:opacity-80 md:mt-0"
-            >
-              <Icons.shield className="size-3.5 text-[#17876D]" />
-              <span className="text-xs text-[#17876D]">Secure and audited</span>
-            </Link>
-          </div>
+        <Header isMerry={isMerry} />
 
-          <p className="mt-2 text-sm text-[#8D9C9C]">
-            Convert your STRK and BTC tokens into{" "}
-            <MyDottedTooltip tooltip="Liquid staking token (LST) of STRK issued by Endur">
-              xSTRK
-            </MyDottedTooltip>{" "}
-            and{" "}
-            <MyDottedTooltip tooltip="xyBTC refers to Endur's family of Bitcoin Liquid Staking Tokens (LSTs), where 'x' is Endur's prefix and 'y' represents different Bitcoin variants. Examples include xWBTC, xtBTC, xLBTC, and xsBTC.">
-              xyBTCs
-            </MyDottedTooltip>{" "}
-            to earn staking rewards and participate in DeFi opportunities across
-            the Starknet ecosystem.
-          </p>
-        </div>
-
-		{/* TODO: remove the shadcn tabs for the btc and strk tabs 
+        {/* TODO: remove the shadcn tabs for the btc and strk tabs 
 			Reason: when we switch the shadcn tab it already renders the element and because we navigate to different route (for eg /strk) it again renders the same thing
 			on using the simple approach (that is native elements like div and js to handle the toggle) issue will be solved and it is a clean approach as well
 		*/}
@@ -361,7 +367,7 @@ const Tabs = () => {
               </TabsTrigger>
             </TabsList>
 
-			  {/* TODO: separate the component and use the same component for strk and btc (can name it as <TokenTab>)  */}
+            {/* TODO: separate the component and use the same component for strk and btc (can name it as <TokenTab>)  */}
             {/* STRK Tab Content */}
             <TabsContent
               value="strk"
@@ -405,7 +411,7 @@ const Tabs = () => {
                       className="group relative rounded-none border-none bg-transparent text-sm font-medium text-[#8D9C9C] focus-visible:ring-0 focus-visible:ring-offset-0 data-[state=active]:border-t-0 data-[state=active]:shadow-none lg:text-base"
                     >
                       Withdraw log
-					  {/* TODO: make this a separate common component [InfoTooltip] */}
+                      {/* TODO: make this a separate common component [InfoTooltip] */}
                       <TooltipProvider delayDuration={0}>
                         <Tooltip>
                           <TooltipTrigger
@@ -588,7 +594,7 @@ const Tabs = () => {
           </ShadCNTabs>
         </div>
 
-		{/* TODO: remove if not needed */}
+        {/* TODO: remove if not needed */}
         {/* <p
           className={cn(
             "mt-4 flex items-center text-xs text-[#707D7D] lg:mb-1 lg:mt-auto lg:text-sm",
