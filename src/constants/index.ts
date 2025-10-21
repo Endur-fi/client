@@ -341,6 +341,7 @@ export const ALPHA = 0.25;
 export const LINKS = {
   DUNE_ANALYTICS: "https://dune.com/endurfi/xstrk-analytics",
   DASHBOARD_URL: "https://dashboard.endur.fi",
+  ENDUR_DISCORD: "https://discord.gg/EZ56fkSEu2",
   ENDUR_TWITTER: "https://x.com/endurfi",
   ENDUR_TELEGRAM: "https://t.me/+jWY71PfbMMIwMTBl",
   ENDUR_BLOG: "https://blog.endur.fi/",
