@@ -4,6 +4,7 @@ import { atomWithQuery } from "jotai-tanstack-query";
 import { userAddressAtom } from "./common.store";
 import { referralCodeAtom } from "./referral.store";
 
+//TODO: not used anywhere - remove
 export const UserInfoAtom = atomWithQuery((get) => {
   return {
     // we use referral code atom as key to ensure user exisits in db by then

@@ -294,7 +294,7 @@ const PortfolioPage: React.FC = () => {
           </h2>
         )}
         <div className="">
-		  {/* // TODO: change the name to [DefiInformation]  */}
+			{/* // TODO: change the name to [DefiInformation]  */}
           {!isMobile && <DataTable columns={columns} data={defiCards} />}
 
           {isMobile &&

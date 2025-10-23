@@ -398,11 +398,11 @@ const strkFarmEkuboYieldQueryAtom = atomWithQuery((get) => ({
 
     const totalSupplied = strategy.tvlUsd / price;
 
-    const apy = strategy.apy - baseApy.strkApy;
+    const apy = strategy.apy - baseApy.strkApy; //DOUBT: why baseAPY was deducted when other dapps is just using their apy (check haikoYieldQueryAtom)?
 
     return {
       value: apy * 100,
-      totalSupplied: totalSupplied ?? 0,
+      totalSupplied: totalSupplied ?? 0, //DOUBT: why is this not there for other dapps?
       isLoading,
       error: "Failed to fetch APY",
     };
@@ -456,11 +456,11 @@ const trovesHyperYieldQueryAtom = atomWithQuery((get) => ({
 
     const apy = isSTRK
       ? strategy.apy - baseApy.strkApy
-      : strategy.apy - baseApy.btcApy;
+      : strategy.apy - baseApy.btcApy; //DOUBT: why baseAPY was deducted when other dapps is just using their apy (check haikoYieldQueryAtom)?
 
     return {
       value: apy * 100,
-      totalSupplied: totalSupplied ?? 0,
+      totalSupplied: totalSupplied ?? 0, //DOUBT: why is this not there for other dapps?
       isLoading,
       error: "Failed to fetch APY",
     };
