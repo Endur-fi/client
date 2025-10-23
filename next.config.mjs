@@ -102,23 +102,8 @@ const nextConfig = {
         permanent: true,
       },
       {
-        source: "/tg",
-        destination: "https://t.me/%2BO75VPjXyg18zN2Q1",
-        permanent: true,
-      },
-      {
         source: "/early",
         destination: "/leaderboard",
-        permanent: true,
-      },
-      {
-        source: "/x",
-        destination: "https://x.com/endurfi",
-        permanent: true,
-      },
-      {
-        source: "/discord",
-        destination: "https://discord.gg/EZ56fkSEu2",
         permanent: true,
       },
     ];
