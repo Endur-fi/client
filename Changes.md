@@ -51,3 +51,16 @@ src/components/
 - ThankYouDialog
 - MaxedOutDialog
 - InfoTooltip (set info icon color with prop and tooltip content as children)
+
+-------------------------
+Iteration 2:
+
+1. Add changelog.md and maintain (you can refer "Cleanup" google docs)
+2. move all (at least those which are being exported) the interface or types to particular feature type folder (feature/types/index.type.ts) or common type folder (src/types/<relevant_name>.type.ts)
+3. even if we need fresh data every 60 secs we should check if user is making any activity or not and then only refetch should be made
+4. move dapps store in stores/dapps folder
+5. The below contract calls is being used to get the APY, if possible we can combine them into single contract
+yearly_mint used only once in snAPYAtom
+get_current_total_staking_power used only once in snAPY
+get_alpha used only once in snAPY
+

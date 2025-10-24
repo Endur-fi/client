@@ -19,6 +19,7 @@ const snTotalStakingPowerQueryAtom = atomWithQuery((get) => {
   };
 });
 
+//TODO: don't export
 export const snTotalStakingPowerAtom = atom((get) => {
   const { data, error } = get(snTotalStakingPowerQueryAtom);
   return {
@@ -44,6 +45,7 @@ const snAlphaQueryAtom = atomWithQuery((get) => {
   };
 });
 
+//TODO: don't export
 export const snAlphaAtom = atom((get) => {
   const { data, error } = get(snAlphaQueryAtom);
   return {
@@ -53,6 +55,7 @@ export const snAlphaAtom = atom((get) => {
   };
 });
 
+//TODO: don't export
 export const yearlyMintingQueryAtom = atomWithQuery((get) => {
   return {
     queryKey: ["yearlyMinting", get(currentBlockAtom), get(providerAtom)],
@@ -63,6 +66,7 @@ export const yearlyMintingQueryAtom = atomWithQuery((get) => {
   };
 });
 
+//TODO: don't export
 export const yearlyMintingAtom = atom((get) => {
   const { data, error } = get(yearlyMintingQueryAtom);
   return {
@@ -95,6 +99,7 @@ export const btcPriceAtom = atom((get) => {
   return error || !data ? 0 : data;
 });
 
+//TODO [APY_TODO]: we can use route api/lst/stats instead of this - global search APY_TODO
 export const snAPYAtom = atom((get) => {
   const yearlyMintRes = get(yearlyMintingAtom);
   const totalStakingPowerRes = get(snTotalStakingPowerAtom);

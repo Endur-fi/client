@@ -48,6 +48,8 @@ export const getEkuboHoldings: DAppHoldingsFn = async ({
 
   // let res: any = ekuboPositionsCache[address];
   // if (!res) {
+  // DOUBT: is this a rpc call?
+//   does it also have charges? If not is there similar endpoints for other dapps?
   const resp = await axios.get(
     `https://mainnet-api.ekubo.org/positions/${address}?showClosed=true`,
     {

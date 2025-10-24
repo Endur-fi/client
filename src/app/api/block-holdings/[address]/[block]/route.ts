@@ -26,6 +26,7 @@ export interface BlockInfo {
   };
 }
 
+//TODO: remove this if not used anywhere
 export async function GET(_req: Request, context: any) {
   const { params } = context;
   const addr = params.address;

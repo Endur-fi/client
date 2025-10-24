@@ -98,7 +98,7 @@ const globalAmountAvailableAtomWithQuery = atomWithQuery((get) => {
           providerOrAccount: provider,
         });
 
-        const res: any = await withdrawContract.call("get_queue_state");
+        const res: any = await withdrawContract.call("get_queue_state"); //DOUBT: what is the use of this data?
 
         const cumulativeRequestedAmount = new MyNumber(
           res?.cumulative_requested_amount?.toString(),
