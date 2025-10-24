@@ -16,7 +16,7 @@ import {
   userLSTBalanceAtom,
 } from "@/store/lst.store";
 import { snAPYAtom } from "@/store/staking.store";
-import { totalXSTRKAcrossDefiHoldingsAtom } from "@/app/portfolio/_components/stats";
+import { totalXSTRKAcrossDefiHoldingsAtom } from "@/components/strk-portfolio-page/_components/stats";
 import { tabsAtom, activeSubTabAtom } from "@/store/merry.store";
 import { lstConfigAtom } from "@/store/common.store";
 
