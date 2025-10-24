@@ -16,13 +16,13 @@ import {
   userLSTBalanceAtom,
 } from "@/store/lst.store";
 import { snAPYAtom } from "@/store/staking.store";
+import { totalXSTRKAcrossDefiHoldingsAtom } from "@/components/strk-portfolio-page/_components/stats";
+import { tabsAtom, activeSubTabAtom } from "@/store/merry.store";
+import { lstConfigAtom } from "@/store/common.store";
 
 import { Icons } from "./Icons";
 import { type Platform } from "./stake";
-import { totalXSTRKAcrossDefiHoldingsAtom } from "@/app/portfolio/_components/stats";
 import AssetSelector, { getFirstBtcAsset } from "./asset-selector";
-import { tabsAtom, activeSubTabAtom } from "@/store/merry.store";
-import { lstConfigAtom } from "@/store/common.store";
 
 // TODO: can shift this to utils if it is same as stake's platformConfig
 const platformConfig = (lstConfig: any) => {
@@ -79,8 +79,8 @@ const Stats: React.FC<StatsProps> = ({
 
       const newPath = pathMap[assetSymbol] || "/btc";
 
-	  // TODO: this logic where referrer query is conditioanlly appended can be moved to common utils and used everywhere required
-	  // navigateWithRefferer(to: string) => check if referrer is present in current url and add if true
+      // TODO: this logic where referrer query is conditioanlly appended can be moved to common utils and used everywhere required
+      // navigateWithRefferer(to: string) => check if referrer is present in current url and add if true
       const queryParams = new URLSearchParams();
       if (referrer) queryParams.set("referrer", referrer);
       if (activeSubTab && activeSubTab !== "stake")
@@ -121,7 +121,7 @@ const Stats: React.FC<StatsProps> = ({
         <p className="flex flex-col items-center text-xs font-semibold lg:flex-row lg:gap-2">
           <span className="flex items-center gap-1 text-xs font-semibold text-[#3F6870] lg:text-[#8D9C9C]">
             APY
-			{/* TODO: use InfoTooltip */}
+            {/* TODO: use InfoTooltip */}
             <TooltipProvider delayDuration={0}>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -190,7 +190,7 @@ const Stats: React.FC<StatsProps> = ({
               {lstConfig.LST_SYMBOL}
             </span>
             <div className="ml-auto pl-2">
-				{/* TODO: use InfoTooltip */}
+              {/* TODO: use InfoTooltip */}
               <TooltipProvider delayDuration={0}>
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -222,7 +222,7 @@ const Stats: React.FC<StatsProps> = ({
                   {lstConfig.LST_SYMBOL}
                 </span>
                 <div className="ml-auto pl-2">
-				{/* TODO: use InfoTooltip */}
+                  {/* TODO: use InfoTooltip */}
                   <TooltipProvider delayDuration={0}>
                     <Tooltip>
                       <TooltipTrigger asChild>

@@ -302,7 +302,7 @@ const AnnouncementBanner = React.memo(
             </a>
           </p>
         </div>
-		{/* TODO: separate this component as a new feature */}
+        {/* TODO: separate this component as a new feature */}
         <CheckEligibility
           userCompleteInfo={userCompleteInfo}
           isLoading={currentUserInfo.isLoading}

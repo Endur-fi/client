@@ -19,16 +19,16 @@ import {
 } from "@/store/defi.store";
 import { chartFilter } from "@/store/portfolio.store";
 
-import { Chart } from "./chart";
-import DefiHoldings from "./defi-holding";
-import Stats from "./stats";
+import { Chart } from "./_components/chart";
+import DefiHoldings from "./_components/defi-holding";
+import Stats from "./_components/stats";
 import {
   columns,
   getPortfolioDAppAction,
   getPortfolioDAppAPY,
   getPortfolioDAppAsset,
-} from "./table/columns";
-import { DataTable } from "./table/data-table";
+} from "./_components/table/columns";
+import { DataTable } from "./_components/table/data-table";
 
 export type HoldingInfo = {
   date: string;
@@ -43,7 +43,7 @@ function serialisedMyNumberToNumber(serialised: {
   );
 }
 
-const PortfolioPage: React.FC = () => {
+const StrkPortfolioPage: React.FC = () => {
   const [holdings, setHoldings] = React.useState<HoldingInfo[]>([]);
   const [lastUpdated, setLastUpdated] = React.useState<Date | null>(null);
   const [isFetchError, setIsFetchError] = React.useState(false);
@@ -108,7 +108,7 @@ const PortfolioPage: React.FC = () => {
   }, [yields, sortedProtocols, holdings]);
 
   React.useEffect(() => {
-	// TODO [future scope]: Move this to service
+    // TODO [future scope]: Move this to service
     const fetchData = async () => {
       if (!address) return;
 
@@ -252,7 +252,7 @@ const PortfolioPage: React.FC = () => {
         </span>
       </h1>
 
-	{/* TODO: separate this as a component in the same file */}
+      {/* TODO: separate this as a component in the same file */}
       <div
         className="mb-4 rounded-lg border border-[#17876D] bg-[#e7f0ef] p-4 text-xs text-[#17876D] dark:bg-gray-800 dark:text-blue-400 lg:text-sm"
         role="alert"
@@ -294,11 +294,11 @@ const PortfolioPage: React.FC = () => {
           </h2>
         )}
         <div className="">
-			{/* // TODO: change the name to [DefiInformation]  */}
+          {/* // TODO: change the name to [DefiInformation]  */}
           {!isMobile && <DataTable columns={columns} data={defiCards} />}
 
           {isMobile &&
-			//   TODO: move to [DefiInformation] => separate DefiCards component
+            //   TODO: move to [DefiInformation] => separate DefiCards component
             defiCards.map((card, idx) => (
               <div
                 key={idx}
@@ -347,4 +347,4 @@ const PortfolioPage: React.FC = () => {
   );
 };
 
-export default PortfolioPage;
+export default StrkPortfolioPage;

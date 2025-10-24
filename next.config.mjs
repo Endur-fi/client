@@ -121,6 +121,22 @@ const nextConfig = {
         destination: "https://x.com/endurfi",
         permanent: true,
       },
+      // old routes supprt
+      {
+        source: "/defi",
+        destination: "/strk/defi",
+        permanent: true,
+      },
+      {
+        source: "/portfolio",
+        destination: "/strk/portfolio",
+        permanent: true,
+      },
+      {
+        source: "/defi-btc",
+        destination: "/btc/defi",
+        permanent: true,
+      },
     ];
   },
   async rewrites() {
