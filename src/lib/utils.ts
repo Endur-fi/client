@@ -14,15 +14,18 @@ import { toast } from "@/hooks/use-toast";
 
 import OracleAbi from "../abi/oracle.abi.json";
 
+// TODO: already moved to common.utils.ts -> change the import path everywhere
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+// TODO: move to utils/blockchain.utils.ts
 export function shortAddress(_address: string, startChars = 4, endChars = 4) {
   const x = num.toHex(num.getDecimalString(_address));
   return truncate(x, startChars, endChars);
 }
 
+// TODO: already moved to common.utils.ts -> change the import path everywhere
 export function formatNumber(
   num: number | string,
   decimals?: number,
@@ -40,6 +43,7 @@ export function formatNumber(
   return `${numberValue}`;
 }
 
+// TODO: already moved to common.utils.ts -> change the import path everywhere
 export function formatNumberWithCommas(
 	value: number | string,
 	decimals?: number,
@@ -65,6 +69,7 @@ export function formatNumberWithCommas(
     : formattedIntegerPart;
 }
 
+// TODO: already moved to common.utils.ts -> change the import path everywhere
 export function truncate(str: string, startChars: number, endChars: number) {
   if (str.length <= startChars + endChars) {
     return str;
@@ -76,6 +81,7 @@ export function truncate(str: string, startChars: number, endChars: number) {
   )}`;
 }
 
+// TODO: move to utils/blockchain.utils.ts
 export const etherToWeiBN = (amount: any) => {
   if (!amount) {
     return 0;
@@ -102,15 +108,18 @@ export const etherToWeiBN = (amount: any) => {
   }
 };
 
+// TODO: already moved to common.utils.ts -> change the import path everywhere
 export function generateReferralCode() {
   const code = Math.random().toString(36).slice(2, 8);
   return code;
 }
 
+// TODO: already moved to common.utils.ts -> change the import path everywhere
 export function capitalize(str: string) {
   return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
+// TODO: move to utils/blockchain.utils.ts
 export function standariseAddress(address: string | bigint) {
   let _a = address;
   if (!address) {
@@ -120,6 +129,7 @@ export function standariseAddress(address: string | bigint) {
   return a;
 }
 
+// TODO: already moved to common.utils.ts -> change the import path everywhere
 export function copyReferralLink(refCode: string) {
   navigator.clipboard.writeText(getReferralUrl(refCode));
 
@@ -128,6 +138,7 @@ export function copyReferralLink(refCode: string) {
   });
 }
 
+// TODO: already moved to common.utils.ts -> change the import path everywhere
 export function getReferralUrl(referralCode: string) {
   if (window.location.origin.includes("endur.fi")) {
     return `https://endur.fi/r/${referralCode}`;
@@ -135,6 +146,7 @@ export function getReferralUrl(referralCode: string) {
   return `${window.location.origin}/r/${referralCode}`;
 }
 
+// TODO: already moved to common.utils.ts -> change the import path everywhere
 export function convertFutureTimestamp(unixTimestamp: number): string {
   const currentTime = Date.now();
   const futureTime = (unixTimestamp + 24 * 60 * 60) * 1000; // Add 24 hours (86400 seconds) and convert to milliseconds
@@ -157,6 +169,7 @@ export function convertFutureTimestamp(unixTimestamp: number): string {
   return "Anytime soon";
 }
 
+// TODO: move to constants/index.ts under "analytics event name" comment to create a visual group
 export const eventNames = {
   STAKE_CLICK: "stake_click",
   STAKE_TX_INIT: "stake_transaction_init",
@@ -169,6 +182,9 @@ export const eventNames = {
   OPPORTUNITIES: "opportunities",
 };
 
+//TODO: move to blockchain.utils.ts
+// TODO [ASK_AKIRA]: can we move this to server route and cache for 60 secs?
+// Thought about this second time and now it does not make sense to move it to server route
 export async function getAssetPrice(isSTRK: boolean = true): Promise<number> {
 	// TODO: if we can use constants/getProvider use that here
   const provider = new RpcProvider({
@@ -191,7 +207,6 @@ export async function getAssetPrice(isSTRK: boolean = true): Promise<number> {
   return Number(data) / 10 ** 8;
 }
 
-// TODO: separate types
 // Types for the result object with discriminated union
 type Success<T> = {
   data: T;
@@ -205,6 +220,7 @@ type Failure<E> = {
 
 type Result<T, E = Error> = Success<T> | Failure<E>;
 
+// TODO: already moved to common.utils.ts -> change the import path everywhere
 export async function tryCatch<T, E = Error>(
   promise: Promise<T>,
 ): Promise<Result<T, E>> {
@@ -216,6 +232,7 @@ export async function tryCatch<T, E = Error>(
   }
 }
 
+// TODO: move to utils/blockchain.utils.ts
 export function isContractNotDeployed(
   blockIdentifier: BlockIdentifier = BlockTag.LATEST,
   deploymentBlock: number,
@@ -234,6 +251,7 @@ export function isContractNotDeployed(
   return lowerCondition || upperCondition;
 }
 
+// TODO: already moved to common.utils.ts -> change the import path everywhere
 export function formatHumanFriendlyDateTime(
   date: Date,
   locale: string = "en-US",
@@ -249,8 +267,10 @@ export function formatHumanFriendlyDateTime(
   return new Intl.DateTimeFormat(locale, options).format(date);
 }
 
+// TODO: already moved to common.utils.ts -> change the import path everywhere
 export const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+// TODO: already moved to common.utils.ts -> change the import path everywhere
 export const validateEmail = (email: string): boolean => {
   if (!email) {
     toast({

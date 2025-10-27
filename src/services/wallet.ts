@@ -12,6 +12,13 @@ import { WebWalletConnector } from "starknetkit/webwallet";
 
 import { NETWORK } from "@/constants";
 
+type WalletConfig = {
+  id: string;
+  name: string;
+  type: "injected" | "mobile" | "web";
+};
+
+// TODO: review this refactored code
 export class WalletConnector {
   private isMobile: boolean;
 
@@ -19,103 +26,59 @@ export class WalletConnector {
     this.isMobile = isMobile;
   }
 
-  public getConnectors() {
-    const hostname =
-      typeof window !== "undefined" ? window.location.hostname : "";
+  private getHostname(): string {
+    return typeof window !== "undefined" ? window.location.hostname : "";
+  }
 
-    // Desktop/Extension wallets
-    const argentXConnector = new InjectedConnector({
-      options: {
-        id: "argentX",
-        name: "Argent X",
-      },
-    });
-
-    const braavosConnector = new InjectedConnector({
-      options: {
-        id: "braavos",
-        name: "Braavos",
-      },
-    });
-
-    const keplrConnector = new InjectedConnector({
-      options: {
-        id: "keplr",
-        name: "Keplr",
-      },
-    }) as unknown as StarknetkitConnector;
-
-    const fordefiConnector = new InjectedConnector({
-      options: {
-        id: "fordefi",
-        name: "Fordefi",
-      },
-    });
-
-    const okx = new InjectedConnector({
-      options: {
-        id: "okxwallet",
-        name: "OKX",
-      },
-    });
-
-    const xverseConnector = new InjectedConnector({
-      options: {
-        id: "xverse",
-        name: "Xverse",
-      },
-    }) as unknown as StarknetkitConnector;
-
-    // Mobile connectors
-    const argentMobileConnector = ArgentMobileConnector.init({
-      options: {
-        dappName: "Endur.fi",
-        url: hostname,
-        chainId: NETWORK,
-      },
-      inAppBrowserOptions: {},
-    });
-
-    const braavosMobileConnector = BraavosMobileConnector.init({
-      inAppBrowserOptions: {},
-    });
-
-    // Web wallet (email login)
-    const webWalletConnector = new WebWalletConnector({
-      url: "https://web.argent.xyz",
-    });
-
-    // Check if we're in mobile app browsers
-    const isInArgentMobile = isInArgentMobileAppBrowser();
-    const isInBraavosMobile = isInBraavosMobileAppBrowser();
-
-    // Return appropriate connectors based on environment
-    if (isInArgentMobile) {
-      return [argentMobileConnector];
-    }
-
-    if (isInBraavosMobile) {
-      return [braavosMobileConnector];
-    }
-
-    // For mobile devices, prioritize mobile connectors
-    if (this.isMobile) {
-      return [
-        argentMobileConnector,
-        braavosMobileConnector,
-        webWalletConnector,
-      ];
-    }
-
-    // For desktop, only show extension wallets and web wallet (no mobile connectors)
-    return [
-      argentXConnector,
-      braavosConnector,
-      keplrConnector,
-      xverseConnector,
-      fordefiConnector,
-      okx,
-      webWalletConnector,
+  private createInjectedConnectors(): InjectedConnector[] {
+    const wallets: WalletConfig[] = [
+      { id: "argentX", name: "Argent X", type: "injected" },
+      { id: "braavos", name: "Braavos", type: "injected" },
+      { id: "keplr", name: "Keplr", type: "injected" },
+      { id: "fordefi", name: "Fordefi", type: "injected" },
+      { id: "okxwallet", name: "OKX", type: "injected" },
+      { id: "xverse", name: "Xverse", type: "injected" },
     ];
+
+    return wallets.map(
+      (w) =>
+        new InjectedConnector({
+          options: { id: w.id, name: w.name },
+        }) as InjectedConnector,
+    );
+  }
+
+  private createMobileConnectors() {
+    const hostname = this.getHostname();
+
+    const argentMobile = ArgentMobileConnector.init({
+      options: { dappName: "Endur.fi", url: hostname, chainId: NETWORK },
+      inAppBrowserOptions: {},
+    });
+
+    const braavosMobile = BraavosMobileConnector.init({
+      inAppBrowserOptions: {},
+    });
+
+    return {argent: argentMobile, braavos: braavosMobile, both: [argentMobile, braavosMobile]};
+  }
+
+  private createWebWalletConnector() {
+    return new WebWalletConnector({ url: "https://web.argent.xyz" });
+  }
+
+  public getConnectors() {
+    const injected = this.createInjectedConnectors();
+    const mobileConnectors = this.createMobileConnectors();
+    const webWallet = this.createWebWalletConnector();
+
+    if (isInArgentMobileAppBrowser()) return [mobileConnectors.argent]; // Argent mobile only
+    if (isInBraavosMobileAppBrowser()) return [mobileConnectors.braavos]; // Braavos mobile only
+
+    if (this.isMobile) {
+      return [...mobileConnectors.both, webWallet];
+    }
+
+    return [...injected, webWallet];
   }
 }

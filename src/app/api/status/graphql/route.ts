@@ -9,6 +9,7 @@ import { getProvider } from "@/constants";
 
 export const revalidate = 0;
 
+//TODO: remove if not needed
 export async function GET(_req: Request, context: any) {
   const { params } = context;
 

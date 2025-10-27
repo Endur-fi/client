@@ -25,6 +25,7 @@ import { NextResponse } from "next/server";
 
 export const revalidate = 3600 * 6;
 
+//TODO: move to separate interface file
 export interface BlockInfo {
   block: number;
   timestamp: number;
@@ -51,6 +52,7 @@ export async function GET(_req: Request, context: any) {
     });
   }
   try {
+	// TODO [BLOCK_ROUTE]: can we convert the following endpoint to function and use that here instead?
     const result = await axios.get(
       `${host}/api/blocks/${nDays}?lstAddress=${xSTRK_TOKEN_MAINNET}&decimals=${STRK_DECIMALS}`,
     );

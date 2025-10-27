@@ -11,6 +11,7 @@ import {
 import MyNumber from "@/lib/MyNumber";
 import LSTService from "@/services/lst";
 
+// TODO: move to separate type file
 // LST Stats API types
 interface LSTStatsResponse {
   asset: string;
@@ -41,6 +42,7 @@ import { isContractNotDeployed } from "@/lib/utils";
 
 const lstService = new LSTService();
 
+// TODO: move to lst service
 export const getHoldings: DAppHoldingsFn = async ({
   address,
   lstAddress,
@@ -77,6 +79,7 @@ export const getHoldings: DAppHoldingsFn = async ({
   };
 };
 
+// DOUBT: why are we wrapping the function when we are just returning the function response
 export const getTotalAssetsByBlock = async (
   lstAddress: string,
   decimals: number,
@@ -90,6 +93,7 @@ export const getTotalAssetsByBlock = async (
   return balance;
 };
 
+// DOUBT: why are we wrapping the function when we are just returning the function response
 export const getTotalSupplyByBlock = async (
   lstAddress: string,
   decimals: number,
@@ -309,7 +313,7 @@ export const totalStakedQueryAtom = atomFamily(
   },
 );
 
-//TODO: We can cache this for longer period, so move this to api/lts/stats or any other server route as it is common for all user
+//TODO [APY_TODO]: We can cache this for longer period, so move this to api/lts/stats or any other server route as it is common for all user
 export const totalStakedAtom = atom((get) => {
   const { data, error, isLoading } = get(totalStakedCurrentBlockQueryAtom);
 
@@ -348,6 +352,7 @@ export const totalSupplyQueryAtom = atomFamily(
 );
 
 //TODO: remove if not needed
+// also remove totalSupplyCurrentBlockAtom
 export const exchangeRateAtom = atom((get) => {
   const totalStaked = get(totalStakedCurrentBlockQueryAtom);
   const totalSupply = get(totalSupplyCurrentBlockAtom);
@@ -412,7 +417,7 @@ export const totalStakedUSDAtom = atom((get) => {
   };
 });
 
-//TODO [WITHDRAWAL_DUPLICATE] : revistit (Neel)
+//TODO [WITHDRAWAL_DUPLICATE] : revisit (Neel)
 export const withdrawalQueueStateQueryAtom = atomWithQuery((get) => {
   return {
     queryKey: ["withdrawalQueueState", get(currentBlockAtom)],
@@ -438,6 +443,7 @@ export const withdrawalQueueStateQueryAtom = atomWithQuery((get) => {
   };
 });
 
+// TODO: there are so many similar destructure atom in the same file - can be standardised
 export const withdrawalQueueStateAtom = atom((get) => {
   const { data, error } = get(withdrawalQueueStateQueryAtom);
   return {
@@ -474,6 +480,7 @@ export const userLSTBalanceByBlockAtom: DAppHoldingsAtom = atomFamily(
   },
 );
 
+// TODO: don't export
 export const totalStakedCurrentBlockQueryAtom = atomWithQuery((get) => {
   return {
     queryKey: [
@@ -494,6 +501,7 @@ export const totalStakedCurrentBlockQueryAtom = atomWithQuery((get) => {
   };
 });
 
+// TODO: remove if not needed
 export const totalSupplyCurrentBlockAtom = atomWithQuery((get) => {
   return {
     queryKey: [

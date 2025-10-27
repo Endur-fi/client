@@ -10,6 +10,7 @@ import MyNumber from "@/lib/MyNumber";
 import { DAppHoldingsAtom, DAppHoldingsFn, getHoldingAtom } from "./defi.store";
 import { isContractNotDeployed } from "@/lib/utils";
 
+// TODO: move to separate constant file
 export const N_XSTRK_CONTRACT_ADDRESS =
   "0x06878fd475d5cea090934d690ecbe4ad78503124e4f80380a2e45eb417aafb9c";
 export const N_XSTRK_C_CONTRACT_ADDRESS =
@@ -187,6 +188,7 @@ const userLPTokenBalanceQueryAtom = getHoldingAtom(
 // Wrapper atoms on above query atoms
 //
 
+// TODO: make a standard function to destructure and return standard format for all the below wrapper
 export const usernxSTRKBalance = atomFamily((blockNumber?: number) =>
   atom((get) => {
     const { data, error } = get(usernxSTRKBalanceQueryAtom(blockNumber));

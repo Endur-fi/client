@@ -5,10 +5,14 @@ import { atomWithStorage, createJSONStorage } from "jotai/utils";
 import { Provider } from "starknet";
 import { LST_CONFIG } from "@/constants";
 
+// TODO: remove if not needed
 export const timePeriodAtom = atom<Provider | null>(null);
 
+//DOUBT: why do we have this provider atom? can't we use getProvider() from constants/index.ts(currently)
+//TODO: if we can use getProvider, replace that everywhere this atom has been used
 export const providerAtom = atom<Provider | null>(null);
 
+//DOUBT: which block will be fetched? can it be moved to specific store instead of common?
 export const currentBlockAtom = atom(async (get) => {
   const provider = get(providerAtom);
 
@@ -16,6 +20,7 @@ export const currentBlockAtom = atom(async (get) => {
   return provider ? await provider.getBlockNumber() : 0;
 });
 
+// TODO: move this to user.store.ts
 export const userAddressAtom = atom<string | undefined>();
 
 export const lstConfigAtom = atom<(typeof LST_CONFIG)[keyof typeof LST_CONFIG]>(
@@ -43,13 +48,12 @@ export const assetPriceAtom = atomWithQuery((get) => {
   };
 });
 
-// DOUBT: explain
+// TODO: remove if not needed
 export const lastWalletAtom = createAtomWithStorage<null | string>(
   "ENDURFI_LAST_WALLET",
   null,
 );
 
-//DOUBT: explain
 export function createAtomWithStorage<T>(
   key: string,
   defaultValue: T,

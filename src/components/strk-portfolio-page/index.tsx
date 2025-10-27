@@ -108,7 +108,7 @@ const StrkPortfolioPage: React.FC = () => {
   }, [yields, sortedProtocols, holdings]);
 
   React.useEffect(() => {
-    // TODO [future scope]: Move this to service
+    // TODO [FUTURE_SCOPE]: Move this to lib/api.ts
     const fetchData = async () => {
       if (!address) return;
 

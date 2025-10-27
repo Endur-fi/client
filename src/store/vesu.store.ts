@@ -20,6 +20,7 @@ import MyNumber from "@/lib/MyNumber";
 import { DAppHoldingsAtom, DAppHoldingsFn, getHoldingAtom } from "./defi.store";
 import { isContractNotDeployed } from "@/lib/utils";
 
+// TODO: move to constants
 const VESU_XSTRK_ADDRESS =
   "0x037ff012710c5175004687bc4d9e4c6e86d6ce5ca6fb6afee72ea02b1208fdb7";
 const VESU_XSTRK_ADDRESS_DEPLOYMENT_BLOCK = 954847;
@@ -266,6 +267,7 @@ export const getVesuxSTRKCollateral = async (
   }
 };
 
+// TODO: move to constants
 export const RE7_XSTRK_POOL_ID =
   "0x52fb52363939c3aa848f8f4ac28f0a51379f8d1b971d8444de25fbd77d8f161";
 const RE7_XSTRK_DEPLOYMENT_BLOCK = 954847;
@@ -364,6 +366,7 @@ export const getVesuxSTRKCollateralWrapper = (): DAppHoldingsFn => {
   };
 };
 
+// TODO: don't export
 export const userVesuxSTRKCollateralAtom = getHoldingAtom(
   "userVesuxSTRKCollateral",
   getVesuxSTRKCollateralWrapper(),

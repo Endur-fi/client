@@ -55,6 +55,7 @@ const WithdrawLog: React.FC = () => {
     [withdrawals],
   );
 
+  //TODO: Potential Optimization - Revisit(Neel)
   React.useEffect(() => {
     if (!address || !withdrawalLogs?.value) return;
 
