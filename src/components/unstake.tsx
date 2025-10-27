@@ -159,6 +159,7 @@ const YouWillGetSection = ({
   );
 };
 
+//TODO: remove if not needed
 const _calculateWaitingTime = (queueState: any, unstakeAmount: string) => {
   if (!queueState || !unstakeAmount) return "-";
 
@@ -322,6 +323,7 @@ const Unstake = () => {
     return "0";
   }, [exRate.rate, form.watch("unstakeAmount"), txnDapp, avnuQuote, dexRate]);
 
+  //TODO: I think this is simple constant - we can remove useMemo and queuestate if not needed
   const waitingTime = React.useMemo(() => {
     return "~7 days";
   }, [queueState.value, form.watch("unstakeAmount")]);

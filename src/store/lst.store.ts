@@ -126,6 +126,7 @@ export const getExchangeRateGivenAssets = (
   };
 };
 
+// TODO [ASK_AKIRA]: this can be cached untill block number is changed
 const userLSTBalanceQueryAtom = atomWithQuery((get) => {
   return {
     // current block atom only to trigger a change when the block changes
@@ -246,6 +247,8 @@ export const userBalanceQueryAtom = atomWithQuery((get) => {
   };
 });
 
+//TODO: if not needed remove - we are using this in migrate-nostra component but that function is not used anywhere
+// also remove userNstSTRKBalanceQueryAtom
 export const userNstSTRKBalanceAtom = atom((get) => {
   const { data, error } = get(userNstSTRKBalanceQueryAtom);
   return {
@@ -255,6 +258,8 @@ export const userNstSTRKBalanceAtom = atom((get) => {
   };
 });
 
+//TODO: if not needed remove - we are using this in migrate-nostra component but that function is not used anywhere
+// also remove nstStrkWithdrawalFeeQueryAtom
 export const nstStrkWithdrawalFeeAtom = atom((get) => {
   const { data, error } = get(nstStrkWithdrawalFeeQueryAtom);
   return {
@@ -264,6 +269,8 @@ export const nstStrkWithdrawalFeeAtom = atom((get) => {
   };
 });
 
+//TODO: remove - not used anywhere
+//also remove userBalanceQueryAtom
 export const userBalanceAtom = atom((get) => {
   const { data, error } = get(userBalanceQueryAtom);
   return {
@@ -302,6 +309,7 @@ export const totalStakedQueryAtom = atomFamily(
   },
 );
 
+//TODO: We can cache this for longer period, so move this to api/lts/stats or any other server route as it is common for all user
 export const totalStakedAtom = atom((get) => {
   const { data, error, isLoading } = get(totalStakedCurrentBlockQueryAtom);
 
@@ -339,6 +347,7 @@ export const totalSupplyQueryAtom = atomFamily(
   },
 );
 
+//TODO: remove if not needed
 export const exchangeRateAtom = atom((get) => {
   const totalStaked = get(totalStakedCurrentBlockQueryAtom);
   const totalSupply = get(totalSupplyCurrentBlockAtom);
@@ -403,11 +412,12 @@ export const totalStakedUSDAtom = atom((get) => {
   };
 });
 
+//TODO [WITHDRAWAL_DUPLICATE] : revistit (Neel)
 export const withdrawalQueueStateQueryAtom = atomWithQuery((get) => {
   return {
     queryKey: ["withdrawalQueueState", get(currentBlockAtom)],
     queryFn: async () => {
-      const provider = get(providerAtom);
+      const provider = get(providerAtom); //DOUBT: why are we using provider atom's provider here whereas everywhere else we use getProvider from constant.ts
       const lstConfig = get(lstConfigAtom)!;
       if (!provider) return null;
 
@@ -442,6 +452,8 @@ const userLSTBalanceByBlockQueryAtom = getHoldingAtom(
   getHoldings,
 );
 
+//TODO: not used anywhere - remove
+// also remove userLSTBalanceByBlockQueryAtom
 export const userLSTBalanceByBlockAtom: DAppHoldingsAtom = atomFamily(
   (blockNumber?: number) => {
     return atom((get) => {
@@ -501,6 +513,8 @@ export const totalSupplyCurrentBlockAtom = atomWithQuery((get) => {
   };
 });
 
+
+//TODO: remove if not needed
 export const exchangeRateByBlockAtom = atomFamily((blockNumber?: number) => {
   return atom((get) => {
     const totalStaked = get(totalStakedQueryAtom(blockNumber));
@@ -536,6 +550,7 @@ export const exchangeRateByBlockAtom = atomFamily((blockNumber?: number) => {
   });
 });
 
+// TODO [LST_STATS_UPDATE]: use separate apis for each tokens
 export const lstStatsQueryAtom = atomWithQuery(() => ({
   queryKey: ["lstStats"],
   queryFn: async (): Promise<LSTStatsResponse[]> => {
@@ -568,7 +583,8 @@ export const apiExchangeRateAtom = atom((get) => {
     };
   }
 
-  const lstStats = data.find(
+  //TODO: only fetch current asset's exchange data
+  const lstStats = data.find( 
     (stats) =>
       stats.lstAddress?.toLowerCase() === lstConfig.LST_ADDRESS?.toLowerCase(),
   );

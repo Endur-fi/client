@@ -13,7 +13,7 @@ import { assetPriceAtom } from "@/store/common.store";
 import { getSTRKFarmBalanceAtom } from "@/store/strkfarm.store";
 import { userOpusBalanceAtom } from "@/store/opus.store";
 
-// TODO [OPTIMZTN]: this variable (atom) should not fetch the balance - bcs of this rpc request is being made multiple times
+// TODO [OPTIMZTN]: this calls can be merged
 export const totalXSTRKAcrossDefiHoldingsAtom = atom((get) => {
   const vesuBalance = get(uservXSTRKBalanceAtom(undefined));
   // const haikoBalance = get(userHaikoBalanceAtom(undefined));
