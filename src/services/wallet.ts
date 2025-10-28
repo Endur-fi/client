@@ -9,6 +9,7 @@ import {
   isInBraavosMobileAppBrowser,
 } from "starknetkit/braavosMobile";
 import { WebWalletConnector } from "starknetkit/webwallet";
+import { ControllerConnector } from "starknetkit/controller";
 
 import { NETWORK } from "@/constants";
 
@@ -52,12 +53,21 @@ export class WalletConnector {
       },
     });
 
+    const okx = new InjectedConnector({
+      options: {
+        id: "okxwallet",
+        name: "OKX",
+      },
+    });
+
     const xverseConnector = new InjectedConnector({
       options: {
         id: "xverse",
         name: "Xverse",
       },
     }) as unknown as StarknetkitConnector;
+
+    const cartridgeConnector = new ControllerConnector();
 
     // Mobile connectors
     const argentMobileConnector = ArgentMobileConnector.init({
@@ -106,7 +116,9 @@ export class WalletConnector {
       braavosConnector,
       keplrConnector,
       xverseConnector,
+      cartridgeConnector,
       fordefiConnector,
+      okx,
       webWalletConnector,
     ];
   }
