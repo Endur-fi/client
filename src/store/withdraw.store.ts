@@ -87,6 +87,7 @@ const globalPendingWithdrawStatsAtomWithQuery = atomWithQuery((_get) => {
 });
 
 //TODO [WITHDRAWAL_DUPLICATE] : revisit (Neel)
+// TODO [REMOVE_GLOBAL_WITHDRAWAL]: only remove if it is not needed in withdrawal logs - global search 'REMOVE_GLOBAL_WITHDRAWAL' 
 const globalAmountAvailableAtomWithQuery = atomWithQuery((get) => {
   return {
     queryKey: ["global-amount-available"],

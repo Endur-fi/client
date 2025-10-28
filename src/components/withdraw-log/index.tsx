@@ -27,6 +27,8 @@ import { ContractAddr } from "@strkfarm/sdk";
 const WithdrawLog: React.FC = () => {
   const [withdrawals, setWithdrawals] = React.useState<WithdrawLogColumn[]>([]);
   console.log("withdrawals", withdrawals);
+  // TODO [REMOVE_GLOBAL_WITHDRAWAL]: if we do not need this state, remove from here and also from the use effect. 
+  // global search 'REMOVE_GLOBAL_WITHDRAWAL'
   const [_globalStats, setGlobalStats] = React.useState({
     globalPendingAmountSTRK: "0",
     globalPendingRequests: "0",

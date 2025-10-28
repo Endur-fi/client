@@ -154,6 +154,8 @@ const vesuYieldQueryAtom = atomWithQuery(() => ({
     }
   },
   refetchInterval: 60000,
+  refetchOnWindowFocus: false,
+  refetchOnMount: false,
 }));
 
 const ekuboYieldQueryAtom = atomWithQuery((get) => ({
@@ -214,6 +216,8 @@ const ekuboYieldQueryAtom = atomWithQuery((get) => ({
     }
   },
   refetchInterval: 60000,
+  refetchOnWindowFocus: false,
+  refetchOnMount: false,
 }));
 
 const nostraLPYieldQueryAtom = atomWithQuery(() => ({
@@ -257,6 +261,8 @@ const nostraLPYieldQueryAtom = atomWithQuery(() => ({
     }
   },
   refetchInterval: 60000,
+  refetchOnWindowFocus: false,
+  refetchOnMount: false,
 }));
 
 const nostraLendYieldQueryAtom = atomWithQuery(() => ({
@@ -350,6 +356,8 @@ const nostraLendYieldQueryAtom = atomWithQuery(() => ({
     }
   },
   refetchInterval: 60000,
+  refetchOnWindowFocus: false,
+  refetchOnMount: false,
 }));
 
 const strkFarmYieldQueryAtom = atomWithQuery(() => ({
@@ -369,6 +377,8 @@ const strkFarmYieldQueryAtom = atomWithQuery(() => ({
     };
   },
   refetchInterval: 60000,
+  refetchOnWindowFocus: false,
+  refetchOnMount: false,
 }));
 
 const strkFarmEkuboYieldQueryAtom = atomWithQuery((get) => ({
@@ -404,16 +414,18 @@ const strkFarmEkuboYieldQueryAtom = atomWithQuery((get) => ({
 
     const totalSupplied = strategy.tvlUsd / price;
 
-    const apy = strategy.apy - baseApy.strkApy; //DOUBT: why baseAPY was deducted when other dapps is just using their apy (check haikoYieldQueryAtom)?
+    const apy = strategy.apy - baseApy.strkApy;
 
     return {
       value: apy * 100,
-      totalSupplied: totalSupplied ?? 0, //DOUBT: why is this not there for other dapps?
+      totalSupplied: totalSupplied ?? 0,
       isLoading,
       error: "Failed to fetch APY",
     };
   },
   refetchInterval: 60000,
+  refetchOnWindowFocus: false,
+  refetchOnMount: false,
 }));
 
 const trovesHyperYieldQueryAtom = atomWithQuery((get) => ({
@@ -462,16 +474,18 @@ const trovesHyperYieldQueryAtom = atomWithQuery((get) => ({
 
     const apy = isSTRK
       ? strategy.apy - baseApy.strkApy
-      : strategy.apy - baseApy.btcApy; //DOUBT: why baseAPY was deducted when other dapps is just using their apy (check haikoYieldQueryAtom)?
+      : strategy.apy - baseApy.btcApy;
 
     return {
       value: apy * 100,
-      totalSupplied: totalSupplied ?? 0, //DOUBT: why is this not there for other dapps?
+      totalSupplied: totalSupplied ?? 0,
       isLoading,
       error: "Failed to fetch APY",
     };
   },
   refetchInterval: 60000,
+  refetchOnWindowFocus: false,
+  refetchOnMount: false,
 }));
 
 // BTC Troves Hyper Vault atoms
@@ -590,6 +604,8 @@ const haikoYieldQueryAtom = atomWithQuery(() => ({
     }
   },
   refetchInterval: 60000,
+  refetchOnWindowFocus: false,
+  refetchOnMount: false,
 }));
 
 //TODO: below all destructuring of query atom can be standardised
@@ -690,7 +706,7 @@ const createTrovesYieldAtom = (
     };
   });
 
-  //DOUBT: if we are using same function "trovesHyperYieldAtom" for protocolYieldsAtom, then why do we have different yield atom here?
+  //DOUBT [ASK_AKIRA]: if we are using same function "trovesHyperYieldAtom" for protocolYieldsAtom, then why do we have different yield atom here?
   //TODO: can these be moved to troves.store.ts along with createTrovesYieldAtom? [Neel - Revisit]
 export const trovesHyperxWBTCYieldAtom = createTrovesYieldAtom(
   trovesHyperxWBTCYieldQueryAtom,
@@ -727,7 +743,7 @@ export const trovesEkuboBTCxsBTCYieldAtom = createTrovesYieldAtom(
 
 // TODO: seems like below four functions have similar request response - can be standardised
 // TODO: also move all the api calls in each query to api.ts under "defi calls" comment
-// TODO: all these vesu functions can be moved to 
+// TODO: all these vesu functions can be moved to vesu store
 // Vesu BTC yield atoms - using staging API as requested
 const vesuBTCxWBTCYieldQueryAtom = atomWithQuery(() => ({
   queryKey: ["vesuBTCxWBTCYield"],
@@ -795,6 +811,8 @@ const vesuBTCxWBTCYieldQueryAtom = atomWithQuery(() => ({
     }
   },
   refetchInterval: 60000,
+  refetchOnWindowFocus: false,
+  refetchOnMount: false,
 }));
 
 const vesuBTCxtBTCYieldQueryAtom = atomWithQuery(() => ({
@@ -862,6 +880,8 @@ const vesuBTCxtBTCYieldQueryAtom = atomWithQuery(() => ({
     }
   },
   refetchInterval: 60000,
+  refetchOnWindowFocus: false,
+  refetchOnMount: false,
 }));
 
 const vesuBTCxLBTCYieldQueryAtom = atomWithQuery(() => ({
@@ -929,6 +949,8 @@ const vesuBTCxLBTCYieldQueryAtom = atomWithQuery(() => ({
     }
   },
   refetchInterval: 60000,
+  refetchOnWindowFocus: false,
+  refetchOnMount: false,
 }));
 
 const vesuBTCxsBTCYieldQueryAtom = atomWithQuery(() => ({
@@ -996,6 +1018,8 @@ const vesuBTCxsBTCYieldQueryAtom = atomWithQuery(() => ({
     }
   },
   refetchInterval: 60000,
+  refetchOnWindowFocus: false,
+  refetchOnMount: false,
 }));
 
 // TODO: below functions can also be standardised similar to createTrovesYieldAtom
@@ -1094,7 +1118,7 @@ export const protocolYieldsAtom = atom<
   ekubo: get(ekuboYieldAtom),
   nostraDex: get(nostraLPYieldAtom),
   nostraLending: get(nostraLendYieldAtom),
-  haiko: get(haikoYieldAtom),
+  haiko: get(haikoYieldAtom), //TODO: I think haiko is not being used anywhere now. Confirm that and comment this here as well
 }));
 
 // Takes input as blocknumber | undefined, returns a Query Atom

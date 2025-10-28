@@ -15,6 +15,7 @@ import DefiCard, {
 } from "./defi-card";
 import { Icons } from "./Icons";
 
+// TODO: move to types
 export interface ProtocolConfig {
   tokens: TokenDisplay[];
   protocolIcon: React.ReactNode;

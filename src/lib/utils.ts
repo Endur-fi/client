@@ -183,8 +183,7 @@ export const eventNames = {
 };
 
 //TODO: move to blockchain.utils.ts
-// TODO [ASK_AKIRA]: can we move this to server route and cache for 60 secs?
-// Thought about this second time and now it does not make sense to move it to server route
+// TODO: move this to server route and cache for 3 hrs and stale for 1 hr
 export async function getAssetPrice(isSTRK: boolean = true): Promise<number> {
 	// TODO: if we can use constants/getProvider use that here
   const provider = new RpcProvider({

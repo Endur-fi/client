@@ -80,6 +80,7 @@ export const getHoldings: DAppHoldingsFn = async ({
 };
 
 // DOUBT: why are we wrapping the function when we are just returning the function response
+// TODO: remove this wrapper and use the service method directly instead
 export const getTotalAssetsByBlock = async (
   lstAddress: string,
   decimals: number,
@@ -94,6 +95,7 @@ export const getTotalAssetsByBlock = async (
 };
 
 // DOUBT: why are we wrapping the function when we are just returning the function response
+// TODO: remove this wrapper and use the service method directly instead
 export const getTotalSupplyByBlock = async (
   lstAddress: string,
   decimals: number,
@@ -130,7 +132,7 @@ export const getExchangeRateGivenAssets = (
   };
 };
 
-// TODO [ASK_AKIRA]: this can be cached untill block number is changed
+// TODO: stale this infinitely and should be refetched only when currentBlockAtom is changed
 const userLSTBalanceQueryAtom = atomWithQuery((get) => {
   return {
     // current block atom only to trigger a change when the block changes
@@ -422,7 +424,7 @@ export const withdrawalQueueStateQueryAtom = atomWithQuery((get) => {
   return {
     queryKey: ["withdrawalQueueState", get(currentBlockAtom)],
     queryFn: async () => {
-      const provider = get(providerAtom); //DOUBT: why are we using provider atom's provider here whereas everywhere else we use getProvider from constant.ts
+      const provider = get(providerAtom);
       const lstConfig = get(lstConfigAtom)!;
       if (!provider) return null;
 

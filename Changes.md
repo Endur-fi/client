@@ -107,4 +107,7 @@ Remaining routes:
 3. delete lib/utils.ts
 
 -- Services
-1. refactor code of wallet.ts [Done]
+1. refactor code of wallet.ts [Done] - Review it once.
+
+-- RPC calls optimisation:
+1. disable refetchOnMount, refetchOnWindowFocus for dapps query [Done]. - Similarly check for other queries where we can disable any of these two flags. [Neel's Task]

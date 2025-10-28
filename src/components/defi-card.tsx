@@ -6,6 +6,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import MyNumber from "@/lib/MyNumber";
 import { cn } from "@/lib/utils";
 
+// TODO: move below interface to separate type file
 export interface TokenDisplay {
   icon: React.ReactNode;
   name: string;

@@ -12,7 +12,7 @@ export const timePeriodAtom = atom<Provider | null>(null);
 //TODO: if we can use getProvider, replace that everywhere this atom has been used
 export const providerAtom = atom<Provider | null>(null);
 
-//DOUBT: which block will be fetched? can it be moved to specific store instead of common?
+//TODO: this should be refeteched every 60 secs
 export const currentBlockAtom = atom(async (get) => {
   const provider = get(providerAtom);
 
