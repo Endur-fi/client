@@ -52,7 +52,7 @@ export async function GET(_req: Request, context: any) {
     });
   }
   try {
-	// TODO [BLOCK_ROUTE]: can we convert the following endpoint to function and use that here instead?
+	// TODO [BLOCK_ROUTE] [FUTURE_SCOPE]: can we convert the following endpoint to function and use that here instead?
     const result = await axios.get(
       `${host}/api/blocks/${nDays}?lstAddress=${xSTRK_TOKEN_MAINNET}&decimals=${STRK_DECIMALS}`,
     );

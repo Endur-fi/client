@@ -46,7 +46,7 @@ const getExchangeRate = async (
   }
 };
 
-// TODO [BLOCK_ROUTE]: if this endpoint is used on server side only then convert this into function instead of route
+// TODO [BLOCK_ROUTE] [FUTURE_SCOPE]: if this endpoint is used on server side only then convert this into function instead of route
 export async function GET(req: Request, context: any) {
   const { params } = context;
   const { searchParams } = new URL(req.url);

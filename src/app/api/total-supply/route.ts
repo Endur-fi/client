@@ -6,7 +6,6 @@ import LSTService from "@/services/lst";
 
 export const revalidate = 120;
 
-//TODO: remove if not needed
 export async function GET(_req: Request) {
   const provider = getProvider();
 
