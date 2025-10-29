@@ -9,7 +9,7 @@ import StakingService from "@/services/staking";
 export const revalidate = 60 * 60; // 1 hour
 
 export async function GET(_req: Request) {
-  const provider = getProvider("route.ts");
+  const provider = getProvider();
 
   if (!provider) {
     return NextResponse.json({ message: "Provider not found" });
@@ -23,13 +23,12 @@ export async function GET(_req: Request) {
 
   for (const value of Object.values(LST_CONFIG)) {
     try {
-		console.log(value.SYMBOL);
       const isBtcAsset = value.SYMBOL.toLowerCase().includes("btc");
       const isStrkAsset = value.SYMBOL.toLowerCase().includes("strk");
 
       // Get the asset price for TVL calculation
       const { data: assetPrice, error: assetPriceError } = await tryCatch(
-        getAssetPrice(isStrkAsset, "route.ts"), //get_price
+        getAssetPrice(isStrkAsset),
       );
 
       if (assetPriceError) {
@@ -41,19 +40,19 @@ export async function GET(_req: Request) {
       }
 
       const yearlyMinting =
-        (await stakingService.getYearlyMinting()) ?? MyNumber.fromZero(); //yearly_mint
+        (await stakingService.getYearlyMinting()) ?? MyNumber.fromZero();
       const totalStakingPower =
-        (await stakingService.getTotalStakingPower()) ?? { //get_current_total_staking_power
+        (await stakingService.getTotalStakingPower()) ?? {
           totalStakingPowerSTRK: MyNumber.fromZero(),
           totalStakingPowerBTC: MyNumber.fromZero(),
         };
-      const alpha = (await stakingService.getAlpha()) ?? 0; //get_alpha
+      const alpha = (await stakingService.getAlpha()) ?? 0;
 
       const { data: strkPrice, error: strkPriceError } = await tryCatch(
-        getAssetPrice(true, "route.ts"), //get_price
+        getAssetPrice(true),
       );
       const { data: btcPrice, error: btcPriceError } = await tryCatch(
-        getAssetPrice(false, "route.ts"), //get_price
+        getAssetPrice(false),
       );
 
       if (strkPriceError || btcPriceError) {
@@ -98,17 +97,17 @@ export async function GET(_req: Request) {
 
       const apyInPercentage = (apy * 100).toFixed(2);
 
-      const balance = await lstService.getTotalStaked( //total_assets
+      const balance = await lstService.getTotalStaked(
         value.LST_ADDRESS,
         value.DECIMALS,
       );
 
-      const totalSupply = await lstService.getTotalSupply( //total_supply
+      const totalSupply = await lstService.getTotalSupply(
         value.LST_ADDRESS,
         value.DECIMALS,
       );
 
-      if (balance) {
+      if (balance && assetPrice) {
         const tvlAsset = Number(
           new MyNumber(balance.toString(), value.DECIMALS).toEtherStr(),
         );
