@@ -365,7 +365,7 @@ const strkFarmYieldQueryAtom = atomWithQuery(() => ({
 }));
 
 const strkFarmEkuboYieldQueryAtom = atomWithQuery((get) => ({
-  queryKey: ["strkFarmEkuboYield"],
+  queryKey: ["strkFarmEkuboYield", get(assetPriceAtom)],
   queryFn: async (): Promise<ProtocolYield> => {
     const hostname = window.location.origin;
     const res = await fetch(`${hostname}/strkfarm/api/strategies`);
@@ -384,7 +384,7 @@ const strkFarmEkuboYieldQueryAtom = atomWithQuery((get) => ({
     }
 
     const { data: price, isLoading } = get(assetPriceAtom);
-    const { value: baseApy } = get(snAPYAtom);
+    // const { value: baseApy } = get(snAPYAtom);
 
     if (!price) {
       return {
@@ -396,7 +396,11 @@ const strkFarmEkuboYieldQueryAtom = atomWithQuery((get) => ({
 
     const totalSupplied = strategy.tvlUsd / price;
 
-    const apy = strategy.apy - baseApy.strkApy;
+    // const apy = strategy.apy - baseApy.strkApy;
+
+	const baseApy = parseFloat(strategy?.apySplit?.baseApy || 0);
+	const rewardApy = parseFloat(strategy?.apySplit?.rewardApy || 0);
+	const apy = (baseApy + rewardApy);
 
     return {
       value: apy * 100,
