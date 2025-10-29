@@ -12,7 +12,12 @@ export async function GET(_req: Request) {
   const provider = getProvider();
 
   if (!provider) {
-    return NextResponse.json("Provider not found");
+    const res = NextResponse.json(
+      { message: "Provider not found" },
+      { status: 500 },
+    );
+    res.headers.set("Cache-Control", "no-store");
+    return res;
   }
 
   const stakingService = new StakingService();
@@ -74,13 +79,23 @@ export async function GET(_req: Request) {
 
   if (strkPriceError) {
     console.error("strkPriceError", strkPriceError);
-    return NextResponse.json({
-      message: "strkPriceError",
-      error: strkPriceError.message,
-    });
+    const res = NextResponse.json(
+      {
+        message: "strkPriceError",
+        error: strkPriceError.message,
+      },
+      { status: 500 },
+    );
+    res.headers.set("Cache-Control", "no-store");
+    return res;
   }
 
-  return NextResponse.json({
-    message: "Stats api error",
-  });
+  const res = NextResponse.json(
+    {
+      message: "Stats api error",
+    },
+    { status: 500 },
+  );
+  res.headers.set("Cache-Control", "no-store");
+  return res;
 }
