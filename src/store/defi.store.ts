@@ -26,6 +26,14 @@ interface VesuAPIResponse {
           value: string;
           decimals: number;
         };
+		borrowApr: {
+			value: string;
+			decimals: number;
+		},
+		lstApr: {
+			value: string;
+			decimals: number;
+		}
       };
     }>;
   };
@@ -107,7 +115,7 @@ const vesuYieldQueryAtom = atomWithQuery(() => ({
   queryFn: async (): Promise<ProtocolYield> => {
     try {
       const response = await fetch(
-        "https://api.vesu.xyz/pools/2345856225134458665876812536882617294246962319062565703131100435311373119841",
+        "https://api.vesu.xyz/pools/0x052fb52363939c3aa848f8f4ac28f0a51379f8d1b971d8444de25fbd77d8f161",
       );
       const data: VesuAPIResponse = await response.json();
 
@@ -129,13 +137,23 @@ const vesuYieldQueryAtom = atomWithQuery(() => ({
         stats.defiSpringSupplyApr.value,
         stats.defiSpringSupplyApr.decimals,
       );
+	  // this should also be added - but then final apy is not matching
+    //   const borrowApr = convertVesuValue(
+    //     stats.borrowApr.value,
+    //     stats.borrowApr.decimals,
+    //   );
+      const lstApr = convertVesuValue(
+        stats.lstApr.value,
+        stats.lstApr.decimals,
+      );
+
       const totalSupplied = convertVesuValue(
         stats.totalSupplied.value,
         stats.totalSupplied.decimals,
       );
 
       return {
-        value: (supplyApy + defiSpringApr) * 100,
+        value: (supplyApy + defiSpringApr + lstApr) * 100,
         totalSupplied,
         isLoading: false,
       };
@@ -185,16 +203,6 @@ const ekuboYieldQueryAtom = atomWithQuery((get) => ({
 
       const apy =
         Number((feesInSTRK * BigInt(365) * BigInt(10000)) / tvlInSTRK) / 100;
-      console.log(
-        "Endur pair:",
-        mostLiquidPool,
-        "APY:",
-        apy,
-        "TVL:",
-        tvlInSTRK,
-        "Fees:",
-        feesInSTRK,
-      );
       return {
         value: apy,
         isLoading: false,
@@ -714,316 +722,7 @@ export const trovesEkuboBTCxsBTCYieldAtom = createTrovesYieldAtom(
   trovesEkuboBTCxsBTCYieldQueryAtom,
 );
 
-// Vesu BTC yield atoms - using staging API as requested
-const vesuBTCxWBTCYieldQueryAtom = atomWithQuery(() => ({
-  queryKey: ["vesuBTCxWBTCYield"],
-  queryFn: async (): Promise<ProtocolYield> => {
-    try {
-      const response = await fetch("https://staging.api.vesu.xyz/pools");
-      const pools = await response.json();
-
-      // Find xWBTC pool
-      const xWBTCPool = pools.find((pool: any) =>
-        pool.assets?.some(
-          (asset: any) =>
-            asset.address ===
-            "0x6a567e68c805323525fe1649adb80b03cddf92c23d2629a6779f54192dffc13",
-        ),
-      );
-
-      if (!xWBTCPool) {
-        return {
-          value: 0,
-          isLoading: false,
-          error: "xWBTC pool not found",
-        };
-      }
-
-      const xWBTCAsset = xWBTCPool.assets.find(
-        (asset: any) =>
-          asset.address ===
-          "0x6a567e68c805323525fe1649adb80b03cddf92c23d2629a6779f54192dffc13",
-      );
-
-      if (!xWBTCAsset?.stats) {
-        return {
-          value: 0,
-          isLoading: false,
-          error: "xWBTC stats not found",
-        };
-      }
-
-      const supplyApy = convertVesuValue(
-        xWBTCAsset.stats.supplyApy.value,
-        xWBTCAsset.stats.supplyApy.decimals,
-      );
-      const defiSpringApr = convertVesuValue(
-        xWBTCAsset.stats.defiSpringSupplyApr.value,
-        xWBTCAsset.stats.defiSpringSupplyApr.decimals,
-      );
-      const totalSupplied = convertVesuValue(
-        xWBTCAsset.stats.totalSupplied.value,
-        xWBTCAsset.stats.totalSupplied.decimals,
-      );
-
-      return {
-        value: (supplyApy + defiSpringApr) * 100,
-        totalSupplied,
-        isLoading: false,
-      };
-    } catch (error) {
-      console.error("vesuBTCxWBTCYieldQueryAtom error:", error);
-      return {
-        value: 0,
-        isLoading: false,
-        error: "Failed to fetch Vesu xWBTC yield",
-      };
-    }
-  },
-  refetchInterval: 60000,
-}));
-
-const vesuBTCxtBTCYieldQueryAtom = atomWithQuery(() => ({
-  queryKey: ["vesuBTCxtBTCYield"],
-  queryFn: async (): Promise<ProtocolYield> => {
-    try {
-      const response = await fetch("https://staging.api.vesu.xyz/pools");
-      const pools = await response.json();
-
-      const xtBTCPool = pools.find((pool: any) =>
-        pool.assets?.some(
-          (asset: any) =>
-            asset.address ===
-            "0x43a35c1425a0125ef8c171f1a75c6f31ef8648edcc8324b55ce1917db3f9b91",
-        ),
-      );
-
-      if (!xtBTCPool) {
-        return {
-          value: 0,
-          isLoading: false,
-          error: "xtBTC pool not found",
-        };
-      }
-
-      const xtBTCAsset = xtBTCPool.assets.find(
-        (asset: any) =>
-          asset.address ===
-          "0x43a35c1425a0125ef8c171f1a75c6f31ef8648edcc8324b55ce1917db3f9b91",
-      );
-
-      if (!xtBTCAsset?.stats) {
-        return {
-          value: 0,
-          isLoading: false,
-          error: "xtBTC stats not found",
-        };
-      }
-
-      const supplyApy = convertVesuValue(
-        xtBTCAsset.stats.supplyApy.value,
-        xtBTCAsset.stats.supplyApy.decimals,
-      );
-      const defiSpringApr = convertVesuValue(
-        xtBTCAsset.stats.defiSpringSupplyApr.value,
-        xtBTCAsset.stats.defiSpringSupplyApr.decimals,
-      );
-      const totalSupplied = convertVesuValue(
-        xtBTCAsset.stats.totalSupplied.value,
-        xtBTCAsset.stats.totalSupplied.decimals,
-      );
-
-      return {
-        value: (supplyApy + defiSpringApr) * 100,
-        totalSupplied,
-        isLoading: false,
-      };
-    } catch (error) {
-      console.error("vesuBTCxtBTCYieldQueryAtom error:", error);
-      return {
-        value: 0,
-        isLoading: false,
-        error: "Failed to fetch Vesu xtBTC yield",
-      };
-    }
-  },
-  refetchInterval: 60000,
-}));
-
-const vesuBTCxLBTCYieldQueryAtom = atomWithQuery(() => ({
-  queryKey: ["vesuBTCxLBTCYield"],
-  queryFn: async (): Promise<ProtocolYield> => {
-    try {
-      const response = await fetch("https://staging.api.vesu.xyz/pools");
-      const pools = await response.json();
-
-      const xLBTCPool = pools.find((pool: any) =>
-        pool.assets?.some(
-          (asset: any) =>
-            asset.address ===
-            "0x7dd3c80de9fcc5545f0cb83678826819c79619ed7992cc06ff81fc67cd2efe0",
-        ),
-      );
-
-      if (!xLBTCPool) {
-        return {
-          value: 0,
-          isLoading: false,
-          error: "xLBTC pool not found",
-        };
-      }
-
-      const xLBTCAsset = xLBTCPool.assets.find(
-        (asset: any) =>
-          asset.address ===
-          "0x7dd3c80de9fcc5545f0cb83678826819c79619ed7992cc06ff81fc67cd2efe0",
-      );
-
-      if (!xLBTCAsset?.stats) {
-        return {
-          value: 0,
-          isLoading: false,
-          error: "xLBTC stats not found",
-        };
-      }
-
-      const supplyApy = convertVesuValue(
-        xLBTCAsset.stats.supplyApy.value,
-        xLBTCAsset.stats.supplyApy.decimals,
-      );
-      const defiSpringApr = convertVesuValue(
-        xLBTCAsset.stats.defiSpringSupplyApr.value,
-        xLBTCAsset.stats.defiSpringSupplyApr.decimals,
-      );
-      const totalSupplied = convertVesuValue(
-        xLBTCAsset.stats.totalSupplied.value,
-        xLBTCAsset.stats.totalSupplied.decimals,
-      );
-
-      return {
-        value: (supplyApy + defiSpringApr) * 100,
-        totalSupplied,
-        isLoading: false,
-      };
-    } catch (error) {
-      console.error("vesuBTCxLBTCYieldQueryAtom error:", error);
-      return {
-        value: 0,
-        isLoading: false,
-        error: "Failed to fetch Vesu xLBTC yield",
-      };
-    }
-  },
-  refetchInterval: 60000,
-}));
-
-const vesuBTCxsBTCYieldQueryAtom = atomWithQuery(() => ({
-  queryKey: ["vesuBTCxsBTCYield"],
-  queryFn: async (): Promise<ProtocolYield> => {
-    try {
-      const response = await fetch("https://staging.api.vesu.xyz/pools");
-      const pools = await response.json();
-
-      const xsBTCPool = pools.find((pool: any) =>
-        pool.assets?.some(
-          (asset: any) =>
-            asset.address ===
-            "0x580f3dc564a7b82f21d40d404b3842d490ae7205e6ac07b1b7af2b4a5183dc9",
-        ),
-      );
-
-      if (!xsBTCPool) {
-        return {
-          value: 0,
-          isLoading: false,
-          error: "xsBTC pool not found",
-        };
-      }
-
-      const xsBTCAsset = xsBTCPool.assets.find(
-        (asset: any) =>
-          asset.address ===
-          "0x580f3dc564a7b82f21d40d404b3842d490ae7205e6ac07b1b7af2b4a5183dc9",
-      );
-
-      if (!xsBTCAsset?.stats) {
-        return {
-          value: 0,
-          isLoading: false,
-          error: "xsBTC stats not found",
-        };
-      }
-
-      const supplyApy = convertVesuValue(
-        xsBTCAsset.stats.supplyApy.value,
-        xsBTCAsset.stats.supplyApy.decimals,
-      );
-      const defiSpringApr = convertVesuValue(
-        xsBTCAsset.stats.defiSpringSupplyApr.value,
-        xsBTCAsset.stats.defiSpringSupplyApr.decimals,
-      );
-      const totalSupplied = convertVesuValue(
-        xsBTCAsset.stats.totalSupplied.value,
-        xsBTCAsset.stats.totalSupplied.decimals,
-      );
-
-      return {
-        value: (supplyApy + defiSpringApr) * 100,
-        totalSupplied,
-        isLoading: false,
-      };
-    } catch (error) {
-      console.error("vesuBTCxsBTCYieldQueryAtom error:", error);
-      return {
-        value: 0,
-        isLoading: false,
-        error: "Failed to fetch Vesu xsBTC yield",
-      };
-    }
-  },
-  refetchInterval: 60000,
-}));
-
-export const vesuBTCxWBTCYieldAtom = atom<ProtocolStats>((get) => {
-  const { data, error } = get(vesuBTCxWBTCYieldQueryAtom);
-  return {
-    value: error || !data ? null : data.value,
-    totalSupplied: error || !data ? null : data.totalSupplied || null,
-    error,
-    isLoading: !data && !error,
-  };
-});
-
-export const vesuBTCxtBTCYieldAtom = atom<ProtocolStats>((get) => {
-  const { data, error } = get(vesuBTCxtBTCYieldQueryAtom);
-  return {
-    value: error || !data ? null : data.value,
-    totalSupplied: error || !data ? null : data.totalSupplied || null,
-    error,
-    isLoading: !data && !error,
-  };
-});
-
-export const vesuBTCxLBTCYieldAtom = atom<ProtocolStats>((get) => {
-  const { data, error } = get(vesuBTCxLBTCYieldQueryAtom);
-  return {
-    value: error || !data ? null : data.value,
-    totalSupplied: error || !data ? null : data.totalSupplied || null,
-    error,
-    isLoading: !data && !error,
-  };
-});
-
-export const vesuBTCxsBTCYieldAtom = atom<ProtocolStats>((get) => {
-  const { data, error } = get(vesuBTCxsBTCYieldQueryAtom);
-  return {
-    value: error || !data ? null : data.value,
-    totalSupplied: error || !data ? null : data.totalSupplied || null,
-    error,
-    isLoading: !data && !error,
-  };
-});
-
+// TODO: move to separate type file
 export type SupportedDApp =
   | "strkfarm"
   | "strkfarmEkubo"
