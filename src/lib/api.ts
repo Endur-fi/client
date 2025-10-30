@@ -27,3 +27,6 @@ export const subscribeUser = async (
     throw error;
   }
 };
+
+
+// --------- defi calls ---------

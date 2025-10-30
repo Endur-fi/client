@@ -9,6 +9,7 @@ import { toast, useToast } from "./use-toast";
 import { lstConfigAtom } from "@/store/common.store";
 import { useAtomValue } from "jotai";
 
+// TODO: move to types
 type TransactionType = "STAKE" | "UNSTAKE";
 
 interface TransactionHandlerProps {
@@ -27,6 +28,7 @@ interface TransactionHandlerProps {
   setShowShareModal?: (show: boolean) => void;
 }
 
+// TODO: move the toast component in separate component in this same file
 const useTransactionHandler = () => {
   const { dismiss } = useToast();
   const lstConfig = useAtomValue(lstConfigAtom)!;

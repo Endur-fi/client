@@ -25,7 +25,9 @@ import { tabsAtom } from "@/store/merry.store";
 import { ContractAddr } from "@strkfarm/sdk";
 
 // TODO: separate this component in this same file - SOLVED
-const ConnectWalletPrompt: React.FC<{ connectWallet: () => void }> = ({ connectWallet }) => (
+const ConnectWalletPrompt: React.FC<{ connectWallet: () => void }> = ({
+  connectWallet,
+}) => (
   <div className="relative h-full w-full">
     <Card className="mx-auto w-full max-w-md border-0 bg-transparent shadow-none">
       <CardContent className="flex flex-col items-center justify-center space-y-4 p-6 text-center sm:p-8">
@@ -68,6 +70,8 @@ const LoadingState: React.FC = () => (
 const WithdrawLog: React.FC = () => {
   const [withdrawals, setWithdrawals] = React.useState<WithdrawLogColumn[]>([]);
   console.log("withdrawals", withdrawals);
+  // TODO [REMOVE_GLOBAL_WITHDRAWAL]: if we do not need this state, remove from here and also from the use effect.
+  // global search 'REMOVE_GLOBAL_WITHDRAWAL'
   const [_globalStats, setGlobalStats] = React.useState({
     globalPendingAmountSTRK: "0",
     globalPendingRequests: "0",

@@ -9,7 +9,7 @@ import { apiExchangeRateAtom } from "./lst.store";
 import { snAPYAtom, btcPriceAtom } from "./staking.store";
 import { LSTAssetConfig } from "@/constants";
 
-// TODO: separate the types
+// TODO: move all the types to separate type file
 interface VesuAPIResponse {
   data: {
     assets: Array<{
@@ -89,6 +89,7 @@ interface ProtocolYield {
   error?: string;
 }
 
+// TODO: move this to utils/common.utils.ts under "defi formating" comments
 const convertVesuValue = (value: string, decimals: number): number => {
   const numValue = Number(value);
   if (isNaN(numValue)) return 0;
@@ -108,6 +109,7 @@ const vesuYieldQueryAtom = atomWithQuery(() => ({
   queryKey: ["vesuYield"],
   queryFn: async (): Promise<ProtocolYield> => {
     try {
+		//TODO: move the api call logic to api.ts under "defi calls" comment
       const response = await fetch(
         "https://api.vesu.xyz/pools/2345856225134458665876812536882617294246962319062565703131100435311373119841",
       );
@@ -152,12 +154,15 @@ const vesuYieldQueryAtom = atomWithQuery(() => ({
     }
   },
   refetchInterval: 60000,
+  refetchOnWindowFocus: false,
+  refetchOnMount: false,
 }));
 
 const ekuboYieldQueryAtom = atomWithQuery((get) => ({
   queryKey: ["ekuboYield", get(apiExchangeRateAtom)],
   queryFn: async (): Promise<ProtocolYield> => {
     try {
+		//TODO: move the api call logic to api.ts under "defi calls" comment
       const response = await fetch(
         "https://starknet-mainnet-api.ekubo.org/pair/0x028d709c875c0ceac3dce7065bec5328186dc89fe254527084d1689910954b0a/0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d/pools",
       );
@@ -187,7 +192,7 @@ const ekuboYieldQueryAtom = atomWithQuery((get) => ({
 
       const apy =
         Number((feesInSTRK * BigInt(365) * BigInt(10000)) / tvlInSTRK) / 100;
-      console.log(
+      console.log( //TODO: remove comments
         "Endur pair:",
         mostLiquidPool,
         "APY:",
@@ -211,12 +216,15 @@ const ekuboYieldQueryAtom = atomWithQuery((get) => ({
     }
   },
   refetchInterval: 60000,
+  refetchOnWindowFocus: false,
+  refetchOnMount: false,
 }));
 
 const nostraLPYieldQueryAtom = atomWithQuery(() => ({
   queryKey: ["nostraLPYield"],
   queryFn: async (): Promise<ProtocolYield> => {
     try {
+		//TODO: move the api call logic to api.ts under "defi calls" comment
       const response = await fetch(
         "https://api.nostra.finance/query/pool_aprs",
       );
@@ -253,12 +261,15 @@ const nostraLPYieldQueryAtom = atomWithQuery(() => ({
     }
   },
   refetchInterval: 60000,
+  refetchOnWindowFocus: false,
+  refetchOnMount: false,
 }));
 
 const nostraLendYieldQueryAtom = atomWithQuery(() => ({
   queryKey: ["nostraLendYield"],
   queryFn: async (): Promise<ProtocolYield> => {
     try {
+		//TODO: move the api call logic to api.ts under "defi calls" comment
       const [lendingResponse, mongoResponse] = await Promise.all([
         fetch("https://api.nostra.finance/openblock/supply_incentives"),
         fetch(
@@ -345,6 +356,8 @@ const nostraLendYieldQueryAtom = atomWithQuery(() => ({
     }
   },
   refetchInterval: 60000,
+  refetchOnWindowFocus: false,
+  refetchOnMount: false,
 }));
 
 const strkFarmYieldQueryAtom = atomWithQuery(() => ({
@@ -364,11 +377,14 @@ const strkFarmYieldQueryAtom = atomWithQuery(() => ({
     };
   },
   refetchInterval: 60000,
+  refetchOnWindowFocus: false,
+  refetchOnMount: false,
 }));
 
 const strkFarmEkuboYieldQueryAtom = atomWithQuery((get) => ({
   queryKey: ["strkFarmEkuboYield"],
   queryFn: async (): Promise<ProtocolYield> => {
+		//TODO: move the api call logic to api.ts under "defi calls" comment
     const hostname = window.location.origin;
     const res = await fetch(`${hostname}/strkfarm/api/strategies`);
     const data = await res.json();
@@ -398,16 +414,18 @@ const strkFarmEkuboYieldQueryAtom = atomWithQuery((get) => ({
 
     const totalSupplied = strategy.tvlUsd / price;
 
-    const apy = strategy.apy - baseApy.strkApy; //DOUBT: why baseAPY was deducted when other dapps is just using their apy (check haikoYieldQueryAtom)?
+    const apy = strategy.apy - baseApy.strkApy;
 
     return {
       value: apy * 100,
-      totalSupplied: totalSupplied ?? 0, //DOUBT: why is this not there for other dapps?
+      totalSupplied: totalSupplied ?? 0,
       isLoading,
       error: "Failed to fetch APY",
     };
   },
   refetchInterval: 60000,
+  refetchOnWindowFocus: false,
+  refetchOnMount: false,
 }));
 
 const trovesHyperYieldQueryAtom = atomWithQuery((get) => ({
@@ -421,7 +439,7 @@ const trovesHyperYieldQueryAtom = atomWithQuery((get) => ({
     queryKey: [string, LSTAssetConfig | undefined];
   }): Promise<ProtocolYield> => {
     const [, lstConfig] = queryKey;
-
+		//TODO: move the api call logic to api.ts under "defi calls" comment
     const hostname = "https://app.troves.fi";
     const res = await fetch(`${hostname}/api/strategies`);
     const data = await res.json();
@@ -456,16 +474,18 @@ const trovesHyperYieldQueryAtom = atomWithQuery((get) => ({
 
     const apy = isSTRK
       ? strategy.apy - baseApy.strkApy
-      : strategy.apy - baseApy.btcApy; //DOUBT: why baseAPY was deducted when other dapps is just using their apy (check haikoYieldQueryAtom)?
+      : strategy.apy - baseApy.btcApy;
 
     return {
       value: apy * 100,
-      totalSupplied: totalSupplied ?? 0, //DOUBT: why is this not there for other dapps?
+      totalSupplied: totalSupplied ?? 0,
       isLoading,
       error: "Failed to fetch APY",
     };
   },
   refetchInterval: 60000,
+  refetchOnWindowFocus: false,
+  refetchOnMount: false,
 }));
 
 // BTC Troves Hyper Vault atoms
@@ -473,6 +493,7 @@ const createTrovesYieldQueryAtom = (strategyId: string, queryKey: string) =>
   atomWithQuery((get) => ({
     queryKey: [queryKey, get(btcPriceAtom)],
     queryFn: async (): Promise<ProtocolYield> => {
+		//TODO: move the api call logic to api.ts under "defi calls" comment
       const hostname = "https://app.troves.fi";
       const res = await fetch(`${hostname}/api/strategies`);
       const data = await res.json();
@@ -551,6 +572,7 @@ const haikoYieldQueryAtom = atomWithQuery(() => ({
   queryKey: ["haikoYield"],
   queryFn: async (): Promise<ProtocolYield> => {
     try {
+		//TODO: move the api call logic to api.ts under "defi calls" comment
       const response = await fetch(
         "https://app.haiko.xyz/api/v1/vaults?network=mainnet&user=0x6058fd211ebc489b5f5fa98d92354a4be295ff007b211f72478702a6830c21f",
       );
@@ -582,8 +604,13 @@ const haikoYieldQueryAtom = atomWithQuery(() => ({
     }
   },
   refetchInterval: 60000,
+  refetchOnWindowFocus: false,
+  refetchOnMount: false,
 }));
 
+//TODO: below all destructuring of query atom can be standardised
+// actually for btc it is already standardised with createTrovesYieldAtom function, we can use that same for all of the below 8 functions
+// TODO: don't export if we are not using anywhere else
 export const vesuYieldAtom = atom<ProtocolStats>((get) => {
   const { data, error } = get(vesuYieldQueryAtom);
   return {
@@ -679,6 +706,8 @@ const createTrovesYieldAtom = (
     };
   });
 
+  //DOUBT [ASK_AKIRA]: if we are using same function "trovesHyperYieldAtom" for protocolYieldsAtom, then why do we have different yield atom here?
+  //TODO: can these be moved to troves.store.ts along with createTrovesYieldAtom? [Neel - Revisit]
 export const trovesHyperxWBTCYieldAtom = createTrovesYieldAtom(
   trovesHyperxWBTCYieldQueryAtom,
 );
@@ -713,6 +742,8 @@ export const trovesEkuboBTCxsBTCYieldAtom = createTrovesYieldAtom(
 );
 
 // TODO: seems like below four functions have similar request response - can be standardised
+// TODO: also move all the api calls in each query to api.ts under "defi calls" comment
+// TODO: all these vesu functions can be moved to vesu store
 // Vesu BTC yield atoms - using staging API as requested
 const vesuBTCxWBTCYieldQueryAtom = atomWithQuery(() => ({
   queryKey: ["vesuBTCxWBTCYield"],
@@ -780,6 +811,8 @@ const vesuBTCxWBTCYieldQueryAtom = atomWithQuery(() => ({
     }
   },
   refetchInterval: 60000,
+  refetchOnWindowFocus: false,
+  refetchOnMount: false,
 }));
 
 const vesuBTCxtBTCYieldQueryAtom = atomWithQuery(() => ({
@@ -847,6 +880,8 @@ const vesuBTCxtBTCYieldQueryAtom = atomWithQuery(() => ({
     }
   },
   refetchInterval: 60000,
+  refetchOnWindowFocus: false,
+  refetchOnMount: false,
 }));
 
 const vesuBTCxLBTCYieldQueryAtom = atomWithQuery(() => ({
@@ -914,6 +949,8 @@ const vesuBTCxLBTCYieldQueryAtom = atomWithQuery(() => ({
     }
   },
   refetchInterval: 60000,
+  refetchOnWindowFocus: false,
+  refetchOnMount: false,
 }));
 
 const vesuBTCxsBTCYieldQueryAtom = atomWithQuery(() => ({
@@ -981,6 +1018,8 @@ const vesuBTCxsBTCYieldQueryAtom = atomWithQuery(() => ({
     }
   },
   refetchInterval: 60000,
+  refetchOnWindowFocus: false,
+  refetchOnMount: false,
 }));
 
 // TODO: below functions can also be standardised similar to createTrovesYieldAtom
@@ -1024,6 +1063,7 @@ export const vesuBTCxsBTCYieldAtom = atom<ProtocolStats>((get) => {
   };
 });
 
+// TODO: move to separate type file
 export type SupportedDApp =
   | "strkfarm"
   | "strkfarmEkubo"
@@ -1056,6 +1096,7 @@ export type SupportedDApp =
   | "vesuBTCxLBTC"
   | "vesuBTCxsBTC";
 
+// TODO: move to separate type file
 export interface ProtocolStats {
   value: number | null;
   totalSupplied: number | null;
@@ -1077,10 +1118,11 @@ export const protocolYieldsAtom = atom<
   ekubo: get(ekuboYieldAtom),
   nostraDex: get(nostraLPYieldAtom),
   nostraLending: get(nostraLendYieldAtom),
-  haiko: get(haikoYieldAtom),
+  haiko: get(haikoYieldAtom), //TODO: I think haiko is not being used anywhere now. Confirm that and comment this here as well
 }));
 
 // Takes input as blocknumber | undefined, returns a Query Atom
+// TODO: move all the below type/interface to separate type file
 export interface DAppHoldings {
   lstAmount: MyNumber;
   underlyingTokenAmount: MyNumber;

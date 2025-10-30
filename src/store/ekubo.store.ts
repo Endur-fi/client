@@ -11,6 +11,7 @@ import MyNumber from "@/lib/MyNumber";
 import { DAppHoldingsAtom, DAppHoldingsFn, getHoldingAtom } from "./defi.store";
 import { isContractNotDeployed } from "@/lib/utils";
 
+// TODO: move to constants/index.ts
 export const XSTRK_ADDRESS = xSTRK_TOKEN_MAINNET;
 export const EKUBO_POSITION_ADDRESS =
   "0x02e0af29598b407c8716b17f6d2795eca1b471413fa03fb145a5e33722184067";
@@ -48,7 +49,7 @@ export const getEkuboHoldings: DAppHoldingsFn = async ({
 
   // let res: any = ekuboPositionsCache[address];
   // if (!res) {
-  // DOUBT: is this a rpc call?
+  // DOUBT [ASK_AKIRA]: is this a rpc call?
 //   does it also have charges? If not is there similar endpoints for other dapps?
   const resp = await axios.get(
     `https://mainnet-api.ekubo.org/positions/${address}?showClosed=true`,

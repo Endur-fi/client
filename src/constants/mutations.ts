@@ -20,10 +20,3 @@ export const SAVE_USER_EMAIL = gql`
     }
   }
 `;
-
-// AddPointsInput = {
-//   "input": {
-//     "userAddress": "",
-//     "points": ""
-//   }
-// }

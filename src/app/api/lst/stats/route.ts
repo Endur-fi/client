@@ -143,7 +143,7 @@ export async function GET(req: Request) {
           asset: value.SYMBOL,
           assetAddress: value.ASSET_ADDRESS,
           lstAddress: value.LST_ADDRESS,
-          //TODO [APY_TODO]: if we are using this and uncomment all the code required or else
+          //TODO [APY_TODO]: if we are using this then uncomment all the code required or else
           //from here
           //   tvlUsd,
           //   tvlAsset,

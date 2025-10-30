@@ -64,3 +64,50 @@ yearly_mint used only once in snAPYAtom
 get_current_total_staking_power used only once in snAPY
 get_alpha used only once in snAPY
 
+--------------------------
+Iteration 3:
+Note: 
+1. when you are moving any function or variable make sure to change the import path wherever it is used
+2. Do not remove comments which have FUTURE_SCOPE mentioned. If that particular thing is moved to different file then move the comment together
+
+-- general
+1. instead of media query approach for isMobile, you can use react-device-detect library or any other similar lib. Specially for device based logic like wallet connection.
+
+-- Use case specific folder:
+1. lib -> shared modules and setup logic
+2. utils -> Generic, pure helper functions which do not depends on anything external
+3. services -> Business logic or Application or domain-specific logic
+4. constants -> pure constant and static variables
+
+-- Routes
+1. confirm if we are not using these server side routes and can remove them if not
+- api/block/[timestamp]
+- api/block-holdings/[addres]/[block]
+- api/stats
+- api/status/graphql
+- api/total-supply
+- api/validators
+
+Remaining routes:
+- /blocks/[nDays]
+- /check-subscription
+- /holdings/[address]
+- /lst/stats
+- /send-email
+2. Convert blocks/[nDays] to function and use that function in holdings/[address]
+
+-- Constants
+1. remove any constant or function in constant/index.ts which are not necessary
+2. group the constant with a group heading as a comment [optional] [refer Utils/common.utils.ts]
+3. if constants for dapps relevant constant is more, make a separate file for those constants
+
+-- Utils
+1. create three files utils/common.utils.ts, utils/lst.utils.ts and utils/blockchain.utils.ts
+2. in common file, group the different types of utils with comment [Done] -> just changing the import path is remaining
+3. delete lib/utils.ts
+
+-- Services
+1. refactor code of wallet.ts [Done] - Review it once.
+
+-- RPC calls optimisation:
+1. disable refetchOnMount, refetchOnWindowFocus for dapps query [Done]. - Similarly check for other queries where we can disable any of these two flags. [Neel's Task]

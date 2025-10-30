@@ -8,6 +8,7 @@ import { XSTRK_ADDRESS } from "./ekubo.store";
 import { atomFamily } from "jotai/utils";
 import { atom } from "jotai";
 
+// TODO: move to constant
 const OPUS_CONTRACT =
   "0x04d0bb0a4c40012384e7c419e6eb3c637b28e8363fb66958b60d90505b9c072f";
 const OPUS_CONTRACT_DEPLOYMENT_BLOCK = 973643;

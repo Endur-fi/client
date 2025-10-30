@@ -52,6 +52,7 @@ const StrkPortfolioPage: React.FC = () => {
 
   const yields = useAtomValue(protocolYieldsAtom);
 
+  // TODO: move the common sorting, filter and mapping of protocols to utils as it is being used by defi.tsx as well. Whatever additional filters/sorting being applied should be done in particular file
   const sortedProtocols: SupportedDApp[] = React.useMemo(() => {
     const keys = Object.entries(protocolConfigs).map(
       ([protocol]) => protocol as SupportedDApp,
@@ -103,7 +104,7 @@ const StrkPortfolioPage: React.FC = () => {
   }, [yields, sortedProtocols, holdings]);
 
   React.useEffect(() => {
-    // TODO [future scope]: Move this to service
+    // TODO [FUTURE_SCOPE]: Move this to lib/api.ts
     const fetchData = async () => {
       if (!address) return;
 
@@ -112,6 +113,7 @@ const StrkPortfolioPage: React.FC = () => {
         setHoldings([]);
         setIsFetchError(false);
         setErrorMessage(null);
+		// TODO: move api call to api.ts
         const res = await fetch(
           `/api/holdings/${address}/${timeRange.slice(0, -1)}`,
         );

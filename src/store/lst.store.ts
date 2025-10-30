@@ -8,6 +8,7 @@ import { xSTRK_TOKEN_MAINNET_DEPLOYMENT_BLOCK } from "@/constants";
 import MyNumber from "@/lib/MyNumber";
 import LSTService from "@/services/lst";
 
+// TODO: move to separate type file
 // LST Stats API types
 interface LSTStatsResponse {
   asset: string;
@@ -34,6 +35,7 @@ import { isContractNotDeployed } from "@/lib/utils";
 
 const lstService = new LSTService();
 
+// TODO: move to lst service
 export const getHoldings: DAppHoldingsFn = async ({
   address,
   lstAddress,
@@ -70,6 +72,8 @@ export const getHoldings: DAppHoldingsFn = async ({
   };
 };
 
+// DOUBT: why are we wrapping the function when we are just returning the function response
+// TODO: remove this wrapper and use the service method directly instead
 export const getTotalAssetsByBlock = async (
   lstAddress: string,
   decimals: number,
@@ -83,6 +87,8 @@ export const getTotalAssetsByBlock = async (
   return balance;
 };
 
+// DOUBT: why are we wrapping the function when we are just returning the function response
+// TODO: remove this wrapper and use the service method directly instead
 export const getTotalSupplyByBlock = async (
   lstAddress: string,
   decimals: number,
@@ -119,7 +125,7 @@ export const getExchangeRateGivenAssets = (
   };
 };
 
-// TODO [ASK_AKIRA]: this can be cached untill block number is changed
+// TODO: stale this infinitely and should be refetched only when currentBlockAtom is changed
 const userLSTBalanceQueryAtom = atomWithQuery((get) => {
   return {
     // current block atom only to trigger a change when the block changes
@@ -292,12 +298,12 @@ export const totalStakedUSDAtom = atom((get) => {
   };
 });
 
-//TODO [WITHDRAWAL_DUPLICATE] : revistit (Neel)
+//TODO [WITHDRAWAL_DUPLICATE] : revisit (Neel)
 export const withdrawalQueueStateQueryAtom = atomWithQuery((get) => {
   return {
     queryKey: ["withdrawalQueueState", get(currentBlockAtom)],
     queryFn: async () => {
-      const provider = get(providerAtom); //DOUBT: why are we using provider atom's provider here whereas everywhere else we use getProvider from constant.ts
+      const provider = get(providerAtom);
       const lstConfig = get(lstConfigAtom)!;
       if (!provider) return null;
 
@@ -318,6 +324,7 @@ export const withdrawalQueueStateQueryAtom = atomWithQuery((get) => {
   };
 });
 
+// TODO: there are so many similar destructure atom in the same file - can be standardised
 export const withdrawalQueueStateAtom = atom((get) => {
   const { data, error } = get(withdrawalQueueStateQueryAtom);
   return {
@@ -347,6 +354,7 @@ export const totalStakedCurrentBlockQueryAtom = atomWithQuery((get) => {
   };
 });
 
+// TODO: remove if not needed
 export const totalSupplyCurrentBlockAtom = atomWithQuery((get) => {
   return {
     queryKey: [

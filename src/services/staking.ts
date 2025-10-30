@@ -49,6 +49,7 @@ class StakingService {
     return MyNumber.fromZero();
   }
 
+  // TODO: remove if not needed
   async getSNTotalStaked() {
     const stakingContract = new Contract({
       abi: STAKING_ABI,

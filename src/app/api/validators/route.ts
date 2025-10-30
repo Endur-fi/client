@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 export const revalidate = 60 * 60; // 1 hour
 
+// TODO: remove if not needed
 export async function GET(_req: Request) {
   // Add dynamic logic later to return all Supported Validators and their Stake
 

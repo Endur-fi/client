@@ -23,6 +23,8 @@ export const xSTRK_TOKEN_MAINNET =
   "0x28d709c875c0ceac3dce7065bec5328186dc89fe254527084d1689910954b0a";
 export const xSTRK_TOKEN_MAINNET_DEPLOYMENT_BLOCK = 929092;
 export const BLOCK_NUMBER_24_NOV_2024 = 925000; // block number at Nov 24 2024 04:17:28
+
+// TODO: move to separate type file
 export interface LSTAssetConfig {
   SYMBOL: string;
   ASSET_ADDRESS: string;
@@ -46,6 +48,7 @@ export interface LSTAssetConfig {
   TROVES_VAULT_MAXED_OUT?: boolean;
 }
 
+// TODO: move to separate type file
 export interface LSTNetworkConfig {
   [key: string]: LSTAssetConfig & {
     LST_ADDRESS: string;
@@ -203,6 +206,7 @@ const LST_ASSETS: Record<string, LSTAssetConfig> = {
   },
 };
 
+//TODO: move to utils/lst.utils.ts
 function buildLSTConfig(network: string): LSTNetworkConfig {
   const config: LSTNetworkConfig = {};
 
@@ -232,6 +236,7 @@ function buildLSTConfig(network: string): LSTNetworkConfig {
 
 export const LST_CONFIG = buildLSTConfig(NETWORK);
 
+//TODO: move to utils/lst.utils.ts
 export const getLSTAssetsByCategory = (
   category: "STRK" | "BTC",
 ): (LSTAssetConfig & {
@@ -243,6 +248,7 @@ export const getLSTAssetsByCategory = (
   );
 };
 
+//TODO: move to utils/lst.utils.ts
 export const getLSTAssetBySymbol = (
   symbol: string,
 ):
@@ -251,6 +257,7 @@ export const getLSTAssetBySymbol = (
   return Object.values(LST_CONFIG).find((asset) => asset.SYMBOL === symbol);
 };
 
+//TODO: move to utils/lst.utils.ts
 export const getFirstBTCAsset = ():
   | (LSTAssetConfig & { LST_ADDRESS: string; WITHDRAWAL_QUEUE_ADDRESS: string })
   | undefined => {
@@ -316,6 +323,7 @@ export const isMainnet = () => {
   return NETWORK === constants.NetworkName.SN_MAIN;
 };
 
+//TODO: move to utils/common.utils.ts under env comment
 export function getEndpoint() {
   return (
     (typeof window === "undefined"
@@ -324,6 +332,7 @@ export function getEndpoint() {
   );
 }
 
+//TODO: move to services/provider.service.ts
 export function getProvider() {
   const rpcUrl =
     process.env.RPC_URL ||
@@ -349,6 +358,7 @@ export const LINKS = {
     "https://blog.endur.fi/endur-reimagining-value-distribution-in-liquid-staking-on-starknet",
 } as const;
 
+// TODO: move to common.utils.ts
 export function getExplorerEndpoint() {
   if (isMainnet()) {
     return "https://starkscan.co";
@@ -357,6 +367,7 @@ export function getExplorerEndpoint() {
   return "https://sepolia.starkscan.co";
 }
 
+// TODO: move to common.utils.ts
 export function convertTimeString(timeString: string): string {
   const timeRegex = /(\d+)\s(\d{2}):(\d{2}):(\d{2})\.(\d{3})/;
   const match = timeString.match(timeRegex);
@@ -378,6 +389,7 @@ export function convertTimeString(timeString: string): string {
   return `${days}-${days + 1} days`;
 }
 
+// TODO: move to common.utils.ts
 export const convertToPlainObject = (data: any) => {
   return JSON.parse(JSON.stringify(data));
 };

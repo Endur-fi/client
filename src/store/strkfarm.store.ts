@@ -8,6 +8,7 @@ import { getProvider, STRK_DECIMALS } from "@/constants";
 import { atom } from "jotai";
 import { atomFamily } from "jotai/utils";
 
+// TODO: move to constants
 const XSTRK_SENSEI =
   "0x07023a5cadc8a5db80e4f0fde6b330cbd3c17bbbf9cb145cbabd7bd5e6fb7b0b";
 const XSTRK_SENSEI_DEPLOYMENT_BLOCK = 1053807;

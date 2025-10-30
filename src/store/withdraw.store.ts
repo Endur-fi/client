@@ -19,6 +19,7 @@ const withdrawLogsAtomWithQuery = atomWithQuery((get) => {
       if (!address) return null;
 
       try {
+		// TODO: move to queries constant
         const { data } = await apolloClient.query({
           query: gql`
             query Withdraw_queues($where: Withdraw_queueWhereInput) {
@@ -63,6 +64,7 @@ const globalPendingWithdrawStatsAtomWithQuery = atomWithQuery((_get) => {
     queryKey: ["global-withdraw-pending-stats"],
     queryFn: async ({ _queryKey }: any) => {
       try {
+		// TODO: move to queries constant
         const { data } = await apolloClient.query({
           query: gql`
             query FindFirstWithdraw_queue {
@@ -84,6 +86,8 @@ const globalPendingWithdrawStatsAtomWithQuery = atomWithQuery((_get) => {
   };
 });
 
+//TODO [WITHDRAWAL_DUPLICATE] : revisit (Neel)
+// TODO [REMOVE_GLOBAL_WITHDRAWAL]: only remove if it is not needed in withdrawal logs - global search 'REMOVE_GLOBAL_WITHDRAWAL' 
 const globalAmountAvailableAtomWithQuery = atomWithQuery((get) => {
   return {
     queryKey: ["global-amount-available"],

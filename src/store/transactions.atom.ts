@@ -7,6 +7,7 @@ import { capitalize } from "@/lib/utils";
 import { getProvider } from "@/constants";
 import { createAtomWithStorage } from "./common.store";
 
+// TODO: move these to separate type file
 export interface StrategyTxProps {
   strategyId: string;
   actionType: "deposit" | "withdraw";
@@ -33,6 +34,7 @@ export interface TxHistory {
 
 export const newTxsAtom = atom<TransactionInfo[]>([]);
 
+// TODO: this type of functions can be moved to utils
 // in local storage, objects like Date, MyNumber are stored as strings
 // this function deserialises them back to their original types
 // declare let localStorage: any;
@@ -68,6 +70,7 @@ export const transactionsAtom = createAtomWithStorage<TransactionInfo[]>(
 
 // call this func to add a new tx to the tx history
 // initiates a toast notification
+// TODO: remove if not needed
 export const monitorNewTxAtom = atom(
   null,
   async (get, set, tx: TransactionInfo) => {
@@ -76,6 +79,7 @@ export const monitorNewTxAtom = atom(
   },
 );
 
+// TODO: remove if not needed
 async function waitForTransaction(
   tx: TransactionInfo,
   get: Getter,
@@ -110,7 +114,7 @@ export async function isTxAccepted(txHash: string) {
     let txInfo: any;
 
     try {
-      txInfo = await provider.getTransactionStatus(txHash);
+      txInfo = await provider.getTransactionStatus(txHash); //DOUBT: is this a RPC call?
     } catch (error) {
       console.error("isTxAccepted error", error);
       retry++;
@@ -141,6 +145,7 @@ export async function isTxAccepted(txHash: string) {
   }
 }
 
+// TODO: remove if not needed
 async function initToast(tx: TransactionInfo, get: Getter, set: Setter) {
   const msg = `${capitalize(tx.info.actionType)} ${tx.info.amount.toEtherToFixedDecimals(4)}`;
 
