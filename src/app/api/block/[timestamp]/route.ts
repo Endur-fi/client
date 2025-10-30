@@ -6,7 +6,6 @@ export const revalidate = 60 * 60 * 6; // 6 hours
 
 const timestampBlockCache: Record<number, number> = {};
 
-// TODO: remove if not needed
 export async function GET(_req: Request, context: any) {
   const { params } = context;
 

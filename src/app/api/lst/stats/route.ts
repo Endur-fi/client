@@ -2,9 +2,9 @@ import { NextResponse } from "next/server";
 
 import { getProvider, LST_CONFIG } from "@/constants";
 import MyNumber from "@/lib/MyNumber";
-// import { getAssetPrice, tryCatch } from "@/lib/utils";
+import { getAssetPrice, tryCatch } from "@/lib/utils";
 import LSTService from "@/services/lst";
-// import StakingService from "@/services/staking";
+import StakingService from "@/services/staking";
 
 export const revalidate = 60 * 60; // 1 hour
 
@@ -118,11 +118,11 @@ export async function GET(req: Request) {
         value.DECIMALS,
       );
 
-      if (balance) {
-        // const tvlAsset = Number(
-        //   new MyNumber(balance.toString(), value.DECIMALS).toEtherStr(),
-        // );
-        // const tvlUsd = assetPrice * tvlAsset;
+      if (balance && assetPrice) {
+        const tvlAsset = Number(
+          new MyNumber(balance.toString(), value.DECIMALS).toEtherStr(),
+        );
+        const tvlUsd = assetPrice * tvlAsset;
 
         let exchangeRate = 0;
         let preciseExchangeRate = "0";

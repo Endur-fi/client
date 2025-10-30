@@ -57,12 +57,7 @@ Iteration 2:
 
 1. Add changelog.md and maintain (you can refer "Cleanup" google docs)
 2. move all (at least those which are being exported) the interface or types to particular feature type folder (feature/types/index.type.ts) or common type folder (src/types/<relevant_name>.type.ts)
-3. even if we need fresh data every 60 secs we should check if user is making any activity or not and then only refetch should be made
-4. move dapps store in stores/dapps folder
-5. The below contract calls is being used to get the APY, if possible we can combine them into single contract
-yearly_mint used only once in snAPYAtom
-get_current_total_staking_power used only once in snAPY
-get_alpha used only once in snAPY
+3. move dapps store in stores/dapps folder
 
 --------------------------
 Iteration 3:
@@ -78,23 +73,6 @@ Note:
 2. utils -> Generic, pure helper functions which do not depends on anything external
 3. services -> Business logic or Application or domain-specific logic
 4. constants -> pure constant and static variables
-
--- Routes
-1. confirm if we are not using these server side routes and can remove them if not
-- api/block/[timestamp]
-- api/block-holdings/[addres]/[block]
-- api/stats
-- api/status/graphql
-- api/total-supply
-- api/validators
-
-Remaining routes:
-- /blocks/[nDays]
-- /check-subscription
-- /holdings/[address]
-- /lst/stats
-- /send-email
-2. Convert blocks/[nDays] to function and use that function in holdings/[address]
 
 -- Constants
 1. remove any constant or function in constant/index.ts which are not necessary

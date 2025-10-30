@@ -7,7 +7,6 @@ import LSTService from "@/services/lst";
 import StakingService from "@/services/staking";
 
 export const revalidate = 60 * 60; // 1 hour
-//TODO: remove this endpoint if not used
 export async function GET(_req: Request) {
   const provider = getProvider();
 
