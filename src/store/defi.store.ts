@@ -357,7 +357,7 @@ const strkFarmYieldQueryAtom = atomWithQuery(() => ({
   queryKey: ["strkFarmYield"],
   queryFn: async (): Promise<ProtocolYield> => {
     const hostname = window.location.origin;
-    const res = await fetch(`${hostname}/strkfarm/api/strategies`);
+    const res = await fetch(`https://app.troves.fi/api/strategies`);
     const data = await res.json();
     const strategies = data.strategies;
     const xSTRKStrategy = strategies.find(
@@ -376,7 +376,7 @@ const strkFarmEkuboYieldQueryAtom = atomWithQuery((get) => ({
   queryKey: ["strkFarmEkuboYield", get(assetPriceAtom)],
   queryFn: async (): Promise<ProtocolYield> => {
     const hostname = window.location.origin;
-    const res = await fetch(`${hostname}/strkfarm/api/strategies`);
+    const res = await fetch(`https://app.troves.fi/api/strategies`);
     const data = await res.json();
     const strategies = data.strategies;
     const strategy = strategies.find(

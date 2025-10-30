@@ -123,14 +123,6 @@ const nextConfig = {
       },
     ];
   },
-  async rewrites() {
-    return [
-      {
-        source: "/strkfarm/:path*",
-        destination: "https://beta.troves.fi/:path*",
-      },
-    ];
-  },
   async headers() {
     return [
       {
