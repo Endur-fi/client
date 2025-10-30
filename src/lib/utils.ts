@@ -9,6 +9,7 @@ import {
   getProvider,
 } from "@/constants";
 import { toast } from "@/hooks/use-toast";
+import type { Result } from "@/types";
 
 import OracleAbi from "../abi/oracle.abi.json";
 
@@ -173,7 +174,6 @@ export async function getAssetPrice(isSTRK: boolean = true): Promise<number> {
 }
 
 // TODO: separate types - SOLVED (moved to src/types/index.ts)
-import type { Result } from "@/types";
 
 export async function tryCatch<T, E = Error>(
   promise: Promise<T>,
@@ -237,4 +237,32 @@ export const validateEmail = (email: string): boolean => {
   }
 
   return true;
+};
+
+// Shared platform configuration helper
+export const createTrovesHyperConfig = (lstSymbol: string) => ({
+  platform: "Troves",
+  name: `Troves' Hyper ${lstSymbol} Vault`,
+});
+
+// Helper to build URL with referrer and other query params
+export const buildUrlWithReferrer = (
+  basePath: string,
+  referrer?: string | null,
+  additionalParams?: Record<string, string>,
+): string => {
+  const queryParams = new URLSearchParams();
+
+  if (referrer) {
+    queryParams.set("referrer", referrer);
+  }
+
+  if (additionalParams) {
+    Object.entries(additionalParams).forEach(([key, value]) => {
+      if (value) queryParams.set(key, value);
+    });
+  }
+
+  const queryString = queryParams.toString();
+  return queryString ? `${basePath}?${queryString}` : basePath;
 };

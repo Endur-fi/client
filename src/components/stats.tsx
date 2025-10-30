@@ -3,7 +3,7 @@ import { Info } from "lucide-react";
 import React, { useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
-import { formatNumber } from "@/lib/utils";
+import { formatNumber, createTrovesHyperConfig, buildUrlWithReferrer } from "@/lib/utils";
 import {
   totalStakedAtom,
   totalStakedUSDAtom,
@@ -19,12 +19,11 @@ import { type Platform } from "./stake";
 import AssetSelector, { getFirstBtcAsset } from "./asset-selector";
 import { MyDottedTooltip } from "./my-tooltip";
 
-// TODO: can shift this to utils if it is same as stake's platformConfig
+// TODO: can shift this to utils if it is same as stake's platformConfig - SOLVED
 const platformConfig = (lstConfig: any) => {
   return {
     trovesHyper: {
-      platform: "Troves",
-      name: `Trove's Hyper ${lstConfig.LST_SYMBOL} Vault`,
+      ...createTrovesHyperConfig(lstConfig.LST_SYMBOL),
       description: (
         <p>Leveraged liquidation risk managed vault. Read all risks here</p>
       ),
@@ -74,16 +73,13 @@ const Stats: React.FC<StatsProps> = ({
 
       const newPath = pathMap[assetSymbol] || "/btc";
 
-      // TODO: this logic where referrer query is conditioanlly appended can be moved to common utils and used everywhere required
-      // navigateWithRefferer(to: string) => check if referrer is present in current url and add if true
-      const queryParams = new URLSearchParams();
-      if (referrer) queryParams.set("referrer", referrer);
-      if (activeSubTab && activeSubTab !== "stake")
-        queryParams.set("tab", activeSubTab);
-
-      const queryString = queryParams.toString();
-      const finalPath = queryString ? `${newPath}?${queryString}` : newPath;
-
+      // TODO: this logic where referrer query is conditioanlly appended can be moved to common utils and used everywhere required - SOLVED
+      const additionalParams: Record<string, string> = {};
+      if (activeSubTab && activeSubTab !== "stake") {
+        additionalParams.tab = activeSubTab;
+      }
+      
+      const finalPath = buildUrlWithReferrer(newPath, referrer, additionalParams);
       router.push(finalPath);
     }
   };

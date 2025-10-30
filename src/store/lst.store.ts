@@ -1,13 +1,10 @@
 import { atom, type Getter } from "jotai";
 import { atomWithQuery } from "jotai-tanstack-query";
 import { atomFamily } from "jotai/utils";
-import { type BlockIdentifier, BlockTag, Contract, uint256 } from "starknet";
+import { type BlockIdentifier, BlockTag, Contract } from "starknet";
 
 import WqAbi from "@/abi/wq.abi.json";
-import {
-  STRK_DECIMALS,
-  xSTRK_TOKEN_MAINNET_DEPLOYMENT_BLOCK,
-} from "@/constants";
+import { xSTRK_TOKEN_MAINNET_DEPLOYMENT_BLOCK } from "@/constants";
 import MyNumber from "@/lib/MyNumber";
 import LSTService from "@/services/lst";
 
@@ -159,122 +156,9 @@ export const userLSTBalanceAtom = atom((get) => {
   };
 });
 
-export const userNstSTRKBalanceQueryAtom = atomWithQuery((get) => {
-  return {
-    queryKey: [
-      "userNstSTRKBalance",
-      get(currentBlockAtom),
-      get(userAddressAtom),
-    ],
-    queryFn: async ({ _queryKey }: any): Promise<MyNumber> => {
-      const userAddress = get(userAddressAtom);
-
-      if (!userAddress) {
-        return MyNumber.fromZero();
-      }
-
-      try {
-        const nstContract = lstService.getNstSTRKContract();
-        const balance = await nstContract.call("balanceOf", [userAddress]);
-        return new MyNumber(balance.toString(), STRK_DECIMALS);
-      } catch (error) {
-        console.error("userNstSTRKBalanceQueryAtom [2]", error);
-        return MyNumber.fromZero();
-      }
-    },
-  };
-});
-
-export const nstStrkWithdrawalFeeQueryAtom = atomWithQuery((get) => {
-  return {
-    queryKey: [
-      "userNstWithdrawalFee",
-      get(currentBlockAtom),
-      get(userAddressAtom),
-    ],
-    queryFn: async ({ _queryKey }: any): Promise<MyNumber> => {
-      const userAddress = get(userAddressAtom);
-
-      if (!userAddress) {
-        return MyNumber.fromZero();
-      }
-
-      try {
-        const nstContract = lstService.getNstSTRKContract();
-        const balance = await nstContract.call("withdrawal_fee");
-        return new MyNumber(balance.toString(), STRK_DECIMALS);
-      } catch (error) {
-        console.error("nstStrkWithdrawalFeeQueryAtom [3]", error);
-        return MyNumber.fromZero();
-      }
-    },
-  };
-});
-
-export const userBalanceQueryAtom = atomWithQuery((get) => {
-  return {
-    queryKey: [
-      "userBalance",
-      get(currentBlockAtom),
-      get(userAddressAtom),
-      get(userLSTBalanceAtom),
-      get(lstConfigAtom),
-    ],
-    queryFn: async ({ _queryKey }: any): Promise<MyNumber> => {
-      const userAddress = get(userAddressAtom);
-      const lstBalance = get(userLSTBalanceAtom);
-      const lstConfig = get(lstConfigAtom)!;
-
-      if (!userAddress || !lstConfig || lstBalance.value.isZero()) {
-        return MyNumber.fromZero();
-      }
-
-      try {
-        const lstContract = lstService.getLSTContract(lstConfig.LST_ADDRESS);
-        const balance = await lstContract.call("convert_to_assets", [
-          uint256.bnToUint256(lstBalance.value.toString()),
-        ]);
-        return new MyNumber(balance.toString(), lstConfig.DECIMALS);
-      } catch (error) {
-        console.error("userBalanceQueryAtom [3]", error);
-        return MyNumber.fromZero();
-      }
-    },
-  };
-});
-
-//TODO: if not needed remove - we are using this in migrate-nostra component but that function is not used anywhere
-// also remove userNstSTRKBalanceQueryAtom
-export const userNstSTRKBalanceAtom = atom((get) => {
-  const { data, error } = get(userNstSTRKBalanceQueryAtom);
-  return {
-    value: error || !data ? MyNumber.fromZero() : data,
-    error,
-    isLoading: !data && !error,
-  };
-});
-
-//TODO: if not needed remove - we are using this in migrate-nostra component but that function is not used anywhere
-// also remove nstStrkWithdrawalFeeQueryAtom
-export const nstStrkWithdrawalFeeAtom = atom((get) => {
-  const { data, error } = get(nstStrkWithdrawalFeeQueryAtom);
-  return {
-    value: error || !data ? MyNumber.fromZero() : data,
-    error,
-    isLoading: !data && !error,
-  };
-});
-
-//TODO: remove - not used anywhere
-//also remove userBalanceQueryAtom
-export const userBalanceAtom = atom((get) => {
-  const { data, error } = get(userBalanceQueryAtom);
-  return {
-    value: error || !data ? MyNumber.fromZero() : data,
-    error,
-    isLoading: !data && !error,
-  };
-});
+//TODO: if not needed remove - we are using this in migrate-nostra component but that function is not used anywhere - SOLVED
+//TODO: if not needed remove - we are using this in migrate-nostra component but that function is not used anywhere - SOLVED
+//TODO: remove - not used anywhere - SOLVED
 
 export const totalStakedQueryAtom = atomFamily(
   (blockNumber: BlockIdentifier | undefined) => {

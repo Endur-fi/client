@@ -392,3 +392,5 @@ export const LEADERBOARD_ANALYTICS_EVENTS = {
   TWITTER_FOLLOW_SKIPPED: "twitter_follow_skipped",
   CLICKED_CLAIM_REWARDS: "clicked_claim_rewards",
 } as const;
+
+export const IS_MERRY_CHRISTMAS = true;

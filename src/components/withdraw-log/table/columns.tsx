@@ -8,14 +8,10 @@ import Link from "next/link";
 import { Icons } from "@/components/Icons";
 import { Button } from "@/components/ui/button";
 import { ASSET_ICONS } from "@/components/asset-selector";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+
 import { getExplorerEndpoint } from "@/constants";
 import { cn, convertFutureTimestamp } from "@/lib/utils";
+import InfoTooltip from "@/components/info-tooltip";
 
 // Custom component for amount cell that can use hooks
 const AmountCell: React.FC<{ amount: string }> = ({ amount }) => {
@@ -41,20 +37,10 @@ export const withdrawLogColumn: ColumnDef<WithdrawLogColumn>[] = [
       return (
         <div className="flex items-center gap-2">
           Log ID
-		  {/* TODO: use InfoTooltip */}
-          <TooltipProvider delayDuration={0}>
-            <Tooltip>
-              <TooltipTrigger className="ml-1" tabIndex={-1} asChild>
-                <Info className="size-3 text-black" />
-              </TooltipTrigger>
-              <TooltipContent
-                side="right"
-                className="max-w-[13rem] rounded-md border border-[#03624C] bg-white text-[#03624C]"
-              >
-                Your position in the withdrawal queue
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+          {/* TODO: use InfoTooltip - SOLVED */}
+          <InfoTooltip tooltip={<Info className="size-3 text-black" />}>
+            Your position in the withdrawal queue
+          </InfoTooltip>
         </div>
       );
     },
@@ -162,21 +148,14 @@ export const withdrawLogColumn: ColumnDef<WithdrawLogColumn>[] = [
               <span className="text-[#939494] transition-all">
                 {convertFutureTimestamp(row.original.claimTime as any)}
               </span>
-				{/* TODO: use InfoTooltip */}
-              <TooltipProvider delayDuration={0}>
-                <Tooltip>
-                  <TooltipTrigger className="ml-1" tabIndex={-1} asChild>
-                    <Info className="size-3 text-[#939494]" />
-                  </TooltipTrigger>
-                  <TooltipContent
-                    side="bottom"
-                    className="max-w-[13rem] rounded-md border border-[#03624C] bg-white text-[#03624C]"
-                  >
-                    You can claim within{" "}
-                    {convertFutureTimestamp(row.original.claimTime as any)}
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+              {/* TODO: use InfoTooltip - SOLVED */}
+              <InfoTooltip
+                tooltip={<Info className="size-3 text-[#939494]" />}
+                side="bottom"
+              >
+                You can claim within{" "}
+                {convertFutureTimestamp(row.original.claimTime as any)}
+              </InfoTooltip>
             </p>
           )}
         </div>

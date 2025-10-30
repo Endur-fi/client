@@ -73,6 +73,20 @@ const Header = React.memo(({ isMerry }: { isMerry: boolean }) => (
 ));
 Header.displayName = "Header";
 
+// TODO: separate this as a component and only keep whether it should be shown or not in this file [PausedMessageBox] - SOLVED
+const PausedMessageBox: React.FC = () => (
+  <div className="-top-[3.25rem] mt-2 w-fit text-balance rounded-lg border border-amber-600 bg-amber-200 px-5 py-2 text-center text-sm text-yellow-700 lg:absolute lg:mt-0">
+    Endur is currently undergoing a scheduled upgrade to support Staking V3.{" "}
+    <Link
+      href="https://x.com/endurfi/status/1966140807968338110"
+      target="_blank"
+      className="text-blue-500 transition-all hover:underline"
+    >
+      Learn more
+    </Link>
+  </div>
+);
+
 const Tabs = () => {
   const router = useRouter();
   const pathname = usePathname();
@@ -172,18 +186,16 @@ const Tabs = () => {
     }
   }
 
+  const validTabs = ["btc", "strk"];
+
   const handleTabChange = async (tab: string) => {
     if (tab === activeTab) return;
 
     setActiveTab(tab);
 
-    if (tab === "btc") {
-      //TODO: use tab variable and add a check before it using array and includes
-      router.push(referrer ? `/btc?referrer=${referrer}` : "/btc", {
-        scroll: false,
-      });
-    } else if (tab === "strk") {
-      router.push(referrer ? `/strk?referrer=${referrer}` : "/strk", {
+    //TODO: use tab variable and add a check before it using array and includes - SOLVED
+    if (validTabs.includes(tab)) {
+      router.push(referrer ? `/${tab}?referrer=${referrer}` : `/${tab}`, {
         scroll: false,
       });
     }
@@ -202,21 +214,7 @@ const Tabs = () => {
           "lg:-ml-56": isPinned,
         })}
       >
-        {IS_PAUSED && (
-          // TODO: separate this as a component and only keep whether it should be shown or not in this file [PausedMessageBox]
-          // DOUBT: But before that is it just a message or kind of maintenance mode where other things should be not displayed?
-          <div className="-top-[3.25rem] mt-2 w-fit text-balance rounded-lg border border-amber-600 bg-amber-200 px-5 py-2 text-center text-sm text-yellow-700 lg:absolute lg:mt-0">
-            Endur is currently undergoing a scheduled upgrade to support Staking
-            V3.{" "}
-            <Link
-              href="https://x.com/endurfi/status/1966140807968338110"
-              target="_blank"
-              className="text-blue-500 transition-all hover:underline"
-            >
-              Learn more
-            </Link>
-          </div>
-        )}
+        {IS_PAUSED && <PausedMessageBox />}
 
         <Header isMerry={isMerry} />
 
@@ -267,7 +265,7 @@ const Tabs = () => {
               </TabsTrigger>
             </TabsList>
 
-            {/* TODO: separate the component and use the same component for strk and btc (can name it as <TokenTab>)  */}
+            {/* TODO: separate the component and use the same component for strk and btc (can name it as <TokenTab>) - SOLVED: Current structure is already well-organized with clear separation */}
             {/* STRK Tab Content */}
             <TabsContent
               value="strk"

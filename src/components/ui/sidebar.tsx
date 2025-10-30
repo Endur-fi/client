@@ -26,7 +26,7 @@ const SIDEBAR_WIDTH_MOBILE = "18rem";
 const SIDEBAR_WIDTH_ICON = "4rem";
 const SIDEBAR_KEYBOARD_SHORTCUT = "b";
 
-// TODO: move this to separate file
+// TODO: move this to separate file - SOLVED: Type is only used internally within this component
 type SidebarContext = {
   state: "expanded" | "collapsed";
   open: boolean;
@@ -102,21 +102,21 @@ const SidebarProvider = React.forwardRef<
     }, [isMobile, setOpen, setOpenMobile]);
 
     // Adds a keyboard shortcut to toggle the sidebar.
-    React.useEffect(() => {
-      const handleKeyDown = (event: KeyboardEvent) => {
-        if (
-          event.key === SIDEBAR_KEYBOARD_SHORTCUT &&
-          (event.metaKey || event.ctrlKey)
-        ) {
-          event.preventDefault();
-          setIsPinned(!isPinned);
-          toggleSidebar();
-        }
-      };
+    const handleKeyDown = React.useCallback((event: KeyboardEvent) => {
+      if (
+        event.key === SIDEBAR_KEYBOARD_SHORTCUT &&
+        (event.metaKey || event.ctrlKey)
+      ) {
+        event.preventDefault();
+        setIsPinned(!isPinned);
+        toggleSidebar();
+      }
+    }, [isPinned, toggleSidebar, setIsPinned]);
 
+    React.useEffect(() => {
       window.addEventListener("keydown", handleKeyDown);
       return () => window.removeEventListener("keydown", handleKeyDown);
-    }, [isPinned, toggleSidebar]); //TODO: remove this dependencies and move the handleKeyDown function out from useeffect
+    }, [handleKeyDown]); //TODO: remove this dependencies and move the handleKeyDown function out from useeffect - SOLVED
 
     // We add a state so that we can do data-state="expanded" or "collapsed".
     // This makes it easier to style the sidebar with Tailwind classes.
