@@ -1179,6 +1179,7 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
 
 export default React.memo(CheckEligibility);
 
-// TODO: components are already separated 
+// TODO: components are already separated
+// [DOUBT:HEMANT] didn't really understand this exactly, do i separate all these ClaimModel, NotEligibleModal, FollowBonusAlreadyAwardedModal etc.
 // but functionality of each component should be handled by that particular component only.
 // so start with that first

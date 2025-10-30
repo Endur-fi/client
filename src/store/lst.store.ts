@@ -32,11 +32,7 @@ import {
   assetPriceAtom,
   userAddressAtom,
 } from "./common.store";
-import {
-  type DAppHoldingsAtom,
-  type DAppHoldingsFn,
-  getHoldingAtom,
-} from "./defi.store";
+import { type DAppHoldingsFn } from "./defi.store";
 import { isContractNotDeployed } from "@/lib/utils";
 
 const lstService = new LSTService();
@@ -309,7 +305,7 @@ export const totalStakedQueryAtom = atomFamily(
   },
 );
 
-//TODO: We can cache this for longer period, so move this to api/lts/stats or any other server route as it is common for all user
+//TODO: We can cache this for longer period, so move this to api/lts/stats or any other server route as it is common for all user - SOLVED: client atom remains; server-side `/api/lst/stats?symbol=...` available for heavier aggregation
 export const totalStakedAtom = atom((get) => {
   const { data, error, isLoading } = get(totalStakedCurrentBlockQueryAtom);
 
@@ -347,7 +343,7 @@ export const totalSupplyQueryAtom = atomFamily(
   },
 );
 
-//TODO: remove if not needed
+//TODO: remove if not needed - SOLVED: required by multiple consumers for derived exchange rate
 export const exchangeRateAtom = atom((get) => {
   const totalStaked = get(totalStakedCurrentBlockQueryAtom);
   const totalSupply = get(totalSupplyCurrentBlockAtom);
@@ -447,33 +443,6 @@ export const withdrawalQueueStateAtom = atom((get) => {
   };
 });
 
-const userLSTBalanceByBlockQueryAtom = getHoldingAtom(
-  "userXSTRKBalance",
-  getHoldings,
-);
-
-//TODO: not used anywhere - remove
-// also remove userLSTBalanceByBlockQueryAtom
-export const userLSTBalanceByBlockAtom: DAppHoldingsAtom = atomFamily(
-  (blockNumber?: number) => {
-    return atom((get) => {
-      const { data, error } = get(userLSTBalanceByBlockQueryAtom(blockNumber));
-
-      return {
-        data:
-          error || !data
-            ? {
-                lstAmount: MyNumber.fromZero(),
-                underlyingTokenAmount: MyNumber.fromZero(),
-              }
-            : data,
-        error,
-        isLoading: !data && !error,
-      };
-    });
-  },
-);
-
 export const totalStakedCurrentBlockQueryAtom = atomWithQuery((get) => {
   return {
     queryKey: [
@@ -513,8 +482,7 @@ export const totalSupplyCurrentBlockAtom = atomWithQuery((get) => {
   };
 });
 
-
-//TODO: remove if not needed
+//TODO: remove if not needed - SOLVED: required for historical block queries
 export const exchangeRateByBlockAtom = atomFamily((blockNumber?: number) => {
   return atom((get) => {
     const totalStaked = get(totalStakedQueryAtom(blockNumber));
@@ -551,11 +519,15 @@ export const exchangeRateByBlockAtom = atomFamily((blockNumber?: number) => {
 });
 
 // TODO [LST_STATS_UPDATE]: use separate apis for each tokens
-export const lstStatsQueryAtom = atomWithQuery(() => ({
-  queryKey: ["lstStats"],
+export const lstStatsQueryAtom = atomWithQuery((get) => ({
+  queryKey: ["lstStats", get(lstConfigAtom)],
   queryFn: async (): Promise<LSTStatsResponse[]> => {
     try {
-      const response = await fetch("/api/lst/stats");
+      const lstConfig = get(lstConfigAtom);
+      const url = lstConfig
+        ? `/api/lst/stats?symbol=${encodeURIComponent(lstConfig.SYMBOL)}`
+        : "/api/lst/stats";
+      const response = await fetch(url);
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
@@ -583,8 +555,8 @@ export const apiExchangeRateAtom = atom((get) => {
     };
   }
 
-  //TODO: only fetch current asset's exchange data
-  const lstStats = data.find( 
+  //TODO: only fetch current asset's exchange data - SOLVED
+  const lstStats = data.find(
     (stats) =>
       stats.lstAddress?.toLowerCase() === lstConfig.LST_ADDRESS?.toLowerCase(),
   );

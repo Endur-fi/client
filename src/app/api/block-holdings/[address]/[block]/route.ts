@@ -26,7 +26,7 @@ export interface BlockInfo {
   };
 }
 
-//TODO: remove this if not used anywhere
+//TODO: remove this if not used anywhere: reviewed usage; keeping route as public API endpoint [SOLVED]
 export async function GET(_req: Request, context: any) {
   const { params } = context;
   const addr = params.address;
@@ -76,7 +76,7 @@ export async function GET(_req: Request, context: any) {
       strkfarmEkuboHoldingsProm,
       opusHoldingsProm,
     ]);
-    const dummy: DAppHoldings[] = [
+    const _dummy: DAppHoldings[] = [
       {
         lstAmount: MyNumber.fromZero(18),
         underlyingTokenAmount: MyNumber.fromZero(18),

@@ -1,15 +1,13 @@
 import { BigNumber } from "bignumber.js";
 import { clsx, type ClassValue } from "clsx";
-import {
-  BlockIdentifier,
-  BlockTag,
-  Contract,
-  num,
-  RpcProvider,
-} from "starknet";
+import { BlockIdentifier, BlockTag, Contract, num } from "starknet";
 import { twMerge } from "tailwind-merge";
 
-import { BTC_ORACLE_CONTRACT, STRK_ORACLE_CONTRACT } from "@/constants";
+import {
+  BTC_ORACLE_CONTRACT,
+  STRK_ORACLE_CONTRACT,
+  getProvider,
+} from "@/constants";
 import { toast } from "@/hooks/use-toast";
 
 import OracleAbi from "../abi/oracle.abi.json";
@@ -41,28 +39,16 @@ export function formatNumber(
 }
 
 export function formatNumberWithCommas(
-	value: number | string,
-	decimals?: number,
+  value: number | string,
+  decimals?: number,
 ): string {
-// TODO: why are we not using this => num.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})
+  // TODO: why are we not using this => num.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2}) - SOLVED
   const numberValue = typeof value === "string" ? Number(value) : value;
-
-  if (isNaN(numberValue)) {
-    return "0";
-  }
-
-  const [integerPart, decimalPart] = numberValue
-    .toFixed(decimals ?? 2)
-    .split(".");
-
-  const formattedIntegerPart = integerPart.replace(
-    /\B(?=(\d{3})+(?!\d))/g,
-    ",",
-  );
-
-  return decimalPart !== undefined
-    ? `${formattedIntegerPart}.${decimalPart}`
-    : formattedIntegerPart;
+  if (isNaN(numberValue)) return "0";
+  return numberValue.toLocaleString("en-IN", {
+    minimumFractionDigits: decimals ?? 2,
+    maximumFractionDigits: decimals ?? 2,
+  });
 }
 
 export function truncate(str: string, startChars: number, endChars: number) {
@@ -170,13 +156,8 @@ export const eventNames = {
 };
 
 export async function getAssetPrice(isSTRK: boolean = true): Promise<number> {
-	// TODO: if we can use constants/getProvider use that here
-  const provider = new RpcProvider({
-    nodeUrl:
-      process.env.NEXT_PUBLIC_CHAIN_ID === "SN_MAIN"
-        ? process.env.NEXT_PUBLIC_RPC_URL
-        : "https://starknet-mainnet.public.blastapi.io/rpc/v0_7",
-  });
+  // TODO: if we can use constants/getProvider use that here - SOLVED
+  const provider = getProvider();
 
   if (!provider) return 0;
 
@@ -191,19 +172,8 @@ export async function getAssetPrice(isSTRK: boolean = true): Promise<number> {
   return Number(data) / 10 ** 8;
 }
 
-// TODO: separate types
-// Types for the result object with discriminated union
-type Success<T> = {
-  data: T;
-  error: null;
-};
-
-type Failure<E> = {
-  data: null;
-  error: E;
-};
-
-type Result<T, E = Error> = Success<T> | Failure<E>;
+// TODO: separate types - SOLVED (moved to src/types/index.ts)
+import type { Result } from "@/types";
 
 export async function tryCatch<T, E = Error>(
   promise: Promise<T>,

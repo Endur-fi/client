@@ -6,7 +6,6 @@ import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import React from "react";
 import { useSearchParams } from "next/navigation";
-import { useAccount } from "@starknet-react/core";
 
 import { Icons } from "@/components/Icons";
 import {
@@ -16,7 +15,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { IS_PAUSED, getLSTAssetsByCategory, getSTRKAsset } from "@/constants";
-import { cn, validateEmail } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import {
   isMerryChristmasAtom,
   tabsAtom,
@@ -24,9 +23,6 @@ import {
 } from "@/store/merry.store";
 import { snAPYAtom } from "@/store/staking.store";
 import { lstConfigAtom } from "@/store/common.store";
-import { useWalletConnection } from "@/hooks/use-wallet-connection";
-import { checkSubscription, subscribeUser } from "@/lib/api";
-import { toast } from "@/hooks/use-toast";
 
 import Stake from "./stake";
 import { useSidebar } from "./ui/sidebar";
@@ -44,8 +40,6 @@ const Header = React.memo(({ isMerry }: { isMerry: boolean }) => (
   <div
     className={cn("mt-6 w-full max-w-xl lg:mt-0", {
       "mb-7 xl:mb-0": !isMerry,
-      // "mb-7 lg:mb-12": isMerry, //TODO: remove
-      // "mb-7 lg:mb-7": isMerry && activeTab === "withdraw", //TODO: remove
     })}
   >
     <div className="flex flex-wrap items-center gap-3 lg:mt-7">
@@ -83,54 +77,20 @@ const Tabs = () => {
   const router = useRouter();
   const pathname = usePathname();
 
-  const [lstConfig, setLSTConfig] = useAtom(lstConfigAtom);
+  const [_lstConfig, setLSTConfig] = useAtom(lstConfigAtom);
   const searchParams = useSearchParams();
 
   const [activeTab, setActiveTab] = useAtom(tabsAtom);
   const [activeSubTab, setActiveSubTab] = useAtom(activeSubTabAtom);
-  const [waitlistEmail, setWaitlistEmail] = React.useState("");
-  const [isSubmitting, setIsSubmitting] = React.useState(false);
   const apy = useAtomValue(snAPYAtom);
 
   console.log("Apy", apy.value);
 
   const isMerry = useAtomValue(isMerryChristmasAtom);
-  const { address } = useAccount();
 
   const { isPinned } = useSidebar();
-  const { connectWallet } = useWalletConnection();
 
   const referrer = searchParams.get("referrer");
-  const tabParam = searchParams.get("tab");
-
-  //   TODO: this will be removed after new structure is implemented
-  React.useEffect(() => {
-    console.log("Pathname Effect - pathname:", pathname);
-
-    if (pathname === "/btc") {
-      setActiveTab("btc");
-    } else if (pathname === "/strk") {
-      setActiveTab("strk");
-    } else if (pathname === "/lbtc") {
-      setActiveTab("btc");
-    } else if (pathname === "/wbtc") {
-      setActiveTab("btc");
-    } else if (pathname === "/tbtc") {
-      setActiveTab("btc");
-    } else if (pathname === "/solvbtc") {
-      setActiveTab("btc");
-    } else {
-      setActiveTab("btc");
-    }
-  }, [pathname, setActiveTab]);
-
-  // Set activeSubTab from URL parameter
-  // TODO: remove
-  React.useEffect(() => {
-    if (tabParam && ["stake", "unstake", "withdraw"].includes(tabParam)) {
-      setActiveSubTab(tabParam);
-    }
-  }, [tabParam, setActiveSubTab]);
 
   React.useEffect(() => {
     //TODO: revisit (Neel's Task)
@@ -233,66 +193,6 @@ const Tabs = () => {
     if (subTab === activeSubTab) return;
 
     setActiveSubTab(subTab);
-  };
-
-  const handleWaitlistSubmit = async (e: React.FormEvent) => {
-    //TODO: remove if not needed
-    e.preventDefault();
-
-    if (!address) {
-      toast({ description: "Please connect your wallet first." });
-      return;
-    }
-
-    if (!waitlistEmail.trim()) {
-      toast({ description: "Please enter your email address." });
-      return;
-    }
-
-    if (!validateEmail(waitlistEmail)) {
-      toast({ description: "Please enter a valid email address." });
-      return;
-    }
-
-    setIsSubmitting(true);
-
-    try {
-      const subscriptionStatus = await checkSubscription(address);
-
-      if (!subscriptionStatus.isSubscribed) {
-        const listIds = [parseInt(process.env.TEST_BREVO_LIST_ID || "7", 10)];
-        const subscriptionResult = await subscribeUser(
-          waitlistEmail,
-          address,
-          listIds,
-        );
-
-        if (!subscriptionResult.success) {
-          toast({
-            description: "Failed to subscribe. Please try again.",
-            variant: "destructive",
-          });
-          setWaitlistEmail("");
-        }
-        toast({
-          description: "Successfully joined waitlist.",
-          variant: "complete",
-        });
-      } else {
-        toast({
-          description: "Already subscribed.",
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
-      console.error("Error joining waitlist:", error);
-      toast({
-        description: "Error joining waitlist. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
   };
 
   return (
@@ -411,8 +311,8 @@ const Tabs = () => {
                       className="group relative rounded-none border-none bg-transparent text-sm font-medium text-[#8D9C9C] focus-visible:ring-0 focus-visible:ring-offset-0 data-[state=active]:border-t-0 data-[state=active]:shadow-none lg:text-base"
                     >
                       Withdraw log
-                      {/* TODO: make this a separate common component [InfoTooltip] */}
-                      <TooltipProvider delayDuration={0}>
+                      {/* TODO: make this a separate common component [InfoTooltip] - SOLVED */}
+                      {/* <TooltipProvider delayDuration={0}>
                         <Tooltip>
                           <TooltipTrigger
                             className="ml-1"
@@ -435,7 +335,25 @@ const Tabs = () => {
                             </Link>
                           </TooltipContent>
                         </Tooltip>
-                      </TooltipProvider>
+                      </TooltipProvider> */}
+                      <MyDottedTooltip
+                        showDot={false}
+                        tooltipClassName="mb-0"
+                        tooltip={
+                          <div className="bg-white text-[#03624C]">
+                            Learn more about withdraw logs{" "}
+                            <Link
+                              target="_blank"
+                              href="https://docs.endur.fi/docs/concepts/withdraw-log"
+                              className="text-blue-600 underline"
+                            >
+                              here
+                            </Link>
+                          </div>
+                        }
+                      >
+                        <Info className="ml-2 size-3 text-[#3F6870] lg:text-[#8D9C9C]" />
+                      </MyDottedTooltip>
                       <div className="absolute -bottom-[7.5px] left-3 hidden h-[2px] w-[5rem] rounded-full bg-black group-data-[state=active]:flex lg:-bottom-[5.5px] lg:left-[16px]" />
                     </TabsTrigger>
                   </TabsList>
@@ -593,30 +511,6 @@ const Tabs = () => {
             </TabsContent>
           </ShadCNTabs>
         </div>
-
-        {/* TODO: remove if not needed */}
-        {/* <p
-          className={cn(
-            "mt-4 flex items-center text-xs text-[#707D7D] lg:mb-1 lg:mt-auto lg:text-sm",
-          )}
-        >
-          Made with 💚 by{" "}
-          <Link
-            href="https://unwraplabs.com"
-            target="_blank"
-            className="mx-1 cursor-pointer font-semibold hover:underline"
-          >
-            Unwrap Labs
-          </Link>{" "}
-          and{" "}
-          <Link
-            href="https://karnot.xyz"
-            target="_blank"
-            className="mx-1 cursor-pointer font-semibold hover:underline"
-          >
-            Karnot
-          </Link>
-        </p> */}
       </div>
     </div>
   );

@@ -11,7 +11,7 @@ import { STRK_DECIMALS } from "@/constants";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { MyAnalytics } from "@/lib/analytics";
 import MyNumber from "@/lib/MyNumber";
-import { cn, formatNumberWithCommas } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import {
   DAppHoldings,
   protocolYieldsAtom,
@@ -22,13 +22,8 @@ import { chartFilter } from "@/store/portfolio.store";
 import { Chart } from "./_components/chart";
 import DefiHoldings from "./_components/defi-holding";
 import Stats from "./_components/stats";
-import {
-  columns,
-  getPortfolioDAppAction,
-  getPortfolioDAppAPY,
-  getPortfolioDAppAsset,
-} from "./_components/table/columns";
-import { DataTable } from "./_components/table/data-table";
+import { columns } from "./_components/table/columns";
+import { DefiInformation } from "./_components/table/data-table";
 
 export type HoldingInfo = {
   date: string;
@@ -252,27 +247,8 @@ const StrkPortfolioPage: React.FC = () => {
         </span>
       </h1>
 
-      {/* TODO: separate this as a component in the same file */}
-      <div
-        className="mb-4 rounded-lg border border-[#17876D] bg-[#e7f0ef] p-4 text-xs text-[#17876D] dark:bg-gray-800 dark:text-blue-400 lg:text-sm"
-        role="alert"
-      >
-        <b>Note:</b>
-        <br />
-        <span className="font-medium">
-          1. This portfolio page is still a work in progress, so some features
-          may be missing or buggy. If you spot any issues, please report them in
-          our{" "}
-          <a href="/tg" target="_blank">
-            <b>TG group</b>
-          </a>
-        </span>
-        <br />
-        <span className="font-medium">
-          2. xSTRK debt is not used in our calculations and isn{"'"}t displayed
-          here
-        </span>
-      </div>
+      {/* TODO: separate this as a component in the same file - SOLVED */}
+      <NoteAlert />
 
       <div className="flex w-full flex-col items-start justify-start gap-5 lg:flex-row">
         <div className="flex w-full flex-col items-start gap-5">
@@ -295,52 +271,7 @@ const StrkPortfolioPage: React.FC = () => {
         )}
         <div className="">
           {/* // TODO: change the name to [DefiInformation]  */}
-          {!isMobile && <DataTable columns={columns} data={defiCards} />}
-
-          {isMobile &&
-            //   TODO: move to [DefiInformation] => separate DefiCards component
-            defiCards.map((card, idx) => (
-              <div
-                key={idx}
-                className={cn(
-                  "float-left mt-2 w-full border-0 bg-white p-[10px] hover:bg-white",
-                )}
-              >
-                <div className="justify flex justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="w-[25px]">{card.protocolIcon}</span>
-                    <span>{card.protocolName}</span>
-                  </div>
-                  <div>{getPortfolioDAppAction({ original: card })}</div>
-                </div>
-                <div className="mt-2 text-[12px] text-[#939494]">
-                  {card.description}
-                </div>
-                <div className="justify flex w-full justify-between">
-                  <div className="max-w-[60%]">
-                    {getPortfolioDAppAsset({
-                      original: { ...card, description: "" },
-                    })}
-                  </div>
-                  <div className="py-3">
-                    {getPortfolioDAppAPY({ original: card })}
-                  </div>
-                </div>
-                <div>
-                  <span className="text-[12px] text-[#03624C]">
-                    <b>Your Holding:</b>
-                  </span>
-                  <span className="flex">
-                    {formatNumberWithCommas(
-                      card.tokens[
-                        card.tokens.findIndex((t) => t.name === "xSTRK")
-                      ].holding?.toEtherToFixedDecimals(2) ?? "0.00",
-                    )}{" "}
-                    xSTRK
-                  </span>
-                </div>
-              </div>
-            ))}
+          {!isMobile && <DefiInformation columns={columns} data={defiCards} />}
         </div>
       </div>
     </main>
@@ -348,3 +279,27 @@ const StrkPortfolioPage: React.FC = () => {
 };
 
 export default StrkPortfolioPage;
+
+const NoteAlert: React.FC = () => {
+  return (
+    <div
+      className="mb-4 rounded-lg border border-[#17876D] bg-[#e7f0ef] p-4 text-xs text-[#17876D] dark:bg-gray-800 dark:text-blue-400 lg:text-sm"
+      role="alert"
+    >
+      <b>Note:</b>
+      <br />
+      <span className="font-medium">
+        1. This portfolio page is still a work in progress, so some features may
+        be missing or buggy. If you spot any issues, please report them in our{" "}
+        <a href="/tg" target="_blank">
+          <b>TG group</b>
+        </a>
+      </span>
+      <br />
+      <span className="font-medium">
+        2. xSTRK debt is not used in our calculations and isn{"'"}t displayed
+        here
+      </span>
+    </div>
+  );
+};

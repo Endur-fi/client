@@ -19,8 +19,8 @@ const snTotalStakingPowerQueryAtom = atomWithQuery((get) => {
   };
 });
 
-//TODO: don't export
-export const snTotalStakingPowerAtom = atom((get) => {
+//TODO: don't export - SOLVED
+const snTotalStakingPowerAtom = atom((get) => {
   const { data, error } = get(snTotalStakingPowerQueryAtom);
   return {
     value:
@@ -45,8 +45,8 @@ const snAlphaQueryAtom = atomWithQuery((get) => {
   };
 });
 
-//TODO: don't export
-export const snAlphaAtom = atom((get) => {
+//TODO: don't export - SOLVED
+const snAlphaAtom = atom((get) => {
   const { data, error } = get(snAlphaQueryAtom);
   return {
     value: error || !data ? 0 : data,
@@ -55,8 +55,8 @@ export const snAlphaAtom = atom((get) => {
   };
 });
 
-//TODO: don't export
-export const yearlyMintingQueryAtom = atomWithQuery((get) => {
+//TODO: don't export - SOLVED
+const yearlyMintingQueryAtom = atomWithQuery((get) => {
   return {
     queryKey: ["yearlyMinting", get(currentBlockAtom), get(providerAtom)],
     queryFn: () => {
@@ -66,8 +66,8 @@ export const yearlyMintingQueryAtom = atomWithQuery((get) => {
   };
 });
 
-//TODO: don't export
-export const yearlyMintingAtom = atom((get) => {
+//TODO: don't export - SOLVED
+const yearlyMintingAtom = atom((get) => {
   const { data, error } = get(yearlyMintingQueryAtom);
   return {
     value: error || !data ? MyNumber.fromZero() : data,

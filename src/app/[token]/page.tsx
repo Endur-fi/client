@@ -2,13 +2,7 @@ import type { Metadata } from "next";
 
 import Tabs from "@/components/Tabs";
 import { getLSTAssetBySymbol } from "@/constants";
-
-// TODO: move the interface to separate file
-export interface TokenProps {
-  params: {
-    token: string;
-  };
-}
+import type { TokenProps } from "@/types";
 
 export async function generateMetadata({
   params,

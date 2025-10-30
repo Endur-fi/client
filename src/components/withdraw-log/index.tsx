@@ -44,17 +44,6 @@ const WithdrawLog: React.FC = () => {
   const { address } = useAccount();
   const { connectWallet } = useWalletConnection();
 
-//   TODO: remove if not needed
-  const _yourPendingWithdrawalsAmount = React.useMemo(
-    () =>
-      withdrawals.reduce(
-        (acc, item) =>
-          item.status === "Pending" ? acc + Number(item.amount) : acc,
-        0,
-      ),
-    [withdrawals],
-  );
-
   React.useEffect(() => {
     if (!address || !withdrawalLogs?.value) return;
 
@@ -151,7 +140,7 @@ const WithdrawLog: React.FC = () => {
   ]);
 
   if (!address) {
-	// TODO: separate this component in this same file
+    // TODO: separate this component in this same file
     return (
       <div className="relative h-full w-full">
         <Card className="mx-auto w-full max-w-md border-0 bg-transparent shadow-none">
@@ -178,7 +167,7 @@ const WithdrawLog: React.FC = () => {
   }
 
   if (withdrawalLogs.isLoading)
-	// TODO: separate the component in the same file
+    // TODO: separate the component in the same file
     return (
       <div className="relative h-full w-full">
         <Card className="mx-auto w-full max-w-md border-0 bg-transparent shadow-none">
