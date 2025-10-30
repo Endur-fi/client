@@ -14,7 +14,7 @@ import {
   trovesEkuboBTCxWBTCYieldAtom,
   trovesEkuboBTCxtBTCYieldAtom,
   trovesEkuboBTCxLBTCYieldAtom,
-  trovesEkuboBTCxsBTCYieldAtom
+  trovesEkuboBTCxsBTCYieldAtom,
 } from "@/store/defi.store";
 import { useAtom } from "jotai";
 
@@ -346,8 +346,7 @@ export const btcProtocolConfigs: Partial<
     protocolIcon: <Icons.vesuLogo className="rounded-full" />,
     protocolName: "Vesu",
     badges: [{ type: "Lending Pool", color: "bg-[#E8F4FD] text-[#1E40AF]" }],
-    description:
-      "Lend and borrow against xWBTC on Vesu",
+    description: "Lend and borrow against xWBTC on Vesu",
     action: {
       type: "lend",
       link: "http://vesu.xyz/earn?onlyV2Markets=true&includeIsolatedMarkets=true",
@@ -367,8 +366,7 @@ export const btcProtocolConfigs: Partial<
     protocolIcon: <Icons.vesuLogo className="rounded-full" />,
     protocolName: "Vesu",
     badges: [{ type: "Lending Pool", color: "bg-[#E8F4FD] text-[#1E40AF]" }],
-    description:
-      "Lend and borrow against xtBTC on Vesu",
+    description: "Lend and borrow against xtBTC on Vesu",
     action: {
       type: "lend",
       link: "http://vesu.xyz/earn?onlyV2Markets=true&includeIsolatedMarkets=true",
@@ -388,8 +386,7 @@ export const btcProtocolConfigs: Partial<
     protocolIcon: <Icons.vesuLogo className="rounded-full" />,
     protocolName: "Vesu",
     badges: [{ type: "Lending Pool", color: "bg-[#E8F4FD] text-[#1E40AF]" }],
-    description:
-      "Lend and borrow against xLBTC on Vesu",
+    description: "Lend and borrow against xLBTC on Vesu",
     action: {
       type: "lend",
       link: "http://vesu.xyz/earn?onlyV2Markets=true&includeIsolatedMarkets=true",
@@ -409,8 +406,7 @@ export const btcProtocolConfigs: Partial<
     protocolIcon: <Icons.vesuLogo className="rounded-full" />,
     protocolName: "Vesu",
     badges: [{ type: "Lending Pool", color: "bg-[#E8F4FD] text-[#1E40AF]" }],
-    description:
-      "Lend and borrow against xsBTC on Vesu",
+    description: "Lend and borrow against xsBTC on Vesu",
     action: {
       type: "lend",
       link: "http://vesu.xyz/earn?onlyV2Markets=true&includeIsolatedMarkets=true",
@@ -468,10 +464,10 @@ const BtcDefi: React.FC = () => {
           a === "avnuBTCxtBTC" ||
           a === "avnuBTCxLBTC" ||
           a === "avnuBTCxsBTC" ||
-		  a === "vesuBTCxWBTC" ||
-		  a === "vesuBTCxtBTC" ||
-		  a === "vesuBTCxLBTC" ||
-		  a === "vesuBTCxsBTC"
+          a === "vesuBTCxWBTC" ||
+          a === "vesuBTCxtBTC" ||
+          a === "vesuBTCxLBTC" ||
+          a === "vesuBTCxsBTC"
         )
           yieldA = -Infinity; // Avnu and Vesu strategies don't have yield data yet
         else yieldA = -Infinity;
@@ -497,10 +493,10 @@ const BtcDefi: React.FC = () => {
           b === "avnuBTCxtBTC" ||
           b === "avnuBTCxLBTC" ||
           b === "avnuBTCxsBTC" ||
-		  b === "vesuBTCxWBTC" ||
-		  b === "vesuBTCxtBTC" ||
-		  b === "vesuBTCxLBTC" ||
-		  b === "vesuBTCxsBTC"
+          b === "vesuBTCxWBTC" ||
+          b === "vesuBTCxtBTC" ||
+          b === "vesuBTCxLBTC" ||
+          b === "vesuBTCxsBTC"
         )
           yieldB = -Infinity; // Avnu strategies don't have yield data yet
         else yieldB = -Infinity;
@@ -558,7 +554,7 @@ const BtcDefi: React.FC = () => {
                 }
               | undefined = undefined;
 
-        	if (protocol === "hyperxWBTC") {
+            if (protocol === "hyperxWBTC") {
               yieldData = {
                 value: trovesHyperxWBTCYield?.value ?? null,
                 error: trovesHyperxWBTCYield?.error ?? null,
