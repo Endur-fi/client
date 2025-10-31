@@ -10,7 +10,12 @@ export async function GET(_req: Request) {
   const provider = getProvider();
 
   if (!provider) {
-    return NextResponse.json("Provider not found");
+    const res = NextResponse.json(
+      { message: "Provider not found" },
+      { status: 500 },
+    );
+    res.headers.set("Cache-Control", "no-store");
+    return res;
   }
 
   const lstService = new LSTService();
@@ -33,7 +38,12 @@ export async function GET(_req: Request) {
     return response;
   }
 
-  return NextResponse.json({
-    message: "totalSupplyError",
-  });
+  const res = NextResponse.json(
+    {
+      message: "totalSupplyError",
+    },
+    { status: 500 },
+  );
+  res.headers.set("Cache-Control", "no-store");
+  return res;
 }
