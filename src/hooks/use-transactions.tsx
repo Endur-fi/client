@@ -4,10 +4,10 @@ import { Icons } from "@/components/Icons";
 import { MyAnalytics } from "@/lib/analytics";
 import { eventNames } from "@/lib/utils";
 import { isTxAccepted } from "@/store/transactions.atom";
-
-import { toast, useToast } from "./use-toast";
 import { lstConfigAtom } from "@/store/common.store";
 import { useAtomValue } from "jotai";
+
+import { toast, useToast } from "./use-toast";
 
 type TransactionType = "STAKE" | "UNSTAKE";
 
