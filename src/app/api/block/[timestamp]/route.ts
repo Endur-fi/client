@@ -12,9 +12,14 @@ export async function GET(_req: Request, context: any) {
   const timestamp = Number(params.timestamp);
 
   if (isNaN(timestamp) || !timestamp) {
-    return NextResponse.json({
-      error: "Invalid timestamp",
-    });
+    const res = NextResponse.json(
+      {
+        error: "Invalid timestamp",
+      },
+      { status: 400 },
+    );
+    res.headers.set("Cache-Control", "no-store");
+    return res;
   }
 
   if (timestampBlockCache[timestamp]) {
@@ -26,12 +31,26 @@ export async function GET(_req: Request, context: any) {
     });
   }
 
-  const block = await getBlockNumberForTimestamp(timestamp);
-  timestampBlockCache[timestamp] = block;
+  try {
+    const block = await getBlockNumberForTimestamp(timestamp);
+    timestampBlockCache[timestamp] = block;
 
-  return NextResponse.json({
-    block,
-  });
+    return NextResponse.json({
+      block,
+    });
+  } catch (err: any) {
+    const isClientError = typeof err?.message === "string";
+    const status = isClientError ? 400 : 500;
+    const res = NextResponse.json(
+      {
+        error:
+          err?.message || "Failed to compute block for the given timestamp",
+      },
+      { status },
+    );
+    res.headers.set("Cache-Control", "no-store");
+    return res;
+  }
 }
 
 async function getBlockNumberForTimestamp(

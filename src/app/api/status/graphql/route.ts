@@ -15,15 +15,25 @@ export async function GET(_req: Request, context: any) {
   const withdrawlQueueAddress = params.withdrawlQueueAddress;
 
   if (!withdrawlQueueAddress) {
-    return NextResponse.json({
-      error: "Withdrawal Queue Address Required",
-    });
+    const res = NextResponse.json(
+      {
+        error: "Withdrawal Queue Address Required",
+      },
+      { status: 400 },
+    );
+    res.headers.set("Cache-Control", "no-store");
+    return res;
   }
 
   const provider = getProvider();
 
   if (!provider) {
-    return NextResponse.json("Provider not found");
+    const res = NextResponse.json(
+      { message: "Provider not found" },
+      { status: 500 },
+    );
+    res.headers.set("Cache-Control", "no-store");
+    return res;
   }
 
   const wqContract = new Contract({
@@ -40,10 +50,15 @@ export async function GET(_req: Request, context: any) {
     latest_block = (await provider.getBlockLatestAccepted()).block_number;
   } catch (error) {
     console.error("latestBlockError:", error);
-    return NextResponse.json({
-      message: "latestBlockError",
-      error,
-    });
+    const res = NextResponse.json(
+      {
+        message: "latestBlockError",
+        error,
+      },
+      { status: 500 },
+    );
+    res.headers.set("Cache-Control", "no-store");
+    return res;
   }
   console.log("latest_block", latest_block);
 
@@ -55,10 +70,15 @@ export async function GET(_req: Request, context: any) {
     contractReqId = Number(res?.max_request_id);
   } catch (error) {
     console.error("contractReqIdError:", error);
-    return NextResponse.json({
-      message: "contractReqIdError:",
-      error,
-    });
+    const res = NextResponse.json(
+      {
+        message: "contractReqIdError:",
+        error,
+      },
+      { status: 500 },
+    );
+    res.headers.set("Cache-Control", "no-store");
+    return res;
   }
 
   try {
@@ -84,7 +104,15 @@ export async function GET(_req: Request, context: any) {
     apiReqId = data?.findFirstWithdraw_queue?.request_id;
   } catch (error) {
     console.error("apiReqIdError:", error);
-    throw error;
+    const res = NextResponse.json(
+      {
+        message: "apiReqIdError:",
+        error,
+      },
+      { status: 500 },
+    );
+    res.headers.set("Cache-Control", "no-store");
+    return res;
   }
 
   console.log("contractReqId", contractReqId);

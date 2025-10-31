@@ -6,9 +6,15 @@ import { FilePenLineIcon } from "@/components/ui/file-pen-line";
 import { MessageCircleMoreIcon } from "@/components/ui/message-circle-more";
 import { TelegramIcon } from "@/components/ui/telegram";
 import { TwitterIcon } from "@/components/ui/twitter";
+import { DiscordIcon } from "./ui/discord";
 import { LINKS } from "@/constants";
 
 const navItems = [
+  {
+    label: "Discord",
+    href: LINKS.ENDUR_DISCORD,
+    icon: DiscordIcon,
+  },
   {
     label: "Twitter",
     href: LINKS.ENDUR_TWITTER,
