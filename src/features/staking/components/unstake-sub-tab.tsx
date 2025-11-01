@@ -45,10 +45,10 @@ import {
   withdrawalQueueStateAtom,
 } from "@/store/lst.store";
 
-import { Icons } from "./Icons";
+import { Icons } from "../../../components/Icons";
 import Stats from "./stats";
-import { Button } from "./ui/button";
-import { Input } from "./ui/input";
+import { Button } from "../../../components/ui/button";
+import { Input } from "../../../components/ui/input";
 import { lstConfigAtom } from "@/store/common.store";
 import { ASSET_ICONS } from "./asset-selector";
 import QuickFillAndBalance from "./quick-fill-balance";
@@ -242,7 +242,7 @@ const UnstakeOptionCard = ({
   );
 };
 
-const Unstake = () => {
+const UnstakeSubTab = () => {
   const [txnDapp, setTxnDapp] = React.useState<"endur" | "dex">("endur");
 
   const { account, address } = useAccount();
@@ -648,7 +648,7 @@ const Unstake = () => {
   );
 };
 
-export default Unstake;
+export default UnstakeSubTab;
 
 const TabsUnstake: React.FC<{
   txnDapp: "endur" | "dex";

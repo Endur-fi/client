@@ -1,14 +1,18 @@
+// lst.store.ts
+
 import { atom, type Getter } from "jotai";
 import { atomWithQuery } from "jotai-tanstack-query";
 import { atomFamily } from "jotai/utils";
-import { type BlockIdentifier, BlockTag, Contract } from "starknet";
+import { type BlockIdentifier, BlockTag, Contract, uint256 } from "starknet";
 
 import WqAbi from "@/abi/wq.abi.json";
-import { xSTRK_TOKEN_MAINNET_DEPLOYMENT_BLOCK } from "@/constants";
+import {
+  STRK_DECIMALS,
+  xSTRK_TOKEN_MAINNET_DEPLOYMENT_BLOCK,
+} from "@/constants";
 import MyNumber from "@/lib/MyNumber";
 import LSTService from "@/services/lst";
 
-// TODO: move to separate type file
 // LST Stats API types
 interface LSTStatsResponse {
   asset: string;
@@ -30,12 +34,15 @@ import {
   assetPriceAtom,
   userAddressAtom,
 } from "./common.store";
-import { type DAppHoldingsFn } from "./defi.store";
+import {
+  type DAppHoldingsAtom,
+  type DAppHoldingsFn,
+  getHoldingAtom,
+} from "./defi.store";
 import { isContractNotDeployed } from "@/lib/utils";
 
 const lstService = new LSTService();
 
-// TODO: move to lst service
 export const getHoldings: DAppHoldingsFn = async ({
   address,
   lstAddress,
@@ -72,8 +79,6 @@ export const getHoldings: DAppHoldingsFn = async ({
   };
 };
 
-// DOUBT: why are we wrapping the function when we are just returning the function response
-// TODO: remove this wrapper and use the service method directly instead
 export const getTotalAssetsByBlock = async (
   lstAddress: string,
   decimals: number,
@@ -87,8 +92,6 @@ export const getTotalAssetsByBlock = async (
   return balance;
 };
 
-// DOUBT: why are we wrapping the function when we are just returning the function response
-// TODO: remove this wrapper and use the service method directly instead
 export const getTotalSupplyByBlock = async (
   lstAddress: string,
   decimals: number,
@@ -125,7 +128,7 @@ export const getExchangeRateGivenAssets = (
   };
 };
 
-// TODO: stale this infinitely and should be refetched only when currentBlockAtom is changed
+// TODO [ASK_AKIRA]: this can be cached untill block number is changed
 const userLSTBalanceQueryAtom = atomWithQuery((get) => {
   return {
     // current block atom only to trigger a change when the block changes
@@ -162,9 +165,122 @@ export const userLSTBalanceAtom = atom((get) => {
   };
 });
 
-//TODO: if not needed remove - we are using this in migrate-nostra component but that function is not used anywhere - SOLVED
-//TODO: if not needed remove - we are using this in migrate-nostra component but that function is not used anywhere - SOLVED
-//TODO: remove - not used anywhere - SOLVED
+export const userNstSTRKBalanceQueryAtom = atomWithQuery((get) => {
+  return {
+    queryKey: [
+      "userNstSTRKBalance",
+      get(currentBlockAtom),
+      get(userAddressAtom),
+    ],
+    queryFn: async ({ _queryKey }: any): Promise<MyNumber> => {
+      const userAddress = get(userAddressAtom);
+
+      if (!userAddress) {
+        return MyNumber.fromZero();
+      }
+
+      try {
+        const nstContract = lstService.getNstSTRKContract();
+        const balance = await nstContract.call("balanceOf", [userAddress]);
+        return new MyNumber(balance.toString(), STRK_DECIMALS);
+      } catch (error) {
+        console.error("userNstSTRKBalanceQueryAtom [2]", error);
+        return MyNumber.fromZero();
+      }
+    },
+  };
+});
+
+export const nstStrkWithdrawalFeeQueryAtom = atomWithQuery((get) => {
+  return {
+    queryKey: [
+      "userNstWithdrawalFee",
+      get(currentBlockAtom),
+      get(userAddressAtom),
+    ],
+    queryFn: async ({ _queryKey }: any): Promise<MyNumber> => {
+      const userAddress = get(userAddressAtom);
+
+      if (!userAddress) {
+        return MyNumber.fromZero();
+      }
+
+      try {
+        const nstContract = lstService.getNstSTRKContract();
+        const balance = await nstContract.call("withdrawal_fee");
+        return new MyNumber(balance.toString(), STRK_DECIMALS);
+      } catch (error) {
+        console.error("nstStrkWithdrawalFeeQueryAtom [3]", error);
+        return MyNumber.fromZero();
+      }
+    },
+  };
+});
+
+export const userBalanceQueryAtom = atomWithQuery((get) => {
+  return {
+    queryKey: [
+      "userBalance",
+      get(currentBlockAtom),
+      get(userAddressAtom),
+      get(userLSTBalanceAtom),
+      get(lstConfigAtom),
+    ],
+    queryFn: async ({ _queryKey }: any): Promise<MyNumber> => {
+      const userAddress = get(userAddressAtom);
+      const lstBalance = get(userLSTBalanceAtom);
+      const lstConfig = get(lstConfigAtom)!;
+
+      if (!userAddress || !lstConfig || lstBalance.value.isZero()) {
+        return MyNumber.fromZero();
+      }
+
+      try {
+        const lstContract = lstService.getLSTContract(lstConfig.LST_ADDRESS);
+        const balance = await lstContract.call("convert_to_assets", [
+          uint256.bnToUint256(lstBalance.value.toString()),
+        ]);
+        return new MyNumber(balance.toString(), lstConfig.DECIMALS);
+      } catch (error) {
+        console.error("userBalanceQueryAtom [3]", error);
+        return MyNumber.fromZero();
+      }
+    },
+  };
+});
+
+//TODO: if not needed remove - we are using this in migrate-nostra component but that function is not used anywhere
+// also remove userNstSTRKBalanceQueryAtom
+export const userNstSTRKBalanceAtom = atom((get) => {
+  const { data, error } = get(userNstSTRKBalanceQueryAtom);
+  return {
+    value: error || !data ? MyNumber.fromZero() : data,
+    error,
+    isLoading: !data && !error,
+  };
+});
+
+//TODO: if not needed remove - we are using this in migrate-nostra component but that function is not used anywhere
+// also remove nstStrkWithdrawalFeeQueryAtom
+export const nstStrkWithdrawalFeeAtom = atom((get) => {
+  const { data, error } = get(nstStrkWithdrawalFeeQueryAtom);
+  return {
+    value: error || !data ? MyNumber.fromZero() : data,
+    error,
+    isLoading: !data && !error,
+  };
+});
+
+//TODO: remove - not used anywhere
+//also remove userBalanceQueryAtom
+export const userBalanceAtom = atom((get) => {
+  const { data, error } = get(userBalanceQueryAtom);
+  return {
+    value: error || !data ? MyNumber.fromZero() : data,
+    error,
+    isLoading: !data && !error,
+  };
+});
 
 export const totalStakedQueryAtom = atomFamily(
   (blockNumber: BlockIdentifier | undefined) => {
@@ -195,7 +311,7 @@ export const totalStakedQueryAtom = atomFamily(
   },
 );
 
-//TODO: We can cache this for longer period, so move this to api/lts/stats or any other server route as it is common for all user - SOLVED: client atom remains; server-side `/api/lst/stats?symbol=...` available for heavier aggregation
+//TODO: We can cache this for longer period, so move this to api/lts/stats or any other server route as it is common for all user
 export const totalStakedAtom = atom((get) => {
   const { data, error, isLoading } = get(totalStakedCurrentBlockQueryAtom);
 
@@ -233,7 +349,7 @@ export const totalSupplyQueryAtom = atomFamily(
   },
 );
 
-//TODO: remove if not needed - SOLVED: required by multiple consumers for derived exchange rate
+//TODO: remove if not needed
 export const exchangeRateAtom = atom((get) => {
   const totalStaked = get(totalStakedCurrentBlockQueryAtom);
   const totalSupply = get(totalSupplyCurrentBlockAtom);
@@ -298,12 +414,12 @@ export const totalStakedUSDAtom = atom((get) => {
   };
 });
 
-//TODO [WITHDRAWAL_DUPLICATE] : revisit (Neel)
+//TODO [WITHDRAWAL_DUPLICATE] : revistit (Neel)
 export const withdrawalQueueStateQueryAtom = atomWithQuery((get) => {
   return {
     queryKey: ["withdrawalQueueState", get(currentBlockAtom)],
     queryFn: async () => {
-      const provider = get(providerAtom);
+      const provider = get(providerAtom); //DOUBT: why are we using provider atom's provider here whereas everywhere else we use getProvider from constant.ts
       const lstConfig = get(lstConfigAtom)!;
       if (!provider) return null;
 
@@ -324,7 +440,6 @@ export const withdrawalQueueStateQueryAtom = atomWithQuery((get) => {
   };
 });
 
-// TODO: there are so many similar destructure atom in the same file - can be standardised
 export const withdrawalQueueStateAtom = atom((get) => {
   const { data, error } = get(withdrawalQueueStateQueryAtom);
   return {
@@ -333,6 +448,33 @@ export const withdrawalQueueStateAtom = atom((get) => {
     isLoading: !data && !error,
   };
 });
+
+const userLSTBalanceByBlockQueryAtom = getHoldingAtom(
+  "userXSTRKBalance",
+  getHoldings,
+);
+
+//TODO: not used anywhere - remove
+// also remove userLSTBalanceByBlockQueryAtom
+export const userLSTBalanceByBlockAtom: DAppHoldingsAtom = atomFamily(
+  (blockNumber?: number) => {
+    return atom((get) => {
+      const { data, error } = get(userLSTBalanceByBlockQueryAtom(blockNumber));
+
+      return {
+        data:
+          error || !data
+            ? {
+                lstAmount: MyNumber.fromZero(),
+                underlyingTokenAmount: MyNumber.fromZero(),
+              }
+            : data,
+        error,
+        isLoading: !data && !error,
+      };
+    });
+  },
+);
 
 export const totalStakedCurrentBlockQueryAtom = atomWithQuery((get) => {
   return {
@@ -354,7 +496,6 @@ export const totalStakedCurrentBlockQueryAtom = atomWithQuery((get) => {
   };
 });
 
-// TODO: remove if not needed
 export const totalSupplyCurrentBlockAtom = atomWithQuery((get) => {
   return {
     queryKey: [
@@ -374,7 +515,7 @@ export const totalSupplyCurrentBlockAtom = atomWithQuery((get) => {
   };
 });
 
-//TODO: remove if not needed - SOLVED: required for historical block queries
+//TODO: remove if not needed
 export const exchangeRateByBlockAtom = atomFamily((blockNumber?: number) => {
   return atom((get) => {
     const totalStaked = get(totalStakedQueryAtom(blockNumber));
@@ -411,15 +552,11 @@ export const exchangeRateByBlockAtom = atomFamily((blockNumber?: number) => {
 });
 
 // TODO [LST_STATS_UPDATE]: use separate apis for each tokens
-export const lstStatsQueryAtom = atomWithQuery((get) => ({
-  queryKey: ["lstStats", get(lstConfigAtom)],
+export const lstStatsQueryAtom = atomWithQuery(() => ({
+  queryKey: ["lstStats"],
   queryFn: async (): Promise<LSTStatsResponse[]> => {
     try {
-      const lstConfig = get(lstConfigAtom);
-      const url = lstConfig
-        ? `/api/lst/stats?symbol=${encodeURIComponent(lstConfig.SYMBOL)}`
-        : "/api/lst/stats";
-      const response = await fetch(url);
+      const response = await fetch("/api/lst/stats");
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
@@ -447,7 +584,7 @@ export const apiExchangeRateAtom = atom((get) => {
     };
   }
 
-  //TODO: only fetch current asset's exchange data - SOLVED
+  //TODO: only fetch current asset's exchange data
   const lstStats = data.find(
     (stats) =>
       stats.lstAddress?.toLowerCase() === lstConfig.LST_ADDRESS?.toLowerCase(),

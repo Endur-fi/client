@@ -7,7 +7,7 @@ import Link from "next/link";
 
 import { Icons } from "@/components/Icons";
 import { Button } from "@/components/ui/button";
-import { ASSET_ICONS } from "@/components/asset-selector";
+import { ASSET_ICONS } from "@/features/staking/components/asset-selector";
 
 import { getExplorerEndpoint } from "@/constants";
 import { cn, convertFutureTimestamp } from "@/lib/utils";

@@ -67,7 +67,7 @@ const LoadingState: React.FC = () => (
   </div>
 );
 
-const WithdrawLog: React.FC = () => {
+const WithdrawSubTab: React.FC = () => {
   const [withdrawals, setWithdrawals] = React.useState<WithdrawLogColumn[]>([]);
   console.log("withdrawals", withdrawals);
   // TODO [REMOVE_GLOBAL_WITHDRAWAL]: if we do not need this state, remove from here and also from the use effect.
@@ -235,4 +235,4 @@ const WithdrawLog: React.FC = () => {
   );
 };
 
-export default WithdrawLog;
+export default WithdrawSubTab;

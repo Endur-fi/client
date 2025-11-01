@@ -15,7 +15,6 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import React from "react";
 import { useForm } from "react-hook-form";
-import { TwitterShareButton } from "react-share";
 import { Call, Contract } from "starknet";
 import * as z from "zod";
 
@@ -26,13 +25,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+
 import {
   Form,
   FormControl,
@@ -40,7 +33,7 @@ import {
   FormItem,
   FormMessage,
 } from "@/components/ui/form";
-import { MyDottedTooltip } from "./my-tooltip";
+import { MyDottedTooltip } from "../../../components/my-tooltip";
 import {
   IS_PAUSED,
   LSTAssetConfig,
@@ -53,7 +46,7 @@ import { useTransactionHandler } from "@/hooks/use-transactions";
 import { useWalletConnection } from "@/hooks/use-wallet-connection";
 import { MyAnalytics } from "@/lib/analytics";
 import MyNumber from "@/lib/MyNumber";
-import { cn, eventNames } from "@/lib/utils";
+import { eventNames } from "@/lib/utils";
 import LSTService from "@/services/lst";
 import { lstConfigAtom } from "@/store/common.store";
 import { protocolYieldsAtom, type SupportedDApp } from "@/store/defi.store";
@@ -61,13 +54,15 @@ import { apiExchangeRateAtom } from "@/store/lst.store";
 import { tabsAtom } from "@/store/merry.store";
 import { snAPYAtom } from "@/store/staking.store";
 
-import { Icons } from "./Icons";
+import { Icons } from "../../../components/Icons";
 import { PlatformCard } from "./platform-card";
 import Stats from "./stats";
-import { Button } from "./ui/button";
-import { Input } from "./ui/input";
+import { Button } from "../../../components/ui/button";
+import { Input } from "../../../components/ui/input";
 import { ASSET_ICONS } from "./asset-selector";
 import QuickFillAndBalance from "./quick-fill-balance";
+import ThankYouDialog from "@/components/thank-you-dialog";
+import MaxedOutDialog from "@/components/maxed-out-dialog";
 
 const font = Figtree({ subsets: ["latin-ext"] });
 
@@ -190,97 +185,14 @@ const PlatformList: React.FC<{
 };
 
 // TODO: separate the thank you modal [ThankYouDialog] - SOLVED
-const ThankYouDialog: React.FC<{
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  lstConfig: LSTAssetConfig;
-  apyValue: number;
-  selectedPlatform: Platform;
-  getPlatformYield: (platform: Platform) => number;
-  getPlatformConfig: (platform: Platform) => any;
-}> = ({
-  open,
-  onOpenChange,
-  lstConfig,
-  apyValue,
-  selectedPlatform,
-  getPlatformYield,
-  getPlatformConfig,
-}) => {
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className={cn(font.className, "p-16 sm:max-w-xl")}>
-        <DialogHeader>
-          <DialogTitle className="text-center text-3xl font-semibold text-[#17876D]">
-            Thank you for taking a step towards decentralizing Starknet!
-          </DialogTitle>
-          <DialogDescription className="!mt-5 text-center text-sm">
-            While your stake is being processed, if you like Endur, do you mind
-            sharing on X/Twitter?
-          </DialogDescription>
-        </DialogHeader>
-        <div className="mt-2 flex items-center justify-center">
-          <TwitterShareButton
-            url={`https://endur.fi`}
-            title={`Just staked my ${lstConfig.SYMBOL} on @endurfi, earning ${(apyValue * 100 + (selectedPlatform !== "none" ? getPlatformYield(selectedPlatform) : 0)).toFixed(2)}% APY! 🚀 \n\n${selectedPlatform !== "none" ? `My ${lstConfig.LST_SYMBOL} is now with an additional ${getPlatformYield(selectedPlatform).toFixed(2)}% yield on ${getPlatformConfig(selectedPlatform).platform}! 📈\n\n` : ""}${lstConfig.SYMBOL !== "STRK" ? `Building the future of Bitcoin staking on Starknet` : `Laying the foundation for decentralising Starknet`} with Endur!\n\n`}
-            related={["endurfi", "troves", "karnotxyz"]}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: ".6rem",
-              padding: ".5rem 1rem",
-              borderRadius: "8px",
-              backgroundColor: "#17876D",
-              color: "white",
-              textWrap: "nowrap",
-            }}
-          >
-            Share on
-            <Icons.X className="size-4 shrink-0" />
-          </TwitterShareButton>
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
-};
 
 // TODO: Separate this [MaxedOutDialog] - SOLVED
-const MaxedOutDialog: React.FC<{
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-}> = ({ open, onOpenChange }) => {
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent
-        className={cn(font.className, "p-8 sm:max-w-md")}
-        hideCloseIcon
-      >
-        <DialogHeader>
-          <DialogTitle className="text-center text-xl font-semibold text-[#17876D]">
-            Vault Maxed Out
-          </DialogTitle>
-          <DialogDescription className="!mt-3 text-center text-sm text-[#8D9C9C]">
-            The vault is currently maxed out, may open in future.
-          </DialogDescription>
-        </DialogHeader>
-        <div className="mt-6 flex justify-center">
-          <Button
-            onClick={() => onOpenChange(false)}
-            className="rounded-lg bg-[#17876D] px-6 py-2 text-sm font-semibold text-white hover:bg-[#17876D]/90 focus:outline-none focus:ring-0"
-          >
-            OK
-          </Button>
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
-};
 
 // TODO: separate this as this same can be used in unstake folder [QuickFillAndBalance] - SOLVED
 
 // TODO: can use the logic here itself of sortPlatforms instead of making separate function - SOLVED
 
-const Stake: React.FC = () => {
+const StakeSubTab: React.FC = () => {
   const [showShareModal, setShowShareModal] = React.useState(false);
   const [showMaxedOutModal, setShowMaxedOutModal] = React.useState(false);
   const [selectedPlatform, setSelectedPlatform] =
@@ -819,4 +731,4 @@ const Stake: React.FC = () => {
   );
 };
 
-export default Stake;
+export default StakeSubTab;

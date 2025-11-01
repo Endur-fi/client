@@ -19,11 +19,11 @@ import {
 } from "@/store/defi.store";
 import { chartFilter } from "@/store/portfolio.store";
 
-import { Chart } from "./_components/chart";
-import DefiHoldings from "./_components/defi-holding";
-import Stats from "./_components/stats";
-import { columns } from "./_components/table/columns";
-import { DefiInformation } from "./_components/table/data-table";
+import { Chart } from "./components/chart";
+import DefiHoldings from "./components/defi-holding";
+import Stats from "./components/stats";
+import { columns } from "./components/table/columns";
+import { DefiInformation } from "./components/table/data-table";
 
 export type HoldingInfo = {
   date: string;
@@ -113,7 +113,7 @@ const StrkPortfolioPage: React.FC = () => {
         setHoldings([]);
         setIsFetchError(false);
         setErrorMessage(null);
-		// TODO: move api call to api.ts
+        // TODO: move api call to api.ts
         const res = await fetch(
           `/api/holdings/${address}/${timeRange.slice(0, -1)}`,
         );

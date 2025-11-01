@@ -1,3 +1,5 @@
+// [block] > route.ts
+
 import { NextResponse } from "next/server";
 
 import MyNumber from "@/lib/MyNumber";
@@ -26,7 +28,7 @@ export interface BlockInfo {
   };
 }
 
-//TODO: remove this if not used anywhere: reviewed usage; keeping route as public API endpoint [SOLVED]
+//TODO: remove this if not used anywhere
 export async function GET(_req: Request, context: any) {
   const { params } = context;
   const addr = params.address;
@@ -76,7 +78,7 @@ export async function GET(_req: Request, context: any) {
       strkfarmEkuboHoldingsProm,
       opusHoldingsProm,
     ]);
-    const _dummy: DAppHoldings[] = [
+    const dummy: DAppHoldings[] = [
       {
         lstAmount: MyNumber.fromZero(18),
         underlyingTokenAmount: MyNumber.fromZero(18),

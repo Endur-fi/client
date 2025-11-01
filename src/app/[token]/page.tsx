@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-import Tabs from "@/components/Tabs";
+import Tabs from "@/features/staking/components/token-tab";
 import { getLSTAssetBySymbol } from "@/constants";
 import type { TokenProps } from "@/types";
 

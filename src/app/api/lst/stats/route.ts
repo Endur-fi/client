@@ -2,14 +2,14 @@ import { NextResponse } from "next/server";
 
 import { getProvider, LST_CONFIG } from "@/constants";
 import MyNumber from "@/lib/MyNumber";
-import { getAssetPrice, tryCatch } from "@/lib/utils";
+// import { getAssetPrice, tryCatch } from "@/lib/utils";
 import LSTService from "@/services/lst";
-import StakingService from "@/services/staking";
+// import StakingService from "@/services/staking";
 
 export const revalidate = 60 * 60; // 1 hour
 
 // TODO [LST_STATS_UPDATE]: udpate apis to handle individual tokens and not all together
-export async function GET(req: Request) {
+export async function GET(_req: Request) {
   const provider = getProvider();
 
   if (!provider) {
@@ -22,16 +22,7 @@ export async function GET(req: Request) {
   const results = [];
   let setCache = true; // made to false if any error
 
-  // TODO [LST_STATS_UPDATE]: udpate apis to handle individual tokens and not all together - SOLVED
-  const { searchParams } = new URL(req.url);
-  const symbolFilter = searchParams.get("symbol");
-  const assets = symbolFilter
-    ? Object.values(LST_CONFIG).filter(
-        (v) => v.SYMBOL.toLowerCase() === symbolFilter.toLowerCase(),
-      )
-    : Object.values(LST_CONFIG);
-
-  for (const value of assets) {
+  for (const value of Object.values(LST_CONFIG)) {
     try {
       console.log(value.SYMBOL);
       //   const isBtcAsset = value.SYMBOL.toLowerCase().includes("btc");
@@ -118,11 +109,11 @@ export async function GET(req: Request) {
         value.DECIMALS,
       );
 
-      if (balance && assetPrice) {
-        const tvlAsset = Number(
-          new MyNumber(balance.toString(), value.DECIMALS).toEtherStr(),
-        );
-        const tvlUsd = assetPrice * tvlAsset;
+      if (balance) {
+        // const tvlAsset = Number(
+        //   new MyNumber(balance.toString(), value.DECIMALS).toEtherStr(),
+        // );
+        // const tvlUsd = assetPrice * tvlAsset;
 
         let exchangeRate = 0;
         let preciseExchangeRate = "0";
@@ -143,7 +134,7 @@ export async function GET(req: Request) {
           asset: value.SYMBOL,
           assetAddress: value.ASSET_ADDRESS,
           lstAddress: value.LST_ADDRESS,
-          //TODO [APY_TODO]: if we are using this then uncomment all the code required or else
+          //TODO [APY_TODO]: if we are using this and uncomment all the code required or else
           //from here
           //   tvlUsd,
           //   tvlAsset,

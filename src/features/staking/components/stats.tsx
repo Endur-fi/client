@@ -3,21 +3,25 @@ import { Info } from "lucide-react";
 import React, { useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
-import { formatNumber, createTrovesHyperConfig, buildUrlWithReferrer } from "@/lib/utils";
+import {
+  formatNumber,
+  createTrovesHyperConfig,
+  buildUrlWithReferrer,
+} from "@/lib/utils";
 import {
   totalStakedAtom,
   totalStakedUSDAtom,
   userLSTBalanceAtom,
 } from "@/store/lst.store";
 import { snAPYAtom } from "@/store/staking.store";
-import { totalXSTRKAcrossDefiHoldingsAtom } from "@/components/strk-portfolio-page/_components/stats";
+import { totalXSTRKAcrossDefiHoldingsAtom } from "@/features/portfolio/components/stats";
 import { tabsAtom, activeSubTabAtom } from "@/store/merry.store";
 import { lstConfigAtom } from "@/store/common.store";
 
-import { Icons } from "./Icons";
-import { type Platform } from "./stake";
+import { Icons } from "../../../components/Icons";
+import { type Platform } from "./stake-sub-tab";
 import AssetSelector, { getFirstBtcAsset } from "./asset-selector";
-import { MyDottedTooltip } from "./my-tooltip";
+import { MyDottedTooltip } from "../../../components/my-tooltip";
 
 // TODO: can shift this to utils if it is same as stake's platformConfig - SOLVED
 const platformConfig = (lstConfig: any) => {
@@ -78,8 +82,12 @@ const Stats: React.FC<StatsProps> = ({
       if (activeSubTab && activeSubTab !== "stake") {
         additionalParams.tab = activeSubTab;
       }
-      
-      const finalPath = buildUrlWithReferrer(newPath, referrer, additionalParams);
+
+      const finalPath = buildUrlWithReferrer(
+        newPath,
+        referrer,
+        additionalParams,
+      );
       router.push(finalPath);
     }
   };

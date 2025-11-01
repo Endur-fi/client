@@ -24,17 +24,18 @@ import {
 import { snAPYAtom } from "@/store/staking.store";
 import { lstConfigAtom } from "@/store/common.store";
 
-import Stake from "./stake";
-import { useSidebar } from "./ui/sidebar";
+import StakeSubTab from "./stake-sub-tab";
+import UnstakeSubTab from "./unstake-sub-tab";
+import { useSidebar } from "../../../components/ui/sidebar";
 import {
   Tabs as ShadCNTabs,
   TabsContent,
   TabsList,
   TabsTrigger,
-} from "./ui/tabs";
-import Unstake from "./unstake";
-import WithdrawLog from "./withdraw-log";
-import { MyDottedTooltip } from "./my-tooltip";
+} from "../../../components/ui/tabs";
+import WithdrawSubTab from "./withdraw-sub-tab";
+import { MyDottedTooltip } from "../../../components/my-tooltip";
+import PausedMessageBox from "@/components/pause-message-box";
 
 const Header = React.memo(({ isMerry }: { isMerry: boolean }) => (
   <div
@@ -72,20 +73,6 @@ const Header = React.memo(({ isMerry }: { isMerry: boolean }) => (
   </div>
 ));
 Header.displayName = "Header";
-
-// TODO: separate this as a component and only keep whether it should be shown or not in this file [PausedMessageBox] - SOLVED
-const PausedMessageBox: React.FC = () => (
-  <div className="-top-[3.25rem] mt-2 w-fit text-balance rounded-lg border border-amber-600 bg-amber-200 px-5 py-2 text-center text-sm text-yellow-700 lg:absolute lg:mt-0">
-    Endur is currently undergoing a scheduled upgrade to support Staking V3.{" "}
-    <Link
-      href="https://x.com/endurfi/status/1966140807968338110"
-      target="_blank"
-      className="text-blue-500 transition-all hover:underline"
-    >
-      Learn more
-    </Link>
-  </div>
-);
 
 const Tabs = () => {
   const router = useRouter();
@@ -360,21 +347,21 @@ const Tabs = () => {
                     value="stake"
                     className="h-full pb-3 focus-visible:ring-0 focus-visible:ring-offset-0 lg:pb-0"
                   >
-                    <Stake />
+                    <StakeSubTab />
                   </TabsContent>
 
                   <TabsContent
                     value="unstake"
                     className="h-full pb-3 focus-visible:ring-0 focus-visible:ring-offset-0 lg:pb-0"
                   >
-                    <Unstake />
+                    <UnstakeSubTab />
                   </TabsContent>
 
                   <TabsContent
                     value="withdraw"
                     className="h-full focus-visible:ring-0 focus-visible:ring-offset-0"
                   >
-                    <WithdrawLog />
+                    <WithdrawSubTab />
                   </TabsContent>
                 </ShadCNTabs>
               </div>
@@ -471,21 +458,21 @@ const Tabs = () => {
                     value="stake"
                     className="h-full pb-3 focus-visible:ring-0 focus-visible:ring-offset-0 lg:pb-0"
                   >
-                    <Stake />
+                    <StakeSubTab />
                   </TabsContent>
 
                   <TabsContent
                     value="unstake"
                     className="h-full pb-3 focus-visible:ring-0 focus-visible:ring-offset-0 lg:pb-0"
                   >
-                    <Unstake />
+                    <UnstakeSubTab />
                   </TabsContent>
 
                   <TabsContent
                     value="withdraw"
                     className="h-full focus-visible:ring-0 focus-visible:ring-offset-0"
                   >
-                    <WithdrawLog />
+                    <WithdrawSubTab />
                   </TabsContent>
                 </ShadCNTabs>
               </div>

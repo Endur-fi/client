@@ -12,9 +12,12 @@ import { useLeaderboardData } from "@/hooks/use-leaderboard-data";
 
 import CheckEligibility, {
   UserCompleteDetailsApiResponse,
-} from "./_components/check-eligibility";
-import { columns, type SizeColumn } from "./_components/table/columns";
-import { DataTable } from "./_components/table/data-table";
+} from "@/features/leaderboard/components/check-eligibility";
+import {
+  columns,
+  type SizeColumn,
+} from "@/features/leaderboard/components/table/columns";
+import { DataTable } from "@/features/leaderboard/components/table/data-table";
 import { CurrentUserInfo } from "./types";
 
 const LoadingSpinner = React.memo(
