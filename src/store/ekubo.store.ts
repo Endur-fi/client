@@ -201,20 +201,4 @@ export const userEkuboxSTRKPositions: DAppHoldingsAtom = atomFamily(
     }),
 );
 
-// TODO: remove if not needed
-const _getHistory = async (positionId: string) => {
-  try {
-    const res = await axios.get(
-      `https://mainnet-api.ekubo.org/${positionId}/history`,
-    );
-
-    if (res?.data) {
-      return res?.data?.events;
-    }
-
-    return [];
-  } catch (error) {
-    console.error("getHistory [3]", error);
-    return [];
-  }
-};
+// TODO: remove if not needed - SOLVED

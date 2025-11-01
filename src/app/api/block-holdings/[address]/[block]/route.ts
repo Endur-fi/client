@@ -1,3 +1,5 @@
+// [block] > route.ts
+
 import { NextResponse } from "next/server";
 
 import MyNumber from "@/lib/MyNumber";
@@ -26,6 +28,7 @@ export interface BlockInfo {
   };
 }
 
+//TODO: remove this if not used anywhere
 export async function GET(_req: Request, context: any) {
   const { params } = context;
   const addr = params.address;

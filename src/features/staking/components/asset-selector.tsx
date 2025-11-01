@@ -3,7 +3,7 @@ import { useSetAtom } from "jotai";
 import { useAccount, useBalance } from "@starknet-react/core";
 import { getLSTAssetsByCategory, getFirstBTCAsset } from "@/constants";
 import { lstConfigAtom } from "@/store/common.store"; // Adjust path if needed
-import { Icons } from "./Icons";
+import { Icons } from "../../../components/Icons";
 import {
   DropdownMenu,
   DropdownMenuContent,

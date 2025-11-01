@@ -169,8 +169,8 @@ export const getVesuHoldings: DAppHoldingsFn = async ({
   };
 };
 
-// TODO: don't export if not needed
-export const uservXSTRKBalanceQueryAtom = getHoldingAtom(
+// TODO: don't export if not needed - SOLVED
+const uservXSTRKBalanceQueryAtom = getHoldingAtom(
   "uservXSTRKBalance",
   getVesuHoldings,
 );

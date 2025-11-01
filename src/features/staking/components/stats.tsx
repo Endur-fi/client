@@ -4,32 +4,30 @@ import React, { useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { formatNumber } from "@/lib/utils";
+  formatNumber,
+  createTrovesHyperConfig,
+  buildUrlWithReferrer,
+} from "@/lib/utils";
 import {
   totalStakedAtom,
   totalStakedUSDAtom,
   userLSTBalanceAtom,
 } from "@/store/lst.store";
 import { snAPYAtom } from "@/store/staking.store";
-import { totalXSTRKAcrossDefiHoldingsAtom } from "@/components/strk-portfolio-page/_components/stats";
+import { totalXSTRKAcrossDefiHoldingsAtom } from "@/features/portfolio/components/stats";
 import { tabsAtom, activeSubTabAtom } from "@/store/merry.store";
 import { lstConfigAtom } from "@/store/common.store";
 
-import { Icons } from "./Icons";
-import { type Platform } from "./stake";
+import { Icons } from "../../../components/Icons";
+import { type Platform } from "./stake-sub-tab";
 import AssetSelector, { getFirstBtcAsset } from "./asset-selector";
+import { MyDottedTooltip } from "../../../components/my-tooltip";
 
-// TODO: can shift this to utils if it is same as stake's platformConfig
+// TODO: can shift this to utils if it is same as stake's platformConfig - SOLVED
 const platformConfig = (lstConfig: any) => {
   return {
     trovesHyper: {
-      platform: "Troves",
-      name: `Trove's Hyper ${lstConfig.LST_SYMBOL} Vault`,
+      ...createTrovesHyperConfig(lstConfig.LST_SYMBOL),
       description: (
         <p>Leveraged liquidation risk managed vault. Read all risks here</p>
       ),
@@ -79,16 +77,17 @@ const Stats: React.FC<StatsProps> = ({
 
       const newPath = pathMap[assetSymbol] || "/btc";
 
-      // TODO: this logic where referrer query is conditioanlly appended can be moved to common utils and used everywhere required
-      // navigateWithRefferer(to: string) => check if referrer is present in current url and add if true
-      const queryParams = new URLSearchParams();
-      if (referrer) queryParams.set("referrer", referrer);
-      if (activeSubTab && activeSubTab !== "stake")
-        queryParams.set("tab", activeSubTab);
+      // TODO: this logic where referrer query is conditioanlly appended can be moved to common utils and used everywhere required - SOLVED
+      const additionalParams: Record<string, string> = {};
+      if (activeSubTab && activeSubTab !== "stake") {
+        additionalParams.tab = activeSubTab;
+      }
 
-      const queryString = queryParams.toString();
-      const finalPath = queryString ? `${newPath}?${queryString}` : newPath;
-
+      const finalPath = buildUrlWithReferrer(
+        newPath,
+        referrer,
+        additionalParams,
+      );
       router.push(finalPath);
     }
   };
@@ -121,22 +120,18 @@ const Stats: React.FC<StatsProps> = ({
         <p className="flex flex-col items-center text-xs font-semibold lg:flex-row lg:gap-2">
           <span className="flex items-center gap-1 text-xs font-semibold text-[#3F6870] lg:text-[#8D9C9C]">
             APY
-            {/* TODO: use InfoTooltip */}
-            <TooltipProvider delayDuration={0}>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Info className="size-3 text-[#3F6870] lg:text-[#8D9C9C]" />
-                </TooltipTrigger>
-                <TooltipContent
-                  side="right"
-                  className="max-w-56 rounded-md border border-[#03624C] bg-white text-[#03624C]"
-                >
+            {/* TODO: use InfoTooltip - SOLVED */}
+            <MyDottedTooltip
+              tooltip={
+                <div className="text-[#03624C]">
                   {!selectedPlatform || selectedPlatform === "none"
                     ? "Estimated current compounded annualised yield on staking in terms of STRK."
                     : `Estimated yield including both staking and lending on ${platformConfig(lstConfig)[selectedPlatform]?.platform || "DeFi platform"}.`}
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+                </div>
+              }
+            >
+              <Info className="size-3 text-[#3F6870] lg:text-[#8D9C9C]" />
+            </MyDottedTooltip>
           </span>
           <span className="flex items-center gap-1">
             ~{memoizedApyValue}%
@@ -190,24 +185,20 @@ const Stats: React.FC<StatsProps> = ({
               {lstConfig.LST_SYMBOL}
             </span>
             <div className="ml-auto pl-2">
-              {/* TODO: use InfoTooltip */}
-              <TooltipProvider delayDuration={0}>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Info className="ml-[5px] size-3 text-[#efefef]" />
-                  </TooltipTrigger>
-                  <TooltipContent
-                    side="right"
-                    className="max-w-56 rounded-md border border-[#03624C] bg-white text-[#03624C]"
-                  >
+              {/* TODO: use InfoTooltip - SOLVED */}
+              <MyDottedTooltip
+                tooltip={
+                  <>
                     {lstConfig.LST_SYMBOL} directly available in your wallet.
                     You can unstake this {lstConfig.LST_SYMBOL} anytime.
                     <br />
                     <br />
                     Excludes {lstConfig.LST_SYMBOL} in DeFi apps.
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+                  </>
+                }
+              >
+                <Info className="ml-[5px] size-3 text-[#efefef]" />
+              </MyDottedTooltip>
             </div>
           </div>
 
@@ -222,16 +213,10 @@ const Stats: React.FC<StatsProps> = ({
                   {lstConfig.LST_SYMBOL}
                 </span>
                 <div className="ml-auto pl-2">
-                  {/* TODO: use InfoTooltip */}
-                  <TooltipProvider delayDuration={0}>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Info className="ml-[5px] size-3 text-[#17876D]" />
-                      </TooltipTrigger>
-                      <TooltipContent
-                        side="right"
-                        className="max-w-56 rounded-md border border-[#03624C] bg-white text-[#03624C]"
-                      >
+                  {/* TODO: use InfoTooltip - SOLVED */}
+                  <MyDottedTooltip
+                    tooltip={
+                      <>
                         <div>
                           {lstConfig.LST_SYMBOL} in third party DeFi apps. You
                           cannot unstake this {lstConfig.LST_SYMBOL} directly.
@@ -247,9 +232,11 @@ const Stats: React.FC<StatsProps> = ({
                           </a>{" "}
                           to see more details.
                         </div>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
+                      </>
+                    }
+                  >
+                    <Info className="ml-[5px] size-3 text-[#17876D]" />
+                  </MyDottedTooltip>
                 </div>
               </div>
             </a>

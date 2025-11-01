@@ -1,14 +1,8 @@
 import type { Metadata } from "next";
 
-import Tabs from "@/components/Tabs";
+import Tabs from "@/features/staking/components/token-tab";
 import { getLSTAssetBySymbol } from "@/constants";
-
-// TODO: move the interface to separate file
-export interface TokenProps {
-  params: {
-    token: string;
-  };
-}
+import type { TokenProps } from "@/types";
 
 export async function generateMetadata({
   params,
