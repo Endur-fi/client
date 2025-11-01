@@ -1,18 +1,20 @@
-import React from "react";
-import { Metadata } from "next";
+"use client";
 
-import Tabs from "@/components/Tabs";
-
-export const metadata: Metadata = {
-  title: "Endur.fi | Starknet Liquid Staking | xSTRK | Earn STRK rewards",
-  description:
-    "Stake STRK with Endur and receive xSTRK - the liquid staking token on Starknet. Earn rewards while accessing DeFi with instant liquidity, higher rewards and faster unstaking",
-};
+import { useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 
 export default function Home() {
-  return (
-    <main className="h-full w-full">
-      <Tabs />
-    </main>
-  );
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    // Capture search parameters
+    const params = searchParams.toString();
+    const redirectUrl = params ? `/btc?${params}` : "/btc";
+
+    console.log(`redirecting to ${redirectUrl}`);
+    router.push(redirectUrl);
+  }, [router, searchParams]);
+
+  return null; // This component doesn't render anything
 }

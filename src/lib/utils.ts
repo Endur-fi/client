@@ -9,7 +9,7 @@ import {
 } from "starknet";
 import { twMerge } from "tailwind-merge";
 
-import { STRK_ORACLE_CONTRACT } from "@/constants";
+import { BTC_ORACLE_CONTRACT, STRK_ORACLE_CONTRACT } from "@/constants";
 import { toast } from "@/hooks/use-toast";
 
 import OracleAbi from "../abi/oracle.abi.json";
@@ -30,12 +30,14 @@ export function formatNumber(
 ): string {
   const numberValue = typeof num === "string" ? Number(num) : num;
 
-  if (numberValue >= 1_000_000) {
-    return `${(numberValue / 1_000_000).toFixed(decimals ?? 2)}${caps ? "M" : "m"}`;
-  } else if (numberValue >= 1_000) {
-    return `${(numberValue / 1_000).toFixed(decimals ?? 2)}${caps ? "K" : "k"}`;
+  console.log("numberValue", numberValue);
+
+  if (numberValue >= 1000000) {
+    return `${(numberValue / 1000000).toFixed(decimals ?? 2)}${caps ? "M" : "m"}`;
+  } else if (numberValue >= 1000) {
+    return `${(numberValue / 1000).toFixed(decimals ?? 2)}${caps ? "K" : "k"}`;
   }
-  return `${numberValue.toFixed(decimals ?? 2)}`;
+  return `${numberValue}`;
 }
 
 export function formatNumberWithCommas(
@@ -134,7 +136,7 @@ export function getReferralUrl(referralCode: string) {
 
 export function convertFutureTimestamp(unixTimestamp: number): string {
   const currentTime = Date.now();
-  const futureTime = unixTimestamp * 1000; // Convert to milliseconds
+  const futureTime = (unixTimestamp + 24 * 60 * 60) * 1000; // Add 24 hours (86400 seconds) and convert to milliseconds
   const difference = futureTime - currentTime;
 
   if (difference <= 0) {
@@ -166,7 +168,7 @@ export const eventNames = {
   OPPORTUNITIES: "opportunities",
 };
 
-export async function getSTRKPrice() {
+export async function getAssetPrice(isSTRK: boolean = true): Promise<number> {
   const provider = new RpcProvider({
     nodeUrl:
       process.env.NEXT_PUBLIC_CHAIN_ID === "SN_MAIN"
@@ -176,9 +178,11 @@ export async function getSTRKPrice() {
 
   if (!provider) return 0;
 
+  const oracleContract = isSTRK ? STRK_ORACLE_CONTRACT : BTC_ORACLE_CONTRACT;
+
   const contract = new Contract({
     abi: OracleAbi,
-    address: STRK_ORACLE_CONTRACT,
+    address: oracleContract,
     providerOrAccount: provider,
   });
   const data = await contract.call("get_price", []);

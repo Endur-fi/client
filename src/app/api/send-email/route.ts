@@ -92,11 +92,10 @@ export async function POST(request: NextRequest) {
         FIRSTNAME: email, // store original email in FIRSTNAME
         LASTNAME: standardizedAddress, // store address in LASTNAME since custom attributes don't work
       },
-      updateEnabled: true, // Allow updating existing contacts
-      email: compositeEmail, // use composite email to allow duplicates
-      ext_id: `${email}_${standardizedAddress}`, // unique identifier combining email and address
-      // TODO: change the list id later
-      listIds: [5], // Subscribers-Endur list
+      updateEnabled: false,
+      email,
+      ext_id: standariseAddress(address), // unique identifier for the contact
+      listIds: listIDs, // Subscribers-Endur list
     };
 
     try {
