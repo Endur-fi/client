@@ -83,15 +83,20 @@ export async function POST(request: NextRequest) {
     console.log("Email sent successfully:", emailResponse.data);
 
     // create contact in Brevo after successful email send
+    // Use a composite identifier to allow same email with different addresses
+    const standardizedAddress = standariseAddress(address);
+    const compositeEmail = `${email.split("@")[0]}+${standardizedAddress.slice(-8)}@${email.split("@")[1]}`;
+
     const contactPayload = {
       attributes: {
-        FIRSTNAME: standariseAddress(address), // using FIRSTNAME attribute for address cuz somehow custom attributes are not working
-        ADDRESS: standariseAddress(address),
+        FIRSTNAME: email, // store original email in FIRSTNAME
+        LASTNAME: standardizedAddress, // store address in LASTNAME since custom attributes don't work
       },
-      updateEnabled: false,
-      email,
-      ext_id: standariseAddress(address), // unique identifier for the contact
-      listIds: listIDs, // Subscribers-Endur list
+      updateEnabled: true, // Allow updating existing contacts
+      email: compositeEmail, // use composite email to allow duplicates
+      ext_id: `${email}_${standardizedAddress}`, // unique identifier combining email and address
+      // TODO: change the list id later
+      listIds: [5], // Subscribers-Endur list
     };
 
     try {
