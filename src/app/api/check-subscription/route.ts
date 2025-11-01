@@ -3,6 +3,8 @@ import apolloClient from "@/lib/apollo-client";
 import axios from "axios";
 import { NextRequest, NextResponse } from "next/server";
 
+import { standariseAddress } from "@/lib/utils";
+
 export async function POST(request: NextRequest) {
   try {
     const { address } = await request.json();
@@ -37,21 +39,41 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const response = await axios.get(
-      `https://api.brevo.com/v3/contacts/${address}`,
-      {
-        params: { identifierType: "ext_id" },
-        headers: {
-          accept: "application/json",
-          "api-key": apiKey,
-        },
+    // Search for contacts with the standardized address in LASTNAME field
+    const standardizedAddress = standariseAddress(address);
+
+    const response = await axios.get("https://api.brevo.com/v3/contacts", {
+      params: {
+        limit: 50,
+        offset: 0,
+        sort: "desc",
+        modifiedSince: "2020-01-01T00:00:00.000Z",
       },
+      headers: {
+        accept: "application/json",
+        "api-key": apiKey,
+      },
+    });
+
+    // Filter contacts that have the standardized address in LASTNAME
+    const matchingContacts = response.data.contacts?.filter(
+      (contact: any) => contact.attributes?.LASTNAME === standardizedAddress,
     );
+
+    if (matchingContacts && matchingContacts.length > 0) {
+      return NextResponse.json(
+        {
+          isSubscribed: true,
+          contactDetails: matchingContacts[0], // Return the first matching contact
+          totalMatches: matchingContacts.length,
+        },
+        { status: 200 },
+      );
+    }
 
     return NextResponse.json(
       {
-        isSubscribed: true,
-        contactDetails: response.data,
+        isSubscribed: false,
       },
       { status: 200 },
     );
