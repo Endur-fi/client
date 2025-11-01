@@ -9,20 +9,32 @@ import { NextResponse } from "next/server";
 export const revalidate = 60 * 60 * 6; // 6 hours
 
 /**
- * Retrieves the xSTRK exchange rate for a given block.
+ * Retrieves the lst exchange rate for a given block.
  *
  * @param block - The block number.
  * @returns The exchange rate.
  * @throws If the maximum number of tries is reached and an error is still thrown.
  */
-const getExchangeRate = async (block: number) => {
+const getExchangeRate = async (
+  lstAddress: string,
+  decimals: number,
+  block: number,
+) => {
   const MAX_TRIES = 5;
   let tries = 0;
   while (tries < MAX_TRIES) {
     try {
-      const totalSupply = await getTotalSupplyByBlock(block);
-      const totalAssets = await getTotalAssetsByBlock(block);
-      const ex = getExchangeRateGivenAssets(totalAssets, totalSupply);
+      const totalSupply = await getTotalSupplyByBlock(
+        lstAddress,
+        decimals,
+        block,
+      );
+      const totalAssets = await getTotalAssetsByBlock(
+        lstAddress,
+        decimals,
+        block,
+      );
+      const ex = getExchangeRateGivenAssets(totalAssets, totalSupply, decimals);
       return ex;
     } catch (err) {
       tries++;
@@ -34,9 +46,40 @@ const getExchangeRate = async (block: number) => {
   }
 };
 
-export async function GET(_req: Request, context: any) {
+export async function GET(req: Request, context: any) {
   const { params } = context;
+  const { searchParams } = new URL(req.url);
   const nDays = Number(params.nDays);
+  const lstAddress = searchParams.get("lstAddress");
+  const decimalsStr = searchParams.get("decimals");
+
+  if (!lstAddress) {
+    return NextResponse.json(
+      {
+        error: "lstAddress parameter is required",
+      },
+      { status: 400 },
+    );
+  }
+
+  if (!decimalsStr) {
+    return NextResponse.json(
+      {
+        error: "decimals parameter is required",
+      },
+      { status: 400 },
+    );
+  }
+
+  const decimals = Number(decimalsStr);
+  if (isNaN(decimals)) {
+    return NextResponse.json(
+      {
+        error: "decimals must be a valid number",
+      },
+      { status: 400 },
+    );
+  }
 
   // days is the time period of blocks we need
   // gapDays is the gap between each block in days (to avoid too much computation)
@@ -107,7 +150,7 @@ export async function GET(_req: Request, context: any) {
     allBlocks.map(async (block) => {
       return {
         ...block,
-        exchangeRate: await getExchangeRate(block.block),
+        exchangeRate: await getExchangeRate(lstAddress, decimals, block.block),
       };
     }),
   );

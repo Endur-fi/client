@@ -2,10 +2,12 @@ import axios from "axios";
 import { NextRequest, NextResponse } from "next/server";
 
 import { standariseAddress } from "@/lib/utils";
+import apolloClient from "@/lib/apollo-client";
+import { SAVE_USER_EMAIL } from "@/constants/mutations";
 
 export async function POST(request: NextRequest) {
   try {
-    const { email, address } = await request.json();
+    const { email, address, listIDs } = await request.json();
 
     if (!email) {
       return NextResponse.json({ error: "Email is required" }, { status: 400 });
@@ -14,6 +16,13 @@ export async function POST(request: NextRequest) {
     if (!address) {
       return NextResponse.json(
         { error: "Address is required" },
+        { status: 400 },
+      );
+    }
+
+    if (!listIDs) {
+      return NextResponse.json(
+        { error: "List Ids is required" },
         { status: 400 },
       );
     }
@@ -83,11 +92,10 @@ export async function POST(request: NextRequest) {
         FIRSTNAME: email, // store original email in FIRSTNAME
         LASTNAME: standardizedAddress, // store address in LASTNAME since custom attributes don't work
       },
-      updateEnabled: true, // Allow updating existing contacts
-      email: compositeEmail, // use composite email to allow duplicates
-      ext_id: `${email}_${standardizedAddress}`, // unique identifier combining email and address
-      // TODO: change the list id later
-      listIds: [5], // Subscribers-Endur list
+      updateEnabled: false,
+      email,
+      ext_id: standariseAddress(address), // unique identifier for the contact
+      listIds: listIDs, // Subscribers-Endur list
     };
 
     try {
@@ -104,32 +112,36 @@ export async function POST(request: NextRequest) {
       );
 
       console.log("Contact created successfully:", contactResponse.data);
-
-      return NextResponse.json(
-        {
-          success: true,
-          message: "Endur's email subscription activated and contact created",
-          messageId: emailResponse.data.messageId,
-          contactId: contactResponse.data.id,
-        },
-        { status: 200 },
-      );
     } catch (contactError) {
       console.error("Error creating contact:", contactError);
+    }
 
-      // still return success for email, but note contact creation issue
-      return NextResponse.json(
-        {
-          success: true,
-          message: "Email sent successfully, but contact creation failed",
-          messageId: emailResponse.data.messageId,
-          contactError: axios.isAxiosError(contactError)
-            ? contactError.response?.data?.message || contactError.message
-            : "Unknown contact creation error",
+    // save in our db
+    const resp = await apolloClient.mutate({
+      mutation: SAVE_USER_EMAIL,
+      variables: {
+        input: {
+          userAddress: standariseAddress(address),
+          email,
         },
-        { status: 200 },
+      },
+    });
+    console.log("Email saved in database:", resp.data);
+    if (!resp.data.saveEmail.success) {
+      return NextResponse.json(
+        { error: "Failed to save email in database" },
+        { status: 500 },
       );
     }
+
+    return NextResponse.json(
+      {
+        success: true,
+        message: "Endur's email subscription activated and contact created",
+        messageId: emailResponse.data.messageId,
+      },
+      { status: 200 },
+    );
   } catch (error) {
     console.error("Error sending email:", error);
 

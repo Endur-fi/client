@@ -1,6 +1,7 @@
 import { useAtomValue } from "jotai";
 import { Info } from "lucide-react";
 import React, { useMemo } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 
 import {
   Tooltip,
@@ -12,29 +13,100 @@ import { formatNumber } from "@/lib/utils";
 import {
   totalStakedAtom,
   totalStakedUSDAtom,
-  userXSTRKBalanceAtom,
+  userLSTBalanceAtom,
 } from "@/store/lst.store";
 import { snAPYAtom } from "@/store/staking.store";
 
 import { Icons } from "./Icons";
 import { type Platform } from "./stake";
 import { totalXSTRKAcrossDefiHoldingsAtom } from "@/app/portfolio/_components/stats";
+import AssetSelector, { getFirstBtcAsset } from "./asset-selector";
+import { tabsAtom, activeSubTabAtom } from "@/store/merry.store";
+import { lstConfigAtom } from "@/store/common.store";
+
+const platformConfig = (lstConfig: any) => {
+  return {
+    trovesHyper: {
+      platform: "Troves",
+      name: `Trove's Hyper ${lstConfig.LST_SYMBOL} Vault`,
+      description: (
+        <p>Leveraged liquidation risk managed vault. Read all risks here</p>
+      ),
+    },
+  };
+};
 
 interface StatsProps {
   selectedPlatform?: Platform;
   getPlatformYield?: (platform: Platform) => number;
+  mode?: "stake" | "unstake"; // Add mode prop to determine sorting logic
 }
 
 const Stats: React.FC<StatsProps> = ({
   selectedPlatform,
   getPlatformYield,
+  mode = "stake", // Default to stake mode
 }) => {
+  const router = useRouter();
   const apy = useAtomValue(snAPYAtom);
-  const currentStaked = useAtomValue(userXSTRKBalanceAtom);
+  const currentStaked = useAtomValue(userLSTBalanceAtom);
   const totalStaked = useAtomValue(totalStakedAtom);
   const totalStakedUSD = useAtomValue(totalStakedUSDAtom);
+  const activeTab = useAtomValue(tabsAtom);
+  const activeSubTab = useAtomValue(activeSubTabAtom);
+  const lstConfig = useAtomValue(lstConfigAtom)!;
+  const isBTC = lstConfig.SYMBOL?.toLowerCase().includes("btc");
+  const searchParams = useSearchParams();
+  const referrer = searchParams.get("referrer");
 
   const totalXSTRKAcrossDefi = useAtomValue(totalXSTRKAcrossDefiHoldingsAtom);
+
+  const [selectedAsset, setSelectedAsset] = React.useState<string>(
+    lstConfig?.SYMBOL || getFirstBtcAsset(),
+  );
+
+  const handleAssetChange = (assetSymbol: string) => {
+    setSelectedAsset(assetSymbol);
+
+    if (activeTab === "btc") {
+      const pathMap: Record<string, string> = {
+        LBTC: "/lbtc",
+        WBTC: "/wbtc",
+        tBTC: "/tbtc",
+        solvBTC: "/solvbtc",
+      };
+
+      const newPath = pathMap[assetSymbol] || "/btc";
+
+      const queryParams = new URLSearchParams();
+      if (referrer) queryParams.set("referrer", referrer);
+      if (activeSubTab && activeSubTab !== "stake")
+        queryParams.set("tab", activeSubTab);
+
+      const queryString = queryParams.toString();
+      const finalPath = queryString ? `${newPath}?${queryString}` : newPath;
+
+      router.push(finalPath);
+    }
+  };
+
+  React.useEffect(() => {
+    if (lstConfig?.SYMBOL && activeTab === "btc") {
+      setSelectedAsset(lstConfig.SYMBOL);
+    }
+  }, [lstConfig?.SYMBOL, activeTab]);
+
+  // Memoize APY values to prevent re-renders from async calculations
+  const memoizedApyValue = useMemo(() => {
+    const apyValue =
+      activeTab === "strk" ? apy.value.strkApy * 100 : apy.value.btcApy * 100;
+
+    // Show more decimal places for very small values
+    if (apyValue < 0.01 && apyValue > 0) {
+      return apyValue.toFixed(6);
+    }
+    return apyValue.toFixed(2);
+  }, [activeTab, apy.value.strkApy, apy.value.btcApy]);
 
   const xSTRKInDefiOnly = useMemo(() => {
     return totalXSTRKAcrossDefi - Number(currentStaked.value.toEtherStr());
@@ -57,13 +129,13 @@ const Stats: React.FC<StatsProps> = ({
                 >
                   {!selectedPlatform || selectedPlatform === "none"
                     ? "Estimated current compounded annualised yield on staking in terms of STRK."
-                    : `Estimated yield including both staking and lending on ${selectedPlatform === "vesu" ? "Vesu" : "Nostra"}.`}
+                    : `Estimated yield including both staking and lending on ${platformConfig(lstConfig)[selectedPlatform]?.platform || "DeFi platform"}.`}
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
           </span>
           <span className="flex items-center gap-1">
-            ~{(apy.value * 100).toFixed(2)}%
+            ~{memoizedApyValue}%
             {selectedPlatform && selectedPlatform !== "none" && (
               <span className="font-semibold text-[#17876D]">
                 +{" "}
@@ -80,27 +152,38 @@ const Stats: React.FC<StatsProps> = ({
           TVL
           <p className="flex items-center gap-2">
             <span>
-              {formatNumber(totalStaked.value.toEtherToFixedDecimals(2))} STRK
+              {formatNumber(totalStaked.value.toEtherToFixedDecimals(2))}{" "}
+              {lstConfig.SYMBOL}
             </span>
             <span className="font-medium">
-              | ${formatNumber(totalStakedUSD.value)}
+              | ${formatNumber(totalStakedUSD.value.toFixed(2))}
             </span>
           </p>
         </div>
       </div>
 
       <div className="flex items-center justify-between border-b bg-gradient-to-t from-[#E9F3F0] to-white px-5 py-12 lg:py-12">
-        <div className="flex items-center gap-2 text-sm font-semibold text-black lg:gap-4 lg:text-2xl">
-          <Icons.strkLogo className="size-6 lg:size-[35px]" />
-          STRK
-        </div>
+        {activeTab === "strk" ? (
+          <div className="flex items-center gap-2 text-sm font-semibold text-black lg:gap-4 lg:text-2xl">
+            <Icons.strkLogo className="size-6 lg:size-[35px]" />
+            STRK
+          </div>
+        ) : (
+          <AssetSelector
+            selectedAsset={selectedAsset}
+            onChange={handleAssetChange}
+            mode={mode}
+          />
+        )}
 
         <div>
           <div className="flex items-center justify-between rounded-md bg-[#17876D] px-2 py-1 text-xs text-white">
             <span>
               Available stake:{" "}
-              {formatNumber(currentStaked.value.toEtherToFixedDecimals(2))}{" "}
-              xSTRK
+              {Number(
+                currentStaked.value.toEtherToFixedDecimals(isBTC ? 8 : 2),
+              ).toFixed(isBTC ? 8 : 2)}{" "}
+              {lstConfig.LST_SYMBOL}
             </span>
             <div className="ml-auto pl-2">
               <TooltipProvider delayDuration={0}>
@@ -112,52 +195,59 @@ const Stats: React.FC<StatsProps> = ({
                     side="right"
                     className="max-w-56 rounded-md border border-[#03624C] bg-white text-[#03624C]"
                   >
-                    xSTRK directly available in your wallet. You can unstake
-                    this xSTRK anytime.
+                    {lstConfig.LST_SYMBOL} directly available in your wallet.
+                    You can unstake this {lstConfig.LST_SYMBOL} anytime.
                     <br />
                     <br />
-                    Excludes xSTRK in DeFi apps.
+                    Excludes {lstConfig.LST_SYMBOL} in DeFi apps.
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
             </div>
           </div>
 
-          <a href="/portfolio">
-            <div className="mt-[10px] flex items-center justify-between rounded-md bg-white px-2 py-1 text-xs text-[#17876D]">
-              <span>
-                Stake in DeFi: {formatNumber(xSTRKInDefiOnly.toFixed(2))} xSTRK
-              </span>
-              <div className="ml-auto pl-2">
-                <TooltipProvider delayDuration={0}>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Info className="ml-[5px] size-3 text-[#17876D]" />
-                    </TooltipTrigger>
-                    <TooltipContent
-                      side="right"
-                      className="max-w-56 rounded-md border border-[#03624C] bg-white text-[#03624C]"
-                    >
-                      <div>
-                        xSTRK in third party DeFi apps. You cannot unstake this
-                        xSTRK directly. Withdraw your xSTRK from DeFi apps to
-                        unstake here.
-                      </div>
-                      <br />
-                      <div>
-                        <b>Note:</b> This is a beta feature, may not include all
-                        DApps. Click{" "}
-                        <a href="/portfolio">
-                          <b>here</b>
-                        </a>{" "}
-                        to see more details.
-                      </div>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+          {!isBTC && (
+            <a href="/portfolio">
+              <div className="mt-[10px] flex items-center justify-between rounded-md bg-white px-2 py-1 text-xs text-[#17876D]">
+                <span>
+                  Stake in DeFi:{" "}
+                  {Number(xSTRKInDefiOnly.toFixed(isBTC ? 8 : 2)).toFixed(
+                    isBTC ? 8 : 2,
+                  )}{" "}
+                  {lstConfig.LST_SYMBOL}
+                </span>
+                <div className="ml-auto pl-2">
+                  <TooltipProvider delayDuration={0}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Info className="ml-[5px] size-3 text-[#17876D]" />
+                      </TooltipTrigger>
+                      <TooltipContent
+                        side="right"
+                        className="max-w-56 rounded-md border border-[#03624C] bg-white text-[#03624C]"
+                      >
+                        <div>
+                          {lstConfig.LST_SYMBOL} in third party DeFi apps. You
+                          cannot unstake this {lstConfig.LST_SYMBOL} directly.
+                          Withdraw your {lstConfig.LST_SYMBOL} from DeFi apps to
+                          unstake here.
+                        </div>
+                        <br />
+                        <div>
+                          <b>Note:</b> This is a beta feature, may not include
+                          all DApps. Click{" "}
+                          <a href="/portfolio">
+                            <b>here</b>
+                          </a>{" "}
+                          to see more details.
+                        </div>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
               </div>
-            </div>
-          </a>
+            </a>
+          )}
         </div>
       </div>
     </>

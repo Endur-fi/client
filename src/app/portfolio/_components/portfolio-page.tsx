@@ -2,13 +2,14 @@
 
 import { useAccount } from "@starknet-react/core";
 import { useAtomValue } from "jotai";
-import React, { useEffect } from "react";
+import React from "react";
 
 import { BlockInfo } from "@/app/api/holdings/[address]/[nDays]/route";
 import { ProtocolConfig, protocolConfigs } from "@/components/defi";
 import { useSidebar } from "@/components/ui/sidebar";
 import { STRK_DECIMALS } from "@/constants";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { MyAnalytics } from "@/lib/analytics";
 import MyNumber from "@/lib/MyNumber";
 import { cn, formatNumberWithCommas } from "@/lib/utils";
 import {
@@ -28,7 +29,6 @@ import {
   getPortfolioDAppAsset,
 } from "./table/columns";
 import { DataTable } from "./table/data-table";
-import { MyAnalytics } from "@/lib/analytics";
 
 export type HoldingInfo = {
   date: string;
@@ -47,6 +47,7 @@ const PortfolioPage: React.FC = () => {
   const [holdings, setHoldings] = React.useState<HoldingInfo[]>([]);
   const [lastUpdated, setLastUpdated] = React.useState<Date | null>(null);
   const [isFetchError, setIsFetchError] = React.useState(false);
+  const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
 
   const timeRange = useAtomValue(chartFilter);
   const { address } = useAccount();
@@ -114,11 +115,36 @@ const PortfolioPage: React.FC = () => {
         console.log("fetching holdings");
         setHoldings([]);
         setIsFetchError(false);
+        setErrorMessage(null);
         const res = await fetch(
           `/api/holdings/${address}/${timeRange.slice(0, -1)}`,
         );
-        const data = await res.json();
-        // console.error("data", data);
+
+        // Check if the response is ok
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+
+        // Check if response has content
+        const text = await res.text();
+        if (!text) {
+          throw new Error("Empty response from server");
+        }
+
+        let data;
+        try {
+          data = JSON.parse(text);
+        } catch (parseError) {
+          console.error("JSON parse error:", parseError);
+          console.error("Response text:", text);
+          throw new Error("Invalid JSON response from server");
+        }
+
+        // Check if the response contains an error
+        if (data.error) {
+          throw new Error(data.error);
+        }
+
         if (data) {
           // ? ADD_NEW_PROTOCOL: Update this
           const blocks: BlockInfo[] = data.blocks;
@@ -151,21 +177,21 @@ const PortfolioPage: React.FC = () => {
             return {
               date: block.date,
               nostraLending: serialisedMyNumberToNumber(
-                nostraLending[idx].xSTRKAmount as any,
+                nostraLending[idx].lstAmount as any,
               ),
               nostraDex: serialisedMyNumberToNumber(
-                nostraDex[idx].xSTRKAmount as any,
+                nostraDex[idx].lstAmount as any,
               ),
-              vesu: serialisedMyNumberToNumber(vesu[idx].xSTRKAmount as any),
-              ekubo: serialisedMyNumberToNumber(ekubo[idx].xSTRKAmount as any),
-              endur: serialisedMyNumberToNumber(wallet[idx].xSTRKAmount as any),
+              vesu: serialisedMyNumberToNumber(vesu[idx].lstAmount as any),
+              ekubo: serialisedMyNumberToNumber(ekubo[idx].lstAmount as any),
+              endur: serialisedMyNumberToNumber(wallet[idx].lstAmount as any),
               strkfarm: serialisedMyNumberToNumber(
-                strkfarm[idx].xSTRKAmount as any,
+                strkfarm[idx].lstAmount as any,
               ),
               strkfarmEkubo: serialisedMyNumberToNumber(
-                strkfarmEkubo[idx].xSTRKAmount as any,
+                strkfarmEkubo[idx].lstAmount as any,
               ),
-              opus: serialisedMyNumberToNumber(opus[idx].xSTRKAmount as any),
+              opus: serialisedMyNumberToNumber(opus[idx].lstAmount as any),
             };
           });
           holdings.sort(
@@ -176,6 +202,9 @@ const PortfolioPage: React.FC = () => {
       } catch (error) {
         console.error("Error fetching data:", error);
         setIsFetchError(true);
+        setErrorMessage(
+          error instanceof Error ? error.message : "Unknown error occurred",
+        );
       }
     };
     fetchData();
@@ -202,7 +231,7 @@ const PortfolioPage: React.FC = () => {
     return summary;
   }, [holdings]);
 
-  useEffect(() => {
+  React.useEffect(() => {
     MyAnalytics.track("Open Portfolio", {});
   }, []);
 
@@ -249,7 +278,7 @@ const PortfolioPage: React.FC = () => {
           <Chart
             chartData={summaryPieChartHoldings}
             lastUpdated={lastUpdated}
-            error={isFetchError ? "Failed to fetch data" : null}
+            error={isFetchError ? errorMessage || "Failed to fetch data" : null}
           />
         </div>
 

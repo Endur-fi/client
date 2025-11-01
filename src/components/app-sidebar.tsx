@@ -36,7 +36,8 @@ export function AppSidebar() {
 
   const isMerry = useAtomValue(isMerryChristmasAtom);
 
-  if (typeof window === "undefined" || isMobile) return null;
+  // Don't render sidebar on mobile to prevent hydration issues
+  if (isMobile) return null;
 
   return (
     <Sidebar
@@ -94,7 +95,7 @@ export function AppSidebar() {
         </SidebarMenu>
       </SidebarHeader>
 
-      <SidebarContent className={cn("bg-[#AACBC433] pt-5", {})}>
+      <SidebarContent className={cn("overflow-y-auto bg-[#AACBC433] pt-5", {})}>
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu className="space-y-1.5">

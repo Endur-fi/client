@@ -8,7 +8,7 @@ import {
 } from "@starknet-react/core";
 import { Figtree } from "next/font/google";
 import React from "react";
-import { constants, RpcProviderOptions } from "starknet";
+import { BlockTag, constants, RpcProviderOptions } from "starknet";
 
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { NETWORK } from "@/constants";
@@ -24,7 +24,8 @@ interface ProvidersProps {
   children: React.ReactNode;
 }
 
-const chains = [mainnet, sepolia];
+const chains =
+  NETWORK === constants.NetworkName.SN_MAIN ? [mainnet] : [sepolia];
 
 const provider = jsonRpcProvider({
   rpc: () => {
@@ -34,7 +35,7 @@ const provider = jsonRpcProvider({
         NETWORK === constants.NetworkName.SN_MAIN
           ? constants.StarknetChainId.SN_MAIN
           : constants.StarknetChainId.SN_SEPOLIA,
-      blockIdentifier: "pending",
+      blockIdentifier: BlockTag.LATEST,
     };
     return args;
   },

@@ -295,6 +295,23 @@ export const Icons = {
       />
     </svg>
   ),
+  arrowUpDown: (props: LucideProps) => (
+    <svg
+      {...props}
+      width="13"
+      height="13"
+      viewBox="0 0 13 13"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M9.83333 3.77604L9.83333 11.776M9.83333 11.776L12.5 9.10937M9.83333 11.776L7.16667 9.10937M3.16667 9.10937L3.16667 1.10937M3.16667 1.10937L0.5 3.77604M3.16667 1.10937L5.83333 3.77604"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  ),
   gradient: (props: IconProps) => (
     <svg
       {...props}
@@ -718,7 +735,7 @@ export const Icons = {
     >
       <path
         d="M8.33325 5.71891H4.99992C4.55789 5.71891 4.13397 5.89451 3.82141 6.20707C3.50885 6.51963 3.33325 6.94355 3.33325 7.38558V15.7189C3.33325 16.1609 3.50885 16.5849 3.82141 16.8974C4.13397 17.21 4.55789 17.3856 4.99992 17.3856H13.3333C13.7753 17.3856 14.1992 17.21 14.5118 16.8974C14.8243 16.5849 14.9999 16.1609 14.9999 15.7189V12.3856M11.6666 4.05225H16.6666M16.6666 4.05225V9.05225M16.6666 4.05225L8.33325 12.3856"
-        stroke="#939494"
+        stroke="currentColor"
         strokeWidth="1.5"
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -933,6 +950,25 @@ export const Icons = {
           />
         </clipPath>
       </defs>
+    </svg>
+  ),
+  btcLogo: (props: IconProps) => (
+    <svg
+      {...props}
+      width="32"
+      height="32"
+      viewBox="0 0 32 32"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M31.5213 19.8705C29.3841 28.442 20.7016 33.6585 12.1281 31.521C3.55818 29.3841 -1.65886 20.702 0.47923 12.1312C2.61545 3.55871 11.298 -1.65814 19.8688 0.478775C28.4417 2.61569 33.6584 11.2987 31.521 19.8706L31.5212 19.8705H31.5213Z"
+        fill="#F29427"
+      />
+      <path
+        d="M23.0551 13.7224C23.3736 11.5931 21.7524 10.4486 19.5354 9.68507L20.2546 6.80081L18.4987 6.36332L17.7986 9.17164C17.337 9.05652 16.8629 8.94805 16.3917 8.84051L17.0969 6.01366L15.3421 5.57617L14.6225 8.45949C14.2405 8.37253 13.8653 8.28658 13.5013 8.19601L13.5033 8.18694L11.0819 7.58233L10.6148 9.45756C10.6148 9.45756 11.9175 9.75615 11.8901 9.77453C12.6011 9.95198 12.7297 10.4226 12.7083 10.7957L11.8891 14.0815C11.9381 14.094 12.0016 14.1119 12.0717 14.1401C12.0131 14.1256 11.9507 14.1097 11.8861 14.0942L10.7378 18.6972C10.6509 18.9132 10.4303 19.2374 9.93318 19.1143C9.95078 19.1398 8.65695 18.7958 8.65695 18.7958L7.78516 20.8056L10.0702 21.3751C10.4953 21.4817 10.9119 21.5933 11.3221 21.6981L10.5955 24.6155L12.3494 25.053L13.069 22.1666C13.5481 22.2967 14.0131 22.4166 14.4683 22.5297L13.7512 25.4025L15.5072 25.84L16.2337 22.9281C19.228 23.4947 21.4794 23.2663 22.4271 20.5583C23.1907 18.378 22.3891 17.1205 20.8138 16.3004C21.9611 16.0358 22.8253 15.2813 23.0558 13.7226L23.0552 13.7222L23.0551 13.7224ZM19.0432 19.3475C18.5006 21.5277 14.8293 20.3492 13.639 20.0536L14.6033 16.1886C15.7935 16.4857 19.6104 17.0737 19.0433 19.3475H19.0432ZM19.5863 13.6908C19.0913 15.674 16.0356 14.6664 15.0444 14.4194L15.9186 10.9141C16.9098 11.1611 20.102 11.6222 19.5864 13.6908H19.5863Z"
+        fill="white"
+      />
     </svg>
   ),
   usdcLogo: (props: IconProps) => (
@@ -9585,6 +9621,35 @@ export const Icons = {
       />
     </svg>
   ),
+  email2: (props: LucideProps) => (
+    <svg
+      {...props}
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M17 20.5H7C4 20.5 2 19 2 15.5V8.5C2 5 4 3.5 7 3.5H17C20 3.5 22 5 22 8.5V15.5C22 19 20 20.5 17 20.5Z"
+        stroke="currentColor"
+        stroke-opacity="0.5"
+        stroke-width="1.5"
+        stroke-miterlimit="10"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      />
+      <path
+        d="M17 9L13.87 11.5C12.84 12.32 11.15 12.32 10.12 11.5L7 9"
+        stroke="currentColor"
+        stroke-opacity="0.5"
+        stroke-width="1.5"
+        stroke-miterlimit="10"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      />
+    </svg>
+  ),
   snow2: (props: LucideProps) => (
     <svg
       {...props}
@@ -9632,33 +9697,205 @@ export const Icons = {
       />
     </svg>
   ),
-  email2: (props: LucideProps) => (
+  trovesLogoDark: (props: LucideProps) => (
     <svg
       {...props}
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
+      viewBox="0 0 420 420"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
     >
-      <path
-        d="M17 20.5H7C4 20.5 2 19 2 15.5V8.5C2 5 4 3.5 7 3.5H17C20 3.5 22 5 22 8.5V15.5C22 19 20 20.5 17 20.5Z"
-        stroke="currentColor"
-        stroke-opacity="0.5"
-        stroke-width="1.5"
-        stroke-miterlimit="10"
-        stroke-linecap="round"
-        stroke-linejoin="round"
+      <circle cx="210" cy="210" r="210" fill="url(#paint0_linear_197_2)" />
+      <circle cx="210" cy="210" r="210" fill="url(#paint1_radial_197_2)" />
+      <g filter="url(#filter0_i_197_2)">
+        <path
+          d="M241.136 340.282C241.136 347.761 235.073 353.824 227.594 353.824H192.213C184.734 353.824 178.671 347.761 178.671 340.282V179.049C178.671 175.223 180.29 171.575 183.128 169.007L216.801 138.54C226.165 130.069 241.136 136.713 241.136 149.34V340.282Z"
+          fill="#1F1740"
+        />
+      </g>
+      <g filter="url(#filter1_i_197_2)">
+        <path
+          d="M101 144.141V113.542C101 106.063 107.063 100 114.542 100H294.022C301.501 100 307.564 106.063 307.564 113.542V143.469C307.564 150.949 301.501 157.012 294.022 157.012H284.688C281.33 157.012 278.092 155.764 275.602 153.511L236.362 118.008C231.263 113.395 223.517 113.335 218.348 117.868L177.477 153.709C175.046 155.84 171.934 157.032 168.702 157.069L114.696 157.682C107.157 157.768 101 151.68 101 144.141Z"
+          fill="#1F1740"
+        />
+      </g>
+      <defs>
+        <filter
+          id="filter0_i_197_2"
+          x="174.51"
+          y="134.748"
+          width="66.6259"
+          height="229.791"
+          filterUnits="userSpaceOnUse"
+          colorInterpolationFilters="sRGB"
+        >
+          <feFlood floodOpacity="0" result="BackgroundImageFix" />
+          <feBlend
+            mode="normal"
+            in="SourceGraphic"
+            in2="BackgroundImageFix"
+            result="shape"
+          />
+          <feColorMatrix
+            in="SourceAlpha"
+            type="matrix"
+            values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"
+            result="hardAlpha"
+          />
+          <feOffset dx="-4.16105" dy="22.8858" />
+          <feGaussianBlur stdDeviation="5.35735" />
+          <feComposite in2="hardAlpha" operator="arithmetic" k2="-1" k3="1" />
+          <feColorMatrix
+            type="matrix"
+            values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.5 0"
+          />
+          <feBlend
+            mode="normal"
+            in2="shape"
+            result="effect1_innerShadow_197_2"
+          />
+        </filter>
+        <filter
+          id="filter1_i_197_2"
+          x="92.99"
+          y="100"
+          width="214.574"
+          height="64.9649"
+          filterUnits="userSpaceOnUse"
+          colorInterpolationFilters="sRGB"
+        >
+          <feFlood floodOpacity="0" result="BackgroundImageFix" />
+          <feBlend
+            mode="normal"
+            in="SourceGraphic"
+            in2="BackgroundImageFix"
+            result="shape"
+          />
+          <feColorMatrix
+            in="SourceAlpha"
+            type="matrix"
+            values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"
+            result="hardAlpha"
+          />
+          <feOffset dx="-14.5637" dy="7.28184" />
+          <feGaussianBlur stdDeviation="4.00501" />
+          <feComposite in2="hardAlpha" operator="arithmetic" k2="-1" k3="1" />
+          <feColorMatrix
+            type="matrix"
+            values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.5 0"
+          />
+          <feBlend
+            mode="normal"
+            in2="shape"
+            result="effect1_innerShadow_197_2"
+          />
+        </filter>
+        <linearGradient
+          id="paint0_linear_197_2"
+          x1="2.15584e-07"
+          y1="210"
+          x2="439.861"
+          y2="240.304"
+          gradientUnits="userSpaceOnUse"
+        >
+          <stop stopColor="#9069F0" />
+          <stop offset="1" stopColor="#4A14CD" />
+        </linearGradient>
+        <radialGradient
+          id="paint1_radial_197_2"
+          cx="0"
+          cy="0"
+          r="1"
+          gradientUnits="userSpaceOnUse"
+          gradientTransform="translate(106.012 -90.6354) rotate(65.9041) scale(474.095 415.357)"
+        >
+          <stop offset="0.16987" stopColor="#E3DAFB" />
+          <stop offset="0.84654" stopColor="#5A20E9" stopOpacity="0" />
+        </radialGradient>
+      </defs>
+    </svg>
+  ),
+  trovesLogoLight: (props: LucideProps) => (
+    <svg
+      {...props}
+      viewBox="0 0 420 421"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <circle
+        cx="210"
+        cy="210.199"
+        r="210"
+        fill="url(#paint0_linear_2467_12733)"
+      />
+      <circle
+        cx="210"
+        cy="210.199"
+        r="210"
+        fill="url(#paint1_linear_2467_12733)"
+        fill-opacity="0.2"
+      />
+      <circle
+        cx="210"
+        cy="210.199"
+        r="210"
+        fill="url(#paint2_radial_2467_12733)"
+        fill-opacity="0.2"
       />
       <path
-        d="M17 9L13.87 11.5C12.84 12.32 11.15 12.32 10.12 11.5L7 9"
-        stroke="currentColor"
-        stroke-opacity="0.5"
-        stroke-width="1.5"
-        stroke-miterlimit="10"
-        stroke-linecap="round"
-        stroke-linejoin="round"
+        d="M90.2617 101.002C90.2617 93.8128 96.0901 87.9844 103.28 87.9844H316.723C323.913 87.9844 329.741 93.8127 329.741 101.002V137.575C329.741 144.765 323.913 150.593 316.723 150.593H299.309C296.104 150.593 293.013 149.411 290.625 147.274L242.741 104.403C237.831 100.007 230.411 99.9738 225.462 104.325L176.523 147.352C174.146 149.441 171.091 150.593 167.927 150.593H103.28C96.0901 150.593 90.2617 144.765 90.2617 137.575V101.002Z"
+        fill="#9069F0"
       />
+      <path
+        d="M171.443 181.359C171.443 176.656 173.389 172.163 176.819 168.945L221.613 126.931C231.831 117.347 248.559 124.592 248.559 138.6V325.233C248.559 333.066 242.209 339.416 234.376 339.416H185.626C177.793 339.416 171.443 333.066 171.443 325.233V181.359Z"
+        fill="url(#paint3_linear_2467_12733)"
+      />
+      <defs>
+        <linearGradient
+          id="paint0_linear_2467_12733"
+          x1="46.1503"
+          y1="374.943"
+          x2="220.174"
+          y2="152.545"
+          gradientUnits="userSpaceOnUse"
+        >
+          <stop stop-color="#212121" />
+          <stop offset="1" />
+        </linearGradient>
+        <linearGradient
+          id="paint1_linear_2467_12733"
+          x1="193.4"
+          y1="329.266"
+          x2="241.397"
+          y2="443.121"
+          gradientUnits="userSpaceOnUse"
+        >
+          <stop stop-opacity="0" />
+          <stop offset="0.729291" stop-color="#5220CB" />
+        </linearGradient>
+        <radialGradient
+          id="paint2_radial_2467_12733"
+          cx="0"
+          cy="0"
+          r="1"
+          gradientUnits="userSpaceOnUse"
+          gradientTransform="translate(210 199.516) rotate(90) scale(239.553 301.236)"
+        >
+          <stop offset="0.58654" stop-opacity="0" />
+          <stop offset="0.822472" stop-color="#845BEA" />
+          <stop offset="1" stop-opacity="0" />
+        </radialGradient>
+        <linearGradient
+          id="paint3_linear_2467_12733"
+          x1="210.001"
+          y1="101.656"
+          x2="210.001"
+          y2="339.416"
+          gradientUnits="userSpaceOnUse"
+        >
+          <stop stop-color="#9069F0" />
+          <stop offset="1" stop-color="#4A14CD" />
+        </linearGradient>
+      </defs>
     </svg>
   ),
   feeRebateIcon: (props: LucideProps) => (
@@ -9778,6 +10015,29 @@ export const Icons = {
         stroke="currentColor"
         stroke-linecap="round"
         stroke-linejoin="round"
+      />
+    </svg>
+  ),
+  trovesNamedLogo: (props: LucideProps) => (
+    <svg
+      {...props}
+      width="954"
+      height="403"
+      viewBox="0 0 954 403"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M227.581 238.679V316H186.085V156.581H224.298V187.331C235.94 167.03 260.719 154.79 286.393 154.79V197.78C251.166 195.093 227.581 203.452 227.581 238.679ZM377.237 318.985C330.964 318.985 296.333 282.564 296.333 236.291C296.333 189.719 330.964 153.596 377.237 153.596C423.51 153.596 458.14 189.719 458.14 236.291C458.14 282.564 423.51 318.985 377.237 318.985ZM377.237 282.265C397.836 282.265 415.449 265.846 415.449 236.291C415.449 206.736 397.836 190.615 377.237 190.615C356.638 190.615 339.024 206.736 339.024 236.291C339.024 265.846 356.638 282.265 377.237 282.265ZM622.678 156.581L564.165 316H518.787L459.976 156.581H504.756L542.67 268.831L580.883 156.581H622.678ZM704.608 318.687C656.842 318.687 624.898 285.549 624.898 235.694C624.898 188.226 658.036 153.596 704.011 153.596C754.463 153.596 787.899 194.496 780.436 246.441H667.291C669.978 272.414 682.516 286.743 703.712 286.743C721.923 286.743 734.163 277.787 738.939 261.965H780.137C771.181 298.088 743.417 318.687 704.608 318.687ZM703.115 184.047C683.71 184.047 671.47 196.585 667.888 220.17H736.551C735.357 198.078 722.818 184.047 703.115 184.047ZM942.87 264.95C942.87 298.386 917.495 318.985 872.117 318.985C826.739 318.985 801.364 297.192 798.08 261.666H837.785C838.084 278.086 852.115 288.535 872.714 288.535C888.835 288.535 901.075 283.46 901.075 272.115C901.075 261.965 894.507 257.785 879.282 254.8L850.622 249.426C821.963 244.351 804.648 228.529 804.648 203.75C804.648 174.195 830.023 153.596 869.729 153.596C909.733 153.596 937.198 174.792 940.183 209.124H900.478C898.985 193.6 887.342 184.047 869.729 184.047C854.503 184.047 844.353 189.719 844.353 199.869C844.353 209.422 850.921 213.303 865.251 215.99L896 221.662C927.048 227.633 942.87 241.963 942.87 264.95Z"
+        fill="#9069F0"
+      />
+      <path
+        d="M126.442 306.634C126.442 313.229 121.096 318.576 114.501 318.576H82.1928C75.5977 318.576 70.2513 313.229 70.2513 306.634V158.997C70.2513 155.65 71.6555 152.458 74.122 150.196L106.43 120.569C114.089 113.545 126.442 118.978 126.442 129.37V306.634Z"
+        fill="#9069F0"
+      />
+      <path
+        d="M0.424316 127.79V99.0772C0.424316 92.4821 5.77069 87.1357 12.3658 87.1357H174.299C180.895 87.1357 186.241 92.4821 186.241 99.0772V127.175C186.241 133.77 180.895 139.116 174.299 139.116H165.616C162.628 139.116 159.748 137.996 157.545 135.976L122.09 103.462C117.576 99.3233 110.663 99.2695 106.086 103.338L69.1663 136.152C67.0159 138.064 64.2477 139.134 61.3708 139.168L12.5033 139.73C5.85489 139.807 0.424316 134.439 0.424316 127.79Z"
+        fill="#9069F0"
       />
     </svg>
   ),

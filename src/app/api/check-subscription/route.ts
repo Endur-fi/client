@@ -1,3 +1,5 @@
+import { CHECK_EMAIL_EXISTS } from "@/constants/queries";
+import apolloClient from "@/lib/apollo-client";
 import axios from "axios";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -11,6 +13,20 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: "address is required" },
         { status: 400 },
+      );
+    }
+
+    // check if email is stored in the database
+    const res = await apolloClient.query({
+      query: CHECK_EMAIL_EXISTS,
+      variables: { userAddress: address },
+    });
+
+    console.log("Email check response:", res.data);
+    if (res.data.hasEmailSaved) {
+      return NextResponse.json(
+        { isSubscribed: true, message: "Email already exists" },
+        { status: 200 },
       );
     }
 

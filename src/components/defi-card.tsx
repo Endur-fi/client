@@ -3,8 +3,8 @@ import React from "react";
 
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { cn } from "@/lib/utils";
 import MyNumber from "@/lib/MyNumber";
+import { cn } from "@/lib/utils";
 
 export interface TokenDisplay {
   icon: React.ReactNode;
@@ -57,7 +57,7 @@ const ApyDisplay: React.FC<{ apy: DefiCardProps["apy"] }> = ({ apy }) => {
 
   const renderValue = () => {
     if (apy.isLoading) return <Skeleton className="h-6 w-16" />;
-    if (!apy.value || apy.error) return "-";
+    if (apy.value === null || apy.value === undefined || apy.error) return "-";
     return `${apy.value.toFixed(2)}%`;
   };
 

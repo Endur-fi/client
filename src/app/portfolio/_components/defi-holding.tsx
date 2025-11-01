@@ -16,10 +16,10 @@ import {
 import { userAddressAtom } from "@/store/common.store";
 import { userEkuboxSTRKPositions } from "@/store/ekubo.store";
 import { userHaikoBalanceAtom } from "@/store/haiko.store";
-import { userxSTRKNostraBalance } from "@/store/nostra.store";
-import { uservXSTRKBalanceAtom } from "@/store/vesu.store";
-import { getSTRKFarmBalanceAtom } from "@/store/strkfarm.store";
+import { userLSTNostraBalance } from "@/store/nostra.store";
 import { userOpusBalanceAtom } from "@/store/opus.store";
+import { getSTRKFarmBalanceAtom } from "@/store/strkfarm.store";
+import { uservXSTRKBalanceAtom } from "@/store/vesu.store";
 
 export const chartConfig = {
   // holdings: {
@@ -56,7 +56,7 @@ export const chartConfig = {
     fillColor: "rgba(106, 138, 81, 1)",
   },
   strkfarm: {
-    label: "STRKFarm",
+    label: "Troves",
     color: "rgba(88, 45, 196, 1)",
     fillColor: "rgba(88, 45, 196, 0.8)",
   },
@@ -69,7 +69,7 @@ export const chartConfig = {
 
 const DefiHoldings: React.FC = () => {
   // ADD_DAPP_HERE Add new dApps here
-  const nostraBal = useAtomValue(userxSTRKNostraBalance(undefined));
+  const nostraBal = useAtomValue(userLSTNostraBalance(undefined));
   const vxStrkBalance = useAtomValue(uservXSTRKBalanceAtom(undefined));
   const userHaikoBalance = useAtomValue(userHaikoBalanceAtom(undefined));
   const ekuboPosi = useAtomValue(userEkuboxSTRKPositions(undefined));
@@ -82,25 +82,25 @@ const DefiHoldings: React.FC = () => {
     const output = [
       {
         dapp: "nostra",
-        holdings: Number(nostraBal.data.xSTRKAmount.toEtherToFixedDecimals(2)),
+        holdings: Number(nostraBal.data.lstAmount.toEtherToFixedDecimals(2)),
         fill: chartConfig.nostra.color,
       },
       {
         dapp: "ekubo",
-        holdings: Number(ekuboPosi.data.xSTRKAmount.toEtherStr() || 0),
+        holdings: Number(ekuboPosi.data.lstAmount.toEtherStr() || 0),
         fill: chartConfig.ekubo.color,
       },
       {
         dapp: "vesu",
         holdings: Number(
-          vxStrkBalance.data.xSTRKAmount.toEtherToFixedDecimals(2),
+          vxStrkBalance.data.lstAmount.toEtherToFixedDecimals(2),
         ),
         fill: chartConfig.vesu.color,
       },
       {
         dapp: "strkfarm",
         holdings: parseInt(
-          strkfarmPosi.data.xSTRKAmount.toEtherToFixedDecimals(2),
+          strkfarmPosi.data.lstAmount.toEtherToFixedDecimals(2),
           10,
         ),
         fill: chartConfig.strkfarm.color,
@@ -108,7 +108,7 @@ const DefiHoldings: React.FC = () => {
       {
         dapp: "opus",
         holdings: parseInt(
-          opusBalance.data.xSTRKAmount.toEtherToFixedDecimals(2),
+          opusBalance.data.lstAmount.toEtherToFixedDecimals(2),
           10,
         ),
       },

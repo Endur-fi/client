@@ -34,7 +34,8 @@ import { toast } from "@/hooks/use-toast";
 import { MyAnalytics } from "@/lib/analytics";
 import { checkSubscription, subscribeUser } from "@/lib/api";
 import apolloClient from "@/lib/apollo-client";
-import MyNumber from "@/lib/MyNumber";
+import { Web3Number } from "@strkfarm/sdk";
+
 import {
   cn,
   formatNumberWithCommas,
@@ -117,7 +118,10 @@ const useEligibilityData = (allocation?: string) => {
   }, [allocation]);
 };
 
-const useUserSubscriptionCheck = (address: string | undefined) => {
+const useUserSubscriptionCheck = (
+  address: string | undefined,
+  submittedEmail: boolean,
+) => {
   const [userExists, setUserExists] = React.useState(false);
   const [checkingUser, setCheckingUser] = React.useState(false);
 
@@ -139,7 +143,7 @@ const useUserSubscriptionCheck = (address: string | undefined) => {
 
     const timer = setTimeout(checkUser, 500); // debounce for 500ms
     return () => clearTimeout(timer);
-  }, [address]);
+  }, [address, submittedEmail]);
 
   return { userExists, checkingUser };
 };
@@ -218,7 +222,10 @@ const RewardSummary = React.memo<{
     bonusAlreadyAwarded = false,
   }) => {
     const { address } = useAccount();
-    const { userExists, checkingUser } = useUserSubscriptionCheck(address);
+    const { userExists, checkingUser } = useUserSubscriptionCheck(
+      address,
+      false,
+    ); // false is just to avoid type check
 
     // Format the allocation once
     const formattedAllocation = React.useMemo(
@@ -264,7 +271,11 @@ const RewardSummary = React.memo<{
             <VerificationStatus
               isVerified={userExists && !checkingUser}
               isLoading={checkingUser}
-              label={userExists && !checkingUser ? "Email verified and saved" : "Email not verified"}
+              label={
+                userExists && !checkingUser
+                  ? "Email verified and saved"
+                  : "Email not verified"
+              }
             />
 
             <VerificationStatus
@@ -340,6 +351,16 @@ const EligibilityModal = React.memo<{
             </div>
           )}
 
+          <div className="">
+            <div className="flex w-full items-start justify-center gap-2 rounded-lg bg-[#E3EFEC]/5 px-4 py-4 text-sm">
+              <Icons.shield className="mt-1 size-10 text-[#2ACF83]" />
+              <p className="text-sm text-white/80">
+                Your email is safe with us and will not be shared with third
+                parties.
+              </p>
+            </div>
+          </div>
+
           <Button
             onClick={onNext}
             disabled={isSubmitting || (checkingUser && !userExists)}
@@ -362,16 +383,6 @@ const EligibilityModal = React.memo<{
           >
             Skip
           </Button>
-        </div>
-
-        <div className="mt-7 px-2">
-          <div className="flex w-full items-start justify-center gap-2 rounded-lg bg-[#E3EFEC]/5 px-4 py-4 text-sm">
-            <Icons.shield className="mt-1 size-10 text-[#2ACF83]" />
-            <p className="text-sm text-white/80">
-              Your email is safe with us and will not be shared with third
-              parties.
-            </p>
-          </div>
         </div>
       </div>
     </DialogContent>
@@ -691,7 +702,11 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
 
   const { address } = useAccount();
   const eligibilityData = useEligibilityData(userCompleteInfo?.allocation);
-  const { userExists, checkingUser } = useUserSubscriptionCheck(address);
+  const [submittedEmail, setSubmittedEmail] = React.useState<boolean>(false);
+  const { userExists, checkingUser } = useUserSubscriptionCheck(
+    address,
+    submittedEmail,
+  );
   const { sendAsync, isPending, isError, data } = useSendTransaction({});
 
   const bonusAlreadyAwarded = React.useMemo(
@@ -705,11 +720,11 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
   const contracts = React.useMemo(() => {
     const provider = getProvider();
     return {
-      merkleContract: new Contract(
-        merkleAbi,
-        MERKLE_CONTRACT_ADDRESS_MAINNET,
-        provider,
-      ),
+      merkleContract: new Contract({
+        abi: merkleAbi,
+        address: MERKLE_CONTRACT_ADDRESS_MAINNET,
+        providerOrAccount: provider,
+      }),
     };
   }, []);
 
@@ -751,17 +766,20 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
         return;
       }
 
-      const subscriptionStatus = await checkSubscription(state.emailInput);
+      const subscriptionStatus = await checkSubscription(address);
 
       if (!subscriptionStatus.isSubscribed) {
+        const listIds = [parseInt(process.env.ENDUR_BREVO_LIST_ID || "5", 10)];
         const subscriptionResult = await subscribeUser(
           state.emailInput,
           address,
+          listIds,
         );
         if (!subscriptionResult.success) {
           toast({ description: "Failed to subscribe. Please try again." });
           return;
         }
+        setSubmittedEmail(true);
       }
 
       trackAnalyticsCallback(LEADERBOARD_ANALYTICS_EVENTS.EMAIL_SUBMITTED, {
@@ -904,6 +922,9 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
   }, []);
 
   const goToClaim = React.useCallback(() => {
+    MyAnalytics.track(LEADERBOARD_ANALYTICS_EVENTS.TWITTER_FOLLOW_SKIPPED, {
+      userAddress: address,
+    });
     setState((prev) => ({
       ...prev,
       activeModal: state.isEligible ? "claim" : "notEligible",
@@ -925,13 +946,17 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
       return;
     }
 
-    try {
-      const allocationWei = MyNumber.fromEther(
-        Number(allocation).toString(),
-        STRK_DECIMALS,
-      ).toString();
+    MyAnalytics.track(LEADERBOARD_ANALYTICS_EVENTS.CLICKED_CLAIM_REWARDS, {
+      userAddress: address || "anonymous",
+      timestamp: Date.now(),
+      isWalletConnected: !!address,
+      allocation,
+    });
 
-      console.log(proofs, "proofs");
+    const allocationWei = new Web3Number(allocation, STRK_DECIMALS).toWei();
+
+    try {
+      console.log(proofs, "proofs", allocationWei, allocation);
 
       // call claim with allocation and any proof (use first proof)
       const claimCall = merkleContract.populate("claim", [

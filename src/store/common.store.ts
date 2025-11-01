@@ -1,8 +1,9 @@
-import { getSTRKPrice } from "@/lib/utils";
+import { getAssetPrice } from "@/lib/utils";
 import { atom } from "jotai";
 import { atomWithQuery } from "jotai-tanstack-query";
 import { atomWithStorage, createJSONStorage } from "jotai/utils";
 import { Provider } from "starknet";
+import { LST_CONFIG } from "@/constants";
 
 export const timePeriodAtom = atom<Provider | null>(null);
 
@@ -17,18 +18,28 @@ export const currentBlockAtom = atom(async (get) => {
 
 export const userAddressAtom = atom<string | undefined>();
 
-export const strkPriceAtom = atomWithQuery((get) => {
+export const lstConfigAtom = atom<(typeof LST_CONFIG)[keyof typeof LST_CONFIG]>(
+  LST_CONFIG.STRK,
+);
+
+export const assetPriceAtom = atomWithQuery((get) => {
   return {
-    queryKey: ["strkPrice"],
-    queryFn: async ({ queryKey }: any): Promise<number> => {
+    queryKey: ["assetPrice", get(lstConfigAtom)],
+    queryFn: async ({ queryKey: _queryKey }: any): Promise<number> => {
       try {
-        return await getSTRKPrice();
+        const lstConfig = get(lstConfigAtom);
+
+        if (!lstConfig) return 0;
+
+        const isSTRK = lstConfig.SYMBOL === "STRK";
+        return await getAssetPrice(isSTRK);
       } catch (error) {
-        console.error("strkPriceAtom", error);
+        console.error("AssetPriceAtom", error);
         return 0;
       }
     },
     refetchInterval: 60000,
+    staleTime: 0,
   };
 });
 

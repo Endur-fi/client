@@ -1,7 +1,6 @@
 "use client";
 
 import erc4626Abi from "@/abi/erc4626.abi.json";
-import nostraIXSTRK from "@/abi/ixstrk.abi.json";
 import {
   Dialog,
   DialogContent,
@@ -10,12 +9,12 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { LST_ADDRRESS, NOSTRA_IXSTRK, STRK_TOKEN } from "@/constants";
+import { NOSTRA_IXSTRK, STRK_TOKEN } from "@/constants";
 import { toast, useToast } from "@/hooks/use-toast";
 import { cn, formatNumberWithCommas } from "@/lib/utils";
-import { providerAtom } from "@/store/common.store";
+import { lstConfigAtom, providerAtom } from "@/store/common.store";
 import {
-  exchangeRateAtom,
+  apiExchangeRateAtom,
   nstStrkWithdrawalFeeAtom,
   userNstSTRKBalanceAtom,
 } from "@/store/lst.store";
@@ -43,10 +42,11 @@ const MigrateNostra = () => {
   const { sendAsync, data, isPending, error } = useSendTransaction({});
   const [isMigrationDone, setIsMigrationDone] = React.useState(false);
 
+  const lstConfig = useAtomValue(lstConfigAtom);
   const rpcProvider = useAtomValue(providerAtom);
   const nstStrkBalanceRes = useAtomValue(userNstSTRKBalanceAtom);
   const nstStrkWithdrawal = useAtomValue(nstStrkWithdrawalFeeAtom);
-  const exchangeRate = useAtomValue(exchangeRateAtom);
+  const exchangeRate = useAtomValue(apiExchangeRateAtom);
   const stakingApy = useAtomValue(snAPYAtom);
   const nostraLendApy = useAtomValue(nostraLendYieldAtom);
 
@@ -111,13 +111,17 @@ const MigrateNostra = () => {
       });
     }
 
-    if (!rpcProvider) return;
+    if (!rpcProvider || !lstConfig) return;
 
-    const lstContract = lstService.getLSTContract(rpcProvider);
-    const nstContract = lstService.getNstSTRKContract(rpcProvider);
-    const strkContract = new Contract(erc4626Abi, STRK_TOKEN);
-    const xSTRKContract = new Contract(erc4626Abi, LST_ADDRRESS);
-    const ixSTRKContract = new Contract(nostraIXSTRK, NOSTRA_IXSTRK);
+    // @deprecated
+    const lstContract = lstService.getLSTContract("");
+    const nstContract = lstService.getNstSTRKContract();
+    const strkContract = new Contract({ abi: erc4626Abi, address: STRK_TOKEN });
+    const xSTRKContract = new Contract({ abi: erc4626Abi, address: "" });
+    const ixSTRKContract = new Contract({
+      abi: erc4626Abi,
+      address: NOSTRA_IXSTRK,
+    });
 
     const call1 = nstContract.populate("redeem", [
       uint256.bnToUint256(nstStrkBalance.toString()),
@@ -316,9 +320,10 @@ const MigrateNostra = () => {
             <div className="mt-2 flex items-center justify-between font-bold">
               <span>Net APY (Incl. Staking yield)</span>
               <span>
-                {(stakingApy.value * 100 + (nostraLendApy.value || 0)).toFixed(
-                  2,
-                )}
+                {(
+                  stakingApy.value.strkApy * 100 +
+                  (nostraLendApy.value || 0)
+                ).toFixed(2)}
                 % APY
               </span>
             </div>

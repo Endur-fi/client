@@ -77,8 +77,8 @@ export async function GET(_req: Request, context: any) {
     ]);
     const dummy: DAppHoldings[] = [
       {
-        xSTRKAmount: MyNumber.fromZero(18),
-        STRKAmount: MyNumber.fromZero(18),
+        lstAmount: MyNumber.fromZero(18),
+        underlyingTokenAmount: MyNumber.fromZero(18),
       },
     ];
     return NextResponse.json({

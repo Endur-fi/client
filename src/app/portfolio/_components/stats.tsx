@@ -5,29 +5,29 @@ import React from "react";
 
 import { formatNumberWithCommas } from "@/lib/utils";
 import { userEkuboxSTRKPositions } from "@/store/ekubo.store";
-import { exchangeRateAtom, userXSTRKBalanceAtom } from "@/store/lst.store";
-import { userxSTRKNostraBalance } from "@/store/nostra.store";
+import { apiExchangeRateAtom, userLSTBalanceAtom } from "@/store/lst.store";
+import { userLSTNostraBalance } from "@/store/nostra.store";
 import { snAPYAtom } from "@/store/staking.store";
 import { uservXSTRKBalanceAtom } from "@/store/vesu.store";
-import { strkPriceAtom } from "@/store/common.store";
+import { assetPriceAtom } from "@/store/common.store";
 import { getSTRKFarmBalanceAtom } from "@/store/strkfarm.store";
 import { userOpusBalanceAtom } from "@/store/opus.store";
 
 export const totalXSTRKAcrossDefiHoldingsAtom = atom((get) => {
   const vesuBalance = get(uservXSTRKBalanceAtom(undefined));
   // const haikoBalance = get(userHaikoBalanceAtom(undefined));
-  const nostraBalance = get(userxSTRKNostraBalance(undefined));
+  const nostraBalance = get(userLSTNostraBalance(undefined));
   const ekuboBalance = get(userEkuboxSTRKPositions(undefined));
-  const xstrkBalance = get(userXSTRKBalanceAtom);
+  const lstBalance = get(userLSTBalanceAtom);
   const opusBalance = get(userOpusBalanceAtom(undefined));
   const strkfarmXSTRKBalance = get(getSTRKFarmBalanceAtom(undefined));
   const value =
-    Number(vesuBalance.data.xSTRKAmount.toEtherToFixedDecimals(2)) +
-    Number(nostraBalance.data.xSTRKAmount.toEtherToFixedDecimals(2)) +
-    Number(ekuboBalance.data.xSTRKAmount.toEtherToFixedDecimals(2)) +
-    Number(xstrkBalance.value.toEtherToFixedDecimals(2)) +
-    Number(strkfarmXSTRKBalance.data.xSTRKAmount.toEtherToFixedDecimals(2)) +
-    Number(opusBalance.data.xSTRKAmount.toEtherToFixedDecimals(2));
+    Number(vesuBalance.data.lstAmount.toEtherToFixedDecimals(2)) +
+    Number(nostraBalance.data.lstAmount.toEtherToFixedDecimals(2)) +
+    Number(ekuboBalance.data.lstAmount.toEtherToFixedDecimals(2)) +
+    Number(lstBalance.value.toEtherToFixedDecimals(2)) +
+    Number(strkfarmXSTRKBalance.data.lstAmount.toEtherToFixedDecimals(2)) +
+    Number(opusBalance.data.lstAmount.toEtherToFixedDecimals(2));
   if (Number.isNaN(value)) {
     return 0;
   }
@@ -35,10 +35,10 @@ export const totalXSTRKAcrossDefiHoldingsAtom = atom((get) => {
 });
 
 const Stats: React.FC = () => {
-  const strkPrice = useAtomValue(strkPriceAtom);
+  const strkPrice = useAtomValue(assetPriceAtom);
   const apy = useAtomValue(snAPYAtom);
-  const currentXSTRKBalance = useAtomValue(userXSTRKBalanceAtom);
-  const exchangeRate = useAtomValue(exchangeRateAtom);
+  const currentLSTBalance = useAtomValue(userLSTBalanceAtom);
+  const exchangeRate = useAtomValue(apiExchangeRateAtom);
 
   const totalXSTRK = useAtomValue(totalXSTRKAcrossDefiHoldingsAtom);
 
@@ -58,9 +58,9 @@ const Stats: React.FC = () => {
   }, [exchangeRate.rate, totalXSTRK]);
 
   return (
-    <div className="flex h-fit w-full flex-wrap items-center justify-between rounded-xl border border-[#AACBC4]/30 bg-white p-5 font-poppins shadow-sm lg:px-12">
-      <div className="flex w-[100%] gap-3 lg:w-[50%]">
-        <div className="flex w-[50%] flex-col items-start gap-3">
+    <div className="flex h-fit w-full items-center justify-between rounded-xl border border-[#AACBC4]/30 bg-white p-5 font-poppins shadow-sm lg:px-8">
+      <div className="flex w-[100%] gap-3 lg:w-[60%]">
+        <div className="flex w-full flex-col items-start gap-3">
           <span className="text-xs font-medium text-[#03624C] lg:text-sm">
             Total staked STRK
           </span>
@@ -72,20 +72,20 @@ const Stats: React.FC = () => {
           </p>
         </div>
 
-        <div className="flex w-[50%] flex-col items-start gap-3">
+        <div className="flex w-full flex-col items-start gap-3">
           <span className="text-xs font-medium text-[#03624C] lg:text-sm">
             xSTRK in Wallet
           </span>
           <p className="flex items-end gap-4 text-xl font-semibold leading-[1] text-black">
             {formatNumberWithCommas(
-              currentXSTRKBalance.value.toEtherToFixedDecimals(2),
+              currentLSTBalance.value.toEtherToFixedDecimals(2),
             )}
           </p>
         </div>
       </div>
 
-      <div className="mt-[25px] flex w-[100%] gap-3 lg:mt-0 lg:w-[50%]">
-        <div className="flex w-[50%] flex-col items-start gap-3">
+      <div className="mt-[25px] flex w-[100%] gap-3 lg:mt-0 lg:w-[40%]">
+        <div className="flex w-full flex-col items-start gap-3">
           <span className="text-xs font-medium text-[#03624C] lg:text-sm">
             xSTRK in DApps
           </span>
@@ -93,18 +93,18 @@ const Stats: React.FC = () => {
             {formatNumberWithCommas(
               (
                 totalXSTRK -
-                Number(currentXSTRKBalance.value.toEtherToFixedDecimals(2))
+                Number(currentLSTBalance.value.toEtherToFixedDecimals(2))
               ).toFixed(2),
             )}
           </p>
         </div>
 
-        <div className="flex w-[50%] flex-col items-start gap-3">
+        <div className="flex w-full flex-col items-start gap-3">
           <span className="text-xs font-medium text-[#03624C] lg:text-sm">
             xSTRK APY
           </span>
           <p className="-ml-3 flex items-end gap-4 text-xl font-semibold leading-[1] text-black">
-            ~{(apy.value * 100).toFixed(2)}%
+            ~{(apy.value.strkApy * 100).toFixed(2)}%
           </p>
         </div>
       </div>

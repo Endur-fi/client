@@ -1,5 +1,85 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  swcMinify: false, // Disable SWC minification to use Terser instead
+  experimental: {
+    optimizePackageImports: [
+      "@radix-ui/react-icons",
+      "lucide-react",
+      "framer-motion",
+    ],
+    webpackBuildWorker: true,
+  },
+  output: "standalone",
+  webpack: (config, { dev, isServer }) => {
+    if (!dev && !isServer) {
+      // Simplified chunk splitting to prevent conflicts
+      config.optimization.splitChunks = {
+        chunks: "all",
+        cacheGroups: {
+          vendor: {
+            test: /[\\/]node_modules[\\/]/,
+            name: "vendors",
+            chunks: "all",
+            priority: 10,
+          },
+          react: {
+            test: /[\\/]node_modules[\\/](react|react-dom)[\\/]/,
+            name: "react-vendor",
+            chunks: "all",
+            priority: 20,
+          },
+        },
+      };
+
+      // Add chunk filename template to prevent naming conflicts
+      config.output.chunkFilename = "[name].[chunkhash].js";
+
+      // Configure Terser to prevent variable name conflicts
+      config.optimization.minimizer.forEach((minimizer) => {
+        if (minimizer.constructor.name === "TerserPlugin") {
+          minimizer.options.terserOptions = {
+            ...minimizer.options.terserOptions,
+            mangle: {
+              keep_fnames: true,
+              reserved: [
+                "e",
+                "t",
+                "n",
+                "r",
+                "o",
+                "i",
+                "a",
+                "s",
+                "u",
+                "c",
+                "l",
+                "f",
+                "p",
+                "d",
+                "h",
+                "v",
+                "m",
+                "g",
+                "y",
+                "b",
+                "w",
+                "k",
+                "x",
+                "z",
+                "j",
+                "q",
+              ],
+            },
+            compress: {
+              drop_console: true,
+              drop_debugger: true,
+            },
+          };
+        }
+      });
+    }
+    return config;
+  },
   compiler:
     process.env.NODE_ENV === "development"
       ? {}
@@ -22,32 +102,9 @@ const nextConfig = {
         permanent: true,
       },
       {
-        source: "/telegram",
-        destination: "https://t.me/+O75VPjXyg18zN2Q1",
-        permanent: true,
-      },
-      {
-        source: "/tg",
-        destination: "https://t.me/+O75VPjXyg18zN2Q1",
-        permanent: true,
-      },
-      {
         source: "/early",
         destination: "/leaderboard",
         permanent: true,
-      },
-      {
-        source: "/x",
-        destination: "https://x.com/endurfi",
-        permanent: true,
-      },
-    ];
-  },
-  async rewrites() {
-    return [
-      {
-        source: "/strkfarm/:path*",
-        destination: "https://app.strkfarm.com/:path*",
       },
     ];
   },

@@ -30,17 +30,17 @@ export const protocolConfigs: Partial<Record<SupportedDApp, ProtocolConfig>> = {
     tokens: [
       { icon: <Icons.endurLogo className="size-[22px]" />, name: "xSTRK" },
     ],
-    protocolIcon: <Icons.strkfarmLogo className="rounded-full" />,
-    protocolName: "STRKFarm",
+    protocolIcon: <Icons.trovesLogoLight className="rounded-full" />,
+    protocolName: "Troves",
     badges: [{ type: "Yield Farming", color: "bg-[#E9F3F0] text-[#17876D]" }],
     description: "Leveraged xSTRK strategy on Vesu",
     action: {
       type: "lend",
-      link: "https://app.strkfarm.com/strategy/xstrk_sensei",
+      link: "https://app.troves.fi/strategy/xstrk_sensei",
       buttonText: "Invest",
       onClick: () => {
         MyAnalytics.track(eventNames.OPPORTUNITIES, {
-          protocol: "strkfarm",
+          protocol: "troves",
           buttonText: "Invest",
         });
       },
@@ -51,8 +51,8 @@ export const protocolConfigs: Partial<Record<SupportedDApp, ProtocolConfig>> = {
       { icon: <Icons.endurLogo className="size-[22px]" />, name: "xSTRK" },
       { icon: <Icons.strkLogo className="size-[22px]" />, name: "STRK" },
     ],
-    protocolIcon: <Icons.strkfarmLogo className="rounded-full" />,
-    protocolName: "STRKFarm",
+    protocolIcon: <Icons.trovesLogoLight className="rounded-full" />,
+    protocolName: "Troves",
     badges: [
       {
         type: "Automated Liquidity Pool",
@@ -63,11 +63,11 @@ export const protocolConfigs: Partial<Record<SupportedDApp, ProtocolConfig>> = {
       "Auto-managed liquidity vault for Ekubo’s xSTRK/STRK pool. Rebalances range and compounds fees and rewards automatically.",
     action: {
       type: "pool",
-      link: "https://app.strkfarm.xyz/strategy/ekubo_cl_xstrkstrk",
+      link: "https://app.troves.fi/strategy/ekubo_cl_xstrkstrk",
       buttonText: "Add Liquidity",
       onClick: () => {
         MyAnalytics.track(eventNames.OPPORTUNITIES, {
-          protocol: "strkfarmEkubo",
+          protocol: "trovesEkubo",
           buttonText: "Add Liquidity",
         });
       },
@@ -158,26 +158,26 @@ export const protocolConfigs: Partial<Record<SupportedDApp, ProtocolConfig>> = {
       },
     },
   },
-  nostraLending: {
-    tokens: [
-      { icon: <Icons.endurLogo className="size-[22px]" />, name: "xSTRK" },
-    ],
-    protocolIcon: <Icons.nostraLogo className="shrink-0 rounded-full" />,
-    protocolName: "Nostra (Lending)",
-    badges: [{ type: "Lend/Borrow", color: "bg-[#EEF6FF] text-[#0369A1]" }],
-    description: "Lend your xSTRK on Nostra to earn additional yield",
-    action: {
-      type: "lend",
-      link: "https://app.nostra.finance/lend-borrow/xSTRK/deposit",
-      buttonText: "Lend Assets",
-      onClick: () => {
-        MyAnalytics.track(eventNames.OPPORTUNITIES, {
-          protocol: "nostra-lend",
-          buttonText: "Lend Assets",
-        });
-      },
-    },
-  },
+  // nostraLending: {
+  //   tokens: [
+  //     { icon: <Icons.endurLogo className="size-[22px]" />, name: "xSTRK" },
+  //   ],
+  //   protocolIcon: <Icons.nostraLogo className="shrink-0 rounded-full" />,
+  //   protocolName: "Nostra (Lending)",
+  //   badges: [{ type: "Lend/Borrow", color: "bg-[#EEF6FF] text-[#0369A1]" }],
+  //   description: "Lend your xSTRK on Nostra to earn additional yield",
+  //   action: {
+  //     type: "lend",
+  //     link: "https://app.nostra.finance/lend-borrow/xSTRK/deposit",
+  //     buttonText: "Lend Assets",
+  //     onClick: () => {
+  //       MyAnalytics.track(eventNames.OPPORTUNITIES, {
+  //         protocol: "nostra-lend",
+  //         buttonText: "Lend Assets",
+  //       });
+  //     },
+  //   },
+  // },
   ekubo: {
     tokens: [
       { icon: <Icons.endurLogo className="size-[22px]" />, name: "xSTRK" },
