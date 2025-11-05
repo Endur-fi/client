@@ -253,7 +253,7 @@ const Tabs = () => {
   };
 
   return (
-    <div className="relative h-full">
+    <div className="relative">
       <div
         className={cn("z-30 flex h-full flex-col items-center gap-4", {
           "lg:-ml-56": isPinned,
