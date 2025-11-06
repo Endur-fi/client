@@ -25,7 +25,7 @@ import { userAddressAtom } from "@/store/common.store";
 import { chartFilter } from "@/store/portfolio.store";
 
 import { chartConfig } from "./defi-holding";
-import { HoldingInfo } from "./portfolio-page";
+import { HoldingInfo } from "../index";
 
 function getLast7Days() {
   const result = [];

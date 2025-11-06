@@ -523,7 +523,6 @@ export const totalSupplyCurrentBlockAtom = atomWithQuery((get) => {
   };
 });
 
-
 //TODO: remove if not needed
 export const exchangeRateByBlockAtom = atomFamily((blockNumber?: number) => {
   return atom((get) => {
@@ -594,7 +593,7 @@ export const apiExchangeRateAtom = atom((get) => {
   }
 
   //TODO: only fetch current asset's exchange data
-  const lstStats = data.find( 
+  const lstStats = data?.find(
     (stats) =>
       stats.lstAddress?.toLowerCase() === lstConfig.LST_ADDRESS?.toLowerCase(),
   );

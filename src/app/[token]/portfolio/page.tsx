@@ -1,8 +1,7 @@
 import React from "react";
 
-import StrkPortfolioPage from "@/components/strk-portfolio-page/index";
-
-import { TokenProps } from "../page";
+import StrkPortfolioPage from "@/features/portfolio/index";
+import { TokenProps } from "@/types";
 
 const PortfolioPage: React.FC<TokenProps> = ({ params }) => {
   const { token } = params;

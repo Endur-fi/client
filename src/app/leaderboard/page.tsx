@@ -5,235 +5,20 @@ import Image from "next/image";
 import React from "react";
 
 import { useSidebar } from "@/components/ui/sidebar";
-import { isMainnet, LEADERBOARD_ANALYTICS_EVENTS } from "@/constants";
-import {
-  GET_ALL_USERS_WITH_DETAILS,
-  GET_USER_COMPLETE_DETAILS,
-} from "@/constants/queries";
+import { LEADERBOARD_ANALYTICS_EVENTS } from "@/constants";
 import { MyAnalytics } from "@/lib/analytics";
-import { defaultOptions } from "@/lib/apollo-client";
 import { cn } from "@/lib/utils";
+import { useLeaderboardData } from "@/hooks/use-leaderboard-data";
 
 import CheckEligibility, {
   UserCompleteDetailsApiResponse,
-} from "./_components/check-eligibility";
-import { columns, type SizeColumn } from "./_components/table/columns";
-import { DataTable } from "./_components/table/data-table";
-import { ApolloClient, InMemoryCache } from "@apollo/client";
-
-const PAGINATION_LIMIT = 100;
-
-// TODO: move these interfaces to separate file
-interface AllUsersApiResponse {
-  users: {
-    user_address: string;
-    total_points: string;
-  }[];
-  pagination: {
-    page: number;
-    limit: number;
-    total: number;
-    totalPages: number;
-  };
-  summary: {
-    total_users: number;
-    total_points_all_users: string;
-  };
-}
-
-interface CurrentUserInfo {
-  address: string;
-  points: string;
-  rank: number | null;
-  isLoading: boolean;
-}
-
-interface LeaderboardState {
-  data: SizeColumn[];
-  loading: {
-    initial: boolean;
-    refresh: boolean;
-  };
-  error: string | null;
-  lastFetch: number | null;
-  totalUsers: number | null;
-  currentUserInfo: CurrentUserInfo;
-  userCompleteInfo: UserCompleteDetailsApiResponse | null;
-}
-
-interface LeaderboardCache {
-  data: SizeColumn[];
-  timestamp: number;
-  totalUsers: number | null;
-  currentUserInfo: CurrentUserInfo;
-  userCompleteInfo: UserCompleteDetailsApiResponse | null;
-}
-
-const apolloClient = new ApolloClient({
-  uri: isMainnet()
-    ? "https://graphql.mainnet.endur.fi"
-    : "https://graphql.sepolia.endur.fi",
-  // uri: "http://localhost:4000",
-  cache: new InMemoryCache(),
-  defaultOptions,
-});
-
-const CACHE_EXPIRY_MS = 6 * 60 * 60 * 1000; // 6 hours in milliseconds
-let leaderboardCache: LeaderboardCache | null = null;
-
-// TODO - move to separate file
-const useLeaderboardData = () => {
-  const [state, setState] = React.useState<LeaderboardState>({
-    data: [],
-    loading: { initial: true, refresh: false },
-    error: null,
-    lastFetch: null,
-    totalUsers: null,
-    currentUserInfo: { points: "0", rank: null, address: "", isLoading: false },
-    userCompleteInfo: null,
-  });
-
-  const { address } = useAccount();
-
-  const fetchUsersData = React.useCallback(
-    async (isRefresh = false) => {
-      try {
-        if (
-          !isRefresh &&
-          leaderboardCache &&
-          // refresh, even if address changes
-          leaderboardCache.currentUserInfo.address === address &&
-          Date.now() - leaderboardCache.timestamp < CACHE_EXPIRY_MS
-        ) {
-          setState({
-            data: leaderboardCache.data,
-            loading: { initial: false, refresh: false },
-            error: null,
-            lastFetch: leaderboardCache.timestamp,
-            totalUsers: leaderboardCache.totalUsers,
-            currentUserInfo: leaderboardCache.currentUserInfo,
-            userCompleteInfo: leaderboardCache.userCompleteInfo,
-          });
-          return;
-        }
-
-        setState((prev) => ({
-          ...prev,
-          loading: {
-            initial: !isRefresh && prev.data.length === 0,
-            refresh: isRefresh,
-          },
-          currentUserInfo: {
-            ...prev.currentUserInfo,
-            isLoading: true,
-          },
-          error: null,
-        }));
-
-        const [usersResult, currentUserResult] = await Promise.allSettled([
-          apolloClient.query({
-            query: GET_ALL_USERS_WITH_DETAILS,
-            variables: {
-              options: {
-                page: 1,
-                limit: PAGINATION_LIMIT,
-              },
-            },
-            fetchPolicy: "network-only", // fetch fresh data when we bypass cache
-          }),
-          address
-            ? apolloClient.query({
-                query: GET_USER_COMPLETE_DETAILS,
-                variables: {
-                  userAddress: address,
-                },
-              })
-            : Promise.resolve({
-                data: { getUserCompleteDetails: null },
-              }),
-        ]);
-
-        if (usersResult.status === "rejected") {
-          throw new Error(
-            usersResult.reason?.message || "Failed to fetch users",
-          );
-        }
-
-        const apiResponse: AllUsersApiResponse =
-          usersResult.value.data?.getAllUsersWithDetails;
-        if (!apiResponse?.users) {
-          throw new Error("Invalid response format");
-        }
-
-        const currentUserData: UserCompleteDetailsApiResponse | null =
-          currentUserResult.status === "fulfilled"
-            ? currentUserResult.value.data?.getUserCompleteDetails
-            : null;
-
-        const transformedData: SizeColumn[] = apiResponse.users.map(
-          (user, index) => ({
-            rank: (index + 1).toString(),
-            address: user.user_address,
-            score: user.total_points,
-          }),
-        );
-
-        const currentUserInfo: CurrentUserInfo = {
-          points: currentUserData?.points.total_points.toString() || "0",
-          address: address || "",
-          isLoading: false,
-          rank: currentUserData
-            ? currentUserData.rank
-            : apiResponse.summary.total_users
-              ? apiResponse.summary.total_users + 1
-              : null,
-        };
-
-        // update cache
-        leaderboardCache = {
-          data: transformedData,
-          timestamp: Date.now(),
-          totalUsers: apiResponse.summary.total_users,
-          currentUserInfo,
-          userCompleteInfo: currentUserData,
-        };
-
-        setState({
-          data: transformedData,
-          loading: { initial: false, refresh: false },
-          error: null,
-          lastFetch: Date.now(),
-          totalUsers: apiResponse.summary.total_users,
-          currentUserInfo,
-          userCompleteInfo: currentUserData,
-        });
-      } catch (err) {
-        console.error("Error fetching users data:", err);
-        const errorMessage =
-          err instanceof Error
-            ? err.message
-            : "Failed to load leaderboard data";
-
-        setState((prev) => ({
-          ...prev,
-          loading: { initial: false, refresh: false },
-          error: errorMessage,
-          currentUserInfo: {
-            ...prev.currentUserInfo,
-            isLoading: false,
-          },
-        }));
-      }
-    },
-    [address],
-  );
-
-  return {
-    ...state,
-    fetchUsersData,
-    refetch: React.useCallback(() => fetchUsersData(true), [fetchUsersData]),
-  };
-};
+} from "@/features/leaderboard/components/check-eligibility";
+import {
+  columns,
+  type SizeColumn,
+} from "@/features/leaderboard/components/table/columns";
+import { DataTable } from "@/features/leaderboard/components/table/data-table";
+import { CurrentUserInfo } from "@/features/leaderboard/types";
 
 const LoadingSpinner = React.memo(
   ({ message = "Loading leaderboard data..." }: { message?: string }) => (
@@ -265,7 +50,6 @@ const AnnouncementBanner = React.memo(
     userCompleteInfo: UserCompleteDetailsApiResponse | null;
     currentUserInfo: CurrentUserInfo;
   }) => (
-    // <></>
     <div className="mt-6 flex flex-col items-center gap-3 rounded-md bg-[#0D4E3F] px-6 py-3 text-2xl font-normal tracking-[-1%] text-white md:flex-row">
       <div className="flex items-center gap-4">
         <Image
@@ -302,7 +86,6 @@ const AnnouncementBanner = React.memo(
             </a>
           </p>
         </div>
-        {/* TODO: separate this component as a new feature */}
         <CheckEligibility
           userCompleteInfo={userCompleteInfo}
           isLoading={currentUserInfo.isLoading}
@@ -376,13 +159,13 @@ const Leaderboard: React.FC = () => {
     if (!address || allUsers.length === 0) return allUsers;
 
     const existingUserIndex = allUsers.findIndex(
-      (user) => user.address.toLowerCase() === address,
+      (user: any) => user.address.toLowerCase() === address,
     );
 
     if (existingUserIndex !== -1) {
       const userData = allUsers[existingUserIndex];
       const filteredUsers = allUsers.filter(
-        (_, index) => index !== existingUserIndex,
+        (_: any, index: any) => index !== existingUserIndex,
       );
       return [userData, ...filteredUsers];
     }

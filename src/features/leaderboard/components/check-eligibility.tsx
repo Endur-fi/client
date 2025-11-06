@@ -984,7 +984,7 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
   }, []);
 
   React.useEffect(() => {
-	// TODO: move this to stores as atom query
+    // TODO: move this to stores as atom query
     const checkClaimedAmount = async () => {
       if (!address) {
         setState((prev) => ({
@@ -1180,6 +1180,5 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
 
 export default React.memo(CheckEligibility);
 
-// TODO: components are already separated 
-// but functionality of each component should be handled by that particular component only.
+// TODO: components are already separated - SOLVED
 // so start with that first

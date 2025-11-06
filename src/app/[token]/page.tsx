@@ -1,14 +1,8 @@
 import type { Metadata } from "next";
 
-import Tabs from "@/components/Tabs";
+import Staking from "@/features/staking";
 import { getLSTAssetBySymbol } from "@/constants";
-
-// TODO: move the interface to separate file
-export interface TokenProps {
-  params: {
-    token: string;
-  };
-}
+import type { TokenProps } from "@/types";
 
 export async function generateMetadata({
   params,
@@ -54,7 +48,7 @@ export async function generateMetadata({
 const Token = () => {
   return (
     <main className="h-full w-full">
-      <Tabs />
+      <Staking />
     </main>
   );
 };

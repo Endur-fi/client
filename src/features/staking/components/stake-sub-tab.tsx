@@ -15,7 +15,6 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import React from "react";
 import { useForm } from "react-hook-form";
-import { TwitterShareButton } from "react-share";
 import { Call, Contract } from "starknet";
 import * as z from "zod";
 
@@ -26,13 +25,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+
 import {
   Form,
   FormControl,
@@ -40,12 +33,7 @@ import {
   FormItem,
   FormMessage,
 } from "@/components/ui/form";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import InfoTooltip from "../../../components/info-tooltip";
 import {
   IS_PAUSED,
   LSTAssetConfig,
@@ -58,7 +46,7 @@ import { useTransactionHandler } from "@/hooks/use-transactions";
 import { useWalletConnection } from "@/hooks/use-wallet-connection";
 import { MyAnalytics } from "@/lib/analytics";
 import MyNumber from "@/lib/MyNumber";
-import { cn, eventNames } from "@/lib/utils";
+import { eventNames } from "@/lib/utils";
 import LSTService from "@/services/lst";
 import { lstConfigAtom } from "@/store/common.store";
 import { protocolYieldsAtom, type SupportedDApp } from "@/store/defi.store";
@@ -66,12 +54,15 @@ import { apiExchangeRateAtom } from "@/store/lst.store";
 import { tabsAtom } from "@/store/merry.store";
 import { snAPYAtom } from "@/store/staking.store";
 
-import { Icons } from "./Icons";
+import { Icons } from "../../../components/Icons";
 import { PlatformCard } from "./platform-card";
 import Stats from "./stats";
-import { Button } from "./ui/button";
-import { Input } from "./ui/input";
+import { Button } from "../../../components/ui/button";
+import { Input } from "../../../components/ui/input";
 import { ASSET_ICONS } from "./asset-selector";
+import QuickFillAndBalance from "./quick-fill-balance";
+import ThankYouDialog from "@/components/thank-you-dialog";
+import MaxedOutDialog from "@/components/maxed-out-dialog";
 
 const font = Figtree({ subsets: ["latin-ext"] });
 
@@ -94,37 +85,29 @@ const PLATFORMS = {
   HYPER_HYPER: "trovesHyper",
 } as const;
 
-// TODO: can shift this to utils if it is same as stats' platformConfig
+// TODO: can shift this to utils if it is same as stats' platformConfig - SOLVED: kept local, shared mapping applied
+const LST_SYMBOL_TO_YIELD_KEY: Record<string, SupportedDApp> = {
+  xSTRK: "hyperxSTRK",
+  xWBTC: "hyperxWBTC",
+  xtBTC: "hyperxtBTC",
+  xLBTC: "hyperxLBTC",
+  xsBTC: "hyperxsBTC",
+} as const;
+
 const platformConfig = (lstConfig: LSTAssetConfig) => {
-  // Determine the correct yield key based on the LST symbol
-  let yieldKey: string;
-  //TODO: you can use object [key value pair], that will be short and clean
-  switch (lstConfig.LST_SYMBOL) {
-    case "xSTRK":
-      yieldKey = "hyperxSTRK";
-      break;
-    case "xWBTC":
-      yieldKey = "hyperxWBTC";
-      break;
-    case "xtBTC":
-      yieldKey = "hyperxtBTC";
-      break;
-    case "xLBTC":
-      yieldKey = "hyperxLBTC";
-      break;
-    case "xsBTC":
-      yieldKey = "hyperxsBTC";
-      break;
-    default:
-      throw new Error("Invalid LST config");
-  }
+  // TODO: you can use object [key value pair], that will be short and clean - SOLVED
+  const yieldKey =
+    LST_SYMBOL_TO_YIELD_KEY[
+      lstConfig.LST_SYMBOL as keyof typeof LST_SYMBOL_TO_YIELD_KEY
+    ];
+  if (!yieldKey) throw new Error("Invalid LST config");
 
   return {
     trovesHyper: {
       platform: "Troves",
       name: `Troves' Hyper ${lstConfig.LST_SYMBOL} Vault`,
       icon: <Icons.trovesLogoLight className="size-6" />,
-      key: yieldKey as SupportedDApp,
+      key: yieldKey,
       description: (
         <p>
           Leveraged liquidation risk managed vault.{" "}
@@ -142,7 +125,74 @@ const platformConfig = (lstConfig: LSTAssetConfig) => {
   };
 };
 
-const Stake: React.FC = () => {
+// TODO: make a separate component in the same file - SOLVED
+const PlatformList: React.FC<{
+  sortedPlatforms: string[];
+  yields: any;
+  apy: number;
+  selectedPlatform: Platform;
+  setSelectedPlatform: (platform: Platform) => void;
+  getPlatformConfig: (platform: string) => any;
+  getYieldData: (platform: string, yields: any) => any;
+  setShowMaxedOutModal: (open: boolean) => void;
+}> = ({
+  sortedPlatforms,
+  yields,
+  apy,
+  selectedPlatform,
+  setSelectedPlatform,
+  getPlatformConfig,
+  getYieldData,
+  setShowMaxedOutModal,
+}) => {
+  return (
+    <div className="flex w-full flex-col gap-3">
+      {sortedPlatforms.map((platform) => {
+        const config = getPlatformConfig(platform);
+        const yieldData = getYieldData(platform, yields);
+
+        if (!config) {
+          console.warn(`Platform configuration missing for: ${platform}`);
+          return null;
+        }
+
+        const isMaxedOut = config.isMaxedOut;
+
+        return (
+          <PlatformCard
+            key={platform}
+            name={config.name}
+            description={config.description}
+            icon={config.icon}
+            apy={isMaxedOut ? -1 : (yieldData?.value ?? 0)}
+            baseApy={apy}
+            xstrkLent={yieldData?.totalSupplied ?? 0}
+            isSelected={selectedPlatform === platform}
+            onClick={() => {
+              if (isMaxedOut) {
+                setShowMaxedOutModal(true);
+                return;
+              }
+              const newSelection =
+                selectedPlatform === platform ? "none" : (platform as Platform);
+              setSelectedPlatform(newSelection);
+            }}
+          />
+        );
+      })}
+    </div>
+  );
+};
+
+// TODO: separate the thank you modal [ThankYouDialog] - SOLVED
+
+// TODO: Separate this [MaxedOutDialog] - SOLVED
+
+// TODO: separate this as this same can be used in unstake folder [QuickFillAndBalance] - SOLVED
+
+// TODO: can use the logic here itself of sortPlatforms instead of making separate function - SOLVED
+
+const StakeSubTab: React.FC = () => {
   const [showShareModal, setShowShareModal] = React.useState(false);
   const [showMaxedOutModal, setShowMaxedOutModal] = React.useState(false);
   const [selectedPlatform, setSelectedPlatform] =
@@ -262,8 +312,8 @@ const Stake: React.FC = () => {
     ) {
       return toast({
         description: (
-			// TODO: as the same component is being used, make a wrapper in the same file, can be in same function (onsubmit)
-			// make an erroObject and use it conditionally
+          // TODO: as the same component is being used, make a wrapper in the same file, can be in same function (onsubmit)
+          // make an erroObject and use it conditionally
           <div className="flex items-center gap-2">
             <Info className="size-5" />
             Invalid stake amount
@@ -310,7 +360,7 @@ const Stake: React.FC = () => {
       amount: Number(values.stakeAmount),
     });
 
-	// DOUBT: explain the flow
+    // DOUBT: explain the flow
     const underlyingTokenAmount = MyNumber.fromEther(
       values.stakeAmount,
       lstConfig.DECIMALS,
@@ -346,7 +396,7 @@ const Stake: React.FC = () => {
 
       const lendingAddress =
         selectedPlatform === "trovesHyper"
-          ? lstConfig.TROVES_HYPER_VAULT_ADDRESS // TODO: update the address
+          ? lstConfig.TROVES_HYPER_VAULT_ADDRESS // TODO: update the address [OCHE]
           : selectedPlatform === "vesu"
             ? VESU_vXSTRK_ADDRESS
             : NOSTRA_iXSTRK_ADDRESS;
@@ -390,13 +440,7 @@ const Stake: React.FC = () => {
     return yieldData?.value ?? 0;
   };
 
-  const sortPlatforms = (platforms: string[], yields: any) => {
-    return platforms.sort((a, b) => {
-      const apyA = yields[a]?.value || 0;
-      const apyB = yields[b]?.value || 0;
-      return apyB - apyA;
-    });
-  };
+  // inlined sorting logic (replaces separate helper)
 
   const getPlatformConfig = (platform: string) => {
     const config = platformConfig(lstConfig);
@@ -405,82 +449,21 @@ const Stake: React.FC = () => {
 
   const sortedPlatforms = React.useMemo(() => {
     const allPlatforms = Object.values(PLATFORMS);
-	// TODO: can use the logic here itself of sortPlatforms instead of making separate function
-    return sortPlatforms(allPlatforms, yields);
+    return [...allPlatforms].sort((a, b) => {
+      const apyA = yields[a]?.value || 0;
+      const apyB = yields[b]?.value || 0;
+      return apyB - apyA;
+    });
   }, [yields]);
 
-// TODO: remove if not needed  
-  const hasPositiveYields = React.useMemo(() => {
-    return sortedPlatforms.some((platform) => {
-      const config = getPlatformConfig(platform);
-      if (!config) return false;
-      const yieldData = yields[config.key];
-
-      return !config.isMaxedOut && (yieldData?.value ?? 0) > 0;
-    });
-  }, [sortedPlatforms, yields]);
-
-//   TODO: components should not be inside any component, the Stake component render/rerender will rerender platformList as well
-  const PlatformList: React.FC<{
-    sortedPlatforms: string[];
-    yields: any;
-    apy: number;
-    selectedPlatform: Platform;
-    setSelectedPlatform: (platform: Platform) => void;
-  }> = ({
-    sortedPlatforms,
-    yields,
-    apy,
-    selectedPlatform,
-    setSelectedPlatform,
-  }) => {
-    return (
-      <div className="flex w-full flex-col gap-3">
-        {sortedPlatforms.map((platform) => {
-          const config = getPlatformConfig(platform);
-          const yieldData = getYieldData(platform, yields);
-
-          if (!config) {
-            console.warn(`Platform configuration missing for: ${platform}`);
-            return null;
-          }
-
-          const isMaxedOut = config.isMaxedOut;
-
-          return (
-            <PlatformCard
-              key={platform}
-              name={config.name}
-              description={config.description}
-              icon={config.icon}
-              apy={isMaxedOut ? -1 : (yieldData?.value ?? 0)} // Use -1 to indicate maxed out
-              baseApy={apy}
-              xstrkLent={yieldData?.totalSupplied ?? 0}
-              isSelected={selectedPlatform === platform}
-              onClick={() => {
-                if (isMaxedOut) {
-                  setShowMaxedOutModal(true);
-                  return;
-                }
-                const newSelection =
-                  selectedPlatform === platform
-                    ? "none"
-                    : (platform as Platform);
-                setSelectedPlatform(newSelection);
-              }}
-            />
-          );
-        })}
-      </div>
-    );
-  };
-// DOUBT: what's the reason to have this and getPlatformYield separate?
+  // components extracted to top-level
+  // DOUBT: what's the reason to have this and getPlatformYield separate?
   const getYieldData = (platform: string, yields: any) => {
     const config = getPlatformConfig(platform);
     return config ? yields[config.key] : null;
   };
 
-//   TODO: Understand handleTransaction Function and reevaluate how the below code is needed - Neel's Task
+  // TODO: Understand handleTransaction Function and reevaluate how the below code is needed - Neel's Task
   React.useEffect(() => {
     handleTransaction("STAKE", {
       form,
@@ -494,66 +477,20 @@ const Stake: React.FC = () => {
 
   return (
     <div className="relative h-full w-full">
-		{/* TODO: separate the thank you modal [ThankYouDialog] */}
-      <Dialog open={showShareModal} onOpenChange={setShowShareModal}>
-        <DialogContent className={cn(font.className, "p-16 sm:max-w-xl")}>
-          <DialogHeader>
-            <DialogTitle className="text-center text-3xl font-semibold text-[#17876D]">
-              Thank you for taking a step towards decentralizing Starknet!
-            </DialogTitle>
-            <DialogDescription className="!mt-5 text-center text-sm">
-              While your stake is being processed, if you like Endur, do you
-              mind sharing on X/Twitter?
-            </DialogDescription>
-          </DialogHeader>
+      <ThankYouDialog
+        open={showShareModal}
+        onOpenChange={setShowShareModal}
+        lstConfig={lstConfig}
+        apyValue={activeTab === "strk" ? apy.value.strkApy : apy.value.btcApy}
+        selectedPlatform={selectedPlatform}
+        getPlatformYield={getPlatformYield}
+        getPlatformConfig={(p) => getPlatformConfig(p)}
+      />
 
-          <div className="mt-2 flex items-center justify-center">
-            <TwitterShareButton
-              url={`https://endur.fi`}
-              title={`Just staked my ${lstConfig.SYMBOL} on @endurfi, earning ${((activeTab === "strk" ? apy.value.strkApy : apy.value.btcApy) * 100 + (selectedPlatform !== "none" ? getPlatformYield(selectedPlatform) : 0)).toFixed(2)}% APY! 🚀 \n\n${selectedPlatform !== "none" ? `My ${lstConfig.LST_SYMBOL} is now with an additional ${getPlatformYield(selectedPlatform).toFixed(2)}% yield on ${getPlatformConfig(selectedPlatform).platform}! 📈\n\n` : ""}${lstConfig.SYMBOL !== "STRK" ? `Building the future of Bitcoin staking on Starknet` : `Laying the foundation for decentralising Starknet`} with Endur!\n\n`}
-              related={["endurfi", "troves", "karnotxyz"]}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: ".6rem",
-                padding: ".5rem 1rem",
-                borderRadius: "8px",
-                backgroundColor: "#17876D",
-                color: "white",
-                textWrap: "nowrap",
-              }}
-            >
-              Share on
-              <Icons.X className="size-4 shrink-0" />
-            </TwitterShareButton>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-	{/* TODO: Separate this [MaxedOutDialog] */}
-      <Dialog open={showMaxedOutModal} onOpenChange={setShowMaxedOutModal}>
-        <DialogContent
-          className={cn(font.className, "p-8 sm:max-w-md")}
-          hideCloseIcon
-        >
-          <DialogHeader>
-            <DialogTitle className="text-center text-xl font-semibold text-[#17876D]">
-              Vault Maxed Out
-            </DialogTitle>
-            <DialogDescription className="!mt-3 text-center text-sm text-[#8D9C9C]">
-              The vault is currently maxed out, may open in future.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="mt-6 flex justify-center">
-            <Button
-              onClick={() => setShowMaxedOutModal(false)}
-              className="rounded-lg bg-[#17876D] px-6 py-2 text-sm font-semibold text-white hover:bg-[#17876D]/90 focus:outline-none focus:ring-0"
-            >
-              OK
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <MaxedOutDialog
+        open={showMaxedOutModal}
+        onOpenChange={setShowMaxedOutModal}
+      />
 
       <Stats
         selectedPlatform={selectedPlatform}
@@ -596,57 +533,16 @@ const Stake: React.FC = () => {
           </Form>
         </div>
 
-		{/* TODO: separate this as this same can be used in unstake folder [QuickFillAndBalance] */}
-        <div className="flex flex-col items-end">
-          <div className="hidden text-[#8D9C9C] lg:block">
-            <button
-              onClick={() => handleQuickStakePrice(25)}
-              className="rounded-md rounded-r-none border border-[#8D9C9C33] px-2 py-1 text-xs font-semibold text-[#8D9C9C] transition-all hover:bg-[#8D9C9C33]"
-            >
-              25%
-            </button>
-            <button
-              onClick={() => handleQuickStakePrice(50)}
-              className="border border-x-0 border-[#8D9C9C33] px-2 py-1 text-xs font-semibold text-[#8D9C9C] transition-all hover:bg-[#8D9C9C33]"
-            >
-              50%
-            </button>
-            <button
-              onClick={() => handleQuickStakePrice(75)}
-              className="border border-r-0 border-[#8D9C9C33] px-2 py-1 text-xs font-semibold text-[#8D9C9C] transition-all hover:bg-[#8D9C9C33]"
-            >
-              75%
-            </button>
-            <button
-              onClick={() => handleQuickStakePrice(100)}
-              className="rounded-md rounded-l-none border border-[#8D9C9C33] px-2 py-1 text-xs font-semibold text-[#8D9C9C] transition-all hover:bg-[#8D9C9C33]"
-            >
-              Max
-            </button>
-          </div>
-
-          <button
-            onClick={() => handleQuickStakePrice(100)}
-            className="rounded-md bg-[#BBE7E7] px-2 py-1 text-xs font-semibold text-[#215959] transition-all hover:bg-[#BBE7E7] hover:opacity-80 lg:hidden"
-          >
-            Max
-          </button>
-
-          <div className="mt-3 flex items-center gap-2 text-xs font-semibold text-[#8D9C9C] lg:text-sm">
-            <Icons.wallet className="size-3 lg:size-5" />
-            <span className="hidden md:block">Balance:</span>
-            <span className="font-bold">
-              {balance?.formatted
-                ? Number(balance?.formatted).toFixed(isBTC ? 8 : 2)
-                : "0"}{" "}
-              {lstConfig.SYMBOL}
-            </span>
-          </div>
-        </div>
+        <QuickFillAndBalance
+          onQuickFill={handleQuickStakePrice}
+          balance={balance?.formatted}
+          isBTC={isBTC}
+          symbol={lstConfig.SYMBOL}
+        />
       </div>
 
       {sortedPlatforms.length > 0 && (
-		// TODO: make a separate component in the same file
+        // TODO: make a separate component in the same file
         <div className="px-7">
           <Collapsible
             open={isLendingOpen}
@@ -663,30 +559,25 @@ const Stake: React.FC = () => {
                 <span className="text-[#8D9C9C]">(optional)</span>
                 <ChevronDown className="size-3 text-[#8D9C9C] transition-transform duration-200 data-[state=open]:rotate-180" />
               </CollapsibleTrigger>
-			  {/* TODO: use [InfoTooltip] */}
-              <TooltipProvider delayDuration={0}>
-                <Tooltip>
-                  <TooltipTrigger>
-                    <Info className="size-3 text-[#3F6870] lg:text-[#8D9C9C]" />
-                  </TooltipTrigger>
-                  <TooltipContent
-                    side="right"
-                    className="max-w-72 rounded-md border border-[#03624C] bg-white p-3 text-[#03624C]"
-                  >
-					{/* TODO: you can keep the content (if large) of the tooltips in a separate component for cleaner approach */}
-                    <p className="mb-2">
-                      You can earn additional yield by lending your xSTRK on
-                      DeFi platforms. Your base staking rewards will continue to
-                      accumulate.
-                    </p>
-                    <p className="text-xs text-[#8D9C9C]">
-                      Note: These are third-party protocols not affiliated with
-                      Endur. Please DYOR and understand the risks before using
-                      any DeFi platform.
-                    </p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+              {/* TODO: use [InfoTooltip] - SOLVED */}
+              <InfoTooltip
+                icon={
+                  <Info className="size-3 text-[#3F6870] lg:text-[#8D9C9C]" />
+                }
+              >
+                <div className="text-[#03624C]">
+                  <p className="mb-2">
+                    You can earn additional yield by lending your xSTRK on DeFi
+                    platforms. Your base staking rewards will continue to
+                    accumulate.
+                  </p>
+                  <p className="text-xs text-[#8D9C9C]">
+                    Note: These are third-party protocols not affiliated with
+                    Endur. Please DYOR and understand the risks before using any
+                    DeFi platform.
+                  </p>
+                </div>
+              </InfoTooltip>
             </div>
             <CollapsibleContent className="mt-2">
               <div className="flex flex-wrap items-center gap-2">
@@ -698,6 +589,9 @@ const Stake: React.FC = () => {
                   }
                   selectedPlatform={selectedPlatform}
                   setSelectedPlatform={setSelectedPlatform}
+                  getPlatformConfig={getPlatformConfig}
+                  getYieldData={getYieldData}
+                  setShowMaxedOutModal={setShowMaxedOutModal}
                 />
               </div>
             </CollapsibleContent>
@@ -711,37 +605,33 @@ const Stake: React.FC = () => {
         <div className="flex items-center justify-between rounded-md text-xs font-bold text-[#03624C] lg:text-[13px]">
           <p className="flex items-center gap-1">
             {selectedPlatform === "none" ? "You will get" : "You will lend"}
-			  {/* TODO: use [InfoTooltip] */}
-            <TooltipProvider delayDuration={0}>
-              <Tooltip>
-                <TooltipTrigger>
-                  <Info className="size-3 text-[#3F6870] lg:text-[#8D9C9C]" />
-                </TooltipTrigger>
-                <TooltipContent
-                  side="right"
-                  className="max-w-60 rounded-md border border-[#03624C] bg-white text-[#03624C]"
+            <InfoTooltip
+              icon={
+                <Info className="size-3 text-[#3F6870] lg:text-[#8D9C9C]" />
+              }
+            >
+              <div className="text-[#03624C]">
+                {selectedPlatform === "none" ? (
+                  <>
+                    <strong>{lstConfig.LST_SYMBOL}</strong> is the liquid
+                    staking token (LST) of Endur, representing your staked{" "}
+                    {lstConfig.SYMBOL}.{" "}
+                  </>
+                ) : (
+                  <>
+                    This is the amount of xSTRK you&apos;re lending on{" "}
+                    {selectedPlatform}.
+                  </>
+                )}
+                <Link
+                  target="_blank"
+                  href="https://docs.endur.fi/docs"
+                  className="text-blue-600 underline"
                 >
-                  {selectedPlatform === "none" ? (
-                    <>
-                      <strong>{lstConfig.LST_SYMBOL}</strong> is the liquid
-                      staking token (LST) of Endur, representing your staked{" "}
-                      {lstConfig.SYMBOL}.{" "}
-                    </>
-                  ) : (
-                    <>
-                      {`This is the amount of xSTRK you're lending on ${selectedPlatform}. `}
-                    </>
-                  )}
-                  <Link
-                    target="_blank"
-                    href="https://docs.endur.fi/docs"
-                    className="text-blue-600 underline"
-                  >
-                    Learn more
-                  </Link>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+                  Learn more
+                </Link>
+              </div>
+            </InfoTooltip>
           </p>
           <span className="text-xs lg:text-[13px]">
             {Number(getCalculatedLSTAmount()).toFixed(isBTC ? 8 : 2)}{" "}
@@ -752,31 +642,26 @@ const Stake: React.FC = () => {
         <div className="flex items-center justify-between rounded-md text-xs font-medium text-[#939494] lg:text-[13px]">
           <p className="flex items-center gap-1">
             Exchange rate
-			  {/* TODO: use [InfoTooltip] */}
-            <TooltipProvider delayDuration={0}>
-              <Tooltip>
-                <TooltipTrigger>
-                  <Info className="size-3 text-[#3F6870] lg:text-[#8D9C9C]" />
-                </TooltipTrigger>
-                <TooltipContent
-                  side="right"
-                  className="max-w-64 rounded-md border border-[#03624C] bg-white text-[#03624C]"
+            <InfoTooltip
+              icon={
+                <Info className="size-3 text-[#3F6870] lg:text-[#8D9C9C]" />
+              }
+            >
+              <div className="text-[#03624C]">
+                <strong>{lstConfig.LST_SYMBOL}</strong> is a yield bearing token
+                whose value will appreciate against {lstConfig.SYMBOL} as you
+                get more {lstConfig.SYMBOL} rewards. The increase in exchange
+                rate of {lstConfig.LST_SYMBOL} will determine your share of
+                rewards.{" "}
+                <Link
+                  target="_blank"
+                  href="https://docs.endur.fi/docs"
+                  className="text-blue-600 underline"
                 >
-                  <strong>{lstConfig.LST_SYMBOL}</strong> is a yield bearing
-                  token whose value will appreciate against {lstConfig.SYMBOL}{" "}
-                  as you get more {lstConfig.SYMBOL} rewards. The increase in
-                  exchange rate of {lstConfig.LST_SYMBOL} will determine your
-                  share of rewards.{" "}
-                  <Link
-                    target="_blank"
-                    href="https://docs.endur.fi/docs"
-                    className="text-blue-600 underline"
-                  >
-                    Learn more
-                  </Link>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+                  Learn more
+                </Link>
+              </div>
+            </InfoTooltip>
           </p>
           <span>
             1 {lstConfig.LST_SYMBOL} = {exchangeRate.rate.toFixed(4)}{" "}
@@ -787,27 +672,16 @@ const Stake: React.FC = () => {
         <div className="flex items-center justify-between rounded-md text-xs font-medium text-[#939494] lg:text-[13px]">
           <p className="flex items-center gap-1">
             Reward fees
-			  {/* TODO: use [InfoTooltip] */}
-            <TooltipProvider delayDuration={0}>
-              <Tooltip>
-                <TooltipTrigger>
-                  <Info className="size-3 text-[#3F6870] lg:text-[#8D9C9C]" />
-                </TooltipTrigger>
-                <TooltipContent
-                  side="right"
-                  className="max-w-60 rounded-md border border-[#03624C] bg-white text-[#03624C]"
-                >
-                  This fee applies exclusively to your staking rewards and does
-                  NOT affect your staked amount.{" "}
-                  {/* <Link
-                    target="_blank"
-                    href={LINKS.ENDUR_VALUE_DISTRUBUTION_BLOG_LINK}
-                  >
-                    Learn more
-                  </Link> */}
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+            <InfoTooltip
+              icon={
+                <Info className="size-3 text-[#3F6870] lg:text-[#8D9C9C]" />
+              }
+            >
+              <div className="text-[#03624C]">
+                This fee applies exclusively to your staking rewards and does
+                NOT affect your staked amount.
+              </div>
+            </InfoTooltip>
           </p>
           <p>
             <span className="">{REWARD_FEES}%</span>{" "}
@@ -857,4 +731,4 @@ const Stake: React.FC = () => {
   );
 };
 
-export default Stake;
+export default StakeSubTab;

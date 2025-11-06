@@ -44,13 +44,15 @@ import {
   userLSTBalanceAtom,
   withdrawalQueueStateAtom,
 } from "@/store/lst.store";
+import InfoTooltip from "@/components/info-tooltip";
 
-import { Icons } from "./Icons";
+import { Icons } from "../../../components/Icons";
 import Stats from "./stats";
-import { Button } from "./ui/button";
-import { Input } from "./ui/input";
+import { Button } from "../../../components/ui/button";
+import { Input } from "../../../components/ui/input";
 import { lstConfigAtom } from "@/store/common.store";
 import { ASSET_ICONS } from "./asset-selector";
+import QuickFillAndBalance from "./quick-fill-balance";
 
 const formSchema = z.object({
   unstakeAmount: z.string().refine(
@@ -82,47 +84,26 @@ const StyledButton = ({
   </Button>
 );
 
-const InfoTooltip = ({
-  content,
-  side = "right",
-}: {
-  content: React.ReactNode;
-  side?: "right" | "left" | "top" | "bottom";
-}) => (
-  <TooltipProvider delayDuration={0}>
-    <Tooltip>
-      <TooltipTrigger>
-        <Info className="size-3 text-[#3F6870] lg:text-[#8D9C9C]" />
-      </TooltipTrigger>
-      <TooltipContent
-        side={side}
-        className="max-w-60 rounded-md border border-[#03624C] bg-white text-[#03624C]"
-      >
-        {content}
-      </TooltipContent>
-    </Tooltip>
-  </TooltipProvider>
-);
-
 const FeeSection = () => (
   <div className="flex items-center justify-between rounded-md text-xs font-medium text-[#939494] lg:text-[13px]">
     <p className="flex items-center gap-1">
       Reward fees
       <InfoTooltip
-        content={
-          <>
-            This fee applies exclusively to your staking rewards and does NOT
-            affect your staked amount.{" "}
-            {/* <Link
+        iconClassName="size-3 size-3 text-[#3F6870] lg:text-[#8D9C9C]"
+        side="right"
+      >
+        <>
+          This fee applies exclusively to your staking rewards and does NOT
+          affect your staked amount.{" "}
+          {/* <Link
               target="_blank"
               href={LINKS.ENDUR_VALUE_DISTRUBUTION_BLOG_LINK}
               className="text-blue-600 underline"
             >
               Learn more
             </Link> */}
-          </>
-        }
-      />
+        </>
+      </InfoTooltip>
     </p>
     <p>
       <span className="">{REWARD_FEES}%</span>{" "}
@@ -150,42 +131,18 @@ const YouWillGetSection = ({
     <div className="flex items-center justify-between rounded-md text-xs font-bold text-[#03624C] lg:text-[13px]">
       <p className="flex items-center gap-1">
         You will get
-        <InfoTooltip content={tooltipContent} />
+        <InfoTooltip
+          iconClassName="size-3 size-3 text-[#3F6870] lg:text-[#8D9C9C]"
+          side="right"
+        >
+          {tooltipContent}
+        </InfoTooltip>
       </p>
       <span className="text-xs lg:text-[13px]">
         {Number(amount).toFixed(isBTC ? 8 : 2)} {lstConfig.SYMBOL}
       </span>
     </div>
   );
-};
-
-//TODO: remove if not needed
-const _calculateWaitingTime = (queueState: any, unstakeAmount: string) => {
-  if (!queueState || !unstakeAmount) return "-";
-
-  try {
-    const amount = MyNumber.fromEther(unstakeAmount, 18);
-    const pendingQueue = new MyNumber(
-      queueState.unprocessed_withdraw_queue_amount || "0",
-      18,
-    );
-
-    const currentAmount = BigInt(amount.toString());
-    const queueAmount = BigInt(pendingQueue.toString());
-    const totalAmount = currentAmount + queueAmount;
-
-    const THRESHOLD = BigInt(70000) * BigInt(10 ** 18);
-
-    if (totalAmount <= THRESHOLD) {
-      return "1-2 hours";
-    } else if (totalAmount <= THRESHOLD * BigInt(2)) {
-      return "1-2 days";
-    }
-    return "~7 days";
-  } catch (error) {
-    console.error("Error calculating waiting time:", error);
-    return "-";
-  }
 };
 
 interface UnstakeOptionCardProps {
@@ -270,7 +227,7 @@ const UnstakeOptionCard = ({
   );
 };
 
-const Unstake = () => {
+const UnstakeSubTab = () => {
   const [txnDapp, setTxnDapp] = React.useState<"endur" | "dex">("endur");
 
   const { account, address } = useAccount();
@@ -323,10 +280,8 @@ const Unstake = () => {
     return "0";
   }, [exRate.rate, form.watch("unstakeAmount"), txnDapp, avnuQuote, dexRate]);
 
-  //TODO: I think this is simple constant - we can remove useMemo and queuestate if not needed
-  const waitingTime = React.useMemo(() => {
-    return "~7 days";
-  }, [queueState.value, form.watch("unstakeAmount")]);
+  //TODO: I think this is simple constant - we can remove useMemo and queuestate if not needed - SOLVED
+  const waitingTime = "~7 days";
 
   React.useEffect(() => {
     handleTransaction("UNSTAKE", {
@@ -412,7 +367,7 @@ const Unstake = () => {
 
   const handleDexSwap = async () => {
     if (!address || !avnuQuote) return;
-// DOUBT: explain
+    // DOUBT: explain
     MyAnalytics.track(eventNames.UNSTAKE_CLICK, {
       address,
       amount: Number(form.getValues("unstakeAmount")),
@@ -557,89 +512,27 @@ const Unstake = () => {
           </Form>
         </div>
 
-		{/* TODO: Use QuickFillAndBalance component */}
-        <div className="flex flex-col items-end">
-          <div className="hidden text-[#8D9C9C] lg:block">
-            <button
-              onClick={() => handleQuickUnstakePrice(25)}
-              className="rounded-md rounded-r-none border border-[#8D9C9C33] px-2 py-1 text-xs font-semibold text-[#8D9C9C] transition-all hover:bg-[#8D9C9C33]"
-            >
-              25%
-            </button>
-            <button
-              onClick={() => handleQuickUnstakePrice(50)}
-              className="border border-x-0 border-[#8D9C9C33] px-2 py-1 text-xs font-semibold text-[#8D9C9C] transition-all hover:bg-[#8D9C9C33]"
-            >
-              50%
-            </button>
-            <button
-              onClick={() => handleQuickUnstakePrice(75)}
-              className="border border-r-0 border-[#8D9C9C33] px-2 py-1 text-xs font-semibold text-[#8D9C9C] transition-all hover:bg-[#8D9C9C33]"
-            >
-              75%
-            </button>
-            <button
-              onClick={() => handleQuickUnstakePrice(100)}
-              className="rounded-md rounded-l-none border border-[#8D9C9C33] px-2 py-1 text-xs font-semibold text-[#8D9C9C] transition-all hover:bg-[#8D9C9C33]"
-            >
-              Max
-            </button>
-          </div>
-
-          <button
-            onClick={() => handleQuickUnstakePrice(100)}
-            className="rounded-md bg-[#BBE7E7] px-2 py-1 text-xs font-semibold text-[#215959] transition-all hover:bg-[#BBE7E7] hover:opacity-80 lg:hidden"
-          >
-            Max
-          </button>
-
-          <div className="mt-3 flex items-center gap-2 text-xs font-semibold text-[#8D9C9C] lg:text-sm">
-            <Icons.wallet className="size-3 lg:size-5" />
-            <span className="hidden md:block">Balance:</span>
-            <span className="font-bold">
-              {Number(
-                currentLSTBalance.value.toEtherToFixedDecimals(isBTC ? 8 : 2),
-              ).toFixed(isBTC ? 8 : 2)}{" "}
-              {lstConfig.LST_SYMBOL}
-            </span>
-          </div>
-        </div>
+        {/* TODO: Use QuickFillAndBalance component - SOLVED */}
+        <QuickFillAndBalance
+          onQuickFill={handleQuickUnstakePrice}
+          balance={Number(
+            currentLSTBalance.value.toEtherToFixedDecimals(isBTC ? 8 : 2),
+          ).toFixed(isBTC ? 8 : 2)}
+          isBTC={isBTC}
+          symbol={lstConfig.SYMBOL}
+        />
       </div>
 
-	{/* TODO: separate this component in the same file */}
-      <Tabs
-        value={txnDapp}
-        defaultValue="endur"
-        className="w-full max-w-none pt-1"
-        onValueChange={(value) => setTxnDapp(value as "endur" | "dex")}
-      >
-        <TabsList className="flex h-full w-full flex-col items-center justify-between gap-2 bg-transparent px-5 md:flex-row">
-          <UnstakeOptionCard
-            isActive={txnDapp === "endur"}
-            title="Use Endur"
-            logo={<Icons.endurLogo className="size-6" />}
-            rate={exRate.rate}
-            waitingTime={waitingTime}
-            isBestRate={getBetterRate() === "endur"}
-            bgColor="transparent"
-          />
-
-          {isMainnet() && (
-            <UnstakeOptionCard
-              isActive={txnDapp === "dex"}
-              title="Use DEX"
-              logo={
-                <Icons.avnuLogo className="size-6 rounded-full border border-[#8D9C9C20]" />
-              }
-              rate={dexRate}
-              waitingTime="Instant"
-              isLoading={avnuLoading}
-              isRecommended
-              isBestRate={getBetterRate() === "dex"}
-            />
-          )}
-        </TabsList>
-      </Tabs>
+      {/* TODO: separate this component in the same file - SOLVED */}
+      <TabsUnstake
+        txnDapp={txnDapp}
+        setTxnDapp={setTxnDapp}
+        exRate={exRate.rate}
+        getBetterRate={getBetterRate}
+        dexRate={dexRate}
+        avnuLoading={avnuLoading}
+        waitingTime={waitingTime}
+      />
 
       {txnDapp === "endur" ? (
         <>
@@ -682,26 +575,15 @@ const Unstake = () => {
             <div className="flex items-center justify-between rounded-md text-xs font-medium text-[#939494] lg:text-[13px]">
               <p className="flex items-center gap-1">
                 Unstake DEX fee
-                <InfoTooltip content="Avnu and Endur service fee for using DEX unstake" />
+                <InfoTooltip
+                  iconClassName="size-3 size-3 text-[#3F6870] lg:text-[#8D9C9C]"
+                  side="right"
+                >
+                  Avnu and Endur service fee for using DEX unstake
+                </InfoTooltip>
               </p>
               <p>0.05%</p>
             </div>
-            {/* <div className="flex items-center justify-between rounded-md text-xs font-medium text-[#939494] lg:text-[13px]">
-              <p className="flex items-center gap-1">
-                Waiting time
-                <InfoTooltip content="Time until your unstaking request is processed" />
-              </p>
-              <p className="flex items-center gap-1">
-                {txnDapp === "dex" ? (
-                <span className="flex items-center gap-1 font-semibold text-[#17876D]">
-                  <Icons.zap className="h-4 w-4" />
-                  Instant
-                </span>
-                ) : (
-                  waitingTime
-                )}
-              </p>
-            </div> */}
           </div>
           <div className="mt-6 px-5">
             {!address ? (
@@ -740,4 +622,58 @@ const Unstake = () => {
   );
 };
 
-export default Unstake;
+export default UnstakeSubTab;
+
+const TabsUnstake: React.FC<{
+  txnDapp: "endur" | "dex";
+  setTxnDapp: React.Dispatch<React.SetStateAction<"endur" | "dex">>;
+  exRate: number;
+  getBetterRate: () => "none" | "endur" | "dex";
+  dexRate: number;
+  avnuLoading: boolean;
+  waitingTime: string;
+}> = ({
+  txnDapp,
+  setTxnDapp,
+  exRate,
+  getBetterRate,
+  dexRate,
+  avnuLoading,
+  waitingTime,
+}) => {
+  return (
+    <Tabs
+      value={txnDapp}
+      defaultValue="endur"
+      className="w-full max-w-none pt-1"
+      onValueChange={(value) => setTxnDapp(value as "endur" | "dex")}
+    >
+      <TabsList className="flex h-full w-full flex-col items-center justify-between gap-2 bg-transparent px-5 md:flex-row">
+        <UnstakeOptionCard
+          isActive={txnDapp === "endur"}
+          title="Use Endur"
+          logo={<Icons.endurLogo className="size-6" />}
+          rate={exRate}
+          waitingTime={waitingTime}
+          isBestRate={getBetterRate() === "endur"}
+          bgColor="transparent"
+        />
+
+        {isMainnet() && (
+          <UnstakeOptionCard
+            isActive={txnDapp === "dex"}
+            title="Use DEX"
+            logo={
+              <Icons.avnuLogo className="size-6 rounded-full border border-[#8D9C9C20]" />
+            }
+            rate={dexRate}
+            waitingTime="Instant"
+            isLoading={avnuLoading}
+            isRecommended
+            isBestRate={getBetterRate() === "dex"}
+          />
+        )}
+      </TabsList>
+    </Tabs>
+  );
+};
