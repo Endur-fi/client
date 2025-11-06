@@ -259,12 +259,6 @@ export const validateEmail = (email: string): boolean => {
   return true;
 };
 
-// Shared platform configuration helper
-export const createTrovesHyperConfig = (lstSymbol: string) => ({
-  platform: "Troves",
-  name: `Troves' Hyper ${lstSymbol} Vault`,
-});
-
 // Helper to build URL with referrer and other query params
 export const buildUrlWithReferrer = (
   basePath: string,

@@ -3,11 +3,7 @@ import { Info } from "lucide-react";
 import React, { useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
-import {
-  formatNumber,
-  createTrovesHyperConfig,
-  buildUrlWithReferrer,
-} from "@/lib/utils";
+import { formatNumber, buildUrlWithReferrer } from "@/lib/utils";
 import {
   totalStakedAtom,
   totalStakedUSDAtom,
@@ -23,11 +19,12 @@ import { type Platform } from "./stake-sub-tab";
 import AssetSelector, { getFirstBtcAsset } from "./asset-selector";
 import { MyDottedTooltip } from "../../../components/my-tooltip";
 
-// TODO: can shift this to utils if it is same as stake's platformConfig - SOLVED
+// TODO: can shift this to utils if it is same as stake's platformConfig - SOLVED [FUTURE_SCOPE]
 const platformConfig = (lstConfig: any) => {
   return {
     trovesHyper: {
-      ...createTrovesHyperConfig(lstConfig.LST_SYMBOL),
+      platform: "Troves",
+      name: `Trove's Hyper ${lstConfig.LST_SYMBOL} Vault`,
       description: (
         <p>Leveraged liquidation risk managed vault. Read all risks here</p>
       ),

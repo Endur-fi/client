@@ -1,5 +1,5 @@
-import { UserCompleteDetailsApiResponse } from "./_components/check-eligibility";
-import { SizeColumn } from "./_components/table/columns";
+import { UserCompleteDetailsApiResponse } from "./components/check-eligibility";
+import { SizeColumn } from "./components/table/columns";
 
 export interface AllUsersApiResponse {
   users: {

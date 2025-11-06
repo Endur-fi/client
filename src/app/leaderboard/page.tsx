@@ -18,7 +18,7 @@ import {
   type SizeColumn,
 } from "@/features/leaderboard/components/table/columns";
 import { DataTable } from "@/features/leaderboard/components/table/data-table";
-import { CurrentUserInfo } from "./types";
+import { CurrentUserInfo } from "@/features/leaderboard/types";
 
 const LoadingSpinner = React.memo(
   ({ message = "Loading leaderboard data..." }: { message?: string }) => (
@@ -159,13 +159,13 @@ const Leaderboard: React.FC = () => {
     if (!address || allUsers.length === 0) return allUsers;
 
     const existingUserIndex = allUsers.findIndex(
-      (user) => user.address.toLowerCase() === address,
+      (user: any) => user.address.toLowerCase() === address,
     );
 
     if (existingUserIndex !== -1) {
       const userData = allUsers[existingUserIndex];
       const filteredUsers = allUsers.filter(
-        (_, index) => index !== existingUserIndex,
+        (_: any, index: any) => index !== existingUserIndex,
       );
       return [userData, ...filteredUsers];
     }

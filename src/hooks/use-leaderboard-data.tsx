@@ -4,14 +4,14 @@ import { ApolloClient, InMemoryCache } from "@apollo/client";
 import { useAccount } from "@starknet-react/core";
 import React from "react";
 
-import { UserCompleteDetailsApiResponse } from "@/app/leaderboard/_components/check-eligibility";
-import { SizeColumn } from "@/app/leaderboard/_components/table/columns";
+import { UserCompleteDetailsApiResponse } from "@/features/leaderboard/components/check-eligibility";
+import { SizeColumn } from "@/features/leaderboard/components/table/columns";
 import {
   type AllUsersApiResponse,
   type CurrentUserInfo,
   type LeaderboardCache,
   type LeaderboardState,
-} from "@/app/leaderboard/types";
+} from "@/features/leaderboard/types";
 import { isMainnet } from "@/constants";
 import { defaultOptions } from "@/lib/apollo-client";
 import {

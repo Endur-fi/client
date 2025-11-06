@@ -984,7 +984,7 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
   }, []);
 
   React.useEffect(() => {
-	// TODO: move this to stores as atom query
+    // TODO: move this to stores as atom query
     const checkClaimedAmount = async () => {
       if (!address) {
         setState((prev) => ({

@@ -26,7 +26,7 @@ export interface ProtocolConfig {
   action?: ProtocolAction;
 }
 
-// TODO: move this to constant or utils maybe [bcs used in portfolio-page] [DOUBT:HEMANT] -> we can only export this from .tsx file, so what would be the best approach here, should i create/modify to utils/constants.tsx file.
+// TODO: move this to constant or utils maybe [bcs used in portfolio-page] [DOUBT:HEMANT] -> we can only export this from .tsx file, so what would be the best approach here, should i create/modify to utils/constants.tsx file. [FUTURE_SCOPE]
 export const protocolConfigs: Partial<Record<SupportedDApp, ProtocolConfig>> = {
   strkfarm: {
     tokens: [
