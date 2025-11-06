@@ -33,7 +33,7 @@ import {
   FormItem,
   FormMessage,
 } from "@/components/ui/form";
-import { MyDottedTooltip } from "../../../components/my-tooltip";
+import InfoTooltip from "../../../components/info-tooltip";
 import {
   IS_PAUSED,
   LSTAssetConfig,
@@ -560,24 +560,24 @@ const StakeSubTab: React.FC = () => {
                 <ChevronDown className="size-3 text-[#8D9C9C] transition-transform duration-200 data-[state=open]:rotate-180" />
               </CollapsibleTrigger>
               {/* TODO: use [InfoTooltip] - SOLVED */}
-              <MyDottedTooltip
-                tooltip={
-                  <div className="text-[#03624C]">
-                    <p className="mb-2">
-                      You can earn additional yield by lending your xSTRK on
-                      DeFi platforms. Your base staking rewards will continue to
-                      accumulate.
-                    </p>
-                    <p className="text-xs text-[#8D9C9C]">
-                      Note: These are third-party protocols not affiliated with
-                      Endur. Please DYOR and understand the risks before using
-                      any DeFi platform.
-                    </p>
-                  </div>
+              <InfoTooltip
+                icon={
+                  <Info className="size-3 text-[#3F6870] lg:text-[#8D9C9C]" />
                 }
               >
-                <Info className="size-3 text-[#3F6870] lg:text-[#8D9C9C]" />
-              </MyDottedTooltip>
+                <div className="text-[#03624C]">
+                  <p className="mb-2">
+                    You can earn additional yield by lending your xSTRK on DeFi
+                    platforms. Your base staking rewards will continue to
+                    accumulate.
+                  </p>
+                  <p className="text-xs text-[#8D9C9C]">
+                    Note: These are third-party protocols not affiliated with
+                    Endur. Please DYOR and understand the risks before using any
+                    DeFi platform.
+                  </p>
+                </div>
+              </InfoTooltip>
             </div>
             <CollapsibleContent className="mt-2">
               <div className="flex flex-wrap items-center gap-2">
@@ -605,33 +605,33 @@ const StakeSubTab: React.FC = () => {
         <div className="flex items-center justify-between rounded-md text-xs font-bold text-[#03624C] lg:text-[13px]">
           <p className="flex items-center gap-1">
             {selectedPlatform === "none" ? "You will get" : "You will lend"}
-            <MyDottedTooltip
-              tooltip={
-                <div className="text-[#03624C]">
-                  {selectedPlatform === "none" ? (
-                    <>
-                      <strong>{lstConfig.LST_SYMBOL}</strong> is the liquid
-                      staking token (LST) of Endur, representing your staked{" "}
-                      {lstConfig.SYMBOL}.{" "}
-                    </>
-                  ) : (
-                    <>
-                      This is the amount of xSTRK you&apos;re lending on{" "}
-                      {selectedPlatform}.
-                    </>
-                  )}
-                  <Link
-                    target="_blank"
-                    href="https://docs.endur.fi/docs"
-                    className="text-blue-600 underline"
-                  >
-                    Learn more
-                  </Link>
-                </div>
+            <InfoTooltip
+              icon={
+                <Info className="size-3 text-[#3F6870] lg:text-[#8D9C9C]" />
               }
             >
-              <Info className="size-3 text-[#3F6870] lg:text-[#8D9C9C]" />
-            </MyDottedTooltip>
+              <div className="text-[#03624C]">
+                {selectedPlatform === "none" ? (
+                  <>
+                    <strong>{lstConfig.LST_SYMBOL}</strong> is the liquid
+                    staking token (LST) of Endur, representing your staked{" "}
+                    {lstConfig.SYMBOL}.{" "}
+                  </>
+                ) : (
+                  <>
+                    This is the amount of xSTRK you&apos;re lending on{" "}
+                    {selectedPlatform}.
+                  </>
+                )}
+                <Link
+                  target="_blank"
+                  href="https://docs.endur.fi/docs"
+                  className="text-blue-600 underline"
+                >
+                  Learn more
+                </Link>
+              </div>
+            </InfoTooltip>
           </p>
           <span className="text-xs lg:text-[13px]">
             {Number(getCalculatedLSTAmount()).toFixed(isBTC ? 8 : 2)}{" "}
@@ -642,26 +642,26 @@ const StakeSubTab: React.FC = () => {
         <div className="flex items-center justify-between rounded-md text-xs font-medium text-[#939494] lg:text-[13px]">
           <p className="flex items-center gap-1">
             Exchange rate
-            <MyDottedTooltip
-              tooltip={
-                <div className="text-[#03624C]">
-                  <strong>{lstConfig.LST_SYMBOL}</strong> is a yield bearing
-                  token whose value will appreciate against {lstConfig.SYMBOL}{" "}
-                  as you get more {lstConfig.SYMBOL} rewards. The increase in
-                  exchange rate of {lstConfig.LST_SYMBOL} will determine your
-                  share of rewards.{" "}
-                  <Link
-                    target="_blank"
-                    href="https://docs.endur.fi/docs"
-                    className="text-blue-600 underline"
-                  >
-                    Learn more
-                  </Link>
-                </div>
+            <InfoTooltip
+              icon={
+                <Info className="size-3 text-[#3F6870] lg:text-[#8D9C9C]" />
               }
             >
-              <Info className="size-3 text-[#3F6870] lg:text-[#8D9C9C]" />
-            </MyDottedTooltip>
+              <div className="text-[#03624C]">
+                <strong>{lstConfig.LST_SYMBOL}</strong> is a yield bearing token
+                whose value will appreciate against {lstConfig.SYMBOL} as you
+                get more {lstConfig.SYMBOL} rewards. The increase in exchange
+                rate of {lstConfig.LST_SYMBOL} will determine your share of
+                rewards.{" "}
+                <Link
+                  target="_blank"
+                  href="https://docs.endur.fi/docs"
+                  className="text-blue-600 underline"
+                >
+                  Learn more
+                </Link>
+              </div>
+            </InfoTooltip>
           </p>
           <span>
             1 {lstConfig.LST_SYMBOL} = {exchangeRate.rate.toFixed(4)}{" "}
@@ -672,16 +672,16 @@ const StakeSubTab: React.FC = () => {
         <div className="flex items-center justify-between rounded-md text-xs font-medium text-[#939494] lg:text-[13px]">
           <p className="flex items-center gap-1">
             Reward fees
-            <MyDottedTooltip
-              tooltip={
-                <div className="text-[#03624C]">
-                  This fee applies exclusively to your staking rewards and does
-                  NOT affect your staked amount.
-                </div>
+            <InfoTooltip
+              icon={
+                <Info className="size-3 text-[#3F6870] lg:text-[#8D9C9C]" />
               }
             >
-              <Info className="size-3 text-[#3F6870] lg:text-[#8D9C9C]" />
-            </MyDottedTooltip>
+              <div className="text-[#03624C]">
+                This fee applies exclusively to your staking rewards and does
+                NOT affect your staked amount.
+              </div>
+            </InfoTooltip>
           </p>
           <p>
             <span className="">{REWARD_FEES}%</span>{" "}

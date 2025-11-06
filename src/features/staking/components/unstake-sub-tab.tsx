@@ -44,6 +44,7 @@ import {
   userLSTBalanceAtom,
   withdrawalQueueStateAtom,
 } from "@/store/lst.store";
+import InfoTooltip from "@/components/info-tooltip";
 
 import { Icons } from "../../../components/Icons";
 import Stats from "./stats";
@@ -83,47 +84,26 @@ const StyledButton = ({
   </Button>
 );
 
-const InfoTooltip = ({
-  content,
-  side = "right",
-}: {
-  content: React.ReactNode;
-  side?: "right" | "left" | "top" | "bottom";
-}) => (
-  <TooltipProvider delayDuration={0}>
-    <Tooltip>
-      <TooltipTrigger>
-        <Info className="size-3 text-[#3F6870] lg:text-[#8D9C9C]" />
-      </TooltipTrigger>
-      <TooltipContent
-        side={side}
-        className="max-w-60 rounded-md border border-[#03624C] bg-white text-[#03624C]"
-      >
-        {content}
-      </TooltipContent>
-    </Tooltip>
-  </TooltipProvider>
-);
-
 const FeeSection = () => (
   <div className="flex items-center justify-between rounded-md text-xs font-medium text-[#939494] lg:text-[13px]">
     <p className="flex items-center gap-1">
       Reward fees
       <InfoTooltip
-        content={
-          <>
-            This fee applies exclusively to your staking rewards and does NOT
-            affect your staked amount.{" "}
-            {/* <Link
+        iconClassName="size-3 size-3 text-[#3F6870] lg:text-[#8D9C9C]"
+        side="right"
+      >
+        <>
+          This fee applies exclusively to your staking rewards and does NOT
+          affect your staked amount.{" "}
+          {/* <Link
               target="_blank"
               href={LINKS.ENDUR_VALUE_DISTRUBUTION_BLOG_LINK}
               className="text-blue-600 underline"
             >
               Learn more
             </Link> */}
-          </>
-        }
-      />
+        </>
+      </InfoTooltip>
     </p>
     <p>
       <span className="">{REWARD_FEES}%</span>{" "}
@@ -151,7 +131,12 @@ const YouWillGetSection = ({
     <div className="flex items-center justify-between rounded-md text-xs font-bold text-[#03624C] lg:text-[13px]">
       <p className="flex items-center gap-1">
         You will get
-        <InfoTooltip content={tooltipContent} />
+        <InfoTooltip
+          iconClassName="size-3 size-3 text-[#3F6870] lg:text-[#8D9C9C]"
+          side="right"
+        >
+          {tooltipContent}
+        </InfoTooltip>
       </p>
       <span className="text-xs lg:text-[13px]">
         {Number(amount).toFixed(isBTC ? 8 : 2)} {lstConfig.SYMBOL}
@@ -590,26 +575,15 @@ const UnstakeSubTab = () => {
             <div className="flex items-center justify-between rounded-md text-xs font-medium text-[#939494] lg:text-[13px]">
               <p className="flex items-center gap-1">
                 Unstake DEX fee
-                <InfoTooltip content="Avnu and Endur service fee for using DEX unstake" />
+                <InfoTooltip
+                  iconClassName="size-3 size-3 text-[#3F6870] lg:text-[#8D9C9C]"
+                  side="right"
+                >
+                  Avnu and Endur service fee for using DEX unstake
+                </InfoTooltip>
               </p>
               <p>0.05%</p>
             </div>
-            {/* <div className="flex items-center justify-between rounded-md text-xs font-medium text-[#939494] lg:text-[13px]">
-              <p className="flex items-center gap-1">
-                Waiting time
-                <InfoTooltip content="Time until your unstaking request is processed" />
-              </p>
-              <p className="flex items-center gap-1">
-                {txnDapp === "dex" ? (
-                <span className="flex items-center gap-1 font-semibold text-[#17876D]">
-                  <Icons.zap className="h-4 w-4" />
-                  Instant
-                </span>
-                ) : (
-                  waitingTime
-                )}
-              </p>
-            </div> */}
           </div>
           <div className="mt-6 px-5">
             {!address ? (

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-import Tabs from "@/features/staking/components/token-tab";
+import Staking from "@/features/staking";
 import { getLSTAssetBySymbol } from "@/constants";
 import type { TokenProps } from "@/types";
 
@@ -48,7 +48,7 @@ export async function generateMetadata({
 const Token = () => {
   return (
     <main className="h-full w-full">
-      <Tabs />
+      <Staking />
     </main>
   );
 };

@@ -2,7 +2,6 @@
 
 import React from "react";
 import { ColumnDef } from "@tanstack/react-table";
-import { Info } from "lucide-react";
 import Link from "next/link";
 
 import { Icons } from "@/components/Icons";
@@ -38,9 +37,7 @@ export const withdrawLogColumn: ColumnDef<WithdrawLogColumn>[] = [
         <div className="flex items-center gap-2">
           Log ID
           {/* TODO: use InfoTooltip - SOLVED */}
-          <InfoTooltip tooltip={<Info className="size-3 text-black" />}>
-            Your position in the withdrawal queue
-          </InfoTooltip>
+          <InfoTooltip>Your position in the withdrawal queue</InfoTooltip>
         </div>
       );
     },
@@ -149,10 +146,7 @@ export const withdrawLogColumn: ColumnDef<WithdrawLogColumn>[] = [
                 {convertFutureTimestamp(row.original.claimTime as any)}
               </span>
               {/* TODO: use InfoTooltip - SOLVED */}
-              <InfoTooltip
-                tooltip={<Info className="size-3 text-[#939494]" />}
-                side="bottom"
-              >
+              <InfoTooltip side="bottom">
                 You can claim within{" "}
                 {convertFutureTimestamp(row.original.claimTime as any)}
               </InfoTooltip>

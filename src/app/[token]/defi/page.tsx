@@ -2,8 +2,7 @@ import React from "react";
 
 import Defi from "@/components/defi";
 import BtcDefi from "@/components/btc-defi";
-
-import { TokenProps } from "../page";
+import { TokenProps } from "@/types";
 
 const DefiPage: React.FC<TokenProps> = ({ params }) => {
   const { token } = params;

@@ -17,7 +17,7 @@ import { lstConfigAtom } from "@/store/common.store";
 import { Icons } from "../../../components/Icons";
 import { type Platform } from "./stake-sub-tab";
 import AssetSelector, { getFirstBtcAsset } from "./asset-selector";
-import { MyDottedTooltip } from "../../../components/my-tooltip";
+import InfoTooltip from "../../../components/info-tooltip";
 
 // TODO: can shift this to utils if it is same as stake's platformConfig - SOLVED [FUTURE_SCOPE]
 const platformConfig = (lstConfig: any) => {
@@ -118,17 +118,17 @@ const Stats: React.FC<StatsProps> = ({
           <span className="flex items-center gap-1 text-xs font-semibold text-[#3F6870] lg:text-[#8D9C9C]">
             APY
             {/* TODO: use InfoTooltip - SOLVED */}
-            <MyDottedTooltip
-              tooltip={
-                <div className="text-[#03624C]">
-                  {!selectedPlatform || selectedPlatform === "none"
-                    ? "Estimated current compounded annualised yield on staking in terms of STRK."
-                    : `Estimated yield including both staking and lending on ${platformConfig(lstConfig)[selectedPlatform]?.platform || "DeFi platform"}.`}
-                </div>
+            <InfoTooltip
+              icon={
+                <Info className="size-3 text-[#3F6870] lg:text-[#8D9C9C]" />
               }
             >
-              <Info className="size-3 text-[#3F6870] lg:text-[#8D9C9C]" />
-            </MyDottedTooltip>
+              <div className="text-[#03624C]">
+                {!selectedPlatform || selectedPlatform === "none"
+                  ? "Estimated current compounded annualised yield on staking in terms of STRK."
+                  : `Estimated yield including both staking and lending on ${platformConfig(lstConfig)[selectedPlatform]?.platform || "DeFi platform"}.`}
+              </div>
+            </InfoTooltip>
           </span>
           <span className="flex items-center gap-1">
             ~{memoizedApyValue}%
@@ -183,19 +183,17 @@ const Stats: React.FC<StatsProps> = ({
             </span>
             <div className="ml-auto pl-2">
               {/* TODO: use InfoTooltip - SOLVED */}
-              <MyDottedTooltip
-                tooltip={
-                  <>
-                    {lstConfig.LST_SYMBOL} directly available in your wallet.
-                    You can unstake this {lstConfig.LST_SYMBOL} anytime.
-                    <br />
-                    <br />
-                    Excludes {lstConfig.LST_SYMBOL} in DeFi apps.
-                  </>
-                }
+              <InfoTooltip
+                icon={<Info className="ml-[5px] size-3 text-[#efefef]" />}
               >
-                <Info className="ml-[5px] size-3 text-[#efefef]" />
-              </MyDottedTooltip>
+                <>
+                  {lstConfig.LST_SYMBOL} directly available in your wallet. You
+                  can unstake this {lstConfig.LST_SYMBOL} anytime.
+                  <br />
+                  <br />
+                  Excludes {lstConfig.LST_SYMBOL} in DeFi apps.
+                </>
+              </InfoTooltip>
             </div>
           </div>
 
@@ -211,29 +209,27 @@ const Stats: React.FC<StatsProps> = ({
                 </span>
                 <div className="ml-auto pl-2">
                   {/* TODO: use InfoTooltip - SOLVED */}
-                  <MyDottedTooltip
-                    tooltip={
-                      <>
-                        <div>
-                          {lstConfig.LST_SYMBOL} in third party DeFi apps. You
-                          cannot unstake this {lstConfig.LST_SYMBOL} directly.
-                          Withdraw your {lstConfig.LST_SYMBOL} from DeFi apps to
-                          unstake here.
-                        </div>
-                        <br />
-                        <div>
-                          <b>Note:</b> This is a beta feature, may not include
-                          all DApps. Click{" "}
-                          <a href="/portfolio">
-                            <b>here</b>
-                          </a>{" "}
-                          to see more details.
-                        </div>
-                      </>
-                    }
+                  <InfoTooltip
+                    icon={<Info className="ml-[5px] size-3 text-[#17876D]" />}
                   >
-                    <Info className="ml-[5px] size-3 text-[#17876D]" />
-                  </MyDottedTooltip>
+                    <>
+                      <div>
+                        {lstConfig.LST_SYMBOL} in third party DeFi apps. You
+                        cannot unstake this {lstConfig.LST_SYMBOL} directly.
+                        Withdraw your {lstConfig.LST_SYMBOL} from DeFi apps to
+                        unstake here.
+                      </div>
+                      <br />
+                      <div>
+                        <b>Note:</b> This is a beta feature, may not include all
+                        DApps. Click{" "}
+                        <a href="/portfolio">
+                          <b>here</b>
+                        </a>{" "}
+                        to see more details.
+                      </div>
+                    </>
+                  </InfoTooltip>
                 </div>
               </div>
             </a>
