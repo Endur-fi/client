@@ -13,6 +13,16 @@ import {
 import MyNumber from "@/lib/MyNumber";
 import { tryCatch } from "@/lib/utils";
 
+// Interface for merged APY data response
+export interface APYData {
+  yearlyMinting: MyNumber;
+  totalStakingPower: {
+    totalStakingPowerSTRK: MyNumber;
+    totalStakingPowerBTC: MyNumber;
+  };
+  alpha: number;
+}
+
 class StakingService {
   private provider: RpcProvider;
 
@@ -49,27 +59,7 @@ class StakingService {
     return MyNumber.fromZero();
   }
 
-  // TODO: remove if not needed
-  async getSNTotalStaked() {
-    const stakingContract = new Contract({
-      abi: STAKING_ABI,
-      address: SN_STAKING_ADRESS,
-      providerOrAccount: this.provider,
-    });
-
-    const { data: totalStaked, error } = await tryCatch(
-      stakingContract.call("get_total_stake"),
-    );
-
-    if (totalStaked) {
-      return new MyNumber(totalStaked.toString(), STRK_DECIMALS);
-    }
-
-    if (error) {
-      console.error("snTotalStakedError", error);
-      return MyNumber.fromZero();
-    }
-  }
+  // REMOVED: getSNTotalStaked - not needed/used anywhere
 
   async getTotalStakingPower() {
     const stakingContract = new Contract({
@@ -131,6 +121,98 @@ class StakingService {
     }
 
     return 0;
+  }
+
+  /**
+   * Fetches all APY-related data in a single optimized call using Promise.all
+   * This merges three separate contract calls:
+   * 1. yearly_mint from minting contract
+   * 2. get_current_total_staking_power from staking contract  
+   * 3. get_alpha from staking reward contract
+   */
+  async getAPYData(): Promise<APYData> {
+    // Create contract instances
+    const mintingContract = new Contract({
+      abi: MINTING_ABI,
+      address: SN_MINTING_CURVE_ADRESS,
+      providerOrAccount: this.provider,
+    });
+
+    const stakingContract = new Contract({
+      abi: STAKING_ABI,
+      address: SN_STAKING_ADRESS,
+      providerOrAccount: this.provider,
+    });
+
+    const stakingRewardContract = new Contract({
+      abi: STAKING_REWARD_ABI,
+      address: SN_STAKING_REWARD_ADDRESS,
+      providerOrAccount: this.provider,
+    });
+
+    try {
+      // Execute all three contract calls in parallel for optimal performance
+      const [yearlyMintingResult, totalStakingPowerResult, alphaResult] = await Promise.all([
+        tryCatch(mintingContract.call("yearly_mint")),
+        tryCatch(stakingContract.call("get_current_total_staking_power")),
+        tryCatch(stakingRewardContract.call("get_alpha")),
+      ]);
+
+      // Process yearly minting
+      let yearlyMinting = MyNumber.fromZero();
+      if (yearlyMintingResult.data) {
+        yearlyMinting = new MyNumber(yearlyMintingResult.data.toString(), 18);
+      } else if (yearlyMintingResult.error) {
+        console.error("yearlyMintingError in merged call", yearlyMintingResult.error);
+      }
+
+      // Process total staking power
+      let totalStakingPower = {
+        totalStakingPowerSTRK: MyNumber.fromZero(),
+        totalStakingPowerBTC: MyNumber.fromZero(),
+      };
+      if (totalStakingPowerResult.data) {
+        const stakingPowers = totalStakingPowerResult.data as any;
+        totalStakingPower = {
+          totalStakingPowerSTRK: new MyNumber(
+            stakingPowers[0].amount_18_decimals.toString(),
+            18,
+          ),
+          totalStakingPowerBTC: new MyNumber(
+            stakingPowers[1].amount_18_decimals.toString(),
+            18,
+          ),
+        };
+      } else if (totalStakingPowerResult.error) {
+        console.error("totalStakingPowerError in merged call", totalStakingPowerResult.error);
+      }
+
+      // Process alpha
+      let alpha = 0;
+      if (alphaResult.data) {
+        alpha = Number(alphaResult.data);
+      } else if (alphaResult.error) {
+        console.error("alphaError in merged call", alphaResult.error);
+      }
+
+      return {
+        yearlyMinting,
+        totalStakingPower,
+        alpha,
+      };
+    } catch (error) {
+      console.error("Error in merged APY data call", error);
+      
+      // Return default values on error
+      return {
+        yearlyMinting: MyNumber.fromZero(),
+        totalStakingPower: {
+          totalStakingPowerSTRK: MyNumber.fromZero(),
+          totalStakingPowerBTC: MyNumber.fromZero(),
+        },
+        alpha: 0,
+      };
+    }
   }
 }
 

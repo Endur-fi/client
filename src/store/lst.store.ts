@@ -3,6 +3,8 @@ import { atomWithQuery } from "jotai-tanstack-query";
 import { atomFamily } from "jotai/utils";
 import { type BlockIdentifier, BlockTag, Contract, uint256 } from "starknet";
 
+import { isUserActiveAtom } from "@/hooks/useUserActivity";
+
 import WqAbi from "@/abi/wq.abi.json";
 import {
   STRK_DECIMALS,
@@ -156,6 +158,14 @@ const userLSTBalanceQueryAtom = atomWithQuery((get) => {
         return MyNumber.fromZero();
       }
     },
+    refetchInterval: () => {
+      const isActive = get(isUserActiveAtom);
+      return isActive ? 60000 : false; // Only refetch if user is active
+    },
+    refetchOnWindowFocus: () => {
+      const isActive = get(isUserActiveAtom);
+      return isActive;
+    },
   };
 });
 
@@ -221,37 +231,7 @@ export const nstStrkWithdrawalFeeQueryAtom = atomWithQuery((get) => {
   };
 });
 
-export const userBalanceQueryAtom = atomWithQuery((get) => {
-  return {
-    queryKey: [
-      "userBalance",
-      get(currentBlockAtom),
-      get(userAddressAtom),
-      get(userLSTBalanceAtom),
-      get(lstConfigAtom),
-    ],
-    queryFn: async ({ _queryKey }: any): Promise<MyNumber> => {
-      const userAddress = get(userAddressAtom);
-      const lstBalance = get(userLSTBalanceAtom);
-      const lstConfig = get(lstConfigAtom)!;
-
-      if (!userAddress || !lstConfig || lstBalance.value.isZero()) {
-        return MyNumber.fromZero();
-      }
-
-      try {
-        const lstContract = lstService.getLSTContract(lstConfig.LST_ADDRESS);
-        const balance = await lstContract.call("convert_to_assets", [
-          uint256.bnToUint256(lstBalance.value.toString()),
-        ]);
-        return new MyNumber(balance.toString(), lstConfig.DECIMALS);
-      } catch (error) {
-        console.error("userBalanceQueryAtom [3]", error);
-        return MyNumber.fromZero();
-      }
-    },
-  };
-});
+// REMOVED: userBalanceQueryAtom - was not used anywhere
 
 //TODO: if not needed remove - we are using this in migrate-nostra component but that function is not used anywhere
 // also remove userNstSTRKBalanceQueryAtom
@@ -275,16 +255,7 @@ export const nstStrkWithdrawalFeeAtom = atom((get) => {
   };
 });
 
-//TODO: remove - not used anywhere
-//also remove userBalanceQueryAtom
-export const userBalanceAtom = atom((get) => {
-  const { data, error } = get(userBalanceQueryAtom);
-  return {
-    value: error || !data ? MyNumber.fromZero() : data,
-    error,
-    isLoading: !data && !error,
-  };
-});
+// REMOVED: userBalanceAtom - was not used anywhere
 
 export const totalStakedQueryAtom = atomFamily(
   (blockNumber: BlockIdentifier | undefined) => {
@@ -315,7 +286,8 @@ export const totalStakedQueryAtom = atomFamily(
   },
 );
 
-//TODO [APY_TODO]: We can cache this for longer period, so move this to api/lts/stats or any other server route as it is common for all user
+//TODO [APY_TODO]: DEPRECATED - Use apiTVLAtom which uses server-side calculations from api/lst/stats
+// This atom is kept for backward compatibility but should be replaced with apiTVLAtom
 export const totalStakedAtom = atom((get) => {
   const { data, error, isLoading } = get(totalStakedCurrentBlockQueryAtom);
 
@@ -393,6 +365,8 @@ export const exchangeRateAtom = atom((get) => {
   };
 });
 
+// DEPRECATED - Use apiTVLAtom which uses server-side calculations from api/lst/stats
+// This atom is kept for backward compatibility but should be replaced with apiTVLAtom
 export const totalStakedUSDAtom = atom((get) => {
   const { data: price, isLoading: isPriceLoading } = get(assetPriceAtom);
   const lstConfig = get(lstConfigAtom);
@@ -455,32 +429,7 @@ export const withdrawalQueueStateAtom = atom((get) => {
   };
 });
 
-const userLSTBalanceByBlockQueryAtom = getHoldingAtom(
-  "userXSTRKBalance",
-  getHoldings,
-);
-
-//TODO: not used anywhere - remove
-// also remove userLSTBalanceByBlockQueryAtom
-export const userLSTBalanceByBlockAtom: DAppHoldingsAtom = atomFamily(
-  (blockNumber?: number) => {
-    return atom((get) => {
-      const { data, error } = get(userLSTBalanceByBlockQueryAtom(blockNumber));
-
-      return {
-        data:
-          error || !data
-            ? {
-                lstAmount: MyNumber.fromZero(),
-                underlyingTokenAmount: MyNumber.fromZero(),
-              }
-            : data,
-        error,
-        isLoading: !data && !error,
-      };
-    });
-  },
-);
+// REMOVED: userLSTBalanceByBlockQueryAtom and userLSTBalanceByBlockAtom - not used anywhere
 
 // TODO: don't export
 export const totalStakedCurrentBlockQueryAtom = atomWithQuery((get) => {
@@ -492,7 +441,7 @@ export const totalStakedCurrentBlockQueryAtom = atomWithQuery((get) => {
       get(lstConfigAtom),
       get(totalStakedQueryAtom(BlockTag.LATEST)),
     ],
-    queryFn: async ({ _queryKey }: any) => {
+    queryFn: async () => {
       const { data, error } = get(totalStakedQueryAtom(BlockTag.LATEST));
       return {
         value: error || !data ? MyNumber.fromZero() : data,
@@ -511,7 +460,7 @@ export const totalSupplyCurrentBlockAtom = atomWithQuery((get) => {
       get(currentBlockAtom),
       get(totalStakedQueryAtom(BlockTag.LATEST)),
     ],
-    queryFn: async ({ _queryKey }: any) => {
+    queryFn: async () => {
       const { data, error } = get(totalSupplyQueryAtom(BlockTag.LATEST));
 
       return {
@@ -522,7 +471,6 @@ export const totalSupplyCurrentBlockAtom = atomWithQuery((get) => {
     },
   };
 });
-
 
 //TODO: remove if not needed
 export const exchangeRateByBlockAtom = atomFamily((blockNumber?: number) => {
@@ -560,31 +508,81 @@ export const exchangeRateByBlockAtom = atomFamily((blockNumber?: number) => {
   });
 });
 
-// TODO [LST_STATS_UPDATE]: use separate apis for each tokens
-export const lstStatsQueryAtom = atomWithQuery(() => ({
-  queryKey: ["lstStats"],
-  queryFn: async (): Promise<LSTStatsResponse[]> => {
-    try {
-      const response = await fetch("/api/lst/stats");
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+// Optimized to use separate endpoints for better caching with user activity-based refetching
+export const lstStatsQueryAtom = atomFamily((assetSymbol?: string) => {
+  return atomWithQuery((get) => ({
+    queryKey: ["lstStats", assetSymbol],
+    queryFn: async (): Promise<LSTStatsResponse[]> => {
+      try {
+        let url: string;
+        
+        if (!assetSymbol) {
+          // Fallback to original endpoint for all data
+          url = "/api/lst/stats";
+        } else {
+          // Use optimized endpoints based on asset type
+          const symbol = assetSymbol.toLowerCase();
+          if (symbol === "strk") {
+            url = "/api/lst/stats/strk";
+          } else if (["wbtc", "tbtc", "lbtc", "solvbtc", "tbtc1", "tbtc2"].includes(symbol)) {
+            url = `/api/lst/stats/btc?asset=${encodeURIComponent(assetSymbol)}`;
+          } else {
+            // Fallback for unknown assets
+            url = `/api/lst/stats?asset=${encodeURIComponent(assetSymbol)}`;
+          }
+        }
+        
+        const response = await fetch(url);
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        const data = await response.json();
+        
+        // Normalize response to always be an array
+        if (Array.isArray(data)) {
+          return data;
+        } else if (data && typeof data === 'object' && !data.error) {
+          return [data];
+        } else {
+          return data.data || [];
+        }
+      } catch (error) {
+        console.error("lstStatsQueryAtom error:", error);
+        throw error;
       }
-      const data = await response.json();
-      return data;
-    } catch (error) {
-      console.error("lstStatsQueryAtom error:", error);
-      throw error;
-    }
-  },
-  refetchInterval: 60000,
-  staleTime: 30000,
-}));
+    },
+    refetchInterval: () => {
+      const isActive = get(isUserActiveAtom);
+      return isActive ? 60000 : false; // Only refetch if user is active
+    },
+    staleTime: 30000,
+    refetchOnWindowFocus: () => {
+      const isActive = get(isUserActiveAtom);
+      return isActive;
+    },
+    refetchOnMount: () => {
+      const isActive = get(isUserActiveAtom);
+      return isActive;
+    },
+  }));
+});
 
 export const apiExchangeRateAtom = atom((get) => {
-  const { data, error, isLoading } = get(lstStatsQueryAtom);
   const lstConfig = get(lstConfigAtom);
 
-  if (isLoading || error || !data || !lstConfig) {
+  if (!lstConfig) {
+    return {
+      rate: 0,
+      preciseRate: MyNumber.fromZero(),
+      isLoading: false,
+      error: "LST config not available",
+    };
+  }
+
+  // Fetch data only for the current asset to optimize performance
+  const { data, error, isLoading } = get(lstStatsQueryAtom(lstConfig.SYMBOL));
+
+  if (isLoading || error || !data) {
     return {
       rate: 0,
       preciseRate: MyNumber.fromZero(),
@@ -593,11 +591,8 @@ export const apiExchangeRateAtom = atom((get) => {
     };
   }
 
-  //TODO: only fetch current asset's exchange data
-  const lstStats = data.find( 
-    (stats) =>
-      stats.lstAddress?.toLowerCase() === lstConfig.LST_ADDRESS?.toLowerCase(),
-  );
+  // Since we're fetching specific asset data, take the first result
+  const lstStats = data[0];
 
   if (!lstStats || lstStats.error) {
     return {
@@ -614,6 +609,139 @@ export const apiExchangeRateAtom = atom((get) => {
       "plus",
       lstStats.preciseExchangeRate,
     ),
+    isLoading: false,
+    error: null,
+  };
+});
+
+// Optimized APY atom that uses server-side calculations instead of client-side RPC calls
+export const apiAPYAtom = atom((get) => {
+  const lstConfig = get(lstConfigAtom);
+
+  if (!lstConfig) {
+    return {
+      value: {
+        strkApy: 0,
+        btcApy: 0,
+      },
+      isLoading: false,
+      error: "LST config not available",
+    };
+  }
+
+  // Fetch APY data from server for current asset
+  const { data, error, isLoading } = get(lstStatsQueryAtom(lstConfig.SYMBOL));
+
+  if (isLoading || error || !data) {
+    return {
+      value: {
+        strkApy: 0,
+        btcApy: 0,
+      },
+      isLoading,
+      error,
+    };
+  }
+
+  const lstStats = data[0];
+
+  if (!lstStats || lstStats.error) {
+    return {
+      value: {
+        strkApy: 0,
+        btcApy: 0,
+      },
+      isLoading: false,
+      error: lstStats?.error || "LST stats not found",
+    };
+  }
+
+  const isStrkAsset = lstConfig.SYMBOL.toLowerCase().includes("strk");
+  const isBtcAsset = lstConfig.SYMBOL.toLowerCase().includes("btc");
+
+  return {
+    value: {
+      strkApy: isStrkAsset ? lstStats.apy : 0,
+      btcApy: isBtcAsset ? lstStats.apy : 0,
+    },
+    isLoading: false,
+    error: null,
+  };
+});
+
+// Optimized TVL atom that uses server-side calculations
+export const apiTVLAtom = atom((get) => {
+  const lstConfig = get(lstConfigAtom);
+
+  if (!lstConfig) {
+    return {
+      value: 0,
+      isLoading: false,
+      error: "LST config not available",
+    };
+  }
+
+  const { data, error, isLoading } = get(lstStatsQueryAtom(lstConfig.SYMBOL));
+
+  if (isLoading || error || !data) {
+    return {
+      value: 0,
+      isLoading,
+      error,
+    };
+  }
+
+  const lstStats = data[0];
+
+  if (!lstStats || lstStats.error) {
+    return {
+      value: 0,
+      isLoading: false,
+      error: lstStats?.error || "LST stats not found",
+    };
+  }
+
+  return {
+    value: lstStats.tvlUsd,
+    isLoading: false,
+    error: null,
+  };
+});
+
+// Optimized TVL Asset amount atom that uses server-side calculations
+export const apiTVLAssetAtom = atom((get) => {
+  const lstConfig = get(lstConfigAtom);
+
+  if (!lstConfig) {
+    return {
+      value: 0,
+      isLoading: false,
+      error: "LST config not available",
+    };
+  }
+
+  const { data, error, isLoading } = get(lstStatsQueryAtom(lstConfig.SYMBOL));
+
+  if (isLoading || error || !data) {
+    return {
+      value: 0,
+      isLoading,
+      error,
+    };
+  }
+
+  const lstStats = data[0];
+
+  if (!lstStats || lstStats.error) {
+    return {
+      value: 0,
+      isLoading: false,
+      error: lstStats?.error || "LST stats not found",
+    };
+  }
+
+  return {
+    value: lstStats.tvlAsset,
     isLoading: false,
     error: null,
   };

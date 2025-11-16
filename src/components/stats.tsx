@@ -11,11 +11,11 @@ import {
 } from "@/components/ui/tooltip";
 import { formatNumber } from "@/lib/utils";
 import {
-  totalStakedAtom,
-  totalStakedUSDAtom,
+  apiTVLAtom,
+  apiTVLAssetAtom,
+  apiAPYAtom,
   userLSTBalanceAtom,
 } from "@/store/lst.store";
-import { snAPYAtom } from "@/store/staking.store";
 import { totalXSTRKAcrossDefiHoldingsAtom } from "@/components/strk-portfolio-page/_components/stats";
 import { tabsAtom, activeSubTabAtom } from "@/store/merry.store";
 import { lstConfigAtom } from "@/store/common.store";
@@ -49,10 +49,10 @@ const Stats: React.FC<StatsProps> = ({
   mode = "stake", // Default to stake mode
 }) => {
   const router = useRouter();
-  const apy = useAtomValue(snAPYAtom);
+  const apy = useAtomValue(apiAPYAtom);
   const currentStaked = useAtomValue(userLSTBalanceAtom);
-  const totalStaked = useAtomValue(totalStakedAtom);
-  const totalStakedUSD = useAtomValue(totalStakedUSDAtom);
+  const totalStakedUSD = useAtomValue(apiTVLAtom);
+  const totalStakedAsset = useAtomValue(apiTVLAssetAtom);
   const activeTab = useAtomValue(tabsAtom);
   const activeSubTab = useAtomValue(activeSubTabAtom);
   const lstConfig = useAtomValue(lstConfigAtom)!;
@@ -156,7 +156,7 @@ const Stats: React.FC<StatsProps> = ({
           TVL
           <p className="flex items-center gap-2">
             <span>
-              {formatNumber(totalStaked.value.toEtherToFixedDecimals(2))}{" "}
+              {formatNumber(totalStakedAsset.value.toFixed(2))}{" "}
               {lstConfig.SYMBOL}
             </span>
             <span className="font-medium">

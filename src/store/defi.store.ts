@@ -5,8 +5,9 @@ import { atomFamily } from "jotai/utils";
 import { AtomFamily } from "jotai/vanilla/utils/atomFamily";
 import { BlockIdentifier } from "starknet";
 import { assetPriceAtom, lstConfigAtom, userAddressAtom } from "./common.store";
-import { apiExchangeRateAtom } from "./lst.store";
-import { snAPYAtom, btcPriceAtom } from "./staking.store";
+import { apiExchangeRateAtom, apiAPYAtom } from "./lst.store";
+import { btcPriceAtom } from "./staking.store";
+import { isUserActiveAtom } from "@/hooks/useUserActivity";
 import { LSTAssetConfig } from "@/constants";
 
 // TODO: move all the types to separate type file
@@ -105,7 +106,7 @@ const findEndurPair = (pairs: EkuboPair[]): EkuboPair | undefined => {
   );
 };
 
-const vesuYieldQueryAtom = atomWithQuery(() => ({
+const vesuYieldQueryAtom = atomWithQuery((get) => ({
   queryKey: ["vesuYield"],
   queryFn: async (): Promise<ProtocolYield> => {
     try {
@@ -153,9 +154,9 @@ const vesuYieldQueryAtom = atomWithQuery(() => ({
       };
     }
   },
-  refetchInterval: 60000,
-  refetchOnWindowFocus: false,
-  refetchOnMount: false,
+  refetchInterval: () => (get(isUserActiveAtom) ? 60000 : false),
+  refetchOnWindowFocus: () => get(isUserActiveAtom),
+  refetchOnMount: () => get(isUserActiveAtom),
 }));
 
 const ekuboYieldQueryAtom = atomWithQuery((get) => ({
@@ -215,12 +216,12 @@ const ekuboYieldQueryAtom = atomWithQuery((get) => ({
       };
     }
   },
-  refetchInterval: 60000,
-  refetchOnWindowFocus: false,
-  refetchOnMount: false,
+  refetchInterval: () => (get(isUserActiveAtom) ? 60000 : false),
+  refetchOnWindowFocus: () => get(isUserActiveAtom),
+  refetchOnMount: () => get(isUserActiveAtom),
 }));
 
-const nostraLPYieldQueryAtom = atomWithQuery(() => ({
+const nostraLPYieldQueryAtom = atomWithQuery((get) => ({
   queryKey: ["nostraLPYield"],
   queryFn: async (): Promise<ProtocolYield> => {
     try {
@@ -260,12 +261,12 @@ const nostraLPYieldQueryAtom = atomWithQuery(() => ({
       };
     }
   },
-  refetchInterval: 60000,
-  refetchOnWindowFocus: false,
-  refetchOnMount: false,
+  refetchInterval: () => (get(isUserActiveAtom) ? 60000 : false),
+  refetchOnWindowFocus: () => get(isUserActiveAtom),
+  refetchOnMount: () => get(isUserActiveAtom),
 }));
 
-const nostraLendYieldQueryAtom = atomWithQuery(() => ({
+const nostraLendYieldQueryAtom = atomWithQuery((get) => ({
   queryKey: ["nostraLendYield"],
   queryFn: async (): Promise<ProtocolYield> => {
     try {
@@ -355,12 +356,12 @@ const nostraLendYieldQueryAtom = atomWithQuery(() => ({
       };
     }
   },
-  refetchInterval: 60000,
-  refetchOnWindowFocus: false,
-  refetchOnMount: false,
+  refetchInterval: () => (get(isUserActiveAtom) ? 60000 : false),
+  refetchOnWindowFocus: () => get(isUserActiveAtom),
+  refetchOnMount: () => get(isUserActiveAtom),
 }));
 
-const strkFarmYieldQueryAtom = atomWithQuery(() => ({
+const strkFarmYieldQueryAtom = atomWithQuery((get) => ({
   queryKey: ["strkFarmYield"],
   queryFn: async (): Promise<ProtocolYield> => {
     const hostname = window.location.origin;
@@ -376,9 +377,9 @@ const strkFarmYieldQueryAtom = atomWithQuery(() => ({
       error: "Coming soon",
     };
   },
-  refetchInterval: 60000,
-  refetchOnWindowFocus: false,
-  refetchOnMount: false,
+  refetchInterval: () => (get(isUserActiveAtom) ? 60000 : false),
+  refetchOnWindowFocus: () => get(isUserActiveAtom),
+  refetchOnMount: () => get(isUserActiveAtom),
 }));
 
 const strkFarmEkuboYieldQueryAtom = atomWithQuery((get) => ({
@@ -402,7 +403,7 @@ const strkFarmEkuboYieldQueryAtom = atomWithQuery((get) => ({
     }
 
     const { data: price, isLoading } = get(assetPriceAtom);
-    const { value: baseApy } = get(snAPYAtom);
+    const { value: baseApy } = get(apiAPYAtom);
 
     if (!price) {
       return {
@@ -423,9 +424,9 @@ const strkFarmEkuboYieldQueryAtom = atomWithQuery((get) => ({
       error: "Failed to fetch APY",
     };
   },
-  refetchInterval: 60000,
-  refetchOnWindowFocus: false,
-  refetchOnMount: false,
+  refetchInterval: () => (get(isUserActiveAtom) ? 60000 : false),
+  refetchOnWindowFocus: () => get(isUserActiveAtom),
+  refetchOnMount: () => get(isUserActiveAtom),
 }));
 
 const trovesHyperYieldQueryAtom = atomWithQuery((get) => ({
@@ -458,7 +459,7 @@ const trovesHyperYieldQueryAtom = atomWithQuery((get) => ({
     }
 
     const { data: price, isLoading } = get(assetPriceAtom);
-    const { value: baseApy } = get(snAPYAtom);
+    const { value: baseApy } = get(apiAPYAtom);
 
     if (!price) {
       return {
@@ -483,9 +484,9 @@ const trovesHyperYieldQueryAtom = atomWithQuery((get) => ({
       error: "Failed to fetch APY",
     };
   },
-  refetchInterval: 60000,
-  refetchOnWindowFocus: false,
-  refetchOnMount: false,
+  refetchInterval: () => (get(isUserActiveAtom) ? 60000 : false),
+  refetchOnWindowFocus: () => get(isUserActiveAtom),
+  refetchOnMount: () => get(isUserActiveAtom),
 }));
 
 // BTC Troves Hyper Vault atoms
@@ -524,7 +525,9 @@ const createTrovesYieldQueryAtom = (strategyId: string, queryKey: string) =>
         isLoading: false,
       };
     },
-    refetchInterval: 60000,
+    refetchInterval: () => (get(isUserActiveAtom) ? 60000 : false),
+    refetchOnWindowFocus: () => get(isUserActiveAtom),
+    refetchOnMount: () => get(isUserActiveAtom),
   }));
 
 const trovesHyperxWBTCYieldQueryAtom = createTrovesYieldQueryAtom(
@@ -568,7 +571,7 @@ const trovesEkuboBTCxsBTCYieldQueryAtom = createTrovesYieldQueryAtom(
   "trovesEkuboBTCxsBTCYield",
 );
 
-const haikoYieldQueryAtom = atomWithQuery(() => ({
+const haikoYieldQueryAtom = atomWithQuery((get) => ({
   queryKey: ["haikoYield"],
   queryFn: async (): Promise<ProtocolYield> => {
     try {
@@ -603,9 +606,9 @@ const haikoYieldQueryAtom = atomWithQuery(() => ({
       };
     }
   },
-  refetchInterval: 60000,
-  refetchOnWindowFocus: false,
-  refetchOnMount: false,
+  refetchInterval: () => (get(isUserActiveAtom) ? 60000 : false),
+  refetchOnWindowFocus: () => get(isUserActiveAtom),
+  refetchOnMount: () => get(isUserActiveAtom),
 }));
 
 //TODO: below all destructuring of query atom can be standardised
@@ -745,7 +748,7 @@ export const trovesEkuboBTCxsBTCYieldAtom = createTrovesYieldAtom(
 // TODO: also move all the api calls in each query to api.ts under "defi calls" comment
 // TODO: all these vesu functions can be moved to vesu store
 // Vesu BTC yield atoms - using staging API as requested
-const vesuBTCxWBTCYieldQueryAtom = atomWithQuery(() => ({
+const vesuBTCxWBTCYieldQueryAtom = atomWithQuery((get) => ({
   queryKey: ["vesuBTCxWBTCYield"],
   queryFn: async (): Promise<ProtocolYield> => {
     try {
@@ -810,12 +813,12 @@ const vesuBTCxWBTCYieldQueryAtom = atomWithQuery(() => ({
       };
     }
   },
-  refetchInterval: 60000,
-  refetchOnWindowFocus: false,
-  refetchOnMount: false,
+  refetchInterval: () => (get(isUserActiveAtom) ? 60000 : false),
+  refetchOnWindowFocus: () => get(isUserActiveAtom),
+  refetchOnMount: () => get(isUserActiveAtom),
 }));
 
-const vesuBTCxtBTCYieldQueryAtom = atomWithQuery(() => ({
+const vesuBTCxtBTCYieldQueryAtom = atomWithQuery((get) => ({
   queryKey: ["vesuBTCxtBTCYield"],
   queryFn: async (): Promise<ProtocolYield> => {
     try {
@@ -879,12 +882,12 @@ const vesuBTCxtBTCYieldQueryAtom = atomWithQuery(() => ({
       };
     }
   },
-  refetchInterval: 60000,
-  refetchOnWindowFocus: false,
-  refetchOnMount: false,
+  refetchInterval: () => (get(isUserActiveAtom) ? 60000 : false),
+  refetchOnWindowFocus: () => get(isUserActiveAtom),
+  refetchOnMount: () => get(isUserActiveAtom),
 }));
 
-const vesuBTCxLBTCYieldQueryAtom = atomWithQuery(() => ({
+const vesuBTCxLBTCYieldQueryAtom = atomWithQuery((get) => ({
   queryKey: ["vesuBTCxLBTCYield"],
   queryFn: async (): Promise<ProtocolYield> => {
     try {
@@ -948,12 +951,12 @@ const vesuBTCxLBTCYieldQueryAtom = atomWithQuery(() => ({
       };
     }
   },
-  refetchInterval: 60000,
-  refetchOnWindowFocus: false,
-  refetchOnMount: false,
+  refetchInterval: () => (get(isUserActiveAtom) ? 60000 : false),
+  refetchOnWindowFocus: () => get(isUserActiveAtom),
+  refetchOnMount: () => get(isUserActiveAtom),
 }));
 
-const vesuBTCxsBTCYieldQueryAtom = atomWithQuery(() => ({
+const vesuBTCxsBTCYieldQueryAtom = atomWithQuery((get) => ({
   queryKey: ["vesuBTCxsBTCYield"],
   queryFn: async (): Promise<ProtocolYield> => {
     try {
@@ -1017,9 +1020,9 @@ const vesuBTCxsBTCYieldQueryAtom = atomWithQuery(() => ({
       };
     }
   },
-  refetchInterval: 60000,
-  refetchOnWindowFocus: false,
-  refetchOnMount: false,
+  refetchInterval: () => (get(isUserActiveAtom) ? 60000 : false),
+  refetchOnWindowFocus: () => get(isUserActiveAtom),
+  refetchOnMount: () => get(isUserActiveAtom),
 }));
 
 // TODO: below functions can also be standardised similar to createTrovesYieldAtom
