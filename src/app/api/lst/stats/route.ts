@@ -8,8 +8,12 @@ import StakingService from "@/services/staking";
 
 export const revalidate = 60 * 60; // 1 hour
 
-export async function GET(_req: Request) {
+// DEPRECATED: Use /api/lst/stats/strk for STRK or /api/lst/stats/btc for BTC assets
+// This endpoint is kept for backward compatibility and will be removed in future versions
+export async function GET(req: Request) {
   const provider = getProvider();
+  const { searchParams } = new URL(req.url);
+  const assetSymbol = searchParams.get("asset");
 
   if (!provider) {
     return NextResponse.json({ message: "Provider not found" });
@@ -21,7 +25,21 @@ export async function GET(_req: Request) {
   const results = [];
   let setCache = true; // made to false if any error
 
-  for (const value of Object.values(LST_CONFIG)) {
+  // Filter LST_CONFIG based on asset parameter if provided
+  const configsToProcess = assetSymbol
+    ? Object.values(LST_CONFIG).filter(
+        (config) => config.SYMBOL.toLowerCase() === assetSymbol.toLowerCase(),
+      )
+    : Object.values(LST_CONFIG);
+
+  if (assetSymbol && configsToProcess.length === 0) {
+    return NextResponse.json({
+      message: "Asset not found",
+      error: `No LST configuration found for asset: ${assetSymbol}`,
+    });
+  }
+
+  for (const value of configsToProcess) {
     try {
       const isBtcAsset = value.SYMBOL.toLowerCase().includes("btc");
       const isStrkAsset = value.SYMBOL.toLowerCase().includes("strk");
@@ -39,14 +57,9 @@ export async function GET(_req: Request) {
         });
       }
 
-      const yearlyMinting =
-        (await stakingService.getYearlyMinting()) ?? MyNumber.fromZero();
-      const totalStakingPower =
-        (await stakingService.getTotalStakingPower()) ?? {
-          totalStakingPowerSTRK: MyNumber.fromZero(),
-          totalStakingPowerBTC: MyNumber.fromZero(),
-        };
-      const alpha = (await stakingService.getAlpha()) ?? 0;
+      // Use merged APY data call for better performance
+      const apyData = await stakingService.getAPYData();
+      const { yearlyMinting, totalStakingPower, alpha } = apyData;
 
       const { data: strkPrice, error: strkPriceError } = await tryCatch(
         getAssetPrice(true),

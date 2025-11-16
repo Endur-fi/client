@@ -62,9 +62,8 @@ import { cn, eventNames } from "@/lib/utils";
 import LSTService from "@/services/lst";
 import { lstConfigAtom } from "@/store/common.store";
 import { protocolYieldsAtom, type SupportedDApp } from "@/store/defi.store";
-import { apiExchangeRateAtom } from "@/store/lst.store";
+import { apiExchangeRateAtom, apiAPYAtom } from "@/store/lst.store";
 import { tabsAtom } from "@/store/merry.store";
-import { snAPYAtom } from "@/store/staking.store";
 
 import { Icons } from "./Icons";
 import { PlatformCard } from "./platform-card";
@@ -162,7 +161,7 @@ const Stake: React.FC = () => {
   });
 
   const exchangeRate = useAtomValue(apiExchangeRateAtom);
-  const apy = useAtomValue(snAPYAtom);
+  const apy = useAtomValue(apiAPYAtom);
   const yields = useAtomValue(protocolYieldsAtom);
   const activeTab = useAtomValue(tabsAtom);
   console.log("yields", yields);
@@ -663,7 +662,7 @@ const Stake: React.FC = () => {
                 <span className="text-[#8D9C9C]">(optional)</span>
                 <ChevronDown className="size-3 text-[#8D9C9C] transition-transform duration-200 data-[state=open]:rotate-180" />
               </CollapsibleTrigger>
-			  {/* TODO: use [InfoTooltip] */}
+              {/* TODO: use [InfoTooltip] */}
               <TooltipProvider delayDuration={0}>
                 <Tooltip>
                   <TooltipTrigger>
@@ -711,7 +710,7 @@ const Stake: React.FC = () => {
         <div className="flex items-center justify-between rounded-md text-xs font-bold text-[#03624C] lg:text-[13px]">
           <p className="flex items-center gap-1">
             {selectedPlatform === "none" ? "You will get" : "You will lend"}
-			  {/* TODO: use [InfoTooltip] */}
+            {/* TODO: use [InfoTooltip] */}
             <TooltipProvider delayDuration={0}>
               <Tooltip>
                 <TooltipTrigger>
@@ -752,7 +751,7 @@ const Stake: React.FC = () => {
         <div className="flex items-center justify-between rounded-md text-xs font-medium text-[#939494] lg:text-[13px]">
           <p className="flex items-center gap-1">
             Exchange rate
-			  {/* TODO: use [InfoTooltip] */}
+            {/* TODO: use [InfoTooltip] */}
             <TooltipProvider delayDuration={0}>
               <Tooltip>
                 <TooltipTrigger>
@@ -787,7 +786,7 @@ const Stake: React.FC = () => {
         <div className="flex items-center justify-between rounded-md text-xs font-medium text-[#939494] lg:text-[13px]">
           <p className="flex items-center gap-1">
             Reward fees
-			  {/* TODO: use [InfoTooltip] */}
+            {/* TODO: use [InfoTooltip] */}
             <TooltipProvider delayDuration={0}>
               <Tooltip>
                 <TooltipTrigger>

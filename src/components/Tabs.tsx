@@ -35,7 +35,7 @@ import {
 } from "./ui/tabs";
 import Unstake from "./unstake";
 import WithdrawLog from "./withdraw-log";
-import { snAPYAtom } from "@/store/staking.store";
+import { apiAPYAtom } from "@/store/lst.store";
 import { useWalletConnection } from "@/hooks/use-wallet-connection";
 import { lstConfigAtom } from "@/store/common.store";
 import { MyDottedTooltip } from "./my-tooltip";
@@ -52,7 +52,7 @@ const Tabs = () => {
   const [activeSubTab, setActiveSubTab] = useAtom(activeSubTabAtom);
   const [waitlistEmail, setWaitlistEmail] = React.useState("");
   const [isSubmitting, setIsSubmitting] = React.useState(false);
-  const apy = useAtomValue(snAPYAtom);
+  const apy = useAtomValue(apiAPYAtom);
 
   console.log("Apy", apy.value);
 
@@ -361,7 +361,7 @@ const Tabs = () => {
               </TabsTrigger>
             </TabsList>
 
-			  {/* TODO: separate the component and use the same component for strk and btc (can name it as <TokenTab>)  */}
+              {/* TODO: separate the component and use the same component for strk and btc (can name it as <TokenTab>)  */}
             {/* STRK Tab Content */}
             <TabsContent
               value="strk"
@@ -405,7 +405,7 @@ const Tabs = () => {
                       className="group relative rounded-none border-none bg-transparent text-sm font-medium text-[#8D9C9C] focus-visible:ring-0 focus-visible:ring-offset-0 data-[state=active]:border-t-0 data-[state=active]:shadow-none lg:text-base"
                     >
                       Withdraw log
-					  {/* TODO: make this a separate common component [InfoTooltip] */}
+                      {/* TODO: make this a separate common component [InfoTooltip] */}
                       <TooltipProvider delayDuration={0}>
                         <Tooltip>
                           <TooltipTrigger

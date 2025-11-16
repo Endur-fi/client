@@ -29,7 +29,7 @@ import { MyAnalytics } from "@/lib/analytics";
 import MyNumber from "@/lib/MyNumber";
 import LSTService from "@/services/lst";
 import { nostraLendYieldAtom } from "@/store/defi.store";
-import { snAPYAtom } from "@/store/staking.store";
+import { apiAPYAtom } from "@/store/lst.store";
 import { isTxAccepted } from "@/store/transactions.atom";
 import React, { useEffect, useMemo } from "react";
 import { Icons } from "./Icons";
@@ -47,7 +47,7 @@ const MigrateNostra = () => {
   const nstStrkBalanceRes = useAtomValue(userNstSTRKBalanceAtom);
   const nstStrkWithdrawal = useAtomValue(nstStrkWithdrawalFeeAtom);
   const exchangeRate = useAtomValue(apiExchangeRateAtom);
-  const stakingApy = useAtomValue(snAPYAtom);
+  const stakingApy = useAtomValue(apiAPYAtom);
   const nostraLendApy = useAtomValue(nostraLendYieldAtom);
 
   const lstService = new LSTService();

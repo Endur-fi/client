@@ -7,7 +7,7 @@ import { formatNumberWithCommas } from "@/lib/utils";
 import { userEkuboxSTRKPositions } from "@/store/ekubo.store";
 import { apiExchangeRateAtom, userLSTBalanceAtom } from "@/store/lst.store";
 import { userLSTNostraBalance } from "@/store/nostra.store";
-import { snAPYAtom } from "@/store/staking.store";
+import { apiAPYAtom } from "@/store/lst.store";
 import { uservXSTRKBalanceAtom } from "@/store/vesu.store";
 import { assetPriceAtom } from "@/store/common.store";
 import { getSTRKFarmBalanceAtom } from "@/store/strkfarm.store";
@@ -37,7 +37,7 @@ export const totalXSTRKAcrossDefiHoldingsAtom = atom((get) => {
 
 const Stats: React.FC = () => {
   const strkPrice = useAtomValue(assetPriceAtom);
-  const apy = useAtomValue(snAPYAtom);
+  const apy = useAtomValue(apiAPYAtom);
   const currentLSTBalance = useAtomValue(userLSTBalanceAtom);
   const exchangeRate = useAtomValue(apiExchangeRateAtom);
 

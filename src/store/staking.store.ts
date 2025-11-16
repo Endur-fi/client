@@ -2,10 +2,11 @@ import { atom } from "jotai";
 import { atomWithQuery } from "jotai-tanstack-query";
 
 import MyNumber from "@/lib/MyNumber";
-import StakingService from "@/services/staking";
+import StakingService, { type APYData } from "@/services/staking";
 
 import { currentBlockAtom, providerAtom } from "./common.store";
 import { getAssetPrice } from "@/lib/utils";
+import { isUserActiveAtom } from "@/hooks/useUserActivity";
 
 const stakingService = new StakingService();
 
@@ -15,7 +16,14 @@ const snTotalStakingPowerQueryAtom = atomWithQuery((get) => {
     queryFn: () => {
       return stakingService.getTotalStakingPower();
     },
-    refetchInterval: 60000,
+    refetchInterval: () => {
+      const isActive = get(isUserActiveAtom);
+      return isActive ? 60000 : false; // Only refetch if user is active
+    },
+    refetchOnWindowFocus: () => {
+      const isActive = get(isUserActiveAtom);
+      return isActive;
+    },
   };
 });
 
@@ -41,7 +49,14 @@ const snAlphaQueryAtom = atomWithQuery((get) => {
     queryFn: () => {
       return stakingService.getAlpha();
     },
-    refetchInterval: 60000,
+    refetchInterval: () => {
+      const isActive = get(isUserActiveAtom);
+      return isActive ? 60000 : false; // Only refetch if user is active
+    },
+    refetchOnWindowFocus: () => {
+      const isActive = get(isUserActiveAtom);
+      return isActive;
+    },
   };
 });
 
@@ -62,7 +77,14 @@ export const yearlyMintingQueryAtom = atomWithQuery((get) => {
     queryFn: () => {
       return stakingService.getYearlyMinting();
     },
-    refetchInterval: 60000,
+    refetchInterval: () => {
+      const isActive = get(isUserActiveAtom);
+      return isActive ? 60000 : false; // Only refetch if user is active
+    },
+    refetchOnWindowFocus: () => {
+      const isActive = get(isUserActiveAtom);
+      return isActive;
+    },
   };
 });
 
@@ -80,13 +102,27 @@ export const yearlyMintingAtom = atom((get) => {
 const strkPriceQueryAtom = atomWithQuery((get) => ({
   queryKey: ["strkPrice", get(currentBlockAtom), get(providerAtom)],
   queryFn: () => getAssetPrice(),
-  refetchInterval: 60000,
+  refetchInterval: () => {
+    const isActive = get(isUserActiveAtom);
+    return isActive ? 60000 : false; // Only refetch if user is active
+  },
+  refetchOnWindowFocus: () => {
+    const isActive = get(isUserActiveAtom);
+    return isActive;
+  },
 }));
 
 const btcPriceQueryAtom = atomWithQuery((get) => ({
   queryKey: ["btcPrice", get(currentBlockAtom), get(providerAtom)],
   queryFn: () => getAssetPrice(false),
-  refetchInterval: 60000,
+  refetchInterval: () => {
+    const isActive = get(isUserActiveAtom);
+    return isActive ? 60000 : false; // Only refetch if user is active
+  },
+  refetchOnWindowFocus: () => {
+    const isActive = get(isUserActiveAtom);
+    return isActive;
+  },
 }));
 
 const strkPriceAtom = atom((get) => {
@@ -99,7 +135,85 @@ export const btcPriceAtom = atom((get) => {
   return error || !data ? 0 : data;
 });
 
-//TODO [APY_TODO]: we can use route api/lst/stats instead of this - global search APY_TODO
+// Optimized APY data atom that merges three contract calls into one
+const mergedAPYDataQueryAtom = atomWithQuery((get) => {
+  return {
+    queryKey: ["mergedAPYData", get(currentBlockAtom), get(providerAtom)],
+    queryFn: (): Promise<APYData> => {
+      return stakingService.getAPYData();
+    },
+    refetchInterval: () => {
+      const isActive = get(isUserActiveAtom);
+      return isActive ? 60000 : false; // Only refetch if user is active
+    },
+    refetchOnWindowFocus: () => {
+      const isActive = get(isUserActiveAtom);
+      return isActive;
+    },
+  };
+});
+
+// Optimized APY atom using merged contract calls
+export const optimizedAPYAtom = atom((get) => {
+  const { data: apyData, error, isLoading } = get(mergedAPYDataQueryAtom);
+  const { data: strkPrice, error: strkPriceError } = get(strkPriceQueryAtom);
+  const { data: btcPrice, error: btcPriceError } = get(btcPriceQueryAtom);
+
+  let strkApy = 0;
+  let btcApy = 0;
+
+  if (apyData && !error) {
+    const { yearlyMinting, totalStakingPower, alpha } = apyData;
+
+    // Calculate STRK APY
+    if (
+      !totalStakingPower.totalStakingPowerSTRK.isZero() &&
+      alpha !== 0
+    ) {
+      const yearMinting = Number(yearlyMinting.toEtherToFixedDecimals(4));
+      const strkStakingPower = Number(
+        totalStakingPower.totalStakingPowerSTRK.toEtherToFixedDecimals(4),
+      );
+
+      strkApy = (yearMinting * (100 - alpha)) / (100 * strkStakingPower);
+      // deduce endur fee
+      strkApy *= 0.85;
+    }
+
+    // Calculate BTC APY
+    if (
+      !totalStakingPower.totalStakingPowerBTC.isZero() &&
+      alpha !== 0 &&
+      strkPrice &&
+      btcPrice &&
+      strkPrice > 0 &&
+      btcPrice > 0
+    ) {
+      const yearlyMintingNum = Number(yearlyMinting.toEtherToFixedDecimals(4));
+      const btcStakingPower = Number(
+        totalStakingPower.totalStakingPowerBTC.toEtherToFixedDecimals(4),
+      );
+
+      btcApy =
+        (yearlyMintingNum * strkPrice * alpha) /
+        (100 * btcStakingPower * btcPrice);
+      // deduce endur fee
+      btcApy *= 0.85;
+    }
+  }
+
+  return {
+    value: {
+      strkApy,
+      btcApy,
+    },
+    isLoading: isLoading || !apyData,
+    error: error || strkPriceError || btcPriceError,
+  };
+});
+
+//TODO [APY_TODO]: DEPRECATED - Use optimizedAPYAtom or apiAPYAtom from lst.store.ts
+// This atom is kept for backward compatibility but should be replaced
 export const snAPYAtom = atom((get) => {
   const yearlyMintRes = get(yearlyMintingAtom);
   const totalStakingPowerRes = get(snTotalStakingPowerAtom);
