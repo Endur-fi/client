@@ -32,7 +32,7 @@ import { useTransactionHandler } from "@/hooks/use-transactions";
 import { useWalletConnection } from "@/hooks/use-wallet-connection";
 import { MyAnalytics } from "@/lib/analytics";
 import MyNumber from "@/lib/MyNumber";
-import { eventNames, formatNumber } from "@/lib/utils";
+import { eventNames, formatNumberWithCommas } from "@/lib/utils";
 import { executeAvnuSwap, getAvnuQuotes } from "@/services/avnu";
 import {
   avnuErrorAtom,
@@ -153,7 +153,7 @@ const YouWillGetSection = ({
         <InfoTooltip content={tooltipContent} />
       </p>
       <span className="text-xs lg:text-[13px]">
-        {Number(amount).toFixed(isBTC ? 8 : 2)} {lstConfig.SYMBOL}
+        {formatNumberWithCommas(amount, isBTC ? 8 : 2)} {lstConfig.SYMBOL}
       </span>
     </div>
   );
@@ -672,7 +672,7 @@ const Unstake = () => {
           <div className="my-5 h-px w-full rounded-full bg-[#AACBC480]" />
           <div className="space-y-3 px-7">
             <YouWillGetSection
-              amount={formatNumber(youWillGet, 2)}
+              amount={youWillGet}
               tooltipContent="Instant unstaking via Avnu DEX. The amount you receive will be based on current market rates."
             />
             <div className="flex items-center justify-between rounded-md text-xs font-medium text-[#939494] lg:text-[13px]">
