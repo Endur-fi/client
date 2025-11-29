@@ -58,7 +58,7 @@ import { useTransactionHandler } from "@/hooks/use-transactions";
 import { useWalletConnection } from "@/hooks/use-wallet-connection";
 import { MyAnalytics } from "@/lib/analytics";
 import MyNumber from "@/lib/MyNumber";
-import { cn, eventNames } from "@/lib/utils";
+import { cn, eventNames, formatNumberWithCommas } from "@/lib/utils";
 import LSTService from "@/services/lst";
 import { lstConfigAtom } from "@/store/common.store";
 import { protocolYieldsAtom, type SupportedDApp } from "@/store/defi.store";
@@ -771,7 +771,7 @@ const Stake: React.FC = () => {
             </TooltipProvider>
           </p>
           <span className="text-xs lg:text-[13px]">
-            {Number(getCalculatedLSTAmount()).toFixed(isBTC ? 8 : 2)}{" "}
+            {formatNumberWithCommas(getCalculatedLSTAmount(), isBTC ? 8 : 2)}{" "}
             {lstConfig.LST_SYMBOL}
           </span>
         </div>
