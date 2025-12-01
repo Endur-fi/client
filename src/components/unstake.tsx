@@ -51,19 +51,24 @@ import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { lstConfigAtom } from "@/store/common.store";
 import { ASSET_ICONS } from "./asset-selector";
+import { Web3Number } from "@strkfarm/sdk";
 
 const formSchema = z.object({
   unstakeAmount: z.string().refine(
     (v) => {
-      const n = Number(v); // v would be having 18 decimals, but we are just checking if it is a number and greater than 0 which is fine if we loose precision
-      return !isNaN(n) && v?.length > 0 && n > 0;
+      if (!v) return false;
+      // always 18 decimal precision for now
+      const n = new Web3Number(v, 18);
+      return !n.isNaN() && n.gt(0) && n.toNumber() < Number.MAX_SAFE_INTEGER;
     },
     { message: "Invalid input" },
   ),
   displayUnstakeAmount: z.string().refine(
     (v) => {
-      const n = Number(v);
-      return !isNaN(n) && v?.length > 0 && n > 0;
+      if (!v) return false;
+      // always 18 decimal precision for now
+      const n = new Web3Number(v, 18);
+      return !n.isNaN() && n.gt(0) && n.toNumber() < Number.MAX_SAFE_INTEGER;
     },
     { message: "Invalid input" },
   ),
@@ -166,33 +171,33 @@ const YouWillGetSection = ({
   );
 };
 
-const _calculateWaitingTime = (queueState: any, unstakeAmount: string) => {
-  if (!queueState || !unstakeAmount) return "-";
+// const _calculateWaitingTime = (queueState: any, unstakeAmount: string) => {
+//   if (!queueState || !unstakeAmount) return "-";
 
-  try {
-    const amount = MyNumber.fromEther(unstakeAmount, 18);
-    const pendingQueue = new MyNumber(
-      queueState.unprocessed_withdraw_queue_amount || "0",
-      18,
-    );
+//   try {
+//     const amount = MyNumber.fromEther(unstakeAmount, 18);
+//     const pendingQueue = new MyNumber(
+//       queueState.unprocessed_withdraw_queue_amount || "0",
+//       18,
+//     );
 
-    const currentAmount = BigInt(amount.toString());
-    const queueAmount = BigInt(pendingQueue.toString());
-    const totalAmount = currentAmount + queueAmount;
+//     const currentAmount = BigInt(amount.toString());
+//     const queueAmount = BigInt(pendingQueue.toString());
+//     const totalAmount = currentAmount + queueAmount;
 
-    const THRESHOLD = BigInt(70000) * BigInt(10 ** 18);
+//     const THRESHOLD = BigInt(70000) * BigInt(10 ** 18);
 
-    if (totalAmount <= THRESHOLD) {
-      return "1-2 hours";
-    } else if (totalAmount <= THRESHOLD * BigInt(2)) {
-      return "1-2 days";
-    }
-    return "~7 days";
-  } catch (error) {
-    console.error("Error calculating waiting time:", error);
-    return "-";
-  }
-};
+//     if (totalAmount <= THRESHOLD) {
+//       return "1-2 hours";
+//     } else if (totalAmount <= THRESHOLD * BigInt(2)) {
+//       return "1-2 days";
+//     }
+//     return "~7 days";
+//   } catch (error) {
+//     console.error("Error calculating waiting time:", error);
+//     return "-";
+//   }
+// };
 
 interface UnstakeOptionCardProps {
   isActive: boolean;
@@ -323,9 +328,11 @@ const Unstake = () => {
     if (!unstakeAmount) return "0";
 
     if (txnDapp === "endur") {
-      return (Number(unstakeAmount) * exRate.rate).toFixed(isBTC ? 8 : 2);
+      // Always use 18 decimal precision
+      return (Number(unstakeAmount) * exRate.rate).toFixed(18);
     } else if (txnDapp === "dex" && avnuQuote) {
-      return (Number(unstakeAmount) * dexRate).toFixed(isBTC ? 8 : 2);
+      // Always use 18 decimal precision
+      return (Number(unstakeAmount) * dexRate).toFixed(18);
     }
     return "0";
   }, [exRate.rate, form.watch("unstakeAmount"), txnDapp, avnuQuote, dexRate]);
@@ -415,12 +422,13 @@ const Unstake = () => {
     if (percentage === 100) {
       // Round down to prevent exceeding balance
       displayAmount = currentLSTBalance.value.toEtherToFixedDecimals(8);
-      unstakeAmount = currentLSTBalance.value.toString();
+      // always 18 ok
+      unstakeAmount = currentLSTBalance.value.toEtherToFixedDecimals(18);
     } else {
       // display and unstake amount will be same in this case
       // calculate display amount based on percentage
-      const amount = Number(currentLSTBalance.value.toEtherToFixedDecimals(9));
-      displayAmount = ((amount * percentage) / 100).toFixed(isBTC ? 8 : 2);
+      const amount = Number(currentLSTBalance.value.toEtherToFixedDecimals(18));
+      displayAmount = ((amount * percentage) / 100).toFixed(isBTC ? 8 : 6);
       unstakeAmount = displayAmount;
     }
 
@@ -515,15 +523,14 @@ const Unstake = () => {
       });
     }
 
-    if (
-      Number(values.unstakeAmount) >
-      Number(currentLSTBalance.value.toEtherToFixedDecimals(9))
-    ) {
+    if (Number(values.unstakeAmount) > Number(currentLSTBalance.value)) {
       return toast({
         description: (
           <div className="flex items-center gap-2">
             <Info className="size-5" />
             Insufficient {lstConfig.LST_SYMBOL} balance
+            {Number(values.unstakeAmount)} {">"} Available{" "}
+            {Number(currentLSTBalance.value)} |
           </div>
         ),
       });

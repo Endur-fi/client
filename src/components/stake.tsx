@@ -73,6 +73,7 @@ import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { ASSET_ICONS } from "./asset-selector";
 import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
+import { Web3Number } from "@strkfarm/sdk";
 
 const font = Figtree({ subsets: ["latin-ext"] });
 
@@ -80,8 +81,9 @@ const formSchema = z.object({
   stakeAmount: z.string().refine(
     (v) => {
       if (!v) return false;
-      const n = Number(v);
-      return !isNaN(n) && n > 0 && n < Number.MAX_SAFE_INTEGER;
+      // always 18 decimal precision for now
+      const n = new Web3Number(v, 18);
+      return !n.isNaN() && n.gt(0) && n.toNumber() < Number.MAX_SAFE_INTEGER;
     },
     { message: "Please enter a valid amount" },
   ),
@@ -210,7 +212,8 @@ const Stake: React.FC = () => {
       // For BTC tokens, use the full balance since they're often less than 1
       // For other tokens, reserve 1 unit for gas fees
       if (isBTC) {
-        form.setValue("stakeAmount", Number(balance?.formatted).toFixed(8));
+        // Always use 18 decimal precision
+        form.setValue("stakeAmount", Number(balance?.formatted).toFixed(18));
       } else {
         if (Number(balance?.formatted) < 1) {
           form.setValue("stakeAmount", "0");
@@ -220,7 +223,7 @@ const Stake: React.FC = () => {
 
         form.setValue(
           "stakeAmount",
-          (Number(balance?.formatted) - 1).toFixed(2),
+          (Number(balance?.formatted) - 1).toFixed(6),
         );
       }
       form.clearErrors("stakeAmount");
@@ -229,7 +232,8 @@ const Stake: React.FC = () => {
 
     if (balance) {
       const calculatedAmount = (Number(balance?.formatted) * percentage) / 100;
-      form.setValue("stakeAmount", calculatedAmount.toFixed(isBTC ? 8 : 2));
+      // Always use 18 decimal precision
+      form.setValue("stakeAmount", calculatedAmount.toFixed(18));
       form.clearErrors("stakeAmount");
     }
   };
@@ -276,6 +280,8 @@ const Stake: React.FC = () => {
           <div className="flex items-center gap-2">
             <Info className="size-5" />
             Insufficient balance
+            <br />
+            {stakeAmount} {">"} Available {Number(balance?.formatted)}
           </div>
         ),
       });
@@ -609,20 +615,54 @@ const Stake: React.FC = () => {
               <FormField
                 control={form.control}
                 name="stakeAmount"
-                render={({ field }) => (
-                  <FormItem className="space-y-1">
-                    <FormControl>
-                      <div className="relative">
-                        <Input
-                          className="h-fit border-none px-0 pr-1 text-2xl shadow-none outline-none placeholder:text-[#8D9C9C] focus-visible:ring-0 lg:pr-0 lg:!text-3xl"
-                          placeholder="0.00"
-                          {...field}
-                        />
-                      </div>
-                    </FormControl>
-                    <FormMessage className="text-xs text-destructive" />
-                  </FormItem>
-                )}
+                render={({ field }) => {
+                  const maxDecimals = isBTC ? 8 : 6;
+
+                  // Format for display: limit decimal places while preserving precision in storage
+                  const getDisplayValue = (value: string) => {
+                    if (!value || value === "") return "";
+
+                    // Allow typing decimal point and trailing zeros
+                    if (value.endsWith(".") || /\.\d*0+$/.test(value)) {
+                      return value;
+                    }
+
+                    const numValue = parseFloat(value);
+                    if (isNaN(numValue)) return value;
+
+                    // Check if value has more decimals than allowed
+                    const parts = value.split(".");
+                    if (parts[1] && parts[1].length > maxDecimals) {
+                      // Truncate to maxDecimals (don't round to preserve user intent)
+                      return `${parts[0]}.${parts[1].slice(0, maxDecimals)}`;
+                    }
+
+                    return value;
+                  };
+
+                  return (
+                    <FormItem className="space-y-1">
+                      <FormControl>
+                        <div className="relative">
+                          <Input
+                            className="h-fit border-none px-0 pr-1 text-2xl shadow-none outline-none placeholder:text-[#8D9C9C] focus-visible:ring-0 lg:pr-0 lg:!text-3xl"
+                            placeholder="0.00"
+                            value={getDisplayValue(field.value)}
+                            onChange={(e) => {
+                              const value = e.target.value;
+                              // Store the precise value as-is (string)
+                              field.onChange(value);
+                            }}
+                            onBlur={field.onBlur}
+                            name={field.name}
+                            ref={field.ref}
+                          />
+                        </div>
+                      </FormControl>
+                      <FormMessage className="text-xs text-destructive" />
+                    </FormItem>
+                  );
+                }}
               />
             </form>
           </Form>
