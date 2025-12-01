@@ -27,14 +27,14 @@ interface VesuAPIResponse {
           value: string;
           decimals: number;
         };
-		borrowApr: {
-			value: string;
-			decimals: number;
-		},
-		lstApr: {
-			value: string;
-			decimals: number;
-		}
+        borrowApr: {
+          value: string;
+          decimals: number;
+        };
+        lstApr: {
+          value: string;
+          decimals: number;
+        };
       };
     }>;
   };
@@ -117,7 +117,7 @@ const vesuYieldQueryAtom = atomWithQuery(() => ({
   queryKey: ["vesuYield"],
   queryFn: async (): Promise<ProtocolYield> => {
     try {
-		//TODO: move the api call logic to api.ts under "defi calls" comment
+      //TODO: move the api call logic to api.ts under "defi calls" comment
       const response = await fetch(
         "https://api.vesu.xyz/pools/0x052fb52363939c3aa848f8f4ac28f0a51379f8d1b971d8444de25fbd77d8f161",
       );
@@ -141,11 +141,11 @@ const vesuYieldQueryAtom = atomWithQuery(() => ({
         stats.defiSpringSupplyApr.value,
         stats.defiSpringSupplyApr.decimals,
       );
-	// this should also be added - but then final apy is not matching
-    //   const borrowApr = convertVesuValue(
-    //     stats.borrowApr.value,
-    //     stats.borrowApr.decimals,
-    //   );
+      // this should also be added - but then final apy is not matching
+      //   const borrowApr = convertVesuValue(
+      //     stats.borrowApr.value,
+      //     stats.borrowApr.decimals,
+      //   );
       const lstApr = convertVesuValue(
         stats.lstApr.value,
         stats.lstApr.decimals,
@@ -173,14 +173,14 @@ const vesuYieldQueryAtom = atomWithQuery(() => ({
   },
   refetchInterval: 60000,
   refetchOnWindowFocus: false,
-  refetchOnMount: false
+  refetchOnMount: false,
 }));
 
 const ekuboYieldQueryAtom = atomWithQuery((get) => ({
   queryKey: ["ekuboYield", get(apiExchangeRateAtom)],
   queryFn: async (): Promise<ProtocolYield> => {
     try {
-		//TODO: move the api call logic to api.ts under "defi calls" comment
+      //TODO: move the api call logic to api.ts under "defi calls" comment
       const response = await fetch(
         "https://starknet-mainnet-api.ekubo.org/pair/0x028d709c875c0ceac3dce7065bec5328186dc89fe254527084d1689910954b0a/0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d/pools",
       );
@@ -232,7 +232,7 @@ const nostraLPYieldQueryAtom = atomWithQuery(() => ({
   queryKey: ["nostraLPYield"],
   queryFn: async (): Promise<ProtocolYield> => {
     try {
-		//TODO: move the api call logic to api.ts under "defi calls" comment
+      //TODO: move the api call logic to api.ts under "defi calls" comment
       const response = await fetch(
         "https://api.nostra.finance/query/pool_aprs",
       );
@@ -277,7 +277,7 @@ const nostraLendYieldQueryAtom = atomWithQuery(() => ({
   queryKey: ["nostraLendYield"],
   queryFn: async (): Promise<ProtocolYield> => {
     try {
-		//TODO: move the api call logic to api.ts under "defi calls" comment
+      //TODO: move the api call logic to api.ts under "defi calls" comment
       const [lendingResponse, mongoResponse] = await Promise.all([
         fetch("https://api.nostra.finance/openblock/supply_incentives"),
         fetch(
@@ -392,7 +392,7 @@ const strkFarmYieldQueryAtom = atomWithQuery(() => ({
 const strkFarmEkuboYieldQueryAtom = atomWithQuery((get) => ({
   queryKey: ["strkFarmEkuboYield", get(assetPriceAtom)],
   queryFn: async (): Promise<ProtocolYield> => {
-		//TODO: move the api call logic to api.ts under "defi calls" comment
+    //TODO: move the api call logic to api.ts under "defi calls" comment
     const hostname = window.location.origin;
     const res = await fetch(`https://app.troves.fi/api/strategies`);
     const data = await res.json();
@@ -424,9 +424,9 @@ const strkFarmEkuboYieldQueryAtom = atomWithQuery((get) => ({
 
     // const apy = strategy.apy - baseApy.strkApy;
 
-	const baseApy = parseFloat(strategy?.apySplit?.baseApy || 0);
-	const rewardApy = parseFloat(strategy?.apySplit?.rewardApy || 0);
-	const apy = (baseApy + rewardApy);
+    const baseApy = parseFloat(strategy?.apySplit?.baseApy || 0);
+    const rewardApy = parseFloat(strategy?.apySplit?.rewardApy || 0);
+    const apy = baseApy + rewardApy;
 
     return {
       value: apy * 100,
@@ -451,7 +451,7 @@ const trovesHyperYieldQueryAtom = atomWithQuery((get) => ({
     queryKey: [string, LSTAssetConfig | undefined];
   }): Promise<ProtocolYield> => {
     const [, lstConfig] = queryKey;
-		//TODO: move the api call logic to api.ts under "defi calls" comment
+    //TODO: move the api call logic to api.ts under "defi calls" comment
     const hostname = "https://app.troves.fi";
     const res = await fetch(`${hostname}/api/strategies`);
     const data = await res.json();
@@ -505,7 +505,7 @@ const createTrovesYieldQueryAtom = (strategyId: string, queryKey: string) =>
   atomWithQuery((get) => ({
     queryKey: [queryKey, get(btcPriceAtom)],
     queryFn: async (): Promise<ProtocolYield> => {
-		//TODO: move the api call logic to api.ts under "defi calls" comment
+      //TODO: move the api call logic to api.ts under "defi calls" comment
       const hostname = "https://app.troves.fi";
       const res = await fetch(`${hostname}/api/strategies`);
       const data = await res.json();
@@ -584,7 +584,7 @@ const haikoYieldQueryAtom = atomWithQuery(() => ({
   queryKey: ["haikoYield"],
   queryFn: async (): Promise<ProtocolYield> => {
     try {
-		//TODO: move the api call logic to api.ts under "defi calls" comment
+      //TODO: move the api call logic to api.ts under "defi calls" comment
       const response = await fetch(
         "https://app.haiko.xyz/api/v1/vaults?network=mainnet&user=0x6058fd211ebc489b5f5fa98d92354a4be295ff007b211f72478702a6830c21f",
       );
@@ -718,8 +718,8 @@ const createTrovesYieldAtom = (
     };
   });
 
-  //DOUBT [ASK_AKIRA]: if we are using same function "trovesHyperYieldAtom" for protocolYieldsAtom, then why do we have different yield atom here?
-  //TODO: move these all troves atom to troves.store.ts 
+//DOUBT [ASK_AKIRA]: if we are using same function "trovesHyperYieldAtom" for protocolYieldsAtom, then why do we have different yield atom here?
+//TODO: move these all troves atom to troves.store.ts
 export const trovesHyperxWBTCYieldAtom = createTrovesYieldAtom(
   trovesHyperxWBTCYieldQueryAtom,
 );
