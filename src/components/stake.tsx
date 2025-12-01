@@ -623,7 +623,7 @@ const Stake: React.FC = () => {
                     if (!value || value === "") return "";
 
                     // Allow typing decimal point and trailing zeros
-                    if (value.endsWith(".") || /\.\d*0+$/.test(value)) {
+                    if (value.endsWith(".") || (/\.\d*0+$/).test(value)) {
                       return value;
                     }
 

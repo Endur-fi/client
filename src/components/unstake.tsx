@@ -416,18 +416,31 @@ const Unstake = () => {
 
     let displayAmount = "";
     let unstakeAmount = "";
+    // to reduce some dust
+    const ONE_WEI = Web3Number.fromWei(9999999, 18);
+    const balance = new Web3Number(
+      Web3Number.fromWei(
+        currentLSTBalance.value.toString(),
+        currentLSTBalance.value.decimals,
+      ).toFixed(18),
+      18,
+    );
+    const available = balance.minus(ONE_WEI);
 
     // exact balance will be used for unstake amount only when percentage is 100
     // for other percentages, we are still rounding up to 8/2 decimals precision
+    if (Number(currentLSTBalance.value.toEtherToFixedDecimals(8)) == 0) {
+      return;
+    }
     if (percentage === 100) {
       // Round down to prevent exceeding balance
       displayAmount = currentLSTBalance.value.toEtherToFixedDecimals(8);
       // always 18 ok
-      unstakeAmount = currentLSTBalance.value.toEtherToFixedDecimals(18);
+      unstakeAmount = available.toFixed(18);
     } else {
       // display and unstake amount will be same in this case
       // calculate display amount based on percentage
-      const amount = Number(currentLSTBalance.value.toEtherToFixedDecimals(18));
+      const amount = Number(available.toFixed(18));
       displayAmount = ((amount * percentage) / 100).toFixed(isBTC ? 8 : 6);
       unstakeAmount = displayAmount;
     }
@@ -522,15 +535,18 @@ const Unstake = () => {
         ),
       });
     }
-
-    if (Number(values.unstakeAmount) > Number(currentLSTBalance.value)) {
+    const balance = Web3Number.fromWei(
+      currentLSTBalance.value.toString(),
+      currentLSTBalance.value.decimals,
+    );
+    if (balance.lessThan(values.unstakeAmount)) {
       return toast({
         description: (
           <div className="flex items-center gap-2">
             <Info className="size-5" />
             Insufficient {lstConfig.LST_SYMBOL} balance
-            {Number(values.unstakeAmount)} {">"} Available{" "}
-            {Number(currentLSTBalance.value)} |
+            <br />
+            {Number(values.unstakeAmount)} {">"} Available {balance.toString()}
           </div>
         ),
       });
@@ -572,20 +588,55 @@ const Unstake = () => {
               <FormField
                 control={form.control}
                 name="displayUnstakeAmount"
-                render={({ field }) => (
-                  <FormItem className="space-y-1">
-                    <FormControl>
-                      <div className="relative">
-                        <Input
-                          className="h-fit border-none px-0 pr-1 text-2xl shadow-none outline-none placeholder:text-[#8D9C9C] focus-visible:ring-0 lg:pr-0 lg:!text-3xl"
-                          placeholder="0.00"
-                          {...field}
-                        />
-                      </div>
-                    </FormControl>
-                    <FormMessage className="text-xs text-destructive" />
-                  </FormItem>
-                )}
+                render={({ field }) => {
+                  const maxDecimals = isBTC ? 8 : 6;
+
+                  // Format for display: limit decimal places while preserving precision in storage
+                  const getDisplayValue = (value: string) => {
+                    if (!value || value === "") return "";
+
+                    // Allow typing decimal point and trailing zeros
+                    if (value.endsWith(".") || (/\.\d*0+$/).test(value)) {
+                      return value;
+                    }
+
+                    const numValue = parseFloat(value);
+                    if (isNaN(numValue)) return value;
+
+                    // Check if value has more decimals than allowed
+                    const parts = value.split(".");
+                    if (parts[1] && parts[1].length > maxDecimals) {
+                      // Truncate to maxDecimals (don't round to preserve user intent)
+                      return `${parts[0]}.${parts[1].slice(0, maxDecimals)}`;
+                    }
+
+                    return value;
+                  };
+
+                  return (
+                    <FormItem className="space-y-1">
+                      <FormControl>
+                        <div className="relative">
+                          <Input
+                            className="h-fit border-none px-0 pr-1 text-2xl shadow-none outline-none placeholder:text-[#8D9C9C] focus-visible:ring-0 lg:pr-0 lg:!text-3xl"
+                            placeholder="0.00"
+                            value={getDisplayValue(field.value)}
+                            onChange={(e) => {
+                              const value = e.target.value;
+                              // Store the precise value as-is (string)
+                              field.onChange(value);
+                              form.setValue("unstakeAmount", value);
+                            }}
+                            onBlur={field.onBlur}
+                            name={field.name}
+                            ref={field.ref}
+                          />
+                        </div>
+                      </FormControl>
+                      <FormMessage className="text-xs text-destructive" />
+                    </FormItem>
+                  );
+                }}
               />
             </form>
           </Form>
