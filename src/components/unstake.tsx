@@ -55,6 +55,13 @@ import { ASSET_ICONS } from "./asset-selector";
 const formSchema = z.object({
   unstakeAmount: z.string().refine(
     (v) => {
+      const n = Number(v); // v would be having 18 decimals, but we are just checking if it is a number and greater than 0 which is fine if we loose precision
+      return !isNaN(n) && v?.length > 0 && n > 0;
+    },
+    { message: "Invalid input" },
+  ),
+  displayUnstakeAmount: z.string().refine(
+    (v) => {
       const n = Number(v);
       return !isNaN(n) && v?.length > 0 && n > 0;
     },
@@ -289,6 +296,7 @@ const Unstake = () => {
     resolver: zodResolver(formSchema),
     values: {
       unstakeAmount: "",
+      displayUnstakeAmount: "",
     },
     mode: "onChange",
   });
@@ -399,12 +407,33 @@ const Unstake = () => {
       });
     }
 
-    const amount = Number(currentLSTBalance.value.toEtherToFixedDecimals(9));
+    let displayAmount = "";
+    let unstakeAmount = "";
 
-    if (amount) {
-      const calculatedAmount = (amount * percentage) / 100;
-      form.setValue("unstakeAmount", calculatedAmount.toFixed(isBTC ? 8 : 2));
+    // exact balance will be used for unstake amount only when percentage is 100
+    // for other percentages, we are still rounding up to 8/2 decimals precision
+    if (percentage === 100) {
+      // Round down to prevent exceeding balance
+      displayAmount = currentLSTBalance.value.toEtherToFixedDecimals(8);
+      unstakeAmount = currentLSTBalance.value.toString();
+    } else {
+      // display and unstake amount will be same in this case
+      // calculate display amount based on percentage
+      const amount = Number(currentLSTBalance.value.toEtherToFixedDecimals(9));
+      displayAmount = ((amount * percentage) / 100).toFixed(isBTC ? 8 : 2);
+      unstakeAmount = displayAmount;
+    }
+
+    if (
+      displayAmount &&
+      unstakeAmount &&
+      displayAmount.length > 0 &&
+      unstakeAmount.length > 0
+    ) {
+      form.setValue("unstakeAmount", unstakeAmount);
+      form.setValue("displayUnstakeAmount", displayAmount);
       form.clearErrors("unstakeAmount");
+      form.clearErrors("displayUnstakeAmount");
     }
   };
 
@@ -535,7 +564,7 @@ const Unstake = () => {
             <form onSubmit={form.handleSubmit(onSubmit)} className="w-full">
               <FormField
                 control={form.control}
-                name="unstakeAmount"
+                name="displayUnstakeAmount"
                 render={({ field }) => (
                   <FormItem className="space-y-1">
                     <FormControl>
