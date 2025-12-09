@@ -10,8 +10,11 @@ import { MessageCircleMoreIcon } from "./ui/message-circle-more";
 import { SidebarMenuButton, SidebarMenuItem, useSidebar } from "./ui/sidebar";
 import { TelegramIcon } from "./ui/telegram";
 import { TwitterIcon } from "./ui/twitter";
+import { DiscordIcon } from "./ui/discord";
 
 const SidebarFooterMenuItems = () => {
+  const [triggerDiscordIconAnimation, setTriggerDiscordIconAnimation] =
+    React.useState(false);
   const [triggerTwitterIconAnimation, setTriggerTwitterIconAnimation] =
     React.useState(false);
   const [triggerTelegramIconAnimation, setTriggerTelegramIconAnimation] =
@@ -28,6 +31,25 @@ const SidebarFooterMenuItems = () => {
   return (
     <>
       <SidebarMenuItem>
+        <SidebarMenuButton
+          asChild
+          className="transition-all hover:bg-[#17876D] hover:text-white"
+          onMouseEnter={() => setTriggerDiscordIconAnimation(true)}
+          onMouseLeave={() => setTriggerDiscordIconAnimation(false)}
+        >
+          <Link
+            href={LINKS.ENDUR_DISCORD}
+            target="_blank"
+            className="flex w-full cursor-pointer flex-row items-center gap-2 text-nowrap rounded-md text-base font-semibold text-[#03624C] transition-all"
+          >
+            <DiscordIcon
+              className="size-4"
+              triggerAnimation={triggerDiscordIconAnimation}
+            />
+            <span>{open && "Discord"}</span>
+          </Link>
+        </SidebarMenuButton>
+
         <SidebarMenuButton
           asChild
           className="transition-all hover:bg-[#17876D] hover:text-white"

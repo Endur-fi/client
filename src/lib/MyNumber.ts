@@ -17,7 +17,23 @@ export default class MyNumber {
         Number(ethers.parseUnits(num, decimals)).toFixed(6),
         decimals,
       );
-    } catch (e) {
+    } catch (e: any) {
+      if (e.message.includes("too many decimals for fo")) {
+        // truncate as round down is safer
+        const parts = num.split(".");
+        if (parts.length === 2) {
+          const integerPart = parts[0];
+          const fractionalPart = parts[1].slice(
+            0,
+            decimals < 15 ? decimals : 15,
+          ); // ethers supports up to 15 decimals
+          const truncatedNum = `${integerPart}.${fractionalPart}`;
+          return new MyNumber(
+            Number(ethers.parseUnits(truncatedNum, decimals)).toFixed(6),
+            decimals,
+          );
+        }
+      }
       console.error("fromEther", e, num, decimals);
       throw e;
     }

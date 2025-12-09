@@ -284,13 +284,11 @@ const AssetSelector: React.FC<AssetSelectorProps> = ({
   const SelectedIcon = ASSET_ICONS[selectedAsset];
 
   return (
-    <div className="flex flex-col gap-2">
-      <label className="text-xs font-semibold text-[#3F6870]">
-        Select Asset
-      </label>
+    <div className="flex w-full flex-col gap-2">
+      <label className="text-xs font-normal text-[#6B7780]">Select Asset</label>
       <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
         <DropdownMenuTrigger asChild>
-          <button className="flex items-center justify-between gap-4 pr-3 text-sm focus:outline-none">
+          <button className="flex items-center justify-between gap-4 rounded-[14px] border border-[#E5E8EB] p-3 text-sm focus:outline-none">
             <div className="flex items-center gap-2">
               {SelectedIcon && (
                 <SelectedIcon className="size-6 h-4 w-4 lg:size-[35px]" />
