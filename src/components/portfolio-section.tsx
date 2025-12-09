@@ -19,7 +19,7 @@ import {
   TooltipTrigger,
 } from "./ui/tooltip";
 import { getLSTAssetsByCategory, getSTRKAsset } from "@/constants";
-import { formatNumber, formatNumberWithCommas } from "@/lib/utils";
+import { formatNumberWithCommas } from "@/lib/utils";
 import { lstStatsQueryAtom } from "@/store/lst.store";
 import { assetPriceAtom } from "@/store/common.store";
 import { btcPriceAtom, strkTVLAtom, btcTVLAtom } from "@/store/staking.store";
@@ -299,7 +299,7 @@ const PortfolioSection: React.FC = () => {
         <div className="rounded-lg border border-[#E5E8EB] bg-[#FFF4E6] p-2 text-xs text-[#D69733]">
           <p className="mb-1">
             Only wallet-held LSTs are shown. LSTs deployed in third-party dApps
-            won't appear here.
+            {"won't"} appear here.
           </p>
           <Link
             href="/portfolio"

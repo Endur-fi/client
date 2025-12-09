@@ -522,7 +522,7 @@ const Tabs = () => {
                                   Select your preferred token (STRK or BTC),
                                   enter the amount you want to stake, optionally
                                   choose a DeFi protocol for additional yield,
-                                  and click the Stake button. You'll receive
+                                  and click the Stake button. You{"'ll"} receive
                                   liquid staking tokens (xSTRK or xBTC) that
                                   represent your staked position.
                                 </AccordionContent>
@@ -750,7 +750,7 @@ const Tabs = () => {
                                   Select your preferred token (STRK or BTC),
                                   enter the amount you want to stake, optionally
                                   choose a DeFi protocol for additional yield,
-                                  and click the Stake button. You'll receive
+                                  and click the Stake button. You{"'ll"} receive
                                   liquid staking tokens (xSTRK or xBTC) that
                                   represent your staked position.
                                 </AccordionContent>
@@ -916,9 +916,9 @@ const Tabs = () => {
                   <AccordionContent className="text-sm text-[#6B7780]">
                     Select your preferred token (STRK or BTC), enter the amount
                     you want to stake, optionally choose a DeFi protocol for
-                    additional yield, and click the Stake button. You'll receive
-                    liquid staking tokens (xSTRK or xBTC) that represent your
-                    staked position.
+                    additional yield, and click the Stake button. You{"'ll"}{" "}
+                    receive liquid staking tokens (xSTRK or xBTC) that represent
+                    your staked position.
                   </AccordionContent>
                 </AccordionItem>
                 <AccordionItem
