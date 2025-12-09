@@ -1,7 +1,7 @@
 "use client";
 
 import { useAtom, useAtomValue } from "jotai";
-import { Info } from "lucide-react";
+import { HelpCircle, Info, Star } from "lucide-react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import React from "react";
@@ -26,7 +26,14 @@ import { validateEmail } from "@/lib/utils";
 import { checkSubscription, subscribeUser } from "@/lib/api";
 
 import Stake from "./stake";
+import PortfolioSection from "./portfolio-section";
 import { useSidebar } from "./ui/sidebar";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "./ui/accordion";
 import {
   Tabs as ShadCNTabs,
   TabsContent,
@@ -35,7 +42,7 @@ import {
 } from "./ui/tabs";
 import Unstake from "./unstake";
 import WithdrawLog from "./withdraw-log";
-import { snAPYAtom } from "@/store/staking.store";
+import { snAPYAtom, strkTVLAtom, btcTVLAtom } from "@/store/staking.store";
 import { useWalletConnection } from "@/hooks/use-wallet-connection";
 import { lstConfigAtom } from "@/store/common.store";
 import { MyDottedTooltip } from "./my-tooltip";
@@ -53,8 +60,25 @@ const Tabs = () => {
   const [waitlistEmail, setWaitlistEmail] = React.useState("");
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const apy = useAtomValue(snAPYAtom);
+  const strkTVL = useAtomValue(strkTVLAtom);
+  const btcTVL = useAtomValue(btcTVLAtom);
 
   console.log("Apy", apy.value);
+
+  // Format TVL for display
+  const formatTVL = (value: number): string => {
+    if (value === 0) return "$0";
+    if (value >= 1_000_000_000) {
+      return `$${(value / 1_000_000_000).toFixed(2)}B`;
+    }
+    if (value >= 1_000_000) {
+      return `$${(value / 1_000_000).toFixed(2)}M`;
+    }
+    if (value >= 1_000) {
+      return `$${(value / 1_000).toFixed(2)}K`;
+    }
+    return `$${value.toFixed(2)}`;
+  };
 
   const isMerry = useAtomValue(isMerryChristmasAtom);
   const { address } = useAccount();
@@ -256,7 +280,7 @@ const Tabs = () => {
     <div className="relative">
       <div
         className={cn("z-30 flex h-full flex-col items-center gap-4", {
-          "lg:-ml-56": isPinned,
+          //   "lg:-ml-56": isPinned,
         })}
       >
         {IS_PAUSED && (
@@ -274,16 +298,19 @@ const Tabs = () => {
         )}
 
         <div
-          className={cn("mt-6 w-full max-w-xl lg:mt-0", {
-            "mb-7 xl:mb-0": !isMerry,
-            // "mb-7 lg:mb-12": isMerry,
-            // "mb-7 lg:mb-7": isMerry && activeTab === "withdraw",
-          })}
+          className={cn(
+            "flex w-full max-w-[calc(100vw-1rem)] flex-col gap-4 px-2 lg:max-w-4xl lg:items-start lg:px-0",
+            {
+              "mb-7 xl:mb-0": !isMerry,
+            },
+          )}
         >
-          <div className="flex flex-wrap items-center gap-3 lg:mt-7">
+          <div className="flex flex-wrap items-center gap-3">
             <div className="flex items-center gap-2">
               <Icons.strkLogo className="size-8" />
-              <h1 className="text-xl font-bold text-black">Starknet Staking</h1>
+              <h1 className="text-left text-xl font-bold text-black">
+                Starknet Staking
+              </h1>
             </div>
             <Link
               href="https://docs.endur.fi/docs/security"
@@ -310,271 +337,648 @@ const Tabs = () => {
         </div>
 
         {/* Main Tabs - STRK and BTC */}
-        <div className="w-full max-w-xl">
-          <ShadCNTabs
-            onValueChange={(value) => handleTabChange(value)}
-            value={activeTab}
-            defaultValue="btc"
-            className="col-span-2 h-full w-full lg:mt-0"
-          >
-            <TabsList
-              className={cn(
-                "flex w-full items-center gap-2 rounded-none bg-transparent pb-5 pt-8",
-              )}
+        <div className="flex gap-6">
+          <div className="">
+            <ShadCNTabs
+              onValueChange={(value) => handleTabChange(value)}
+              value={activeTab}
+              defaultValue="btc"
+              className="flex h-full w-full flex-col gap-4"
             >
-              <TabsTrigger
-                value="strk"
-                className="group relative inline-flex w-full justify-between rounded-xl border border-[#8D9C9C80] bg-transparent py-3 pl-3 text-sm font-medium text-[#8D9C9C] focus-visible:ring-0 focus-visible:ring-offset-0 data-[state=active]:border-[#17876D] data-[state=active]:bg-[#03624C1A] data-[state=active]:text-[#03624C] data-[state=active]:shadow-none lg:text-base"
-              >
-                <div className="inline-flex items-center gap-2 text-lg font-bold">
-                  <Icons.strkLogo className="h-6 w-6 opacity-20 group-data-[state=active]:opacity-100" />
-                  STRK
-                </div>
-                <div className="pl-2">
-                  <p className="text-xs">
-                    APY: {(apy.value.strkApy * 100).toFixed(2)}%
-                  </p>
-                </div>
-              </TabsTrigger>
-              <TabsTrigger
-                value="btc"
-                className="group relative inline-flex w-full justify-between rounded-xl border border-[#8D9C9C80] bg-transparent py-3 pl-3 text-sm font-medium text-[#8D9C9C] focus-visible:ring-0 focus-visible:ring-offset-0 data-[state=active]:border-[#17876D] data-[state=active]:bg-[#03624C1A] data-[state=active]:text-[#03624C] data-[state=active]:shadow-none lg:text-base"
-              >
-                <div className="inline-flex items-center gap-2 text-lg font-bold">
-                  <Icons.btcLogo className="h-6 w-6 opacity-20 group-data-[state=active]:opacity-100" />
-                  BTC
-                </div>
-                <div className="pl-2">
-                  <p className="text-xs">
-                    APY: {(apy.value.btcApy * 100).toFixed(2)}%
-                  </p>
-                </div>
-              </TabsTrigger>
-            </TabsList>
-
-            {/* STRK Tab Content */}
-            <TabsContent
-              value="strk"
-              className="h-full pb-3 focus-visible:ring-0 focus-visible:ring-offset-0 lg:pb-0"
-            >
-              <div
+              <TabsList
                 className={cn(
-                  "mt-6 min-h-[31.5rem] w-full rounded-xl bg-white shadow-xl lg:h-fit lg:pb-5",
+                  "bg-white",
+                  "h-fit w-full p-2",
+                  "flex items-center gap-2",
+                  "rounded-[14px] border border-[#E5E8EB]",
+                  "shadow-[0_1px_2px_-1px_#0000001A,_0_1px_3px_0_#0000001A]",
                 )}
               >
-                <ShadCNTabs
-                  onValueChange={(value) => handleSubTabChange(value)}
-                  value={activeSubTab}
-                  defaultValue="stake"
-                  className="col-span-2 h-full w-full lg:mt-0"
+                <TabsTrigger
+                  value="strk"
+                  className="group relative flex w-full flex-col items-start rounded-[10px] bg-transparent px-3 py-4 text-sm font-medium text-[#8D9C9C] focus-visible:ring-0 focus-visible:ring-offset-0 data-[state=active]:border data-[state=active]:border-[#81C3B4] data-[state=active]:bg-[#E8F7F4] data-[state=active]:text-[#0D5F4E] data-[state=active]:shadow-none lg:text-base"
                 >
-                  <TabsList
+                  <div className="inline-flex items-center gap-3">
+                    <Icons.strkLogo className="h-8 w-8 grayscale-[0.8] group-data-[state=active]:grayscale-0" />
+                    <div className="flex items-start gap-2 lg:flex-col">
+                      <p className="text-lg group-data-[state=active]:text-black group-data-[state=active]:opacity-100">
+                        {" "}
+                        STRK
+                      </p>
+                      <div className="flex flex-col gap-1 lg:flex-row lg:gap-6">
+                        <p className="text-xs">
+                          APY: {(apy.value.strkApy * 100).toFixed(2)}%
+                        </p>
+
+                        <p className="text-xs">
+                          TVL: {formatTVL(strkTVL.value)}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </TabsTrigger>
+                <TabsTrigger
+                  value="btc"
+                  className="group relative flex w-full flex-col items-start rounded-[10px] bg-transparent px-3 py-4 text-sm font-medium text-[#8D9C9C] focus-visible:ring-0 focus-visible:ring-offset-0 data-[state=active]:border data-[state=active]:border-[#81C3B4] data-[state=active]:bg-[#E8F7F4] data-[state=active]:text-[#0D5F4E] data-[state=active]:shadow-none lg:text-base"
+                >
+                  <div className="inline-flex items-center gap-3">
+                    <Icons.btcLogo className="h-8 w-8 grayscale-[0.8] group-data-[state=active]:grayscale-0" />
+                    <div className="flex items-start gap-2 lg:flex-col">
+                      <p className="text-lg group-data-[state=active]:text-black group-data-[state=active]:opacity-100">
+                        {" "}
+                        BTC
+                      </p>
+                      <div className="flex flex-col gap-1 lg:flex-row lg:gap-6">
+                        <p className="text-xs">
+                          APY: {(apy.value.btcApy * 100).toFixed(2)}%
+                        </p>
+                        <p className="text-xs">
+                          TVL: {formatTVL(btcTVL.value)}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </TabsTrigger>
+              </TabsList>
+
+              {/* STRK Tab Content */}
+              <TabsContent value="strk" className={cn()}>
+                <div
+                  className={cn(
+                    "w-full max-w-full rounded-xl shadow-xl lg:h-fit lg:max-w-none",
+                    "h-full rounded-[14px] bg-white focus-visible:ring-0 focus-visible:ring-offset-0",
+                    "rounded-[14px] border border-[#E5E8EB]",
+                    "shadow-[0_1px_2px_-1px_#0000001A,_0_1px_3px_0_#0000001A]",
+                  )}
+                >
+                  <ShadCNTabs
+                    onValueChange={(value) => handleSubTabChange(value)}
+                    value={activeSubTab}
+                    defaultValue="stake"
+                    className="h-full w-full max-w-full p-2 lg:max-w-none lg:p-5"
+                  >
+                    <TabsList
+                      className={cn(
+                        "flex w-full items-center justify-start rounded-none border-b bg-transparent",
+                      )}
+                    >
+                      <TabsTrigger
+                        value="stake"
+                        className="group relative rounded-none border-none text-sm font-medium text-[#8D9C9C] focus-visible:ring-0 focus-visible:ring-offset-0 data-[state=active]:border-t-0 data-[state=active]:shadow-none lg:text-base"
+                      >
+                        Stake
+                      </TabsTrigger>
+                      <TabsTrigger
+                        value="unstake"
+                        className="group relative rounded-none border-none text-sm font-medium text-[#8D9C9C] focus-visible:ring-0 focus-visible:ring-offset-0 data-[state=active]:border-t-0 data-[state=active]:shadow-none lg:text-base"
+                      >
+                        Unstake
+                      </TabsTrigger>
+                      <TabsTrigger
+                        value="withdraw"
+                        className="group relative rounded-none border-none text-sm font-medium text-[#8D9C9C] focus-visible:ring-0 focus-visible:ring-offset-0 data-[state=active]:border-t-0 data-[state=active]:shadow-none lg:text-base"
+                      >
+                        Withdraw log
+                        <TooltipProvider delayDuration={0}>
+                          <Tooltip>
+                            <TooltipTrigger
+                              className="ml-1"
+                              tabIndex={-1}
+                              asChild
+                            >
+                              <Info className="size-3 text-[#3F6870] lg:text-[#8D9C9C]" />
+                            </TooltipTrigger>
+                            <TooltipContent
+                              side="right"
+                              className="max-w-[13rem] rounded-md border border-[#03624C] bg-white text-[#03624C]"
+                            >
+                              Learn more about withdraw logs{" "}
+                              <Link
+                                target="_blank"
+                                href="https://docs.endur.fi/docs/concepts/withdraw-log"
+                                className="text-blue-600 underline"
+                              >
+                                here
+                              </Link>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </TabsTrigger>
+                    </TabsList>
+
+                    <TabsContent
+                      value="stake"
+                      className="h-full focus-visible:ring-0 focus-visible:ring-offset-0"
+                    >
+                      <div className="flex w-full max-w-full flex-col gap-4 lg:max-w-none lg:flex-row lg:items-start">
+                        <div className="w-full max-w-full lg:max-w-none lg:flex-1">
+                          <Stake />
+                        </div>
+                        <div className="flex w-full max-w-full flex-col gap-4 lg:hidden">
+                          <PortfolioSection />
+                          {/* Season 2 Points Active Card */}
+                          <div className="w-full rounded-xl bg-[#17876D] p-2 lg:p-4">
+                            <div className="flex items-start gap-3">
+                              <Star className="h-5 w-5 shrink-0 fill-white text-white" />
+                              <div className="flex-1">
+                                <h4 className="text-sm font-bold text-white">
+                                  Season 2 Points Active
+                                </h4>
+                                <p className="mt-1 text-xs text-white">
+                                  Earn 5X points on all staking
+                                </p>
+                              </div>
+                            </div>
+                            <div className="mt-3 flex w-full justify-center">
+                              <Link
+                                href="#"
+                                className="w-full rounded-md bg-[#81C3B4] px-4 py-2 text-center text-xs font-medium text-white transition-all hover:bg-[#6BA89A]"
+                              >
+                                Learn More
+                              </Link>
+                            </div>
+                          </div>
+                          {/* FAQ Section */}
+                          <div className="w-full rounded-xl border border-[#E5E8EB] bg-white p-2 lg:p-4">
+                            <div className="mb-4 flex items-center gap-2">
+                              <HelpCircle className="h-5 w-5 text-[#17876D]" />
+                              <h3 className="text-sm font-bold uppercase text-[#17876D]">
+                                Frequently Asked Questions
+                              </h3>
+                            </div>
+                            <Accordion
+                              type="single"
+                              collapsible
+                              defaultValue="item-1"
+                            >
+                              <AccordionItem
+                                value="item-1"
+                                className="border-b border-[#E5E8EB]"
+                              >
+                                <AccordionTrigger className="text-left font-semibold text-[#1A1F24] hover:no-underline [&>svg]:text-[#17876D] data-[state=open]:[&>svg]:text-[#17876D]">
+                                  How to stake?
+                                </AccordionTrigger>
+                                <AccordionContent className="text-sm text-[#6B7780]">
+                                  Select your preferred token (STRK or BTC),
+                                  enter the amount you want to stake, optionally
+                                  choose a DeFi protocol for additional yield,
+                                  and click the Stake button. You'll receive
+                                  liquid staking tokens (xSTRK or xBTC) that
+                                  represent your staked position.
+                                </AccordionContent>
+                              </AccordionItem>
+                              <AccordionItem
+                                value="item-2"
+                                className="border-b border-[#E5E8EB]"
+                              >
+                                <AccordionTrigger className="text-left font-semibold text-[#1A1F24] hover:no-underline [&>svg]:text-[#6B7780] data-[state=open]:[&>svg]:text-[#17876D]">
+                                  How to unstake?
+                                </AccordionTrigger>
+                                <AccordionContent className="text-sm text-[#6B7780]">
+                                  To unstake, navigate to the Unstake tab, enter
+                                  the amount of liquid staking tokens (xSTRK or
+                                  xBTC) you want to unstake, and click the
+                                  Unstake button. Your tokens will be queued for
+                                  withdrawal.
+                                </AccordionContent>
+                              </AccordionItem>
+                              <AccordionItem
+                                value="item-3"
+                                className="border-b border-[#E5E8EB]"
+                              >
+                                <AccordionTrigger className="text-left font-semibold text-[#1A1F24] hover:no-underline [&>svg]:text-[#6B7780] data-[state=open]:[&>svg]:text-[#17876D]">
+                                  What is liquid staking?
+                                </AccordionTrigger>
+                                <AccordionContent className="text-sm text-[#6B7780]">
+                                  Liquid staking allows you to stake your tokens
+                                  while maintaining liquidity. You receive
+                                  liquid staking tokens (LSTs) that represent
+                                  your staked position and can be used in DeFi
+                                  protocols or traded while still earning
+                                  staking rewards.
+                                </AccordionContent>
+                              </AccordionItem>
+                              <AccordionItem
+                                value="item-4"
+                                className="border-b border-[#E5E8EB]"
+                              >
+                                <AccordionTrigger className="text-left font-semibold text-[#1A1F24] hover:no-underline [&>svg]:text-[#6B7780] data-[state=open]:[&>svg]:text-[#17876D]">
+                                  Where does the yield come from?
+                                </AccordionTrigger>
+                                <AccordionContent className="text-sm text-[#6B7780]">
+                                  The yield comes from staking rewards generated
+                                  by validators on the Starknet network.
+                                  Additionally, you can earn extra yield by
+                                  deploying your liquid staking tokens to
+                                  supported DeFi protocols.
+                                </AccordionContent>
+                              </AccordionItem>
+                              <AccordionItem
+                                value="item-5"
+                                className="border-b-0"
+                              >
+                                <AccordionTrigger className="text-left font-semibold text-[#1A1F24] hover:no-underline [&>svg]:text-[#6B7780] data-[state=open]:[&>svg]:text-[#17876D]">
+                                  What are Security and Audits of the protocol?
+                                </AccordionTrigger>
+                                <AccordionContent className="text-sm text-[#6B7780]">
+                                  Our protocol has undergone comprehensive
+                                  security audits by leading blockchain security
+                                  firms. We maintain strict security standards
+                                  and regularly update our smart contracts to
+                                  ensure the safety of user funds. Detailed
+                                  audit reports are available in our
+                                  documentation.
+                                </AccordionContent>
+                              </AccordionItem>
+                            </Accordion>
+                          </div>
+                        </div>
+                      </div>
+                    </TabsContent>
+
+                    <TabsContent
+                      value="unstake"
+                      className="h-full focus-visible:ring-0 focus-visible:ring-offset-0"
+                    >
+                      <Unstake />
+                    </TabsContent>
+
+                    <TabsContent
+                      value="withdraw"
+                      className="h-full focus-visible:ring-0 focus-visible:ring-offset-0"
+                    >
+                      <WithdrawLog />
+                    </TabsContent>
+                  </ShadCNTabs>
+                </div>
+
+                {/* {(activeSubTab === "unstake" || activeSubTab === "stake") && (
+                  <div
                     className={cn(
-                      "flex w-full items-center justify-start rounded-none border-b bg-transparent px-3 pb-5 pt-5 lg:pt-8",
+                      "flex items-center rounded-md bg-[#FFC4664D] text-xs text-[#D69733] lg:text-sm",
                       {
-                        // "lg:pt-10": activeTab !== "withdraw" && isMerry,
+                        "bg-[#C0D5CE69] text-[#134c3d9e]":
+                          activeSubTab === "stake",
                       },
                     )}
                   >
-                    <TabsTrigger
-                      value="stake"
-                      className="group relative rounded-none border-none bg-transparent pl-0 text-sm font-medium text-[#8D9C9C] focus-visible:ring-0 focus-visible:ring-offset-0 data-[state=active]:border-t-0 data-[state=active]:shadow-none lg:pl-3 lg:text-base"
-                    >
-                      Stake
-                      <div className="absolute -bottom-[7.5px] left-0 hidden h-[2px] w-10 rounded-full bg-black group-data-[state=active]:flex lg:-bottom-[5.5px] lg:left-3" />
-                    </TabsTrigger>
-                    <TabsTrigger
-                      value="unstake"
-                      className="group relative rounded-none border-none bg-transparent text-sm font-medium text-[#8D9C9C] focus-visible:ring-0 focus-visible:ring-offset-0 data-[state=active]:border-t-0 data-[state=active]:shadow-none lg:text-base"
-                    >
-                      Unstake
-                      <div className="absolute -bottom-[7.5px] left-3 hidden h-[2px] w-[3.3rem] rounded-full bg-black group-data-[state=active]:flex lg:-bottom-[5.5px] lg:left-3.5" />
-                    </TabsTrigger>
-                    <TabsTrigger
-                      value="withdraw"
-                      className="group relative rounded-none border-none bg-transparent text-sm font-medium text-[#8D9C9C] focus-visible:ring-0 focus-visible:ring-offset-0 data-[state=active]:border-t-0 data-[state=active]:shadow-none lg:text-base"
-                    >
-                      Withdraw log
-                      <TooltipProvider delayDuration={0}>
-                        <Tooltip>
-                          <TooltipTrigger
-                            className="ml-1"
-                            tabIndex={-1}
-                            asChild
-                          >
-                            <Info className="size-3 text-[#3F6870] lg:text-[#8D9C9C]" />
-                          </TooltipTrigger>
-                          <TooltipContent
-                            side="right"
-                            className="max-w-[13rem] rounded-md border border-[#03624C] bg-white text-[#03624C]"
-                          >
-                            Learn more about withdraw logs{" "}
-                            <Link
-                              target="_blank"
-                              href="https://docs.endur.fi/docs/concepts/withdraw-log"
-                              className="text-blue-600 underline"
-                            >
-                              here
-                            </Link>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                      <div className="absolute -bottom-[7.5px] left-3 hidden h-[2px] w-[5rem] rounded-full bg-black group-data-[state=active]:flex lg:-bottom-[5.5px] lg:left-[16px]" />
-                    </TabsTrigger>
-                  </TabsList>
+                    <span className="mr-3 flex size-4 shrink-0 items-center justify-center rounded-full text-xl lg:size-6">
+                      {activeSubTab === "unstake" ? "⚠️" : <Info />}
+                    </span>
+                    {getMessage()}
+                  </div>
+                )} */}
+              </TabsContent>
 
-                  <TabsContent
-                    value="stake"
-                    className="h-full pb-3 focus-visible:ring-0 focus-visible:ring-offset-0 lg:pb-0"
-                  >
-                    <Stake />
-                  </TabsContent>
-
-                  <TabsContent
-                    value="unstake"
-                    className="h-full pb-3 focus-visible:ring-0 focus-visible:ring-offset-0 lg:pb-0"
-                  >
-                    <Unstake />
-                  </TabsContent>
-
-                  <TabsContent
-                    value="withdraw"
-                    className="h-full focus-visible:ring-0 focus-visible:ring-offset-0"
-                  >
-                    <WithdrawLog />
-                  </TabsContent>
-                </ShadCNTabs>
-              </div>
-
-              {(activeSubTab === "unstake" || activeSubTab === "stake") && (
+              <TabsContent value="btc" className={cn()}>
                 <div
                   className={cn(
-                    "mb-2 mt-5 flex items-center rounded-md bg-[#FFC4664D] py-3 pl-4 pr-3 text-xs text-[#D69733] lg:mb-4 lg:text-sm",
-                    {
-                      "bg-[#C0D5CE69] text-[#134c3d9e]":
-                        activeSubTab === "stake",
-                    },
+                    "w-full max-w-full rounded-xl shadow-xl lg:h-fit lg:max-w-none",
+                    "h-full rounded-[14px] bg-white focus-visible:ring-0 focus-visible:ring-offset-0",
+                    "rounded-[14px] border border-[#E5E8EB]",
+                    "shadow-[0_1px_2px_-1px_#0000001A,_0_1px_3px_0_#0000001A]",
                   )}
                 >
-                  <span className="mr-3 flex size-4 shrink-0 items-center justify-center rounded-full text-xl lg:size-6">
-                    {activeSubTab === "unstake" ? "⚠️" : <Info />}
-                  </span>
-                  {getMessage()}
-                </div>
-              )}
-            </TabsContent>
+                  <ShadCNTabs
+                    onValueChange={(value) => handleSubTabChange(value)}
+                    value={activeSubTab}
+                    defaultValue="stake"
+                    className="h-full w-full max-w-full p-2 lg:max-w-none lg:p-5"
+                  >
+                    <TabsList
+                      className={cn(
+                        "flex w-full items-center justify-start rounded-none border-b bg-transparent",
+                      )}
+                    >
+                      <TabsTrigger
+                        value="stake"
+                        className="group relative rounded-none border-none text-sm font-medium text-[#8D9C9C] focus-visible:ring-0 focus-visible:ring-offset-0 data-[state=active]:border-t-0 data-[state=active]:shadow-none lg:text-base"
+                      >
+                        Stake
+                      </TabsTrigger>
+                      <TabsTrigger
+                        value="unstake"
+                        className="group relative rounded-none border-none text-sm font-medium text-[#8D9C9C] focus-visible:ring-0 focus-visible:ring-offset-0 data-[state=active]:border-t-0 data-[state=active]:shadow-none lg:text-base"
+                      >
+                        Unstake
+                      </TabsTrigger>
+                      <TabsTrigger
+                        value="withdraw"
+                        className="group relative rounded-none border-none text-sm font-medium text-[#8D9C9C] focus-visible:ring-0 focus-visible:ring-offset-0 data-[state=active]:border-t-0 data-[state=active]:shadow-none lg:text-base"
+                      >
+                        Withdraw log
+                        <TooltipProvider delayDuration={0}>
+                          <Tooltip>
+                            <TooltipTrigger
+                              className="ml-1"
+                              tabIndex={-1}
+                              asChild
+                            >
+                              <Info className="size-3 text-[#3F6870] lg:text-[#8D9C9C]" />
+                            </TooltipTrigger>
+                            <TooltipContent
+                              side="right"
+                              className="max-w-[13rem] rounded-md border border-[#03624C] bg-white text-[#03624C]"
+                            >
+                              Learn more about withdraw logs{" "}
+                              <Link
+                                target="_blank"
+                                href="https://docs.endur.fi/docs/concepts/withdraw-log"
+                                className="text-blue-600 underline"
+                              >
+                                here
+                              </Link>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </TabsTrigger>
+                    </TabsList>
 
-            <TabsContent
-              value="btc"
-              className="h-full pb-3 focus-visible:ring-0 focus-visible:ring-offset-0 lg:pb-0"
-            >
-              <div
-                className={cn(
-                  "mt-6 min-h-[31.5rem] w-full rounded-xl bg-white shadow-xl lg:h-fit lg:pb-5",
-                )}
-              >
-                <ShadCNTabs
-                  onValueChange={(value) => handleSubTabChange(value)}
-                  value={activeSubTab}
-                  defaultValue="stake"
-                  className="col-span-2 h-full w-full lg:mt-0"
-                >
-                  <TabsList
+                    <TabsContent
+                      value="stake"
+                      className="h-full focus-visible:ring-0 focus-visible:ring-offset-0"
+                    >
+                      <div className="flex w-full max-w-full flex-col gap-4 lg:max-w-none lg:flex-row lg:items-start">
+                        <div className="w-full max-w-full lg:max-w-none lg:flex-1">
+                          <Stake />
+                        </div>
+                        <div className="flex w-full max-w-full flex-col gap-4 lg:hidden">
+                          <PortfolioSection />
+                          {/* Season 2 Points Active Card */}
+                          <div className="w-full rounded-xl bg-[#17876D] p-2 lg:p-4">
+                            <div className="flex items-start gap-3">
+                              <Star className="h-5 w-5 shrink-0 fill-white text-white" />
+                              <div className="flex-1">
+                                <h4 className="text-sm font-bold text-white">
+                                  Season 2 Points Active
+                                </h4>
+                                <p className="mt-1 text-xs text-white">
+                                  Earn 5X points on all staking
+                                </p>
+                              </div>
+                            </div>
+                            <div className="mt-3 flex w-full justify-center">
+                              <Link
+                                href="#"
+                                className="w-full rounded-md bg-[#81C3B4] px-4 py-2 text-center text-xs font-medium text-white transition-all hover:bg-[#6BA89A]"
+                              >
+                                Learn More
+                              </Link>
+                            </div>
+                          </div>
+                          {/* FAQ Section */}
+                          <div className="w-full rounded-xl border border-[#E5E8EB] bg-white p-2 lg:p-4">
+                            <div className="mb-4 flex items-center gap-2">
+                              <HelpCircle className="h-5 w-5 text-[#17876D]" />
+                              <h3 className="text-sm font-bold uppercase text-[#17876D]">
+                                Frequently Asked Questions
+                              </h3>
+                            </div>
+                            <Accordion
+                              type="single"
+                              collapsible
+                              defaultValue="item-1"
+                            >
+                              <AccordionItem
+                                value="item-1"
+                                className="border-b border-[#E5E8EB]"
+                              >
+                                <AccordionTrigger className="text-left font-semibold text-[#1A1F24] hover:no-underline [&>svg]:text-[#17876D] data-[state=open]:[&>svg]:text-[#17876D]">
+                                  How to stake?
+                                </AccordionTrigger>
+                                <AccordionContent className="text-sm text-[#6B7780]">
+                                  Select your preferred token (STRK or BTC),
+                                  enter the amount you want to stake, optionally
+                                  choose a DeFi protocol for additional yield,
+                                  and click the Stake button. You'll receive
+                                  liquid staking tokens (xSTRK or xBTC) that
+                                  represent your staked position.
+                                </AccordionContent>
+                              </AccordionItem>
+                              <AccordionItem
+                                value="item-2"
+                                className="border-b border-[#E5E8EB]"
+                              >
+                                <AccordionTrigger className="text-left font-semibold text-[#1A1F24] hover:no-underline [&>svg]:text-[#6B7780] data-[state=open]:[&>svg]:text-[#17876D]">
+                                  How to unstake?
+                                </AccordionTrigger>
+                                <AccordionContent className="text-sm text-[#6B7780]">
+                                  To unstake, navigate to the Unstake tab, enter
+                                  the amount of liquid staking tokens (xSTRK or
+                                  xBTC) you want to unstake, and click the
+                                  Unstake button. Your tokens will be queued for
+                                  withdrawal.
+                                </AccordionContent>
+                              </AccordionItem>
+                              <AccordionItem
+                                value="item-3"
+                                className="border-b border-[#E5E8EB]"
+                              >
+                                <AccordionTrigger className="text-left font-semibold text-[#1A1F24] hover:no-underline [&>svg]:text-[#6B7780] data-[state=open]:[&>svg]:text-[#17876D]">
+                                  What is liquid staking?
+                                </AccordionTrigger>
+                                <AccordionContent className="text-sm text-[#6B7780]">
+                                  Liquid staking allows you to stake your tokens
+                                  while maintaining liquidity. You receive
+                                  liquid staking tokens (LSTs) that represent
+                                  your staked position and can be used in DeFi
+                                  protocols or traded while still earning
+                                  staking rewards.
+                                </AccordionContent>
+                              </AccordionItem>
+                              <AccordionItem
+                                value="item-4"
+                                className="border-b border-[#E5E8EB]"
+                              >
+                                <AccordionTrigger className="text-left font-semibold text-[#1A1F24] hover:no-underline [&>svg]:text-[#6B7780] data-[state=open]:[&>svg]:text-[#17876D]">
+                                  Where does the yield come from?
+                                </AccordionTrigger>
+                                <AccordionContent className="text-sm text-[#6B7780]">
+                                  The yield comes from staking rewards generated
+                                  by validators on the Starknet network.
+                                  Additionally, you can earn extra yield by
+                                  deploying your liquid staking tokens to
+                                  supported DeFi protocols.
+                                </AccordionContent>
+                              </AccordionItem>
+                              <AccordionItem
+                                value="item-5"
+                                className="border-b-0"
+                              >
+                                <AccordionTrigger className="text-left font-semibold text-[#1A1F24] hover:no-underline [&>svg]:text-[#6B7780] data-[state=open]:[&>svg]:text-[#17876D]">
+                                  What are Security and Audits of the protocol?
+                                </AccordionTrigger>
+                                <AccordionContent className="text-sm text-[#6B7780]">
+                                  Our protocol has undergone comprehensive
+                                  security audits by leading blockchain security
+                                  firms. We maintain strict security standards
+                                  and regularly update our smart contracts to
+                                  ensure the safety of user funds. Detailed
+                                  audit reports are available in our
+                                  documentation.
+                                </AccordionContent>
+                              </AccordionItem>
+                            </Accordion>
+                          </div>
+                        </div>
+                      </div>
+                    </TabsContent>
+
+                    <TabsContent
+                      value="unstake"
+                      className="h-full focus-visible:ring-0 focus-visible:ring-offset-0"
+                    >
+                      <Unstake />
+                    </TabsContent>
+
+                    <TabsContent
+                      value="withdraw"
+                      className="h-full focus-visible:ring-0 focus-visible:ring-offset-0"
+                    >
+                      <WithdrawLog />
+                    </TabsContent>
+                  </ShadCNTabs>
+                </div>
+
+                {/* {(activeSubTab === "unstake" || activeSubTab === "stake") && (
+                  <div
                     className={cn(
-                      "flex w-full items-center justify-start rounded-none border-b bg-transparent px-3 pb-5 pt-5 lg:pt-8",
+                      "flex items-center rounded-md bg-[#FFC4664D] text-xs text-[#D69733] lg:text-sm",
                       {
-                        // "lg:pt-10": activeTab !== "withdraw" && isMerry,
+                        "bg-[#C0D5CE69] text-[#134c3d9e]":
+                          activeSubTab === "stake",
                       },
                     )}
                   >
-                    <TabsTrigger
-                      value="stake"
-                      className="group relative rounded-none border-none bg-transparent pl-0 text-sm font-medium text-[#8D9C9C] focus-visible:ring-0 focus-visible:ring-offset-0 data-[state=active]:border-t-0 data-[state=active]:shadow-none lg:pl-3 lg:text-base"
-                    >
-                      Stake
-                      <div className="absolute -bottom-[7.5px] left-0 hidden h-[2px] w-10 rounded-full bg-black group-data-[state=active]:flex lg:-bottom-[5.5px] lg:left-3" />
-                    </TabsTrigger>
-                    <TabsTrigger
-                      value="unstake"
-                      className="group relative rounded-none border-none bg-transparent text-sm font-medium text-[#8D9C9C] focus-visible:ring-0 focus-visible:ring-offset-0 data-[state=active]:border-t-0 data-[state=active]:shadow-none lg:text-base"
-                    >
-                      Unstake
-                      <div className="absolute -bottom-[7.5px] left-3 hidden h-[2px] w-[3.3rem] rounded-full bg-black group-data-[state=active]:flex lg:-bottom-[5.5px] lg:left-3.5" />
-                    </TabsTrigger>
-                    <TabsTrigger
-                      value="withdraw"
-                      className="group relative rounded-none border-none bg-transparent text-sm font-medium text-[#8D9C9C] focus-visible:ring-0 focus-visible:ring-offset-0 data-[state=active]:border-t-0 data-[state=active]:shadow-none lg:text-base"
-                    >
-                      Withdraw log
-                      <TooltipProvider delayDuration={0}>
-                        <Tooltip>
-                          <TooltipTrigger
-                            className="ml-1"
-                            tabIndex={-1}
-                            asChild
-                          >
-                            <Info className="size-3 text-[#3F6870] lg:text-[#8D9C9C]" />
-                          </TooltipTrigger>
-                          <TooltipContent
-                            side="right"
-                            className="max-w-[13rem] rounded-md border border-[#03624C] bg-white text-[#03624C]"
-                          >
-                            Learn more about withdraw logs{" "}
-                            <Link
-                              target="_blank"
-                              href="https://docs.endur.fi/docs/concepts/withdraw-log"
-                              className="text-blue-600 underline"
-                            >
-                              here
-                            </Link>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                      <div className="absolute -bottom-[7.5px] left-3 hidden h-[2px] w-[5rem] rounded-full bg-black group-data-[state=active]:flex lg:-bottom-[5.5px] lg:left-[16px]" />
-                    </TabsTrigger>
-                  </TabsList>
+                    <span className="mr-3 flex size-4 shrink-0 items-center justify-center rounded-full text-xl lg:size-6">
+                      {activeSubTab === "unstake" ? "⚠️" : <Info />}
+                    </span>
+                    {getMessage()}
+                  </div>
+                )} */}
+              </TabsContent>
+            </ShadCNTabs>
+          </div>
 
-                  <TabsContent
-                    value="stake"
-                    className="h-full pb-3 focus-visible:ring-0 focus-visible:ring-offset-0 lg:pb-0"
-                  >
-                    <Stake />
-                  </TabsContent>
+          <div className="hidden w-full flex-col gap-4 lg:flex lg:w-[400px]">
+            <PortfolioSection />
 
-                  <TabsContent
-                    value="unstake"
-                    className="h-full pb-3 focus-visible:ring-0 focus-visible:ring-offset-0 lg:pb-0"
-                  >
-                    <Unstake />
-                  </TabsContent>
-
-                  <TabsContent
-                    value="withdraw"
-                    className="h-full focus-visible:ring-0 focus-visible:ring-offset-0"
-                  >
-                    <WithdrawLog />
-                  </TabsContent>
-                </ShadCNTabs>
-              </div>
-
-              {(activeSubTab === "unstake" || activeSubTab === "stake") && (
-                <div
-                  className={cn(
-                    "mb-2 mt-5 flex items-center rounded-md bg-[#FFC4664D] py-3 pl-4 pr-3 text-xs text-[#D69733] lg:mb-4 lg:text-sm",
-                    {
-                      "bg-[#C0D5CE69] text-[#134c3d9e]":
-                        activeSubTab === "stake",
-                    },
-                  )}
-                >
-                  <span className="mr-3 flex size-4 shrink-0 items-center justify-center rounded-full text-xl lg:size-6">
-                    {activeSubTab === "unstake" ? "⚠️" : <Info />}
-                  </span>
-                  {getMessage()}
+            {/* Season 2 Points Active Card */}
+            <div className="w-full rounded-xl bg-[#17876D] p-4">
+              <div className="flex items-start gap-3">
+                <Star className="h-5 w-5 shrink-0 fill-white text-white" />
+                <div className="flex-1">
+                  <h4 className="text-sm font-bold text-white">
+                    Season 2 Points Active
+                  </h4>
+                  <p className="mt-1 text-xs text-white">
+                    Earn 5X points on all staking
+                  </p>
                 </div>
-              )}
-            </TabsContent>
-          </ShadCNTabs>
+              </div>
+              <div className="mt-3 flex w-full justify-center">
+                <Link
+                  href="#"
+                  className="w-full rounded-md bg-[#81C3B4] px-4 py-2 text-center text-xs font-medium text-white transition-all hover:bg-[#6BA89A]"
+                >
+                  Learn More
+                </Link>
+              </div>
+            </div>
+
+            {/* Staking Rewards Info */}
+            {/* <div className="w-full rounded-lg border border-blue-400 bg-[#EBF5FF] p-3">
+              <div className="flex items-start gap-3">
+                <Info className="h-8 w-8 text-blue-500" />
+                <p className="text-sm leading-relaxed text-blue-500">
+                  Staking rewards are automatically claimed and compounded,
+                  gradually increasing the value of your xSTRK/xyBTCs over time.
+                </p>
+              </div>
+            </div> */}
+
+            {/* FAQ Section */}
+            <div className="w-full rounded-xl border border-[#E5E8EB] bg-white p-3 lg:p-4">
+              <div className="mb-4 flex items-center gap-2">
+                <HelpCircle className="h-5 w-5 text-[#17876D]" />
+                <h3 className="text-sm font-bold uppercase text-[#17876D]">
+                  Frequently Asked Questions
+                </h3>
+              </div>
+              <Accordion type="single" collapsible defaultValue="item-1">
+                <AccordionItem
+                  value="item-1"
+                  className="border-b border-[#E5E8EB]"
+                >
+                  <AccordionTrigger className="text-left font-semibold text-[#1A1F24] hover:no-underline [&>svg]:text-[#17876D] data-[state=open]:[&>svg]:text-[#17876D]">
+                    How to stake?
+                  </AccordionTrigger>
+                  <AccordionContent className="text-sm text-[#6B7780]">
+                    Select your preferred token (STRK or BTC), enter the amount
+                    you want to stake, optionally choose a DeFi protocol for
+                    additional yield, and click the Stake button. You'll receive
+                    liquid staking tokens (xSTRK or xBTC) that represent your
+                    staked position.
+                  </AccordionContent>
+                </AccordionItem>
+                <AccordionItem
+                  value="item-2"
+                  className="border-b border-[#E5E8EB]"
+                >
+                  <AccordionTrigger className="text-left font-semibold text-[#1A1F24] hover:no-underline [&>svg]:text-[#6B7780] data-[state=open]:[&>svg]:text-[#17876D]">
+                    How to unstake?
+                  </AccordionTrigger>
+                  <AccordionContent className="text-sm text-[#6B7780]">
+                    To unstake, navigate to the Unstake tab, enter the amount of
+                    liquid staking tokens (xSTRK or xBTC) you want to unstake,
+                    and click the Unstake button. Your tokens will be queued for
+                    withdrawal.
+                  </AccordionContent>
+                </AccordionItem>
+                <AccordionItem
+                  value="item-3"
+                  className="border-b border-[#E5E8EB]"
+                >
+                  <AccordionTrigger className="text-left font-semibold text-[#1A1F24] hover:no-underline [&>svg]:text-[#6B7780] data-[state=open]:[&>svg]:text-[#17876D]">
+                    What is liquid staking?
+                  </AccordionTrigger>
+                  <AccordionContent className="text-sm text-[#6B7780]">
+                    Liquid staking allows you to stake your tokens while
+                    maintaining liquidity. You receive liquid staking tokens
+                    (LSTs) that represent your staked position and can be used
+                    in DeFi protocols or traded while still earning staking
+                    rewards.
+                  </AccordionContent>
+                </AccordionItem>
+                <AccordionItem
+                  value="item-4"
+                  className="border-b border-[#E5E8EB]"
+                >
+                  <AccordionTrigger className="text-left font-semibold text-[#1A1F24] hover:no-underline [&>svg]:text-[#6B7780] data-[state=open]:[&>svg]:text-[#17876D]">
+                    Where does the yield come from?
+                  </AccordionTrigger>
+                  <AccordionContent className="text-sm text-[#6B7780]">
+                    The yield comes from staking rewards generated by validators
+                    on the Starknet network. Additionally, you can earn extra
+                    yield by deploying your liquid staking tokens to supported
+                    DeFi protocols.
+                  </AccordionContent>
+                </AccordionItem>
+                <AccordionItem value="item-5" className="border-b-0">
+                  <AccordionTrigger className="text-left font-semibold text-[#1A1F24] hover:no-underline [&>svg]:text-[#6B7780] data-[state=open]:[&>svg]:text-[#17876D]">
+                    What are Security and Audits of the protocol?
+                  </AccordionTrigger>
+                  <AccordionContent className="text-sm text-[#6B7780]">
+                    Our protocol has undergone comprehensive security audits by
+                    leading blockchain security firms. We maintain strict
+                    security standards and regularly update our smart contracts
+                    to ensure the safety of user funds. Detailed audit reports
+                    are available in our documentation.
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
+            </div>
+          </div>
         </div>
 
         {/* <p

@@ -6,6 +6,7 @@ import StakingService from "@/services/staking";
 
 import { currentBlockAtom, providerAtom } from "./common.store";
 import { getAssetPrice } from "@/lib/utils";
+import { lstStatsQueryAtom } from "./lst.store";
 
 const stakingService = new StakingService();
 
@@ -155,5 +156,66 @@ export const snAPYAtom = atom((get) => {
       totalStakingPowerRes.isLoading ||
       alphaRes.isLoading,
     error: yearlyMintRes.error || totalStakingPowerRes.error || alphaRes.error,
+  };
+});
+
+interface STRKStatsResponse {
+  asset: string;
+  tvl: number;
+  tvlStrk: number;
+  apy: number;
+  apyInPercentage: string;
+}
+
+const strkStatsQueryAtom = atomWithQuery(() => ({
+  queryKey: ["strkStats"],
+  queryFn: async (): Promise<STRKStatsResponse> => {
+    try {
+      const response = await fetch("/api/stats");
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error("strkStatsQueryAtom error:", error);
+      throw error;
+    }
+  },
+  refetchInterval: 60000,
+  staleTime: 30000,
+}));
+
+export const strkTVLAtom = atom((get) => {
+  const { data, error, isLoading } = get(strkStatsQueryAtom);
+  return {
+    value: error || !data ? 0 : data.tvl,
+    isLoading,
+    error,
+  };
+});
+
+export const btcTVLAtom = atom((get) => {
+  const { data, error, isLoading } = get(lstStatsQueryAtom);
+
+  if (isLoading || error || !data) {
+    return {
+      value: 0,
+      isLoading,
+      error,
+    };
+  }
+
+  const btcTVL = data
+    .filter((stats) => {
+      const assetLower = stats.asset?.toLowerCase() || "";
+      return assetLower.includes("btc") && !stats.error;
+    })
+    .reduce((sum, stats) => sum + (stats.tvlUsd || 0), 0);
+
+  return {
+    value: btcTVL,
+    isLoading: false,
+    error: null,
   };
 });

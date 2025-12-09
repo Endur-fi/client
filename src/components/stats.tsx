@@ -114,7 +114,7 @@ const Stats: React.FC<StatsProps> = ({
 
   return (
     <>
-      <div className="flex items-center justify-between px-3 py-2 lg:px-6">
+      <div className="flex items-center justify-between pt-2">
         <p className="flex flex-col items-center text-xs font-semibold lg:flex-row lg:gap-2">
           <span className="flex items-center gap-1 text-xs font-semibold text-[#3F6870] lg:text-[#8D9C9C]">
             APY
@@ -148,24 +148,25 @@ const Stats: React.FC<StatsProps> = ({
           </span>
         </p>
 
-        <div className="flex flex-col items-end text-xs font-bold text-[#3F6870] lg:flex-row lg:items-center lg:gap-2 lg:text-[#8D9C9C]">
-          TVL
+        <div className="flex flex-col items-end lg:flex-row lg:items-center lg:gap-2">
+          <p className="text-xs font-normal text-[#6B7780]">TVL</p>
+
           <p className="flex items-center gap-2">
-            <span>
+            <span className="text-xs font-bold text-[#1A1F24]">
               {formatNumber(totalStaked.value.toEtherToFixedDecimals(2))}{" "}
               {lstConfig.SYMBOL}
             </span>
-            <span className="font-medium">
+            <span className="text-xs font-normal text-[#6B7780]">
               | ${formatNumber(totalStakedUSD.value.toFixed(2))}
             </span>
           </p>
         </div>
       </div>
 
-      <div className="flex items-center justify-between border-b bg-gradient-to-t from-[#E9F3F0] to-white px-5 py-12 lg:py-12">
+      <div className="flex items-center justify-between">
         {activeTab === "strk" ? (
-          <div className="flex items-center gap-2 text-sm font-semibold text-black lg:gap-4 lg:text-2xl">
-            <Icons.strkLogo className="size-6 lg:size-[35px]" />
+          <div className="flex w-full items-center gap-2 rounded-[14px] border border-[#E5E8EB] p-3 text-sm font-normal text-black">
+            <Icons.strkLogo className="size-6" />
             STRK
           </div>
         ) : (
@@ -177,7 +178,7 @@ const Stats: React.FC<StatsProps> = ({
         )}
 
         <div>
-          <div className="flex items-center justify-between rounded-md bg-[#17876D] px-2 py-1 text-xs text-white">
+          {/* <div className="flex items-center justify-between rounded-md bg-[#17876D] px-2 py-1 text-xs text-white">
             <span>
               Available stake:{" "}
               {Number(
@@ -204,9 +205,9 @@ const Stats: React.FC<StatsProps> = ({
                 </Tooltip>
               </TooltipProvider>
             </div>
-          </div>
+          </div> */}
 
-          {!isBTC && (
+          {/* {!isBTC && (
             <a href="/portfolio">
               <div className="mt-[10px] flex items-center justify-between rounded-md bg-white px-2 py-1 text-xs text-[#17876D]">
                 <span>
@@ -247,7 +248,7 @@ const Stats: React.FC<StatsProps> = ({
                 </div>
               </div>
             </a>
-          )}
+          )} */}
         </div>
       </div>
     </>

@@ -58,9 +58,14 @@ import { useTransactionHandler } from "@/hooks/use-transactions";
 import { useWalletConnection } from "@/hooks/use-wallet-connection";
 import { MyAnalytics } from "@/lib/analytics";
 import MyNumber from "@/lib/MyNumber";
-import { cn, eventNames, formatNumberWithCommas } from "@/lib/utils";
+import {
+  cn,
+  eventNames,
+  formatNumberWithCommas,
+  formatNumber,
+} from "@/lib/utils";
 import LSTService from "@/services/lst";
-import { lstConfigAtom } from "@/store/common.store";
+import { lstConfigAtom, assetPriceAtom } from "@/store/common.store";
 import { protocolYieldsAtom, type SupportedDApp } from "@/store/defi.store";
 import { apiExchangeRateAtom } from "@/store/lst.store";
 import { tabsAtom } from "@/store/merry.store";
@@ -162,6 +167,7 @@ const Stake: React.FC = () => {
     address,
     token: lstConfig.ASSET_ADDRESS as `0x${string}`,
   });
+  const { data: assetPrice } = useAtomValue(assetPriceAtom);
 
   const exchangeRate = useAtomValue(apiExchangeRateAtom);
   const apy = useAtomValue(snAPYAtom);
@@ -255,6 +261,17 @@ const Stake: React.FC = () => {
       return "0";
     }
   };
+
+  const calculatedLSTAmountUSD = React.useMemo(() => {
+    const lstAmount = getCalculatedLSTAmount();
+    if (!lstAmount || lstAmount === "0" || !assetPrice || !exchangeRate.rate) {
+      return null;
+    }
+    const lstAmountNum = Number(lstAmount);
+    const underlyingAmount = lstAmountNum * exchangeRate.rate;
+    const usdValue = underlyingAmount * assetPrice;
+    return usdValue;
+  }, [form.watch("stakeAmount"), assetPrice, exchangeRate.rate]);
 
   const onSubmit = async (values: FormValues) => {
     const stakeAmount = Number(values.stakeAmount);
@@ -493,7 +510,7 @@ const Stake: React.FC = () => {
   }, [data?.transaction_hash, form, isPending]);
 
   return (
-    <div className="relative h-full w-full">
+    <div className="relative flex h-full w-full flex-col gap-6">
       <Dialog open={showShareModal} onOpenChange={setShowShareModal}>
         <DialogContent className={cn(font.className, "p-16 sm:max-w-xl")}>
           <DialogHeader>
@@ -599,17 +616,34 @@ const Stake: React.FC = () => {
         mode="stake"
       />
 
-      <div className="flex w-full items-start px-7 pb-2 pt-5 lg:gap-2">
-        <div className="flex flex-1 flex-col items-start">
+      <div className="flex w-full max-w-full flex-col items-start lg:max-w-none lg:gap-2">
+        <div className="flex w-full max-w-full flex-1 flex-col items-start lg:max-w-none">
           <Form {...form}>
-            <div className="flex items-center gap-2">
-              {ASSET_ICONS[lstConfig.SYMBOL] &&
-                React.createElement(ASSET_ICONS[lstConfig.SYMBOL], {
-                  className: "size-4",
-                })}
-              <p className="text-xs text-[#06302B]">
-                Enter Amount ({lstConfig.SYMBOL})
-              </p>
+            <div className="flex w-full items-center justify-between">
+              <div>
+                <p className="text-xs text-[#6B7780]">Enter Amount</p>
+              </div>
+
+              <div className="flex items-center gap-1">
+                <Icons.wallet className="size-3" />
+                <span className="hidden text-xs text-[#6B7780] md:block">
+                  Balance:
+                </span>
+                <span className="text-xs text-[#1A1F24]">
+                  {balance?.formatted
+                    ? Number(balance?.formatted).toFixed(isBTC ? 8 : 2)
+                    : "0"}{" "}
+                  {lstConfig.SYMBOL}
+                </span>
+                {balance?.formatted && assetPrice && (
+                  <span className="text-xs text-[#6B7780]">
+                    | $
+                    {formatNumber(
+                      (Number(balance.formatted) * assetPrice).toFixed(2),
+                    )}
+                  </span>
+                )}
+              </div>
             </div>
             <form onSubmit={form.handleSubmit(onSubmit)} className="w-full">
               <FormField
@@ -623,7 +657,7 @@ const Stake: React.FC = () => {
                     if (!value || value === "") return "";
 
                     // Allow typing decimal point and trailing zeros
-                    if (value.endsWith(".") || (/\.\d*0+$/).test(value)) {
+                    if (value.endsWith(".") || /\.\d*0+$/.test(value)) {
                       return value;
                     }
 
@@ -640,10 +674,22 @@ const Stake: React.FC = () => {
                     return value;
                   };
 
+                  const stakeAmount = field.value;
+                  const usdValue = React.useMemo(() => {
+                    if (!stakeAmount || stakeAmount === "" || !assetPrice) {
+                      return null;
+                    }
+                    const amount = Number(stakeAmount);
+                    if (isNaN(amount) || amount <= 0) {
+                      return null;
+                    }
+                    return amount * assetPrice;
+                  }, [stakeAmount, assetPrice]);
+
                   return (
-                    <FormItem className="space-y-1">
+                    <FormItem className="w-full space-y-1">
                       <FormControl>
-                        <div className="relative">
+                        <div className="w-full rounded-[14px] border border-[#E5E8EB] px-3 py-4">
                           <Input
                             className="h-fit border-none px-0 pr-1 text-2xl shadow-none outline-none placeholder:text-[#8D9C9C] focus-visible:ring-0 lg:pr-0 lg:!text-3xl"
                             placeholder="0.00"
@@ -657,6 +703,11 @@ const Stake: React.FC = () => {
                             name={field.name}
                             ref={field.ref}
                           />
+                          {usdValue !== null && (
+                            <div className="px-3 text-xs text-[#6B7780]">
+                              &asymp; ${formatNumber(usdValue.toFixed(2))}
+                            </div>
+                          )}
                         </div>
                       </FormControl>
                       <FormMessage className="text-xs text-destructive" />
@@ -668,29 +719,29 @@ const Stake: React.FC = () => {
           </Form>
         </div>
 
-        <div className="flex flex-col items-end">
-          <div className="hidden text-[#8D9C9C] lg:block">
+        <div className="flex w-full flex-col items-end">
+          <div className="flex w-full gap-2 text-[#8D9C9C]">
             <button
               onClick={() => handleQuickStakePrice(25)}
-              className="rounded-md rounded-r-none border border-[#8D9C9C33] px-2 py-1 text-xs font-semibold text-[#8D9C9C] transition-all hover:bg-[#8D9C9C33]"
+              className="w-full rounded-md bg-[#F5F7F8] px-2 py-2 text-xs text-[#6B7780] transition-all hover:bg-[#8D9C9C33]"
             >
               25%
             </button>
             <button
               onClick={() => handleQuickStakePrice(50)}
-              className="border border-x-0 border-[#8D9C9C33] px-2 py-1 text-xs font-semibold text-[#8D9C9C] transition-all hover:bg-[#8D9C9C33]"
+              className="w-full rounded-md bg-[#F5F7F8] px-2 py-2 text-xs text-[#6B7780] transition-all hover:bg-[#8D9C9C33]"
             >
               50%
             </button>
             <button
               onClick={() => handleQuickStakePrice(75)}
-              className="border border-r-0 border-[#8D9C9C33] px-2 py-1 text-xs font-semibold text-[#8D9C9C] transition-all hover:bg-[#8D9C9C33]"
+              className="w-full rounded-md bg-[#F5F7F8] px-2 py-2 text-xs text-[#6B7780] transition-all hover:bg-[#8D9C9C33]"
             >
               75%
             </button>
             <button
               onClick={() => handleQuickStakePrice(100)}
-              className="rounded-md rounded-l-none border border-[#8D9C9C33] px-2 py-1 text-xs font-semibold text-[#8D9C9C] transition-all hover:bg-[#8D9C9C33]"
+              className="w-full rounded-md border-[#8D9C9C33] bg-[#F5F7F8] px-2 py-2 text-xs text-[#6B7780] transition-all hover:bg-[#8D9C9C33]"
             >
               Max
             </button>
@@ -702,22 +753,11 @@ const Stake: React.FC = () => {
           >
             Max
           </button>
-
-          <div className="mt-3 flex items-center gap-2 text-xs font-semibold text-[#8D9C9C] lg:text-sm">
-            <Icons.wallet className="size-3 lg:size-5" />
-            <span className="hidden md:block">Balance:</span>
-            <span className="font-bold">
-              {balance?.formatted
-                ? Number(balance?.formatted).toFixed(isBTC ? 8 : 2)
-                : "0"}{" "}
-              {lstConfig.SYMBOL}
-            </span>
-          </div>
         </div>
       </div>
 
       {sortedPlatforms.length > 0 && (
-        <div className="px-7">
+        <div className="">
           <Collapsible
             open={isLendingOpen}
             onOpenChange={(open) => {
@@ -773,12 +813,11 @@ const Stake: React.FC = () => {
         </div>
       )}
 
-      <div className="my-5 h-px w-full rounded-full bg-[#AACBC480]" />
-
-      <div className="mt-5 space-y-3 px-7">
-        <div className="flex items-center justify-between rounded-md text-xs font-bold text-[#03624C] lg:text-[13px]">
+      <div className="space-y-3">
+        <h2 className="text-md text-[#6B7780]">TRANSACTION SUMMARY</h2>
+        <div className="flex items-center justify-between rounded-md text-xs text-[#03624C] lg:text-[13px]">
           <p className="flex items-center gap-1">
-            {selectedPlatform === "none" ? "You will get" : "You will lend"}
+            {selectedPlatform === "none" ? "You will receive" : "You will lend"}
             <TooltipProvider delayDuration={0}>
               <Tooltip>
                 <TooltipTrigger>
@@ -810,10 +849,17 @@ const Stake: React.FC = () => {
               </Tooltip>
             </TooltipProvider>
           </p>
-          <span className="text-xs lg:text-[13px]">
-            {formatNumberWithCommas(getCalculatedLSTAmount(), isBTC ? 8 : 2)}{" "}
-            {lstConfig.LST_SYMBOL}
-          </span>
+          <div className="flex flex-col">
+            <span className="text-xs">
+              {formatNumberWithCommas(getCalculatedLSTAmount(), isBTC ? 8 : 2)}{" "}
+              {lstConfig.LST_SYMBOL}
+            </span>
+            {calculatedLSTAmountUSD !== null && (
+              <span className="text-right text-xs text-[#6B7780]">
+                ≈ ${formatNumber(calculatedLSTAmountUSD.toFixed(2))}
+              </span>
+            )}
+          </div>
         </div>
 
         <div className="flex items-center justify-between rounded-md text-xs font-medium text-[#939494] lg:text-[13px]">
@@ -887,7 +933,7 @@ const Stake: React.FC = () => {
         </div>
       </div>
 
-      <div className="mt-6 px-5">
+      <div className="">
         {!address && (
           <Button
             onClick={() => connectWallet()}
