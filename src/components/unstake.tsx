@@ -32,7 +32,7 @@ import { useTransactionHandler } from "@/hooks/use-transactions";
 import { useWalletConnection } from "@/hooks/use-wallet-connection";
 import { MyAnalytics } from "@/lib/analytics";
 import MyNumber from "@/lib/MyNumber";
-import { eventNames, formatNumber } from "@/lib/utils";
+import { eventNames, formatNumberWithCommas } from "@/lib/utils";
 import { executeAvnuSwap, getAvnuQuotes } from "@/services/avnu";
 import {
   avnuErrorAtom,
@@ -51,12 +51,24 @@ import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { lstConfigAtom } from "@/store/common.store";
 import { ASSET_ICONS } from "./asset-selector";
+import { Web3Number } from "@strkfarm/sdk";
 
 const formSchema = z.object({
   unstakeAmount: z.string().refine(
     (v) => {
-      const n = Number(v);
-      return !isNaN(n) && v?.length > 0 && n > 0;
+      if (!v) return false;
+      // always 18 decimal precision for now
+      const n = new Web3Number(v, 18);
+      return !n.isNaN() && n.gt(0) && n.toNumber() < Number.MAX_SAFE_INTEGER;
+    },
+    { message: "Invalid input" },
+  ),
+  displayUnstakeAmount: z.string().refine(
+    (v) => {
+      if (!v) return false;
+      // always 18 decimal precision for now
+      const n = new Web3Number(v, 18);
+      return !n.isNaN() && n.gt(0) && n.toNumber() < Number.MAX_SAFE_INTEGER;
     },
     { message: "Invalid input" },
   ),
@@ -153,39 +165,39 @@ const YouWillGetSection = ({
         <InfoTooltip content={tooltipContent} />
       </p>
       <span className="text-xs lg:text-[13px]">
-        {Number(amount).toFixed(isBTC ? 8 : 2)} {lstConfig.SYMBOL}
+        {formatNumberWithCommas(amount, isBTC ? 8 : 2)} {lstConfig.SYMBOL}
       </span>
     </div>
   );
 };
 
-const _calculateWaitingTime = (queueState: any, unstakeAmount: string) => {
-  if (!queueState || !unstakeAmount) return "-";
+// const _calculateWaitingTime = (queueState: any, unstakeAmount: string) => {
+//   if (!queueState || !unstakeAmount) return "-";
 
-  try {
-    const amount = MyNumber.fromEther(unstakeAmount, 18);
-    const pendingQueue = new MyNumber(
-      queueState.unprocessed_withdraw_queue_amount || "0",
-      18,
-    );
+//   try {
+//     const amount = MyNumber.fromEther(unstakeAmount, 18);
+//     const pendingQueue = new MyNumber(
+//       queueState.unprocessed_withdraw_queue_amount || "0",
+//       18,
+//     );
 
-    const currentAmount = BigInt(amount.toString());
-    const queueAmount = BigInt(pendingQueue.toString());
-    const totalAmount = currentAmount + queueAmount;
+//     const currentAmount = BigInt(amount.toString());
+//     const queueAmount = BigInt(pendingQueue.toString());
+//     const totalAmount = currentAmount + queueAmount;
 
-    const THRESHOLD = BigInt(70000) * BigInt(10 ** 18);
+//     const THRESHOLD = BigInt(70000) * BigInt(10 ** 18);
 
-    if (totalAmount <= THRESHOLD) {
-      return "1-2 hours";
-    } else if (totalAmount <= THRESHOLD * BigInt(2)) {
-      return "1-2 days";
-    }
-    return "~7 days";
-  } catch (error) {
-    console.error("Error calculating waiting time:", error);
-    return "-";
-  }
-};
+//     if (totalAmount <= THRESHOLD) {
+//       return "1-2 hours";
+//     } else if (totalAmount <= THRESHOLD * BigInt(2)) {
+//       return "1-2 days";
+//     }
+//     return "~7 days";
+//   } catch (error) {
+//     console.error("Error calculating waiting time:", error);
+//     return "-";
+//   }
+// };
 
 interface UnstakeOptionCardProps {
   isActive: boolean;
@@ -289,6 +301,7 @@ const Unstake = () => {
     resolver: zodResolver(formSchema),
     values: {
       unstakeAmount: "",
+      displayUnstakeAmount: "",
     },
     mode: "onChange",
   });
@@ -315,9 +328,11 @@ const Unstake = () => {
     if (!unstakeAmount) return "0";
 
     if (txnDapp === "endur") {
-      return (Number(unstakeAmount) * exRate.rate).toFixed(isBTC ? 8 : 2);
+      // Always use 18 decimal precision
+      return (Number(unstakeAmount) * exRate.rate).toFixed(18);
     } else if (txnDapp === "dex" && avnuQuote) {
-      return (Number(unstakeAmount) * dexRate).toFixed(isBTC ? 8 : 2);
+      // Always use 18 decimal precision
+      return (Number(unstakeAmount) * dexRate).toFixed(18);
     }
     return "0";
   }, [exRate.rate, form.watch("unstakeAmount"), txnDapp, avnuQuote, dexRate]);
@@ -399,12 +414,47 @@ const Unstake = () => {
       });
     }
 
-    const amount = Number(currentLSTBalance.value.toEtherToFixedDecimals(9));
+    let displayAmount = "";
+    let unstakeAmount = "";
+    // to reduce some dust
+    const ONE_WEI = Web3Number.fromWei(9999999, 18);
+    const balance = new Web3Number(
+      Web3Number.fromWei(
+        currentLSTBalance.value.toString(),
+        currentLSTBalance.value.decimals,
+      ).toFixed(18),
+      18,
+    );
+    const available = balance.minus(ONE_WEI);
 
-    if (amount) {
-      const calculatedAmount = (amount * percentage) / 100;
-      form.setValue("unstakeAmount", calculatedAmount.toFixed(isBTC ? 8 : 2));
+    // exact balance will be used for unstake amount only when percentage is 100
+    // for other percentages, we are still rounding up to 8/2 decimals precision
+    if (Number(currentLSTBalance.value.toEtherToFixedDecimals(8)) == 0) {
+      return;
+    }
+    if (percentage === 100) {
+      // Round down to prevent exceeding balance
+      displayAmount = currentLSTBalance.value.toEtherToFixedDecimals(8);
+      // always 18 ok
+      unstakeAmount = available.toFixed(18);
+    } else {
+      // display and unstake amount will be same in this case
+      // calculate display amount based on percentage
+      const amount = Number(available.toFixed(18));
+      displayAmount = ((amount * percentage) / 100).toFixed(isBTC ? 8 : 6);
+      unstakeAmount = displayAmount;
+    }
+
+    if (
+      displayAmount &&
+      unstakeAmount &&
+      displayAmount.length > 0 &&
+      unstakeAmount.length > 0
+    ) {
+      form.setValue("unstakeAmount", unstakeAmount);
+      form.setValue("displayUnstakeAmount", displayAmount);
       form.clearErrors("unstakeAmount");
+      form.clearErrors("displayUnstakeAmount");
     }
   };
 
@@ -485,16 +535,18 @@ const Unstake = () => {
         ),
       });
     }
-
-    if (
-      Number(values.unstakeAmount) >
-      Number(currentLSTBalance.value.toEtherToFixedDecimals(9))
-    ) {
+    const balance = Web3Number.fromWei(
+      currentLSTBalance.value.toString(),
+      currentLSTBalance.value.decimals,
+    );
+    if (balance.lessThan(values.unstakeAmount)) {
       return toast({
         description: (
           <div className="flex items-center gap-2">
             <Info className="size-5" />
             Insufficient {lstConfig.LST_SYMBOL} balance
+            <br />
+            {Number(values.unstakeAmount)} {">"} Available {balance.toString()}
           </div>
         ),
       });
@@ -535,21 +587,56 @@ const Unstake = () => {
             <form onSubmit={form.handleSubmit(onSubmit)} className="w-full">
               <FormField
                 control={form.control}
-                name="unstakeAmount"
-                render={({ field }) => (
-                  <FormItem className="space-y-1">
-                    <FormControl>
-                      <div className="relative">
-                        <Input
-                          className="h-fit border-none px-0 pr-1 text-2xl shadow-none outline-none placeholder:text-[#8D9C9C] focus-visible:ring-0 lg:pr-0 lg:!text-3xl"
-                          placeholder="0.00"
-                          {...field}
-                        />
-                      </div>
-                    </FormControl>
-                    <FormMessage className="text-xs text-destructive" />
-                  </FormItem>
-                )}
+                name="displayUnstakeAmount"
+                render={({ field }) => {
+                  const maxDecimals = isBTC ? 8 : 6;
+
+                  // Format for display: limit decimal places while preserving precision in storage
+                  const getDisplayValue = (value: string) => {
+                    if (!value || value === "") return "";
+
+                    // Allow typing decimal point and trailing zeros
+                    if (value.endsWith(".") || (/\.\d*0+$/).test(value)) {
+                      return value;
+                    }
+
+                    const numValue = parseFloat(value);
+                    if (isNaN(numValue)) return value;
+
+                    // Check if value has more decimals than allowed
+                    const parts = value.split(".");
+                    if (parts[1] && parts[1].length > maxDecimals) {
+                      // Truncate to maxDecimals (don't round to preserve user intent)
+                      return `${parts[0]}.${parts[1].slice(0, maxDecimals)}`;
+                    }
+
+                    return value;
+                  };
+
+                  return (
+                    <FormItem className="space-y-1">
+                      <FormControl>
+                        <div className="relative">
+                          <Input
+                            className="h-fit border-none px-0 pr-1 text-2xl shadow-none outline-none placeholder:text-[#8D9C9C] focus-visible:ring-0 lg:pr-0 lg:!text-3xl"
+                            placeholder="0.00"
+                            value={getDisplayValue(field.value)}
+                            onChange={(e) => {
+                              const value = e.target.value;
+                              // Store the precise value as-is (string)
+                              field.onChange(value);
+                              form.setValue("unstakeAmount", value);
+                            }}
+                            onBlur={field.onBlur}
+                            name={field.name}
+                            ref={field.ref}
+                          />
+                        </div>
+                      </FormControl>
+                      <FormMessage className="text-xs text-destructive" />
+                    </FormItem>
+                  );
+                }}
               />
             </form>
           </Form>
@@ -672,7 +759,7 @@ const Unstake = () => {
           <div className="my-5 h-px w-full rounded-full bg-[#AACBC480]" />
           <div className="space-y-3 px-7">
             <YouWillGetSection
-              amount={formatNumber(youWillGet, 2)}
+              amount={youWillGet}
               tooltipContent="Instant unstaking via Avnu DEX. The amount you receive will be based on current market rates."
             />
             <div className="flex items-center justify-between rounded-md text-xs font-medium text-[#939494] lg:text-[13px]">

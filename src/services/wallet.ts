@@ -53,6 +53,13 @@ export class WalletConnector {
       },
     });
 
+    const metamaskConnector = new InjectedConnector({
+      options: {
+        id: "metamask",
+        name: "Metamask",
+      },
+    });
+
     const okx = new InjectedConnector({
       options: {
         id: "okxwallet",
@@ -116,6 +123,7 @@ export class WalletConnector {
       braavosConnector,
       keplrConnector,
       xverseConnector,
+      metamaskConnector,
       cartridgeConnector,
       fordefiConnector,
       okx,

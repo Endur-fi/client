@@ -12,7 +12,12 @@ export async function GET(_req: Request) {
   const provider = getProvider();
 
   if (!provider) {
-    return NextResponse.json({ message: "Provider not found" });
+    const res = NextResponse.json(
+      { message: "Provider not found" },
+      { status: 500 },
+    );
+    res.headers.set("Cache-Control", "no-store");
+    return res;
   }
 
   const stakingService = new StakingService();
@@ -33,10 +38,15 @@ export async function GET(_req: Request) {
 
       if (assetPriceError) {
         console.error("assetPriceError", assetPriceError);
-        return NextResponse.json({
-          message: "assetPriceError",
-          error: assetPriceError.message,
-        });
+        const res = NextResponse.json(
+          {
+            message: "assetPriceError",
+            error: assetPriceError.message,
+          },
+          { status: 500 },
+        );
+        res.headers.set("Cache-Control", "no-store");
+        return res;
       }
 
       const yearlyMinting =
@@ -163,10 +173,7 @@ export async function GET(_req: Request) {
       `s-maxage=${revalidate}, stale-while-revalidate=180`,
     );
   } else {
-    response.headers.set(
-      "Cache-Control",
-      `s-maxage=0, stale-while-revalidate=180`,
-    );
+    response.headers.set("Cache-Control", "no-store");
   }
   return response;
 }
