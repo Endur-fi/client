@@ -19,10 +19,10 @@ import {
   TooltipTrigger,
 } from "./ui/tooltip";
 import { getLSTAssetsByCategory, getSTRKAsset } from "@/constants";
-import { formatNumberWithCommas } from "@/lib/utils";
+import { cn, formatNumber, formatNumberWithCommas } from "@/lib/utils";
 import { lstStatsQueryAtom } from "@/store/lst.store";
 import { assetPriceAtom } from "@/store/common.store";
-import { btcPriceAtom, strkTVLAtom, btcTVLAtom } from "@/store/staking.store";
+import { btcPriceAtom } from "@/store/staking.store";
 import MyNumber from "@/lib/MyNumber";
 
 const PortfolioSection: React.FC = () => {
@@ -62,13 +62,6 @@ const PortfolioSection: React.FC = () => {
   const strkPrice = useAtomValue(assetPriceAtom);
   const btcPrice = useAtomValue(btcPriceAtom);
   const lstStats = useAtomValue(lstStatsQueryAtom);
-  const strkTVL = useAtomValue(strkTVLAtom);
-  const btcTVL = useAtomValue(btcTVLAtom);
-
-  // Calculate total platform TVL
-  const totalPlatformTVL = React.useMemo(() => {
-    return (strkTVL.value || 0) + (btcTVL.value || 0);
-  }, [strkTVL, btcTVL]);
 
   // Calculate STRK holdings
   const strkHoldings = React.useMemo(() => {
@@ -182,24 +175,21 @@ const PortfolioSection: React.FC = () => {
   }
 
   return (
-    <div className="flex w-full max-w-full flex-col gap-6 lg:max-w-none">
-      {/* Total Value Staked */}
-      <div className="flex items-center justify-between rounded-xl border border-[#E5E8EB] bg-white px-2 py-3 shadow-sm lg:px-4 lg:py-7">
-        <span className="text-sm text-[#6B7780]">Total Value Staked</span>
-        <p className="mt-2 text-xl text-[#1A1F24]">
-          ${formatNumberWithCommas(totalPlatformTVL.toFixed(2))}
-        </p>
-      </div>
-
-      <div className="flex flex-col gap-4 rounded-xl border border-[#E5E8EB] bg-white p-2 shadow-sm lg:p-4">
+    <div
+      className={cn(
+        "flex w-full max-w-full flex-col gap-6 lg:max-w-none",
+        "rounded-[14px] border border-[#E5E8EB]",
+        "shadow-[0_1px_2px_-1px_#0000001A,_0_1px_3px_0_#0000001A]",
+      )}
+    >
+      <div className="flex flex-col gap-4 rounded-xl border border-[#E5E8EB] bg-white px-2 py-3 shadow-sm lg:p-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-[#1A1F24]">PORTFOLIO</h2>
+          <h2 className="text-sm text-[#6B7780]">PORTFOLIO</h2>
         </div>
 
-        {/* Your Stake instead */}
-        <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center justify-between gap-2 border-b border-[#E5E8EB] pb-2">
           <span className="text-sm text-[#6B7780]">Your Stake</span>
-          <span className="text-2xl text-[#1A1F24]">
+          <span className="text-xl text-[#1A1F24]">
             ${formatNumberWithCommas(totalValueStaked.toFixed(2))}
           </span>
         </div>
@@ -207,26 +197,22 @@ const PortfolioSection: React.FC = () => {
         {/* xSTRK Holdings */}
         {strkHoldings && (
           <div className="px-0 py-1 lg:px-0 lg:py-0">
-            <div className="flex items-start gap-3">
+            <div className="flex w-full items-start gap-3">
               <Icons.strkLogo className="h-10 w-10 shrink-0" />
               <div className="flex flex-1 items-start justify-between">
                 <div className="flex flex-col">
-                  <span className="text-sm font-semibold text-[#1A1F24]">
+                  <span className="text-left text-sm font-semibold text-[#1A1F24]">
                     xSTRK
                   </span>
                   <span className="mt-1 text-sm text-[#1A1F24]">
-                    {formatNumberWithCommas(strkHoldings.lstAmount.toFixed(2))}{" "}
-                    xSTRK
+                    {formatNumberWithCommas(strkHoldings.lstAmount, 2)} xSTRK
                   </span>
-                  <span className="mt-0.5 text-xs text-[#6B7780]">
-                    ${formatNumberWithCommas(strkHoldings.usdValue.toFixed(2))}
+                  <span className="mt-0.5 text-left text-xs text-[#6B7780]">
+                    ${formatNumberWithCommas(strkHoldings.usdValue, 2)}
                   </span>
                 </div>
                 <span className="text-sm font-semibold text-[#1A1F24]">
-                  {formatNumberWithCommas(
-                    strkHoldings.underlyingSTRK.toFixed(2),
-                  )}{" "}
-                  STRK
+                  {formatNumberWithCommas(strkHoldings.underlyingSTRK, 2)} STRK
                 </span>
               </div>
             </div>
@@ -236,74 +222,64 @@ const PortfolioSection: React.FC = () => {
         {/* BTC Holdings */}
         {btcHoldings.holdings.length > 0 && (
           <div className="rounded-xl px-0 py-1 lg:px-0 lg:py-0">
-            <Collapsible defaultOpen>
-              <CollapsibleTrigger className="flex w-full items-start gap-3">
-                <Icons.btcLogo className="h-10 w-10 shrink-0" />
-                <div className="flex flex-1 items-start justify-between">
-                  <div className="flex flex-col">
-                    <span className="text-left text-sm text-[#1A1F24]">
-                      BTC
-                    </span>
-                    <span className="mt-1 text-sm text-[#1A1F24]">
-                      {formatNumberWithCommas(
-                        btcHoldings.totalUnderlyingBTC.toFixed(3),
-                      )}{" "}
-                      xyBTC
-                    </span>
-                    <span className="mt-0.5 text-left text-xs text-[#6B7780]">
-                      ${formatNumberWithCommas(btcHoldings.totalUsd.toFixed(2))}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-semibold text-[#1A1F24]">
-                      {formatNumberWithCommas(
-                        btcHoldings.totalUnderlyingBTC.toFixed(3),
-                      )}{" "}
-                      BTC
-                    </span>
-                    <ChevronDown className="h-4 w-4 text-[#6B7780] transition-transform duration-200 data-[state=open]:rotate-180" />
-                  </div>
+            <div className="flex w-full items-start gap-3">
+              <Icons.btcLogo className="h-10 w-10 shrink-0" />
+              <div className="flex flex-1 items-start justify-between">
+                <div className="flex flex-col">
+                  <span className="text-left text-sm text-[#1A1F24]">BTC</span>
+                  <span className="mt-1 text-sm text-[#1A1F24]">
+                    {formatNumberWithCommas(btcHoldings.totalUnderlyingBTC, 6)}{" "}
+                    xyBTC
+                  </span>
+                  <span className="mt-0.5 text-left text-xs text-[#6B7780]">
+                    ${formatNumberWithCommas(btcHoldings.totalUsd, 2)}
+                  </span>
                 </div>
-              </CollapsibleTrigger>
-              <CollapsibleContent>
-                <div className="mt-3 space-y-2 border-t border-[#E5E8EB] pt-3">
-                  {btcHoldings.holdings.map((holding) => (
-                    <div
-                      key={holding.asset.SYMBOL}
-                      className="flex items-center justify-between text-xs"
-                    >
-                      <div className="flex flex-col gap-0.5">
-                        <span className="text-[#6B7780]">
-                          {formatNumberWithCommas(holding.lstAmount.toFixed(3))}{" "}
-                          {holding.asset.LST_SYMBOL}
-                        </span>
-                        <span className="text-[#6B7780]">
-                          {formatNumberWithCommas(
-                            holding.underlyingBTC.toFixed(3),
-                          )}{" "}
-                          {holding.asset.SYMBOL}
-                        </span>
-                      </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-semibold text-[#1A1F24]">
+                    {formatNumberWithCommas(btcHoldings.totalUnderlyingBTC, 6)}{" "}
+                    BTC
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div className="mt-3 space-y-2">
+              {btcHoldings.holdings.map((holding) => (
+                <div
+                  key={holding.asset.SYMBOL}
+                  className="flex items-start gap-3 text-xs"
+                >
+                  <div className="h-10 w-10 shrink-0" />
+                  <div className="flex flex-1 items-start justify-between">
+                    <div className="flex flex-col gap-0.5">
                       <span className="text-[#6B7780]">
-                        ${formatNumberWithCommas(holding.usdValue.toFixed(2))}
+                        {formatNumberWithCommas(holding.lstAmount, 6)}{" "}
+                        {holding.asset.LST_SYMBOL}
+                      </span>
+                      <span className="text-[#6B7780]">
+                        {formatNumberWithCommas(holding.underlyingBTC, 6)}{" "}
+                        {holding.asset.SYMBOL}
                       </span>
                     </div>
-                  ))}
+                    <span className="text-right text-[#6B7780]">
+                      ${formatNumberWithCommas(holding.usdValue, 2)}
+                    </span>
+                  </div>
                 </div>
-              </CollapsibleContent>
-            </Collapsible>
+              ))}
+            </div>
           </div>
         )}
 
         {/* Info Message */}
-        <div className="rounded-lg border border-[#E5E8EB] bg-[#FFF4E6] p-2 text-xs text-[#D69733]">
+        <div className="rounded-lg border border-[#FFC46680] bg-[#FFC4661A] p-2 text-xs text-[#D69733]">
           <p className="mb-1">
             Only wallet-held LSTs are shown. LSTs deployed in third-party dApps
             {"won't"} appear here.
           </p>
           <Link
             href="/portfolio"
-            className="inline-flex items-center gap-1 font-medium text-[#17876D] hover:underline"
+            className="inline-flex items-center gap-1 font-medium text-[#0D5F4E] hover:underline"
           >
             Visit Portfolio page
             <ExternalLink className="h-3 w-3" />
@@ -311,7 +287,7 @@ const PortfolioSection: React.FC = () => {
         </div>
 
         {/* Season Points */}
-        <div className="p-2 lg:p-4">
+        <div className="border-t border-[#E5E8EB] p-2 lg:p-4">
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-1">
@@ -327,9 +303,7 @@ const PortfolioSection: React.FC = () => {
                   </Tooltip>
                 </TooltipProvider>
               </div>
-              <span className="text-sm font-semibold text-[#1A1F24]">
-                15,840 pts
-              </span>
+              <span className="text-sm text-[#1A1F24]">15,840 pts</span>
             </div>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-1">
@@ -345,9 +319,7 @@ const PortfolioSection: React.FC = () => {
                   </Tooltip>
                 </TooltipProvider>
               </div>
-              <span className="text-sm font-semibold text-[#1A1F24]">
-                15,840 pts
-              </span>
+              <span className="text-sm text-[#1A1F24]">15,840 pts</span>
             </div>
           </div>
         </div>
