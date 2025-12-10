@@ -616,7 +616,7 @@ const Stake: React.FC = () => {
         mode="stake"
       />
 
-      <div className="flex w-full max-w-full flex-col items-start lg:max-w-none lg:gap-2">
+      <div className="flex w-full max-w-full flex-col items-start gap-2 lg:max-w-none">
         <div className="flex w-full max-w-full flex-1 flex-col items-start lg:max-w-none">
           <Form {...form}>
             <div className="flex w-full items-center justify-between">
@@ -720,39 +720,27 @@ const Stake: React.FC = () => {
         </div>
 
         <div className="flex w-full flex-col items-end">
-          <div className="flex w-full gap-2 text-[#8D9C9C]">
-            <button
-              onClick={() => handleQuickStakePrice(25)}
-              className="w-full rounded-md bg-[#F5F7F8] px-2 py-2 text-xs text-[#6B7780] transition-all hover:bg-[#8D9C9C33]"
-            >
-              25%
-            </button>
-            <button
-              onClick={() => handleQuickStakePrice(50)}
-              className="w-full rounded-md bg-[#F5F7F8] px-2 py-2 text-xs text-[#6B7780] transition-all hover:bg-[#8D9C9C33]"
-            >
-              50%
-            </button>
-            <button
-              onClick={() => handleQuickStakePrice(75)}
-              className="w-full rounded-md bg-[#F5F7F8] px-2 py-2 text-xs text-[#6B7780] transition-all hover:bg-[#8D9C9C33]"
-            >
-              75%
-            </button>
-            <button
-              onClick={() => handleQuickStakePrice(100)}
-              className="w-full rounded-md border-[#8D9C9C33] bg-[#F5F7F8] px-2 py-2 text-xs text-[#6B7780] transition-all hover:bg-[#8D9C9C33]"
-            >
-              Max
-            </button>
-          </div>
-
-          <button
-            onClick={() => handleQuickStakePrice(100)}
-            className="rounded-md bg-[#BBE7E7] px-2 py-1 text-xs font-semibold text-[#215959] transition-all hover:bg-[#BBE7E7] hover:opacity-80 lg:hidden"
-          >
-            Max
-          </button>
+          {(() => {
+            const quickStakeOptions = [
+              { label: "25%", value: 25 },
+              { label: "50%", value: 50 },
+              { label: "75%", value: 75 },
+              { label: "Max", value: 100 },
+            ];
+            return (
+              <div className="flex w-full gap-2 text-[#8D9C9C]">
+                {quickStakeOptions.map(({ label, value }) => (
+                  <button
+                    key={label}
+                    onClick={() => handleQuickStakePrice(value)}
+                    className={`w-full rounded-md bg-[#F5F7F8] px-2 py-2 text-xs text-[#6B7780] transition-all hover:bg-[#8D9C9C33]`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            );
+          })()}
         </div>
       </div>
 

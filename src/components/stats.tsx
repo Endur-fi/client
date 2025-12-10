@@ -115,8 +115,8 @@ const Stats: React.FC<StatsProps> = ({
   return (
     <>
       <div className="flex items-center justify-between pt-2">
-        <p className="flex flex-col items-center text-xs font-semibold lg:flex-row lg:gap-2">
-          <span className="flex items-center gap-1 text-xs font-semibold text-[#3F6870] lg:text-[#8D9C9C]">
+        <p className="flex flex-col items-center text-xs lg:flex-row lg:gap-2">
+          <span className="flex items-center gap-1 text-xs text-[##6B7780]">
             APY
             <TooltipProvider delayDuration={0}>
               <Tooltip>
@@ -135,7 +135,9 @@ const Stats: React.FC<StatsProps> = ({
             </TooltipProvider>
           </span>
           <span className="flex items-center gap-1">
-            ~{memoizedApyValue}%
+            <span className="font-bold text-[#1A1F24]">
+              ~{memoizedApyValue}%
+            </span>
             {selectedPlatform && selectedPlatform !== "none" && (
               <span className="font-semibold text-[#17876D]">
                 +{" "}
@@ -176,80 +178,6 @@ const Stats: React.FC<StatsProps> = ({
             mode={mode}
           />
         )}
-
-        <div>
-          {/* <div className="flex items-center justify-between rounded-md bg-[#17876D] px-2 py-1 text-xs text-white">
-            <span>
-              Available stake:{" "}
-              {Number(
-                currentStaked.value.toEtherToFixedDecimals(isBTC ? 8 : 2),
-              ).toFixed(isBTC ? 8 : 2)}{" "}
-              {lstConfig.LST_SYMBOL}
-            </span>
-            <div className="ml-auto pl-2">
-              <TooltipProvider delayDuration={0}>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Info className="ml-[5px] size-3 text-[#efefef]" />
-                  </TooltipTrigger>
-                  <TooltipContent
-                    side="right"
-                    className="max-w-56 rounded-md border border-[#03624C] bg-white text-[#03624C]"
-                  >
-                    {lstConfig.LST_SYMBOL} directly available in your wallet.
-                    You can unstake this {lstConfig.LST_SYMBOL} anytime.
-                    <br />
-                    <br />
-                    Excludes {lstConfig.LST_SYMBOL} in DeFi apps.
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            </div>
-          </div> */}
-
-          {/* {!isBTC && (
-            <a href="/portfolio">
-              <div className="mt-[10px] flex items-center justify-between rounded-md bg-white px-2 py-1 text-xs text-[#17876D]">
-                <span>
-                  Stake in DeFi:{" "}
-                  {Number(xSTRKInDefiOnly.toFixed(isBTC ? 8 : 2)).toFixed(
-                    isBTC ? 8 : 2,
-                  )}{" "}
-                  {lstConfig.LST_SYMBOL}
-                </span>
-                <div className="ml-auto pl-2">
-                  <TooltipProvider delayDuration={0}>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Info className="ml-[5px] size-3 text-[#17876D]" />
-                      </TooltipTrigger>
-                      <TooltipContent
-                        side="right"
-                        className="max-w-56 rounded-md border border-[#03624C] bg-white text-[#03624C]"
-                      >
-                        <div>
-                          {lstConfig.LST_SYMBOL} in third party DeFi apps. You
-                          cannot unstake this {lstConfig.LST_SYMBOL} directly.
-                          Withdraw your {lstConfig.LST_SYMBOL} from DeFi apps to
-                          unstake here.
-                        </div>
-                        <br />
-                        <div>
-                          <b>Note:</b> This is a beta feature, may not include
-                          all DApps. Click{" "}
-                          <a href="/portfolio">
-                            <b>here</b>
-                          </a>{" "}
-                          to see more details.
-                        </div>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                </div>
-              </div>
-            </a>
-          )} */}
-        </div>
       </div>
     </>
   );
