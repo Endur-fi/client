@@ -408,6 +408,7 @@ const Tabs = () => {
                 {mainTabs.map((tab) => (
                   <TabsTrigger
                     value={tab.value}
+                    key={tab.value}
                     className="group flex w-full flex-col items-start rounded-[10px] bg-transparent px-2 py-2 focus-visible:ring-0 focus-visible:ring-offset-0 data-[state=active]:border data-[state=active]:border-[#81C3B4] data-[state=active]:bg-[#E8F7F4] data-[state=active]:text-[#0D5F4E] data-[state=active]:shadow-none"
                   >
                     <div className="flex items-center gap-1">
@@ -455,6 +456,7 @@ const Tabs = () => {
                       {subTabs.map((tab) => (
                         <TabsTrigger
                           value={tab.value}
+                          key={tab.value}
                           className="group relative h-full rounded-none text-sm text-[#7D8A92] data-[state=active]:border-b-2 data-[state=active]:border-[#0D5F4E] data-[state=active]:text-[#0D5F4E] data-[state=active]:shadow-none"
                         >
                           {tab.label}

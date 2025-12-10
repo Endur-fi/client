@@ -4,14 +4,10 @@ import { useAtomValue } from "jotai";
 import { useAccount, useBalance } from "@starknet-react/core";
 import React from "react";
 import Link from "next/link";
-import { ChevronDown, ExternalLink, Info } from "lucide-react";
+import { ExternalLink, Info } from "lucide-react";
 
 import { Icons } from "./Icons";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "./ui/collapsible";
+
 import {
   Tooltip,
   TooltipContent,
@@ -19,7 +15,7 @@ import {
   TooltipTrigger,
 } from "./ui/tooltip";
 import { getLSTAssetsByCategory, getSTRKAsset } from "@/constants";
-import { cn, formatNumber, formatNumberWithCommas } from "@/lib/utils";
+import { cn, formatNumberWithCommas } from "@/lib/utils";
 import { lstStatsQueryAtom } from "@/store/lst.store";
 import { assetPriceAtom } from "@/store/common.store";
 import { btcPriceAtom } from "@/store/staking.store";

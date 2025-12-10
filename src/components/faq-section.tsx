@@ -25,7 +25,7 @@ const FAQSection: React.FC<{ className?: string }> = ({ className }) => {
         <>
           Select your preferred token (STRK or BTC), enter the amount you want
           to stake, optionally choose a DeFi protocol for additional yield, and
-          click the Stake button. You'll receive liquid staking tokens (xSTRK or
+          click the Stake button. {"You'll"} receive liquid staking tokens (xSTRK or
           xBTC) that represent your staked position.
         </>
       ),
