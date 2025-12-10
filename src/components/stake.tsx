@@ -76,7 +76,6 @@ import { PlatformCard } from "./platform-card";
 import Stats from "./stats";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
-import { ASSET_ICONS } from "./asset-selector";
 import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
 import { Web3Number } from "@strkfarm/sdk";
 
@@ -272,6 +271,18 @@ const Stake: React.FC = () => {
     const usdValue = underlyingAmount * assetPrice;
     return usdValue;
   }, [form.watch("stakeAmount"), assetPrice, exchangeRate.rate]);
+
+  const stakeAmountUSD = React.useMemo(() => {
+    const stakeAmount = form.watch("stakeAmount");
+    if (!stakeAmount || stakeAmount === "" || !assetPrice) {
+      return null;
+    }
+    const amount = Number(stakeAmount);
+    if (isNaN(amount) || amount <= 0) {
+      return null;
+    }
+    return amount * assetPrice;
+  }, [form.watch("stakeAmount"), assetPrice]);
 
   const onSubmit = async (values: FormValues) => {
     const stakeAmount = Number(values.stakeAmount);
@@ -657,7 +668,7 @@ const Stake: React.FC = () => {
                     if (!value || value === "") return "";
 
                     // Allow typing decimal point and trailing zeros
-                    if (value.endsWith(".") || /\.\d*0+$/.test(value)) {
+                    if (value.endsWith(".") || (/\.\d*0+$/).test(value)) {
                       return value;
                     }
 
@@ -673,18 +684,6 @@ const Stake: React.FC = () => {
 
                     return value;
                   };
-
-                  const stakeAmount = field.value;
-                  const usdValue = React.useMemo(() => {
-                    if (!stakeAmount || stakeAmount === "" || !assetPrice) {
-                      return null;
-                    }
-                    const amount = Number(stakeAmount);
-                    if (isNaN(amount) || amount <= 0) {
-                      return null;
-                    }
-                    return amount * assetPrice;
-                  }, [stakeAmount, assetPrice]);
 
                   return (
                     <FormItem className="w-full space-y-1">
@@ -703,9 +702,9 @@ const Stake: React.FC = () => {
                             name={field.name}
                             ref={field.ref}
                           />
-                          {usdValue !== null && (
+                          {stakeAmountUSD !== null && (
                             <div className="px-3 text-xs text-[#6B7780]">
-                              &asymp; ${formatNumber(usdValue.toFixed(2))}
+                              &asymp; ${formatNumber(stakeAmountUSD.toFixed(2))}
                             </div>
                           )}
                         </div>

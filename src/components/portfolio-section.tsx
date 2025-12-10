@@ -275,7 +275,7 @@ const PortfolioSection: React.FC = () => {
         <div className="rounded-lg border border-[#FFC46680] bg-[#FFC4661A] p-2 text-xs text-[#D69733]">
           <p className="mb-1">
             Only wallet-held LSTs are shown. LSTs deployed in third-party dApps
-            won't appear here.
+            {"won't"} appear here.
           </p>
           <Link
             href="/portfolio"
