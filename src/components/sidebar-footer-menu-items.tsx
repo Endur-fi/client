@@ -40,7 +40,7 @@ const SidebarFooterMenuItems = () => {
           <Link
             href={LINKS.ENDUR_DISCORD}
             target="_blank"
-            className="flex w-full cursor-pointer flex-row items-center gap-2 text-nowrap rounded-md text-base font-semibold text-[#03624C] transition-all"
+            className="flex w-full cursor-pointer flex-row items-center gap-2 text-nowrap rounded-[12px] text-base font-semibold text-[#03624C] transition-all"
           >
             <DiscordIcon
               className="size-4"
@@ -59,7 +59,7 @@ const SidebarFooterMenuItems = () => {
           <Link
             href={LINKS.ENDUR_TWITTER}
             target="_blank"
-            className="flex w-full cursor-pointer flex-row items-center gap-2 text-nowrap rounded-md text-base font-semibold text-[#03624C] transition-all"
+            className="flex w-full cursor-pointer flex-row items-center gap-2 text-nowrap rounded-[12px] text-base font-semibold text-[#03624C] transition-all"
           >
             <TwitterIcon
               className="size-4"
@@ -80,7 +80,7 @@ const SidebarFooterMenuItems = () => {
           <Link
             href={LINKS.ENDUR_TELEGRAM}
             target="_blank"
-            className="flex w-full cursor-pointer flex-row items-center gap-2 text-nowrap rounded-md text-base font-semibold text-[#03624C] transition-all"
+            className="flex w-full cursor-pointer flex-row items-center gap-2 text-nowrap rounded-[12px] text-base font-semibold text-[#03624C] transition-all"
           >
             <TelegramIcon
               className="size-4"
@@ -101,7 +101,7 @@ const SidebarFooterMenuItems = () => {
           <Link
             href={LINKS.ENDUR_BLOG}
             target="_blank"
-            className="flex w-full cursor-pointer flex-row items-center gap-2 text-nowrap rounded-md text-base font-semibold text-[#03624C] transition-all"
+            className="flex w-full cursor-pointer flex-row items-center gap-2 text-nowrap rounded-[12px] text-base font-semibold text-[#03624C] transition-all"
           >
             <FilePenLineIcon
               className="size-4"
@@ -122,7 +122,7 @@ const SidebarFooterMenuItems = () => {
           <Link
             href={LINKS.ENDUR_DOCS}
             target="_blank"
-            className="flex w-full cursor-pointer flex-row items-center gap-2 text-nowrap rounded-md text-base font-semibold text-[#03624C] transition-all"
+            className="flex w-full cursor-pointer flex-row items-center gap-2 text-nowrap rounded-[12px] text-base font-semibold text-[#03624C] transition-all"
           >
             <BookTextIcon
               triggerAnimation={triggerDocsIconAnimation}
@@ -143,7 +143,7 @@ const SidebarFooterMenuItems = () => {
           <Link
             href={LINKS.ENDUR_TELEGRAM}
             target="_blank"
-            className="flex w-full cursor-pointer flex-row items-center gap-2 text-nowrap rounded-md text-base font-semibold text-[#03624C] transition-all"
+            className="flex w-full cursor-pointer flex-row items-center gap-2 text-nowrap rounded-[12px] text-base font-semibold text-[#03624C] transition-all"
           >
             <MessageCircleMoreIcon
               triggerAnimation={triggerChatIconAnimation}

@@ -28,16 +28,31 @@ export function formatNumber(
   decimals?: number,
   caps = false,
 ): string {
-  const numberValue = typeof num === "string" ? Number(num) : num;
+  const numberValue = typeof num === "string" ? parseFloat(num) : num;
 
-  console.log("numberValue", numberValue);
+  if (isNaN(numberValue) || !isFinite(numberValue)) return "0";
 
-  if (numberValue >= 1000000) {
-    return `${(numberValue / 1000000).toFixed(decimals ?? 2)}${caps ? "M" : "m"}`;
+  // Handle trillions, billions, millions, and thousands
+  // Check in descending order to ensure correct formatting
+  if (numberValue >= 1000000000000) {
+    // Trillions (1T = 1,000,000,000,000)
+    const trillions = numberValue / 1000000000000;
+    return `${trillions.toFixed(decimals ?? 2)}${caps ? "T" : "t"}`;
+  } else if (numberValue >= 1000000000) {
+    // Billions (1B = 1,000,000,000)
+    const billions = numberValue / 1000000000;
+    return `${billions.toFixed(decimals ?? 2)}${caps ? "B" : "b"}`;
+  } else if (numberValue >= 1000000) {
+    // Millions (1M = 1,000,000)
+    const millions = numberValue / 1000000;
+    return `${millions.toFixed(decimals ?? 2)}${caps ? "M" : "m"}`;
   } else if (numberValue >= 1000) {
-    return `${(numberValue / 1000).toFixed(decimals ?? 2)}${caps ? "K" : "k"}`;
+    // Thousands (1K = 1,000)
+    const thousands = numberValue / 1000;
+    return `${thousands.toFixed(decimals ?? 2)}${caps ? "K" : "k"}`;
   }
-  return `${numberValue}`;
+  // Less than 1000, show as whole number
+  return `${numberValue.toFixed(decimals ?? 0)}`;
 }
 
 export function formatNumberWithCommas(

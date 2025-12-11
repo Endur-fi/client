@@ -63,7 +63,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className="bg-[#F1F7F6]">
+      <body className="bg-[#E8F7F4]">
         <Analytics />
 
         <Providers>

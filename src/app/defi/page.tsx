@@ -5,7 +5,7 @@ import Defi from "@/components/defi";
 
 const DefiPage: NextPage = () => {
   return (
-    <main className="pb-3">
+    <main className="w-full pb-3">
       <Defi />
     </main>
   );
