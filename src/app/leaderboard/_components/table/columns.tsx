@@ -1,8 +1,10 @@
 "use client";
 
-import { useStarkProfile } from "@starknet-react/core";
+import { useAccount, useStarkProfile } from "@starknet-react/core";
 import { ColumnDef } from "@tanstack/react-table";
 import Link from "next/link";
+import { Copy } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
 
 import { Icons } from "@/components/Icons";
 import { formatNumber, shortAddress } from "@/lib/utils";
@@ -14,28 +16,63 @@ export type SizeColumn = {
 };
 
 const AddressComp = ({ address }: { address: string }) => {
+  const { address: currentAddress } = useAccount();
   const { data: profile } = useStarkProfile({
     address: address as `0x${string}`,
   });
+
+  const isCurrentUser = currentAddress?.toLowerCase() === address.toLowerCase();
+
+  const handleCopy = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    navigator.clipboard.writeText(address);
+    toast({
+      description: "Address copied to clipboard",
+      duration: 2000,
+    });
+  };
+
+  if (isCurrentUser) {
+    return (
+      <div className="flex items-center gap-2">
+        <span className="text-xs text-[#1A1F24] md:text-sm">Your rank 🔥</span>
+      </div>
+    );
+  }
 
   return (
     <Link
       href={`https://starkscan.co/contract/${address}`}
       target="_blank"
-      className="group flex w-fit cursor-pointer items-center gap-2 transition-all hover:underline hover:opacity-80"
+      className="group flex w-fit cursor-pointer items-center gap-1.5 transition-all hover:underline hover:opacity-80 md:gap-2"
     >
       {profile?.profilePicture && (
         // eslint-disable-next-line @next/next/no-img-element
         <img
           src={profile.profilePicture}
           alt="Profile Avatar"
-          width={24}
-          height={24}
-          className="rounded-full border"
+          width={20}
+          height={20}
+          className="hidden rounded-full border sm:block md:h-6 md:w-6"
         />
       )}
-      {profile?.name ? profile.name : shortAddress(address, 6, 8)}
-      <Icons.externalLink className="size-4 transition-all group-hover:translate-x-1" />
+      <span className="text-xs text-[#1A1F24] md:text-sm">
+        {profile?.name ? (
+          profile.name
+        ) : (
+          <>
+            <span className="md:hidden">{shortAddress(address, 4, 4)}</span>
+            <span className="hidden md:inline">
+              {shortAddress(address, 6, 8)}
+            </span>
+          </>
+        )}
+      </span>
+      <Copy
+        className="h-3 w-3 text-[#6B7780] opacity-0 transition-opacity group-hover:opacity-100 md:opacity-0"
+        onClick={handleCopy}
+      />
     </Link>
   );
 };
@@ -50,7 +87,7 @@ export const columns: ColumnDef<SizeColumn>[] = [
       if (rank === "1") medal = "🥇";
       else if (rank === "2") medal = "🥈";
       else if (rank === "3") medal = "🥉";
-      return <span>{medal ? medal : rank}</span>;
+      return <span className="text-xs md:text-sm">{medal ? medal : rank}</span>;
     },
   },
   {
@@ -69,7 +106,7 @@ export const columns: ColumnDef<SizeColumn>[] = [
       const score = row.getValue("score") as string;
 
       return (
-        <div className="ml-auto w-fit pr-12 text-[#17876D]">
+        <div className="ml-auto w-fit pr-4 text-xs text-[#17876D] md:pr-12 md:text-sm lg:text-base">
           {formatNumber(score)}
         </div>
       );

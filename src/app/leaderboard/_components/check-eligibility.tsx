@@ -1039,7 +1039,7 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
     if (isPending) {
       return { disabled: true, text: "Transaction pending..." };
     }
-    return { disabled: false, text: "Check eligibility" };
+    return { disabled: false, text: "Claim rewards" };
   }, [
     state.isCheckingClaimed,
     state.hasAlreadyClaimed,
@@ -1107,7 +1107,7 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
   return (
     <div>
       <Button
-        className="bg-[#16876D] hover:bg-[#16876D]"
+        className="rounded-md bg-white/20 px-4 py-2 text-xs font-medium text-white transition-all hover:bg-white/30"
         onClick={checkEligibility}
         disabled={buttonState.disabled}
       >
