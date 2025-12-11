@@ -166,9 +166,9 @@ const PortfolioSection: React.FC = () => {
     return total;
   }, [strkHoldings, btcHoldings]);
 
-  if (!address) {
-    return null;
-  }
+  // if (!address) {
+  //   return null;
+  // }
 
   return (
     <div
@@ -186,7 +186,7 @@ const PortfolioSection: React.FC = () => {
         <div className="flex items-center justify-between gap-2 border-b border-[#E5E8EB] pb-2">
           <span className="text-sm text-[#6B7780]">Your Stake</span>
           <span className="text-xl text-[#1A1F24]">
-            ${formatNumberWithCommas(totalValueStaked.toFixed(2))}
+            {!address ? "-" : `$${formatNumberWithCommas(totalValueStaked.toFixed(2))}`}
           </span>
         </div>
 

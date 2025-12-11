@@ -24,7 +24,7 @@ const SeasonPointsCard: React.FC<SeasonPointsCardProps> = ({ className }) => {
             Season 2 Points Active
           </h4>
           <p className="mt-1 text-xs text-white">
-            Earn 5X points on all staking
+            Stake, use DeFi, or contribute to Endur to earn points.
           </p>
         </div>
       </div>

@@ -369,7 +369,7 @@ const Tabs = () => {
               className="flex w-fit items-center gap-1 rounded-full border border-[#17876D33] bg-[#17876D1A] px-3 py-1 transition-opacity hover:opacity-80 md:mt-0"
             >
               <Icons.shield className="size-3.5 text-[#17876D]" />
-              <span className="text-xs text-[#17876D]">Secure and audited</span>
+              <span className="text-xs text-[#17876D]">Audited</span>
             </Link>
           </div>
 
@@ -388,203 +388,208 @@ const Tabs = () => {
         </div>
 
         {/* Main Tabs - STRK and BTC */}
-        <div className="flex gap-6">
+        <div className="grid w-full max-w-[calc(100vw-1rem)] lg:grid-cols-[3fr_2fr] lg:gap-6 lg:max-w-4xl">
           <div className="flex flex-col gap-3">
-            <ShadCNTabs
-              onValueChange={(value) => handleTabChange(value)}
-              value={activeTab}
-              defaultValue="btc"
-              className="flex w-full flex-col gap-4"
-            >
-              <TabsList
-                className={cn(
-                  "bg-white",
-                  "p-2",
-                  "flex h-full items-center",
-                  "rounded-[14px] border border-[#E5E8EB]",
-                  "shadow-[0_1px_2px_-1px_#0000001A,_0_1px_3px_0_#0000001A]",
-                )}
+            <div className="flex w-full flex-col gap-4">
+              <ShadCNTabs
+                onValueChange={(value) => handleTabChange(value)}
+                value={activeTab}
+                defaultValue="btc"
+                className="flex w-full flex-col gap-4"
               >
-                {mainTabs.map((tab) => (
-                  <TabsTrigger
-                    value={tab.value}
-                    key={tab.value}
-                    className="group flex w-full flex-col items-start rounded-[10px] bg-transparent px-2 py-2 focus-visible:ring-0 focus-visible:ring-offset-0 data-[state=active]:border data-[state=active]:border-[#81C3B4] data-[state=active]:bg-[#E8F7F4] data-[state=active]:text-[#0D5F4E] data-[state=active]:shadow-none"
-                  >
-                    <div className="flex items-center gap-1">
-                      {tab.icon}
-                      <div className="flex flex-col items-start">
-                        <p className="text-md group-data-[state=active]:text-black group-data-[state=active]:opacity-100">
-                          {tab.label}
-                        </p>
-                        <div className="flex gap-1 lg:flex-row lg:gap-6">
-                          <p className="text-[8px] md:text-xs">
-                            APY: {tab.apy}
-                          </p>
-
-                          <p className="text-[8px] md:text-xs">
-                            TVL: {tab.tvl}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-
-              {/* STRK Tab Content */}
-              <TabsContent value="strk" className={cn()}>
-                <div
+                <TabsList
                   className={cn(
-                    "w-full max-w-full rounded-xl shadow-xl lg:h-fit lg:max-w-none",
-                    "h-full rounded-[14px] bg-white focus-visible:ring-0 focus-visible:ring-offset-0",
+                    "bg-white",
+                    "p-2",
+                    "flex h-full items-center",
                     "rounded-[14px] border border-[#E5E8EB]",
                     "shadow-[0_1px_2px_-1px_#0000001A,_0_1px_3px_0_#0000001A]",
                   )}
                 >
-                  <ShadCNTabs
-                    onValueChange={(value) => handleSubTabChange(value)}
-                    value={activeSubTab}
-                    defaultValue="stake"
-                    className="h-full w-full max-w-full p-2 lg:max-w-none lg:p-5"
-                  >
-                    <TabsList
-                      className={cn(
-                        "flex w-full items-center justify-start rounded-none border-b bg-transparent p-0",
-                      )}
+                  {mainTabs.map((tab) => (
+                    <TabsTrigger
+                      value={tab.value}
+                      key={tab.value}
+                      className="group flex w-full flex-col items-start rounded-[10px] bg-transparent px-2 py-2 focus-visible:ring-0 focus-visible:ring-offset-0 data-[state=active]:border data-[state=active]:border-[#81C3B4] data-[state=active]:bg-[#E8F7F4] data-[state=active]:text-[#0D5F4E] data-[state=active]:shadow-none"
                     >
-                      {subTabs.map((tab) => (
-                        <TabsTrigger
-                          value={tab.value}
-                          key={tab.value}
-                          className="group relative h-full rounded-none text-sm text-[#7D8A92] data-[state=active]:border-b-2 data-[state=active]:border-[#0D5F4E] data-[state=active]:text-[#0D5F4E] data-[state=active]:shadow-none"
-                        >
-                          {tab.label}
-                          {tab.tooltip && tab.tooltip}
-                        </TabsTrigger>
-                      ))}
-                    </TabsList>
+                      <div className="flex items-center gap-1">
+                        {tab.icon}
+                        <div className="flex flex-col items-start">
+                          <p className="text-md group-data-[state=active]:text-black group-data-[state=active]:opacity-100">
+                            {tab.label}
+                          </p>
+                          <div className="flex gap-1 lg:flex-row lg:gap-6">
+                            <p className="text-[8px] md:text-xs">
+                              APY: {tab.apy}
+                            </p>
 
-                    <TabsContent
-                      value="stake"
-                      className="h-full focus-visible:ring-0 focus-visible:ring-offset-0"
-                    >
-                      <div className="flex w-full max-w-full flex-col gap-4 lg:max-w-none lg:flex-row lg:items-start">
-                        <div className="w-full max-w-full lg:max-w-none lg:flex-1">
-                          <Stake />
+                            <p className="text-[8px] md:text-xs">
+                              TVL: {tab.tvl}
+                            </p>
+                          </div>
                         </div>
                       </div>
-                    </TabsContent>
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
 
-                    <TabsContent
-                      value="unstake"
-                      className="h-full focus-visible:ring-0 focus-visible:ring-offset-0"
-                    >
-                      <Unstake />
-                    </TabsContent>
-
-                    <TabsContent
-                      value="withdraw"
-                      className="h-full focus-visible:ring-0 focus-visible:ring-offset-0"
-                    >
-                      <WithdrawLog />
-                    </TabsContent>
-                  </ShadCNTabs>
-                </div>
-              </TabsContent>
-
-              <TabsContent value="btc" className={cn()}>
-                <div
-                  className={cn(
-                    "w-full max-w-full rounded-xl shadow-xl lg:h-fit lg:max-w-none",
-                    "h-full rounded-[14px] bg-white focus-visible:ring-0 focus-visible:ring-offset-0",
-                    "rounded-[14px] border border-[#E5E8EB]",
-                    "shadow-[0_1px_2px_-1px_#0000001A,_0_1px_3px_0_#0000001A]",
-                  )}
-                >
-                  <ShadCNTabs
-                    onValueChange={(value) => handleSubTabChange(value)}
-                    value={activeSubTab}
-                    defaultValue="stake"
-                    className="h-full w-full max-w-full p-2 lg:max-w-none lg:p-5"
+                {/* STRK Tab Content */}
+                <TabsContent value="strk" className={cn()}>
+                  <div
+                    className={cn(
+                      "w-full max-w-full rounded-xl shadow-xl lg:h-fit lg:max-w-none",
+                      "h-full rounded-[14px] bg-white focus-visible:ring-0 focus-visible:ring-offset-0",
+                      "rounded-[14px] border border-[#E5E8EB]",
+                      "shadow-[0_1px_2px_-1px_#0000001A,_0_1px_3px_0_#0000001A]",
+                    )}
                   >
-                    <TabsList
-                      className={cn(
-                        "flex w-full items-center justify-start rounded-none border-b bg-transparent",
-                      )}
+                    <ShadCNTabs
+                      onValueChange={(value) => handleSubTabChange(value)}
+                      value={activeSubTab}
+                      defaultValue="stake"
+                      className="h-full w-full max-w-full p-2 lg:max-w-none lg:p-5"
                     >
-                      <TabsTrigger
+                      <TabsList
+                        className={cn(
+                          "flex w-full items-center justify-start rounded-none border-b bg-transparent p-0",
+                        )}
+                      >
+                        {subTabs.map((tab) => (
+                          <TabsTrigger
+                            value={tab.value}
+                            key={tab.value}
+                            className="group relative h-full rounded-none text-sm text-[#7D8A92] data-[state=active]:border-b-2 data-[state=active]:border-[#0D5F4E] data-[state=active]:text-[#0D5F4E] data-[state=active]:shadow-none"
+                          >
+                            {tab.label}
+                            {tab.tooltip && tab.tooltip}
+                          </TabsTrigger>
+                        ))}
+                      </TabsList>
+
+                      <TabsContent
                         value="stake"
-                        className="group relative rounded-none border-none text-sm font-medium text-[#8D9C9C] focus-visible:ring-0 focus-visible:ring-offset-0 data-[state=active]:border-t-0 data-[state=active]:shadow-none lg:text-base"
+                        className="h-full focus-visible:ring-0 focus-visible:ring-offset-0"
                       >
-                        Stake
-                      </TabsTrigger>
-                      <TabsTrigger
-                        value="unstake"
-                        className="group relative rounded-none border-none text-sm font-medium text-[#8D9C9C] focus-visible:ring-0 focus-visible:ring-offset-0 data-[state=active]:border-t-0 data-[state=active]:shadow-none lg:text-base"
-                      >
-                        Unstake
-                      </TabsTrigger>
-                      <TabsTrigger
-                        value="withdraw"
-                        className="group relative rounded-none border-none text-sm font-medium text-[#8D9C9C] focus-visible:ring-0 focus-visible:ring-offset-0 data-[state=active]:border-t-0 data-[state=active]:shadow-none lg:text-base"
-                      >
-                        Withdraw log
-                        <TooltipProvider delayDuration={0}>
-                          <Tooltip>
-                            <TooltipTrigger
-                              className="ml-1"
-                              tabIndex={-1}
-                              asChild
-                            >
-                              <Info className="size-3 text-[#3F6870] lg:text-[#8D9C9C]" />
-                            </TooltipTrigger>
-                            <TooltipContent
-                              side="right"
-                              className="max-w-[13rem] rounded-md border border-[#03624C] bg-white text-[#03624C]"
-                            >
-                              Learn more about withdraw logs{" "}
-                              <Link
-                                target="_blank"
-                                href="https://docs.endur.fi/docs/concepts/withdraw-log"
-                                className="text-blue-600 underline"
-                              >
-                                here
-                              </Link>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      </TabsTrigger>
-                    </TabsList>
-
-                    <TabsContent
-                      value="stake"
-                      className="h-full focus-visible:ring-0 focus-visible:ring-offset-0"
-                    >
-                      <div className="flex w-full max-w-full flex-col gap-4 lg:max-w-none lg:flex-row lg:items-start">
-                        <div className="w-full max-w-full lg:max-w-none lg:flex-1">
-                          <Stake />
+                        <div className="flex w-full max-w-full flex-col gap-4 lg:max-w-none lg:flex-row lg:items-start">
+                          <div className="w-full max-w-full lg:max-w-none lg:flex-1">
+                            <Stake />
+                          </div>
                         </div>
-                      </div>
-                    </TabsContent>
+                      </TabsContent>
 
-                    <TabsContent
-                      value="unstake"
-                      className="h-full focus-visible:ring-0 focus-visible:ring-offset-0"
-                    >
-                      <Unstake />
-                    </TabsContent>
+                      <TabsContent
+                        value="unstake"
+                        className="h-full focus-visible:ring-0 focus-visible:ring-offset-0"
+                      >
+                        <Unstake />
+                      </TabsContent>
 
-                    <TabsContent
-                      value="withdraw"
-                      className="h-full focus-visible:ring-0 focus-visible:ring-offset-0"
+                      <TabsContent
+                        value="withdraw"
+                        className="h-full focus-visible:ring-0 focus-visible:ring-offset-0"
+                      >
+                        <WithdrawLog />
+                      </TabsContent>
+                    </ShadCNTabs>
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="btc" className={cn()}>
+                  <div
+                    className={cn(
+                      "w-full max-w-full rounded-xl shadow-xl lg:h-fit lg:max-w-none",
+                      "h-full rounded-[14px] bg-white focus-visible:ring-0 focus-visible:ring-offset-0",
+                      "rounded-[14px] border border-[#E5E8EB]",
+                      "shadow-[0_1px_2px_-1px_#0000001A,_0_1px_3px_0_#0000001A]",
+                    )}
+                  >
+                    <ShadCNTabs
+                      onValueChange={(value) => handleSubTabChange(value)}
+                      value={activeSubTab}
+                      defaultValue="stake"
+                      className="h-full w-full max-w-full p-2 lg:max-w-none lg:p-5"
                     >
-                      <WithdrawLog />
-                    </TabsContent>
-                  </ShadCNTabs>
-                </div>
-              </TabsContent>
-            </ShadCNTabs>
+                      <TabsList
+                        className={cn(
+                          "flex w-full items-center justify-start rounded-none border-b bg-transparent",
+                        )}
+                      >
+                        <TabsTrigger
+                          value="stake"
+                          className="group relative rounded-none border-none text-sm font-medium text-[#8D9C9C] focus-visible:ring-0 focus-visible:ring-offset-0 data-[state=active]:border-t-0 data-[state=active]:shadow-none lg:text-base"
+                        >
+                          Stake
+                        </TabsTrigger>
+                        <TabsTrigger
+                          value="unstake"
+                          className="group relative rounded-none border-none text-sm font-medium text-[#8D9C9C] focus-visible:ring-0 focus-visible:ring-offset-0 data-[state=active]:border-t-0 data-[state=active]:shadow-none lg:text-base"
+                        >
+                          Unstake
+                        </TabsTrigger>
+                        <TabsTrigger
+                          value="withdraw"
+                          className="group relative rounded-none border-none text-sm font-medium text-[#8D9C9C] focus-visible:ring-0 focus-visible:ring-offset-0 data-[state=active]:border-t-0 data-[state=active]:shadow-none lg:text-base"
+                        >
+                          Withdraw log
+                          <TooltipProvider delayDuration={0}>
+                            <Tooltip>
+                              <TooltipTrigger
+                                className="ml-1"
+                                tabIndex={-1}
+                                asChild
+                              >
+                                <Info className="size-3 text-[#3F6870] lg:text-[#8D9C9C]" />
+                              </TooltipTrigger>
+                              <TooltipContent
+                                side="right"
+                                className="max-w-[13rem] rounded-md border border-[#03624C] bg-white text-[#03624C]"
+                              >
+                                Learn more about withdraw logs{" "}
+                                <Link
+                                  target="_blank"
+                                  href="https://docs.endur.fi/docs/concepts/withdraw-log"
+                                  className="text-blue-600 underline"
+                                >
+                                  here
+                                </Link>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </TabsTrigger>
+                      </TabsList>
+
+                      <TabsContent
+                        value="stake"
+                        className="h-full focus-visible:ring-0 focus-visible:ring-offset-0"
+                      >
+                        <div className="flex w-full max-w-full flex-col gap-4 lg:max-w-none lg:flex-row lg:items-start">
+                          <div className="w-full max-w-full lg:max-w-none lg:flex-1">
+                            <Stake />
+                          </div>
+                        </div>
+                      </TabsContent>
+
+                      <TabsContent
+                        value="unstake"
+                        className="h-full focus-visible:ring-0 focus-visible:ring-offset-0"
+                      >
+                        <Unstake />
+                      </TabsContent>
+
+                      <TabsContent
+                        value="withdraw"
+                        className="h-full focus-visible:ring-0 focus-visible:ring-offset-0"
+                      >
+                        <WithdrawLog />
+                      </TabsContent>
+                    </ShadCNTabs>
+                  </div>
+                </TabsContent>
+              </ShadCNTabs>
+
+              {/* <StakingRewardsInfo /> */}
+              <div className="hidden lg:block"><FAQSection /></div>
+            </div>
 
             <div
               className={cn("flex w-full max-w-full flex-col gap-4 lg:hidden")}
@@ -596,7 +601,7 @@ const Tabs = () => {
             </div>
           </div>
 
-          <div className="hidden w-full flex-col gap-6 lg:flex lg:w-[400px]">
+          <div className="hidden w-full flex-col gap-6 lg:flex">
             {/* Total Value Staked Card */}
             <div className="flex items-center justify-between rounded-xl border border-[#E5E8EB] bg-white px-4 py-5 shadow-sm">
               <span className="text-sm text-[#6B7780]">Total Value Staked</span>
@@ -608,10 +613,10 @@ const Tabs = () => {
               </p>
             </div>
 
-            <PortfolioSection />
             <SeasonPointsCard />
+            <PortfolioSection />
             <StakingRewardsInfo />
-            <FAQSection />
+            {/* <FAQSection /> */}
           </div>
         </div>
       </div>
