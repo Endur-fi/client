@@ -88,16 +88,16 @@ export function DataTable<TData, TValue>({
         <TableHead key={header.id} className="p-0">
           <div
             className={cn(
-              "flex h-full items-center justify-start border-t border-[#17876D]/50 bg-[#17876D]/20 px-8 text-left text-xs font-normal text-black",
+              "flex h-full items-center justify-start border-b border-[#E5E8EB] bg-white px-4 py-3 text-left text-sm font-normal text-[#1A1F24] md:px-8 lg:py-4 lg:text-base",
               {
-                "rounded-tl-lg border-l border-t border-[#17876D]/50": i === 0,
-                "pl-10": i === 3,
-                "justify-end rounded-tr-lg border-r border-t border-[#17876D]/50 pr-20":
+                "rounded-tl-[14px]": i === 0,
+                "justify-center": i === 1,
+                "justify-end rounded-tr-[14px] pr-4 md:pr-8 lg:pr-12":
                   i === headerGroup.headers.length - 1,
               },
             )}
           >
-            <span className="shrink-0 text-sm">
+            <span className="shrink-0">
               {!header.isPlaceholder &&
                 flexRender(header.column.columnDef.header, header.getContext())}
             </span>
@@ -117,20 +117,15 @@ export function DataTable<TData, TValue>({
 
         return (
           <TableCell
-            className={cn("px-8", {
-              "pl-16": i === 2,
-              "rounded-bl-lg": isFirstCell && isLastRow,
-              "rounded-br-lg": isLastCell && isLastRow,
+            className={cn("px-4 py-3 md:px-8 lg:px-8 lg:py-4", {
+              "pl-8 md:pl-16 lg:pl-20": i === 2,
+              "rounded-bl-[14px]": isFirstCell && isLastRow,
+              "rounded-br-[14px]": isLastCell && isLastRow,
             })}
             key={cell.id}
           >
             <div className="sticky z-10">
               {flexRender(cell.column.columnDef.cell, cell.getContext())}
-              {isFirstCell && isFirstRowOnFirstPage && address && idx === 0 && (
-                <Badge className="h-5 text-nowrap bg-[#16876D] text-[10px] leading-[1] text-white hover:bg-[#16876D] sm:ml-2">
-                  your rank
-                </Badge>
-              )}
               {userCompleteDetails &&
                 isSecondCell &&
                 isFirstRowOnFirstPage &&
@@ -201,9 +196,9 @@ export function DataTable<TData, TValue>({
         </div>
       )}
 
-      <div className="rounded-r-x rounded-l-xl">
+      <div className="overflow-x-auto rounded-t-[14px] border border-[#E5E8EB] bg-white">
         <Table>
-          <TableHeader>
+          <TableHeader className="sticky top-0 z-20">
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow
                 key={headerGroup.id}
@@ -216,18 +211,27 @@ export function DataTable<TData, TValue>({
 
           <TableBody>
             {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row, idx) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
-                  className={cn("h-12 border-0 bg-white hover:bg-white", {
-                    "bg-[#F5F9F8] hover:bg-[#F5F9F8]": (idx + 1) % 2 === 0,
-                    "relative bg-white": idx === 0,
-                  })}
-                >
-                  {renderRowCell(row, idx)}
-                </TableRow>
-              ))
+              table.getRowModel().rows.map((row, idx) => {
+                const rowAddress = (row.original as any).address;
+                const isUserRow =
+                  address &&
+                  rowAddress?.toLowerCase() === address.toLowerCase();
+                return (
+                  <TableRow
+                    key={row.id}
+                    data-state={row.getIsSelected() && "selected"}
+                    className={cn("h-12 border-0 hover:bg-inherit lg:h-14", {
+                      "bg-[#F5F7F8]": isUserRow,
+                      "bg-white": !isUserRow && (idx + 1) % 2 !== 0,
+                      "bg-[#F5F9F8]": !isUserRow && (idx + 1) % 2 === 0,
+                      relative: idx === 0,
+                      "pt-2 lg:pt-3": idx === 0,
+                    })}
+                  >
+                    {renderRowCell(row, idx)}
+                  </TableRow>
+                );
+              })
             ) : (
               <TableRow>
                 <TableCell
@@ -242,12 +246,13 @@ export function DataTable<TData, TValue>({
         </Table>
       </div>
 
-      <div className="flex items-center justify-end space-x-2 py-4">
+      <div className="flex items-center justify-end space-x-2 py-4 lg:py-6">
         <Button
           variant="outline"
           size="sm"
           onClick={() => table.previousPage()}
           disabled={!table.getCanPreviousPage()}
+          className="lg:px-4"
         >
           Previous
         </Button>
@@ -256,6 +261,7 @@ export function DataTable<TData, TValue>({
           size="sm"
           onClick={() => table.nextPage()}
           disabled={!table.getCanNextPage()}
+          className="lg:px-4"
         >
           Next
         </Button>
