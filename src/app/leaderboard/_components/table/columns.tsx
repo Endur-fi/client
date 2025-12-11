@@ -6,8 +6,8 @@ import Link from "next/link";
 import { Copy } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
-import { Icons } from "@/components/Icons";
 import { formatNumber, shortAddress } from "@/lib/utils";
+import React from "react";
 
 export type SizeColumn = {
   rank: string;

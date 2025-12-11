@@ -1,16 +1,10 @@
 "use client";
 
 import { useAccount } from "@starknet-react/core";
-import Image from "next/image";
 import React from "react";
 import {
-  Info,
   Calendar,
-  Users,
-  Copy,
-  Settings,
   ChevronRight,
-  Timer,
   Clock,
   TrendingUp,
 } from "lucide-react";
@@ -33,7 +27,7 @@ import {
 import { useWalletConnection } from "@/hooks/use-wallet-connection";
 import { Button } from "@/components/ui/button";
 
-import CheckEligibility, {
+import {
   UserCompleteDetailsApiResponse,
 } from "./_components/check-eligibility";
 import { columns, type SizeColumn } from "./_components/table/columns";
@@ -442,9 +436,8 @@ const Leaderboard: React.FC = () => {
     } else if (diffInDays >= 7) {
       const weeks = Math.floor(diffInDays / 7);
       return `${weeks} week${weeks > 1 ? "s" : ""} duration`;
-    } else {
+    } 
       return `${diffInDays} day${diffInDays > 1 ? "s" : ""} duration`;
-    }
   }
 
   const seasons = [
@@ -476,7 +469,7 @@ const Leaderboard: React.FC = () => {
           </div>
           <p className="mt-1 text-sm text-[#021B1A] lg:text-base">
             Track your ranking and earn rewards. your position on the
-            leaderboard is based on the total amount you've staked on Endur.
+            leaderboard is based on the total amount {"you've"} staked on Endur.
             Learn more in the{" "}
             <a
               href="https://docs.endur.fi/docs"
@@ -508,7 +501,7 @@ const Leaderboard: React.FC = () => {
             </div>
             <p className="text-sm text-white lg:text-base">
               Season 1 rewards have been successfully distributed to all
-              eligible participants. Check if you're eligible for upcoming
+              eligible participants. Check if {"you're"} eligible for upcoming
               Season 2 rewards based on your staking activity and position on
               the leaderboard.
             </p>
@@ -526,8 +519,8 @@ const Leaderboard: React.FC = () => {
 
         {/* Timeline & Points Allocation Boxes */}
         <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2 lg:gap-6">
-          {seasons.map((season) => (
-            <div className="flex flex-col gap-3 rounded-[14px] border border-[#E5E8EB] bg-white p-4 shadow-sm lg:gap-4 lg:p-4">
+          {seasons.map((season, index) => (
+            <div key={index} className="flex flex-col gap-3 rounded-[14px] border border-[#E5E8EB] bg-white p-4 shadow-sm lg:gap-4 lg:p-4">
               <div className="flex items-center gap-2">
                 <div
                   className={cn("rounded-full bg-[#5B616D] p-2 shadow-sm", {
