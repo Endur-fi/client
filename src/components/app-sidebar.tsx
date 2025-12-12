@@ -54,7 +54,7 @@ export function AppSidebar() {
           <SidebarMenuItem
             className={cn(
               font.className,
-              "relative flex flex-row items-center justify-start gap-2 bg-[#AACBC433] px-2 py-10 transition-all duration-300",
+              "relative flex flex-row items-center justify-start gap-2 bg-[#f7f9fa] px-2 py-10 transition-all duration-300",
               {
                 "px-4": open,
               },
@@ -95,17 +95,17 @@ export function AppSidebar() {
         </SidebarMenu>
       </SidebarHeader>
 
-      <SidebarContent className={cn("overflow-y-auto bg-[#AACBC433] pt-5", {})}>
+      <SidebarContent className={cn("overflow-y-auto bg-[#f7f9fa] pt-6", {})}>
         <SidebarGroup>
           <SidebarGroupContent>
-            <SidebarMenu className="space-y-1.5">
+            <SidebarMenu className="space-y-0">
               <SidebarMenuItems />
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="bg-[#AACBC433] p-0">
+      <SidebarFooter className="bg-[#f7f9fa] p-0">
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>

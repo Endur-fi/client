@@ -1,10 +1,12 @@
 import Link from "next/link";
 import React from "react";
+import { Star, HelpCircle } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Progress } from "@/components/ui/progress";
 import MyNumber from "@/lib/MyNumber";
-import { cn } from "@/lib/utils";
+import { cn, formatNumber } from "@/lib/utils";
 
 export interface TokenDisplay {
   icon: React.ReactNode;
@@ -32,91 +34,14 @@ interface DefiCardProps {
   description: string;
   apy?: { value: number | null; error: Error | null; isLoading: boolean };
   action: ProtocolAction | undefined;
-}
-
-const TokenPairDisplay: React.FC<{ tokens: TokenDisplay[] }> = ({ tokens }) => (
-  <div className="flex items-center gap-2">
-    <div className="flex items-center border-white bg-white">
-      <div className="size-6 rounded-full border-[1.5px] border-white bg-white">
-        <img src="https://app.endur.fi/logo.svg" />
-      </div>
-      {tokens[1]?.icon && (
-        <div className="-ml-2 size-6 rounded-full border-[1.5px] border-white bg-white">
-          {tokens[1].icon}
-        </div>
-      )}
-    </div>
-    <span className="text-sm font-medium">
-      {tokens.map((t) => t.name).join("/")}
-    </span>
-  </div>
-);
-
-const ApyDisplay: React.FC<{ apy: DefiCardProps["apy"] }> = ({ apy }) => {
-  if (!apy) return null;
-
-  const renderValue = () => {
-    if (apy.isLoading) return <Skeleton className="h-6 w-16" />;
-    if (apy.value === null || apy.value === undefined || apy.error) return "-";
-    return `${apy.value.toFixed(2)}%`;
+  isBorrow?: boolean;
+  maxLTV?: number;
+  capacity?: {
+    used: number;
+    total: number;
   };
-
-  return (
-    <div className="flex items-center gap-2">
-      <span className="text-sm text-[#8D9C9C]">APY</span>
-      <span className="text-lg font-semibold text-[#17876D]">
-        {renderValue()}
-      </span>
-    </div>
-  );
-};
-
-const ProtocolBadges: React.FC<{ badges: ProtocolBadge[] }> = ({ badges }) => (
-  <div className="flex max-w-[180px] flex-wrap justify-end gap-1.5">
-    {badges.map((badge, index) => (
-      <div
-        key={index}
-        className={cn(
-          "whitespace-nowrap rounded-full px-2.5 py-1 text-xs",
-          badge.color,
-        )}
-      >
-        {badge.type}
-      </div>
-    ))}
-  </div>
-);
-
-const ActionButtons: React.FC<{ action: ProtocolAction | undefined }> = ({
-  action,
-}) => {
-  if (!action) {
-    return (
-      <Button className="w-full rounded-xl bg-[#E9F3F0] px-4 py-2.5 text-sm font-medium text-[#17876D] hover:bg-[#DBE9E4]">
-        Coming soon
-      </Button>
-    );
-  }
-
-  return (
-    <Link
-      href={action.link}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="block w-full"
-      onClick={action.onClick}
-    >
-      <Button
-        className={cn(
-          "w-full rounded-xl px-4 py-2.5 text-sm font-medium transition-all",
-          "bg-[#17876D] text-white hover:bg-[#146D57]",
-        )}
-      >
-        {action.buttonText}
-      </Button>
-    </Link>
-  );
-};
+  rewardPoints?: string;
+}
 
 const DefiCard: React.FC<DefiCardProps> = ({
   tokens,
@@ -125,37 +50,174 @@ const DefiCard: React.FC<DefiCardProps> = ({
   description,
   apy,
   action,
+  isBorrow = false,
+  maxLTV,
+  capacity,
+  rewardPoints,
 }) => {
+  // Accent colors: green for supply, yellow/orange for borrow
+  const accentColor = isBorrow
+    ? {
+        yieldBg: "bg-[#FEF3C7]",
+        yieldText: "text-[#D97706]",
+        buttonBg: "bg-[#D69733]",
+      }
+    : {
+        yieldBg: "bg-[#D1FAE5]",
+        yieldText: "text-[#059669]",
+        buttonBg: "bg-[#10B981]",
+      };
+
+  const yieldLabel = isBorrow ? "Borrow yield" : "Supply yield";
+  const yieldValue = apy?.isLoading
+    ? "-"
+    : apy?.value !== null && apy?.value !== undefined && !apy?.error
+      ? `${apy.value.toFixed(2)}%`
+      : "-";
+
+  const capacityText = capacity
+    ? `${formatNumber(capacity.used)} used of ${formatNumber(capacity.total)}`
+    : null;
+  const capacityPercent =
+    capacity && capacity.total > 0 ? (capacity.used / capacity.total) * 100 : 0;
+
   if (apy && apy.isLoading) {
     return (
-      <div className="flex h-auto min-h-[200px] w-full min-w-[330px] flex-col rounded-xl bg-white p-5">
-        <Skeleton className="mb-2 h-6 w-1/2" />
-        <Skeleton className="mb-4 h-6 w-1/3" />
+      <div className="flex h-auto min-h-[280px] w-full flex-col rounded-xl bg-white p-4 shadow-sm">
+        <Skeleton className="mb-4 h-6 w-1/2" />
+        <Skeleton className="mb-4 h-12 w-24" />
         <Skeleton className="mb-2 h-4 w-full" />
-        <Skeleton className="mb-4 h-4 w-2/3" />
-        <Skeleton className="mt-auto h-10 w-full" />
+        <Skeleton className="mb-4 h-2 w-full" />
+        <Skeleton className="mb-2 h-10 w-full" />
+        <Skeleton className="mb-2 h-10 w-full" />
+        <Skeleton className="mt-auto h-12 w-full" />
       </div>
     );
   }
 
   return (
-    <div className="flex h-auto min-h-[200px] w-full min-w-[330px] flex-col rounded-xl bg-white p-5">
-      <div className="flex items-start justify-between">
-        <div className="flex flex-col gap-2">
-          <TokenPairDisplay tokens={tokens} />
-          <ApyDisplay apy={apy} />
+    <div className="flex h-auto w-full flex-col gap-4 rounded-xl border-[#E5E8EB] bg-white p-4 shadow-sm">
+      {/* Header Section */}
+      <div className="mb-4 flex items-start justify-between">
+        <div className="flex-1">
+          {/* Token Pair */}
+          <div className="mb-2 flex items-center gap-2">
+            <div className="flex items-center -space-x-4">
+              <div className="flex h-8 w-8 items-center justify-center rounded-full">
+                {tokens[0]?.icon}
+              </div>
+              {tokens[1]?.icon && (
+                <div className="flex h-8 w-8 items-center justify-center rounded-full">
+                  {tokens[1].icon}
+                </div>
+              )}
+            </div>
+            <span className="text-sm font-semibold text-[#1A1F24]">
+              {tokens.map((t) => t.name).join("/")}
+            </span>
+          </div>
+          {/* Badge */}
+          {badges[0] && (
+            <div
+              className={cn(
+                "inline-block rounded-full px-2.5 py-1 text-xs font-medium",
+                badges[0].color,
+              )}
+            >
+              {badges[0].type}
+            </div>
+          )}
         </div>
 
-        <div className="flex items-center gap-2">
-          <ProtocolBadges badges={badges} />
-          <div className="w-[30px]">{protocolIcon}</div>
+        <div className="flex flex-col items-end gap-1.5">
+          {/* Protocol Icon */}
+          <div className="flex h-6 w-6 items-center justify-center rounded">
+            {protocolIcon}
+          </div>
+          {/* Max LTV */}
+          {maxLTV !== undefined && (
+            <span className="text-xs text-[#6B7780]">
+              Max LTV - {maxLTV.toFixed(0)}%
+            </span>
+          )}
         </div>
       </div>
 
-      <h3 className="mt-4 text-sm text-[#4B5563]">{description}</h3>
+      <div className="flex items-center justify-between">
+        {/* Yield Section */}
+        <div className="mb-4">
+          <div className="mb-1.5 text-xs text-[#6B7780]">{yieldLabel}</div>
+          <div
+            className={cn(
+              "inline-block rounded-lg px-3 py-2 text-lg font-bold",
+              accentColor.yieldBg,
+              accentColor.yieldText,
+            )}
+          >
+            {yieldValue}
+          </div>
+        </div>
 
-      <div className="mt-auto pt-4">
-        <ActionButtons action={action} />
+        {/* Capacity Section */}
+        {capacity && capacityText && (
+          <div className="mb-4">
+            <div className="mb-2 text-xs text-[#6B7780]">
+              <span className="font-medium text-[#1A1F24]">
+                ${formatNumber(capacity.used, 2, true)}
+              </span>{" "}
+              used of ${formatNumber(capacity.total, 2, true)}
+            </div>
+            <Progress
+              value={Math.min(capacityPercent, 100)}
+              className={cn(
+                "h-1.5 bg-[#E5E8EB]",
+                isBorrow ? "[&>div]:bg-[#F59E0B]" : "[&>div]:bg-[#10B981]",
+              )}
+            />
+          </div>
+        )}
+      </div>
+
+      {/* Reward Points Section */}
+      {rewardPoints && (
+        <div className="mb-3 flex items-center gap-2 rounded-lg bg-[#F5F5F0] px-3 py-2">
+          <Star className="h-4 w-4 text-[#6B7780]" />
+          <span className="text-xs text-[#1A1F24]">{rewardPoints}</span>
+        </div>
+      )}
+
+      {/* Feature Description */}
+      <div className="mb-4 flex items-center gap-2 rounded-lg bg-[#F7F9FA] px-3 py-2">
+        <HelpCircle className="h-4 w-4 text-[#6B7780]" />
+        <span className="text-xs text-[#1A1F24]">{description}</span>
+      </div>
+
+      {/* Action Button */}
+      <div className="mt-auto">
+        {action ? (
+          <Link
+            href={action.link}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={action.onClick}
+          >
+            <Button
+              className={cn(
+                "w-full rounded-full px-4 py-3 text-sm font-semibold text-white transition-opacity",
+                accentColor.buttonBg,
+              )}
+            >
+              {action.buttonText}
+            </Button>
+          </Link>
+        ) : (
+          <Button
+            disabled
+            className="w-full rounded-lg bg-[#E5E8EB] px-4 py-3 text-sm font-semibold text-[#6B7780]"
+          >
+            Coming soon
+          </Button>
+        )}
       </div>
     </div>
   );

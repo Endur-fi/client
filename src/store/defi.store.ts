@@ -7,7 +7,7 @@ import { BlockIdentifier } from "starknet";
 import { assetPriceAtom, lstConfigAtom, userAddressAtom } from "./common.store";
 import { apiExchangeRateAtom } from "./lst.store";
 import { snAPYAtom, btcPriceAtom } from "./staking.store";
-import { LSTAssetConfig } from "@/constants";
+import { LSTAssetConfig, LST_CONFIG } from "@/constants";
 
 // TODO: move all the types to separate type file
 interface VesuAPIResponse {
@@ -97,6 +97,118 @@ interface ProtocolYield {
   error?: string;
 }
 
+interface VesuPoolResponse {
+  id: string;
+  name: string;
+  assets: Array<{
+    address: string;
+    symbol: string;
+    name: string;
+    stats?: {
+      borrowApr: {
+        value: string;
+        decimals: number;
+      };
+      totalDebt: {
+        value: string;
+        decimals: number;
+      };
+      totalSupplied: {
+        value: string;
+        decimals: number;
+      };
+    };
+  }>;
+  pairs: Array<{
+    collateralAssetAddress: string;
+    debtAssetAddress: string;
+    maxLTV: {
+      value: string;
+      decimals: number;
+    };
+    debtCap: {
+      value: string;
+      decimals: number;
+    };
+    totalDebt: {
+      value: string;
+      decimals: number;
+    };
+    btcFiBorrowApr?: {
+      value: string;
+      decimals: number;
+    } | null;
+  }>;
+}
+
+interface VesuPoolsAPIResponse {
+  data: VesuPoolResponse[];
+}
+
+export interface VesuBorrowPool {
+  poolId: string;
+  poolName: string;
+  collateralAddress: string;
+  collateralSymbol: string;
+  collateralName: string;
+  debtAddress: string;
+  debtSymbol: string;
+  debtName: string;
+  maxLTV: number;
+  debtCap: number;
+  totalDebt: number;
+  borrowApr: number | null;
+  btcFiBorrowApr: number | null;
+}
+
+interface VesuPoolResponse {
+  id: string;
+  name: string;
+  assets: Array<{
+    address: string;
+    symbol: string;
+    name: string;
+    stats?: {
+      borrowApr: {
+        value: string;
+        decimals: number;
+      };
+      totalDebt: {
+        value: string;
+        decimals: number;
+      };
+      totalSupplied: {
+        value: string;
+        decimals: number;
+      };
+    };
+  }>;
+  pairs: Array<{
+    collateralAssetAddress: string;
+    debtAssetAddress: string;
+    maxLTV: {
+      value: string;
+      decimals: number;
+    };
+    debtCap: {
+      value: string;
+      decimals: number;
+    };
+    totalDebt: {
+      value: string;
+      decimals: number;
+    };
+    btcFiBorrowApr?: {
+      value: string;
+      decimals: number;
+    } | null;
+  }>;
+}
+
+interface VesuPoolsAPIResponse {
+  data: VesuPoolResponse[];
+}
+
 // TODO: move this to utils/common.utils.ts under "defi formating" comments
 const convertVesuValue = (value: string, decimals: number): number => {
   const numValue = Number(value);
@@ -175,6 +287,98 @@ const vesuYieldQueryAtom = atomWithQuery(() => ({
   refetchOnWindowFocus: false,
   refetchOnMount: false,
 }));
+
+// Helper function to create Vesu BTC borrow pool query atoms
+const createVesuBTCYieldQueryAtom = (
+  poolId: string,
+  assetSymbol: string,
+  queryKey: string,
+) =>
+  atomWithQuery(() => ({
+    queryKey: [queryKey],
+    queryFn: async (): Promise<ProtocolYield> => {
+      try {
+        //TODO: move the api call logic to api.ts under "defi calls" comment
+        const response = await fetch(`https://api.vesu.xyz/pools/${poolId}`);
+        const data: VesuAPIResponse = await response.json();
+
+        const stats = data.data.assets?.find(
+          (a) => a.symbol === assetSymbol,
+        )?.stats;
+        if (!stats) {
+          console.error(
+            `No ${assetSymbol} stats found in Vesu API response for pool ${poolId}`,
+          );
+          return {
+            value: null,
+            totalSupplied: null,
+            isLoading: false,
+            error: `${assetSymbol} stats not found`,
+          };
+        }
+        const supplyApy = convertVesuValue(
+          stats.supplyApy.value,
+          stats.supplyApy.decimals,
+        );
+        const defiSpringApr = convertVesuValue(
+          stats.defiSpringSupplyApr.value,
+          stats.defiSpringSupplyApr.decimals,
+        );
+        const lstApr = convertVesuValue(
+          stats.lstApr.value,
+          stats.lstApr.decimals,
+        );
+
+        const totalSupplied = convertVesuValue(
+          stats.totalSupplied.value,
+          stats.totalSupplied.decimals,
+        );
+
+        return {
+          value: (supplyApy + defiSpringApr + lstApr) * 100,
+          totalSupplied,
+          isLoading: false,
+        };
+      } catch (error) {
+        console.error(`${queryKey} error:`, error);
+        return {
+          value: null,
+          totalSupplied: null,
+          isLoading: false,
+          error: `Failed to fetch Vesu ${assetSymbol} yield`,
+        };
+      }
+    },
+    refetchInterval: 60000,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+  }));
+
+// TODO: Update these pool IDs with the actual pool IDs from Vesu API response
+// Placeholder pool IDs - these need to be replaced with actual pool IDs from the API
+const vesuBTCxWBTCYieldQueryAtom = createVesuBTCYieldQueryAtom(
+  "PLACEHOLDER_POOL_ID_xWBTC", // Replace with actual pool ID
+  "xWBTC",
+  "vesuBTCxWBTCYield",
+);
+
+const vesuBTCxtBTCYieldQueryAtom = createVesuBTCYieldQueryAtom(
+  "PLACEHOLDER_POOL_ID_xtBTC", // Replace with actual pool ID
+  "xtBTC",
+  "vesuBTCxtBTCYield",
+);
+
+const vesuBTCxLBTCYieldQueryAtom = createVesuBTCYieldQueryAtom(
+  "PLACEHOLDER_POOL_ID_xLBTC", // Replace with actual pool ID
+  "xLBTC",
+  "vesuBTCxLBTCYield",
+);
+
+const vesuBTCxsBTCYieldQueryAtom = createVesuBTCYieldQueryAtom(
+  "PLACEHOLDER_POOL_ID_xsBTC", // Replace with actual pool ID
+  "xsBTC",
+  "vesuBTCxsBTCYield",
+);
 
 const ekuboYieldQueryAtom = atomWithQuery((get) => ({
   queryKey: ["ekuboYield", get(apiExchangeRateAtom)],
@@ -694,6 +898,47 @@ export const haikoYieldAtom = atom<ProtocolStats>((get) => {
   };
 });
 
+// Vesu BTC borrow pool yield atoms
+export const vesuBTCxWBTCYieldAtom = atom<ProtocolStats>((get) => {
+  const { data, error } = get(vesuBTCxWBTCYieldQueryAtom);
+  return {
+    value: error || !data ? null : data.value,
+    totalSupplied: error || !data ? null : data.totalSupplied || null,
+    error,
+    isLoading: !data && !error,
+  };
+});
+
+export const vesuBTCxtBTCYieldAtom = atom<ProtocolStats>((get) => {
+  const { data, error } = get(vesuBTCxtBTCYieldQueryAtom);
+  return {
+    value: error || !data ? null : data.value,
+    totalSupplied: error || !data ? null : data.totalSupplied || null,
+    error,
+    isLoading: !data && !error,
+  };
+});
+
+export const vesuBTCxLBTCYieldAtom = atom<ProtocolStats>((get) => {
+  const { data, error } = get(vesuBTCxLBTCYieldQueryAtom);
+  return {
+    value: error || !data ? null : data.value,
+    totalSupplied: error || !data ? null : data.totalSupplied || null,
+    error,
+    isLoading: !data && !error,
+  };
+});
+
+export const vesuBTCxsBTCYieldAtom = atom<ProtocolStats>((get) => {
+  const { data, error } = get(vesuBTCxsBTCYieldQueryAtom);
+  return {
+    value: error || !data ? null : data.value,
+    totalSupplied: error || !data ? null : data.totalSupplied || null,
+    error,
+    isLoading: !data && !error,
+  };
+});
+
 export const trovesHyperYieldAtom = atom<ProtocolStats>((get) => {
   const { data, error } = get(trovesHyperYieldQueryAtom);
   return {
@@ -753,6 +998,129 @@ export const trovesEkuboBTCxsBTCYieldAtom = createTrovesYieldAtom(
   trovesEkuboBTCxsBTCYieldQueryAtom,
 );
 
+// Build LST addresses map from LST_CONFIG for filtering borrow pools
+// Maps LST_SYMBOL to LST_ADDRESS
+const LST_ADDRESSES: Record<string, string> = Object.values(LST_CONFIG).reduce(
+  (acc, asset) => {
+    if (asset.LST_ADDRESS) {
+      acc[asset.LST_SYMBOL] = asset.LST_ADDRESS;
+    }
+    return acc;
+  },
+  {} as Record<string, string>,
+);
+
+// Query atom to fetch Vesu pools
+const vesuPoolsQueryAtom = atomWithQuery(() => ({
+  queryKey: ["vesuPools"],
+  queryFn: async (): Promise<VesuBorrowPool[]> => {
+    try {
+      const response = await fetch("https://proxy.api.troves.fi/vesu/pools");
+      const data: VesuPoolsAPIResponse = await response.json();
+
+      const borrowPools: VesuBorrowPool[] = [];
+      // Track unique collateral/debt pairs to avoid duplicates
+      const seenPairs = new Set<string>();
+
+      // Iterate through all pools
+      for (const pool of data.data) {
+        // Find pairs where collateral is one of our LST tokens
+        for (const pair of pool.pairs) {
+          const lstEntry = Object.entries(LST_ADDRESSES).find(
+            ([, address]) =>
+              address.toLowerCase() ===
+              pair.collateralAssetAddress.toLowerCase(),
+          );
+
+          if (lstEntry) {
+            const [collateralSymbol] = lstEntry;
+            const collateralAsset = pool.assets.find(
+              (a) =>
+                a.address.toLowerCase() ===
+                pair.collateralAssetAddress.toLowerCase(),
+            );
+            const debtAsset = pool.assets.find(
+              (a) =>
+                a.address.toLowerCase() === pair.debtAssetAddress.toLowerCase(),
+            );
+
+            // Only include pairs where both collateral and debt assets are found
+            // and the debt asset has valid data
+            if (collateralAsset && debtAsset && debtAsset.symbol) {
+              // Create a unique key for this collateral/debt pair
+              const pairKey = `${pair.collateralAssetAddress.toLowerCase()}-${pair.debtAssetAddress.toLowerCase()}`;
+
+              // Skip if we've already seen this pair
+              if (seenPairs.has(pairKey)) {
+                continue;
+              }
+              seenPairs.add(pairKey);
+
+              const debtStats = debtAsset.stats;
+              const borrowApr = debtStats
+                ? convertVesuValue(
+                    debtStats.borrowApr.value,
+                    debtStats.borrowApr.decimals,
+                  ) * 100
+                : null;
+              const btcFiBorrowApr = pair.btcFiBorrowApr
+                ? convertVesuValue(
+                    pair.btcFiBorrowApr.value,
+                    pair.btcFiBorrowApr.decimals,
+                  ) * 100
+                : null;
+
+              // maxLTV: divided by 1e18 and multiplied by 100 for percentage
+              const maxLTVValue =
+                convertVesuValue(pair.maxLTV.value, pair.maxLTV.decimals) * 100;
+
+              // debtCap and totalDebt: convert based on their decimals
+              const debtCapValue = convertVesuValue(
+                pair.debtCap.value,
+                pair.debtCap.decimals,
+              );
+              const totalDebtValue = convertVesuValue(
+                pair.totalDebt.value,
+                pair.totalDebt.decimals,
+              );
+
+              borrowPools.push({
+                poolId: pool.id,
+                poolName: pool.name,
+                collateralAddress: pair.collateralAssetAddress,
+                collateralSymbol,
+                collateralName: collateralAsset.name,
+                debtAddress: pair.debtAssetAddress,
+                debtSymbol: debtAsset.symbol,
+                debtName: debtAsset.name,
+                maxLTV: maxLTVValue,
+                debtCap: debtCapValue,
+                totalDebt: totalDebtValue,
+                borrowApr,
+                btcFiBorrowApr,
+              });
+            }
+          }
+        }
+      }
+
+      return borrowPools;
+    } catch (error) {
+      console.error("vesuPoolsQueryAtom error:", error);
+      return [];
+    }
+  },
+  refetchInterval: 60000,
+  refetchOnWindowFocus: false,
+  refetchOnMount: false,
+}));
+
+// Atom to expose Vesu borrow pools
+export const vesuBorrowPoolsAtom = atom<VesuBorrowPool[]>((get) => {
+  const { data } = get(vesuPoolsQueryAtom);
+  return data || [];
+});
+
 // TODO: move to separate type file
 export type SupportedDApp =
   | "strkfarm"
@@ -805,6 +1173,10 @@ export const protocolYieldsAtom = atom<
   hyperxLBTC: get(trovesHyperYieldAtom),
   hyperxsBTC: get(trovesHyperYieldAtom),
   vesu: get(vesuYieldAtom),
+  vesuBTCxWBTC: get(vesuBTCxWBTCYieldAtom),
+  vesuBTCxtBTC: get(vesuBTCxtBTCYieldAtom),
+  vesuBTCxLBTC: get(vesuBTCxLBTCYieldAtom),
+  vesuBTCxsBTC: get(vesuBTCxsBTCYieldAtom),
   ekubo: get(ekuboYieldAtom),
   nostraDex: get(nostraLPYieldAtom),
   nostraLending: get(nostraLendYieldAtom),
