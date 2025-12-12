@@ -1,10 +1,8 @@
 "use client";
 
 import { useAtomValue } from "jotai";
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useMemo, useState } from "react";
 import {
-  AlertTriangle,
-  ArrowLeftRight,
   HelpCircle,
   OctagonAlert,
   ShieldAlert,
@@ -62,11 +60,7 @@ import {
   TooltipTrigger,
 } from "./ui/tooltip";
 import {
-  Table,
-  TableBody,
   TableCell,
-  TableHead,
-  TableHeader,
   TableRow,
 } from "./ui/table";
 import { ChevronDown } from "lucide-react";
@@ -1076,10 +1070,9 @@ const UnifiedDefi: React.FC = () => {
         error: vesuBTCxsBTCYield?.error ?? null,
         isLoading: vesuBTCxsBTCYield?.isLoading ?? false,
       };
-    } else {
-      // Other protocols use the yields from protocolYieldsAtom
-      return shouldShowApy ? yields[protocol] : undefined;
     }
+    // Other protocols use the yields from protocolYieldsAtom
+    return shouldShowApy ? yields[protocol] : undefined;
   };
 
   const renderProtocols = (protocols: string[]) => {
@@ -1699,9 +1692,8 @@ const UnifiedDefi: React.FC = () => {
                                 return thousands % 1 === 0
                                   ? `$${thousands.toFixed(0)}K`
                                   : `$${thousands.toFixed(2)}K`;
-                              } else {
-                                return `$${value.toFixed(2)}`;
                               }
+                              return `$${value.toFixed(2)}`;
                             };
 
                             const capacityText = pool
