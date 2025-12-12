@@ -3,10 +3,10 @@
 import { useAccount, useStarkProfile } from "@starknet-react/core";
 import { ColumnDef } from "@tanstack/react-table";
 import Link from "next/link";
+import React from "react";
 import { Copy } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
-import { Icons } from "@/components/Icons";
 import { formatNumber, shortAddress } from "@/lib/utils";
 
 export type SizeColumn = {

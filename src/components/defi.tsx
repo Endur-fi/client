@@ -1,14 +1,8 @@
 "use client";
 
 import { useAtomValue } from "jotai";
-import React, { useMemo, useState, useEffect } from "react";
-import {
-  AlertTriangle,
-  ArrowLeftRight,
-  HelpCircle,
-  OctagonAlert,
-  ShieldAlert,
-} from "lucide-react";
+import React, { useMemo, useState } from "react";
+import { HelpCircle, OctagonAlert, ShieldAlert } from "lucide-react";
 
 import { useSidebar } from "@/components/ui/sidebar";
 import { MyAnalytics } from "@/lib/analytics";
@@ -61,14 +55,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "./ui/tooltip";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "./ui/table";
+import { TableCell, TableRow } from "./ui/table";
 import { ChevronDown } from "lucide-react";
 
 export interface ProtocolConfig {
@@ -650,7 +637,7 @@ export const btcProtocolConfigs: Partial<
 };
 
 // Combine all protocol configs
-const allProtocolConfigs: Partial<Record<SupportedDApp, ProtocolConfig>> = {
+export const protocolConfigs: Partial<Record<SupportedDApp, ProtocolConfig>> = {
   ...strkProtocolConfigs,
   ...btcProtocolConfigs,
 };
@@ -912,8 +899,8 @@ const UnifiedDefi: React.FC = () => {
   }, [vesuBorrowPools]);
 
   // Combine all protocol configs including dynamic Vesu borrow pools
-  const allProtocolConfigsWithBorrow = useMemo(() => {
-    return { ...allProtocolConfigs, ...vesuBorrowConfigs } as Record<
+  const protocolConfigsWithBorrow = useMemo(() => {
+    return { ...protocolConfigs, ...vesuBorrowConfigs } as Record<
       string,
       ProtocolConfig
     >;
@@ -930,8 +917,8 @@ const UnifiedDefi: React.FC = () => {
       activeTab === "supply" ? supplyProtocols : borrowProtocolKeys;
     const configsToUse: Record<string, ProtocolConfig> =
       activeTab === "supply"
-        ? (allProtocolConfigs as Record<string, ProtocolConfig>)
-        : allProtocolConfigsWithBorrow;
+        ? (protocolConfigs as Record<string, ProtocolConfig>)
+        : protocolConfigsWithBorrow;
 
     return currentProtocols
       .filter((protocol) => {
@@ -982,7 +969,7 @@ const UnifiedDefi: React.FC = () => {
     vesuBTCxLBTCYield,
     vesuBTCxsBTCYield,
     borrowProtocolKeys,
-    allProtocolConfigsWithBorrow,
+    protocolConfigsWithBorrow,
   ]);
 
   // Helper function to get yield data for a protocol
@@ -1076,18 +1063,17 @@ const UnifiedDefi: React.FC = () => {
         error: vesuBTCxsBTCYield?.error ?? null,
         isLoading: vesuBTCxsBTCYield?.isLoading ?? false,
       };
-    } else {
-      // Other protocols use the yields from protocolYieldsAtom
-      return shouldShowApy ? yields[protocol] : undefined;
     }
+    // Other protocols use the yields from protocolYieldsAtom
+    return shouldShowApy ? yields[protocol] : undefined;
   };
 
   const renderProtocols = (protocols: string[]) => {
     return protocols.map((protocol) => {
       const configsToUse: Record<string, ProtocolConfig> =
         activeTab === "supply"
-          ? (allProtocolConfigs as Record<string, ProtocolConfig>)
-          : allProtocolConfigsWithBorrow;
+          ? (protocolConfigs as Record<string, ProtocolConfig>)
+          : protocolConfigsWithBorrow;
       const config = configsToUse[protocol];
       if (!config) return null;
 
@@ -1173,8 +1159,8 @@ const UnifiedDefi: React.FC = () => {
     return protocols.map((protocol) => {
       const configsToUse =
         activeTab === "supply"
-          ? (allProtocolConfigs as Record<string, ProtocolConfig>)
-          : allProtocolConfigsWithBorrow;
+          ? (protocolConfigs as Record<string, ProtocolConfig>)
+          : protocolConfigsWithBorrow;
       const config = configsToUse[protocol];
       if (!config) return null;
 
@@ -1437,10 +1423,7 @@ const UnifiedDefi: React.FC = () => {
                         {filteredAndSortedProtocols.length > 0 ? (
                           filteredAndSortedProtocols.map((protocol) => {
                             const configsToUse: Record<string, ProtocolConfig> =
-                              allProtocolConfigs as Record<
-                                string,
-                                ProtocolConfig
-                              >;
+                              protocolConfigs as Record<string, ProtocolConfig>;
                             const config = configsToUse[protocol];
                             if (!config) return null;
 
@@ -1652,8 +1635,7 @@ const UnifiedDefi: React.FC = () => {
                       <tbody>
                         {filteredAndSortedProtocols.length > 0 ? (
                           filteredAndSortedProtocols.map((protocol) => {
-                            const config =
-                              allProtocolConfigsWithBorrow[protocol];
+                            const config = protocolConfigsWithBorrow[protocol];
                             if (!config) return null;
 
                             // For borrow pools, use the apy from config
@@ -1699,9 +1681,8 @@ const UnifiedDefi: React.FC = () => {
                                 return thousands % 1 === 0
                                   ? `$${thousands.toFixed(0)}K`
                                   : `$${thousands.toFixed(2)}K`;
-                              } else {
-                                return `$${value.toFixed(2)}`;
                               }
+                              return `$${value.toFixed(2)}`;
                             };
 
                             const capacityText = pool
