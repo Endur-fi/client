@@ -15,7 +15,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { IS_PAUSED, getLSTAssetsByCategory, getSTRKAsset } from "@/constants";
-import { cn, formatNumber, formatNumberWithCommas } from "@/lib/utils";
+import { cn, formatNumberWithCommas } from "@/lib/utils";
 import {
   isMerryChristmasAtom,
   tabsAtom,
@@ -280,7 +280,14 @@ const Tabs = () => {
         <Icons.strkLogo className="h-8 w-8 grayscale-[0.8] group-data-[state=active]:grayscale-0" />
       ),
       label: "STRK",
-      apy: `${formatNumber((apy.value.strkApy * 100).toFixed(2))}%`,
+      apy: (() => {
+        const apyValue = apy.value.strkApy * 100;
+        const formattedValue =
+          apyValue < 0.01 && apyValue > 0
+            ? apyValue.toFixed(6)
+            : apyValue.toFixed(2);
+        return `${formattedValue}%`;
+      })(),
       tvl: formatTVL(strkTVL.value),
     },
     {
@@ -289,7 +296,14 @@ const Tabs = () => {
         <Icons.btcLogo className="h-8 w-8 grayscale-[0.8] group-data-[state=active]:grayscale-0" />
       ),
       label: "BTC",
-      apy: `${formatNumber((apy.value.btcApy * 100).toFixed(2))}%`,
+      apy: (() => {
+        const apyValue = apy.value.btcApy * 100;
+        const formattedValue =
+          apyValue < 0.01 && apyValue > 0
+            ? apyValue.toFixed(6)
+            : apyValue.toFixed(2);
+        return `${formattedValue}%`;
+      })(),
       tvl: formatTVL(btcTVL.value),
     },
   ];

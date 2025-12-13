@@ -38,7 +38,7 @@ interface DefiCardProps {
   maxLTV?: number;
   capacity?: {
     used: number;
-    total: number;
+    total: number | null; // null means no limit
   };
   rewardPoints?: string;
 }
@@ -76,10 +76,16 @@ const DefiCard: React.FC<DefiCardProps> = ({
       : "-";
 
   const capacityText = capacity
-    ? `${formatNumber(capacity.used)} used of ${formatNumber(capacity.total)}`
+    ? capacity.total === null
+      ? null // No limit - will show "No limit" instead
+      : isBorrow
+        ? `$${formatNumber(capacity.used)} used of $${formatNumber(capacity.total)}`
+        : `${formatNumber(capacity.used)} used of ${formatNumber(capacity.total)}`
     : null;
   const capacityPercent =
-    capacity && capacity.total > 0 ? (capacity.used / capacity.total) * 100 : 0;
+    capacity && capacity.total !== null && capacity.total > 0
+      ? (capacity.used / capacity.total) * 100
+      : 0;
 
   if (apy && apy.isLoading) {
     return (
@@ -159,23 +165,36 @@ const DefiCard: React.FC<DefiCardProps> = ({
         </div>
 
         {/* Capacity Section */}
-        {capacity && capacityText && (
-          <div className="mb-4">
-            <div className="mb-2 text-xs text-[#6B7780]">
-              <span className="font-medium text-[#1A1F24]">
-                ${formatNumber(capacity.used, 2, true)}
-              </span>{" "}
-              used of ${formatNumber(capacity.total, 2, true)}
+        {capacity ? (
+          capacityText ? (
+            <div className="mb-4">
+              <div className="mb-2 text-xs text-[#6B7780]">
+                <span className="font-medium text-[#1A1F24]">
+                  {isBorrow
+                    ? `$${formatNumber(capacity.used, 2, true)}`
+                    : formatNumber(capacity.used, 2, true)}
+                </span>{" "}
+                used of{" "}
+                {isBorrow
+                  ? `$${formatNumber(capacity.total!, 2, true)}`
+                  : formatNumber(capacity.total!, 2, true)}
+              </div>
+              <Progress
+                value={Math.min(capacityPercent, 100)}
+                className={cn(
+                  "h-1.5 bg-[#E5E8EB]",
+                  isBorrow ? "[&>div]:bg-[#F59E0B]" : "[&>div]:bg-[#10B981]",
+                )}
+              />
             </div>
-            <Progress
-              value={Math.min(capacityPercent, 100)}
-              className={cn(
-                "h-1.5 bg-[#E5E8EB]",
-                isBorrow ? "[&>div]:bg-[#F59E0B]" : "[&>div]:bg-[#10B981]",
-              )}
-            />
-          </div>
-        )}
+          ) : (
+            <div className="mb-4">
+              <div className="mb-2 text-xs text-[#6B7780]">
+                <span className="font-medium text-[#1A1F24]">No limit</span>
+              </div>
+            </div>
+          )
+        ) : null}
       </div>
 
       {/* Reward Points Section */}

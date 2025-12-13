@@ -3,11 +3,12 @@ import { Atom, atom, WritableAtom } from "jotai";
 import { atomWithQuery, AtomWithQueryResult } from "jotai-tanstack-query";
 import { atomFamily } from "jotai/utils";
 import { AtomFamily } from "jotai/vanilla/utils/atomFamily";
-import { BlockIdentifier } from "starknet";
+import { BlockIdentifier, Contract, RpcProvider, constants } from "starknet";
 import { assetPriceAtom, lstConfigAtom, userAddressAtom } from "./common.store";
 import { apiExchangeRateAtom } from "./lst.store";
 import { snAPYAtom, btcPriceAtom } from "./staking.store";
-import { LSTAssetConfig, LST_CONFIG } from "@/constants";
+import { LSTAssetConfig, LST_CONFIG, NETWORK } from "@/constants";
+import erc4626Abi from "@/abi/erc4626.abi.json";
 
 // TODO: move all the types to separate type file
 interface VesuAPIResponse {
@@ -1019,8 +1020,6 @@ const vesuPoolsQueryAtom = atomWithQuery(() => ({
       const data: VesuPoolsAPIResponse = await response.json();
 
       const borrowPools: VesuBorrowPool[] = [];
-      // Track unique collateral/debt pairs to avoid duplicates
-      const seenPairs = new Set<string>();
 
       // Iterate through all pools
       for (const pool of data.data) {
@@ -1047,15 +1046,6 @@ const vesuPoolsQueryAtom = atomWithQuery(() => ({
             // Only include pairs where both collateral and debt assets are found
             // and the debt asset has valid data
             if (collateralAsset && debtAsset && debtAsset.symbol) {
-              // Create a unique key for this collateral/debt pair
-              const pairKey = `${pair.collateralAssetAddress.toLowerCase()}-${pair.debtAssetAddress.toLowerCase()}`;
-
-              // Skip if we've already seen this pair
-              if (seenPairs.has(pairKey)) {
-                continue;
-              }
-              seenPairs.add(pairKey);
-
               const debtStats = debtAsset.stats;
               const borrowApr = debtStats
                 ? convertVesuValue(
@@ -1070,19 +1060,11 @@ const vesuPoolsQueryAtom = atomWithQuery(() => ({
                   ) * 100
                 : null;
 
-              // maxLTV: divided by 1e18 and multiplied by 100 for percentage
               const maxLTVValue =
                 convertVesuValue(pair.maxLTV.value, pair.maxLTV.decimals) * 100;
 
-              // debtCap and totalDebt: convert based on their decimals
-              const debtCapValue = convertVesuValue(
-                pair.debtCap.value,
-                pair.debtCap.decimals,
-              );
-              const totalDebtValue = convertVesuValue(
-                pair.totalDebt.value,
-                pair.totalDebt.decimals,
-              );
+              const debtCapValue = convertVesuValue(pair.debtCap.value, 18);
+              const totalDebtValue = convertVesuValue(pair.totalDebt.value, 18);
 
               borrowPools.push({
                 poolId: pool.id,
@@ -1120,6 +1102,118 @@ export const vesuBorrowPoolsAtom = atom<VesuBorrowPool[]>((get) => {
   const { data } = get(vesuPoolsQueryAtom);
   return data || [];
 });
+
+// Vault capacity interface
+export interface VaultCapacity {
+  used: number;
+  total: number | null; // null means no limit
+}
+
+// Helper function to fetch vault capacity from troves hyper vault
+async function fetchVaultCapacity(
+  vaultAddress: string,
+  vaultDecimals: number,
+): Promise<VaultCapacity | null> {
+  try {
+    const provider = new RpcProvider({
+      nodeUrl:
+        NETWORK === constants.NetworkName.SN_MAIN
+          ? process.env.NEXT_PUBLIC_RPC_URL ||
+            "https://starknet-mainnet.public.blastapi.io/rpc/v0_7"
+          : "https://starknet-sepolia.public.blastapi.io/rpc/v0_7",
+    });
+
+    const contract = new Contract({
+      abi: erc4626Abi,
+      address: vaultAddress as `0x${string}`,
+      providerOrAccount: provider,
+    });
+
+    // Fetch total_assets and max_deposit
+    // For max_deposit, we need a receiver address, but we can use zero address
+    const zeroAddress =
+      "0x0000000000000000000000000000000000000000000000000000000000000000";
+
+    const [totalAssetsResult, maxDepositResult] = await Promise.all([
+      contract.call("total_assets", []),
+      contract.call("max_deposit", [zeroAddress as `0x${string}`]),
+    ]);
+
+    // Convert u256 results using MyNumber
+    // Handle both string and u256 struct (low/high) formats
+    const totalAssetsStr =
+      typeof totalAssetsResult === "object" && "low" in totalAssetsResult
+        ? (
+            BigInt(totalAssetsResult.low.toString()) +
+            (BigInt(totalAssetsResult.high?.toString() || "0") << BigInt(128))
+          ).toString()
+        : totalAssetsResult.toString();
+    const maxDepositStr =
+      typeof maxDepositResult === "object" && "low" in maxDepositResult
+        ? (
+            BigInt(maxDepositResult.low.toString()) +
+            (BigInt(maxDepositResult.high?.toString() || "0") << BigInt(128))
+          ).toString()
+        : maxDepositResult.toString();
+
+    const totalAssetsMyNum = new MyNumber(totalAssetsStr, vaultDecimals);
+    const maxDepositMyNum = new MyNumber(maxDepositStr, vaultDecimals);
+
+    // Calculate used capacity
+    const used = Number(totalAssetsMyNum.toEtherStr());
+
+    // If max_deposit is 0, it means no limit
+    const maxDepositValue = Number(maxDepositMyNum.toString());
+    if (maxDepositValue === 0) {
+      return { used, total: null };
+    }
+
+    // Calculate max limit
+    const maxLimit = Number(maxDepositMyNum.toEtherStr());
+
+    // If max limit is > 1B, show no limit
+    if (maxLimit > 1_000_000_000) {
+      return { used, total: null };
+    }
+
+    return { used, total: maxLimit };
+  } catch (error) {
+    console.error("Error fetching vault capacity:", error);
+    return null;
+  }
+}
+
+// Create vault capacity atoms for each hyper vault
+const createVaultCapacityAtom = (vaultSymbol: string) => {
+  return atomWithQuery(() => ({
+    queryKey: [`vaultCapacity_${vaultSymbol}`],
+    queryFn: async (_queryKey: any): Promise<VaultCapacity | null> => {
+      const asset = Object.values(LST_CONFIG).find(
+        (a) => a.LST_SYMBOL === vaultSymbol,
+      );
+
+      if (!asset?.NETWORKS[NETWORK]?.TROVES_HYPER_VAULT_ADDRESS) {
+        return null;
+      }
+
+      const networkConfig = asset.NETWORKS[NETWORK];
+      if (!networkConfig?.TROVES_HYPER_VAULT_ADDRESS) {
+        return null;
+      }
+      const vaultAddress = networkConfig.TROVES_HYPER_VAULT_ADDRESS;
+      return fetchVaultCapacity(vaultAddress, asset.DECIMALS);
+    },
+    refetchInterval: 60000, // Refetch every minute
+    refetchOnWindowFocus: false,
+    refetchOnMount: true,
+  }));
+};
+
+export const hyperxWBTCVaultCapacityAtom = createVaultCapacityAtom("xWBTC");
+export const hyperxtBTCVaultCapacityAtom = createVaultCapacityAtom("xtBTC");
+export const hyperxLBTCVaultCapacityAtom = createVaultCapacityAtom("xLBTC");
+export const hyperxsBTCVaultCapacityAtom = createVaultCapacityAtom("xsBTC");
+export const hyperxSTRKVaultCapacityAtom = createVaultCapacityAtom("xSTRK");
 
 // TODO: move to separate type file
 export type SupportedDApp =
