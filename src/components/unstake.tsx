@@ -32,7 +32,7 @@ import { useTransactionHandler } from "@/hooks/use-transactions";
 import { useWalletConnection } from "@/hooks/use-wallet-connection";
 import { MyAnalytics } from "@/lib/analytics";
 import MyNumber from "@/lib/MyNumber";
-import { eventNames, formatNumberWithCommas } from "@/lib/utils";
+import { cn, eventNames, formatNumberWithCommas } from "@/lib/utils";
 import { executeAvnuSwap, getAvnuQuotes } from "@/services/avnu";
 import {
   avnuErrorAtom,
@@ -49,7 +49,7 @@ import { Icons } from "./Icons";
 import Stats from "./stats";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
-import { lstConfigAtom } from "@/store/common.store";
+import { assetPriceAtom, lstConfigAtom } from "@/store/common.store";
 import { ASSET_ICONS } from "./asset-selector";
 import { Web3Number } from "@strkfarm/sdk";
 
@@ -120,21 +120,26 @@ const FeeSection = () => (
   <div className="flex items-center justify-between rounded-md text-xs font-medium text-[#939494] lg:text-[13px]">
     <p className="flex items-center gap-1">
       Reward fees
-      <InfoTooltip
-        content={
-          <>
+      <TooltipProvider delayDuration={0}>
+        <Tooltip>
+          <TooltipTrigger>
+            <Info className="size-3 text-[#3F6870] lg:text-[#8D9C9C]" />
+          </TooltipTrigger>
+          <TooltipContent
+            side="right"
+            className="max-w-60 rounded-md border border-[#03624C] bg-white text-[#03624C]"
+          >
             This fee applies exclusively to your staking rewards and does NOT
             affect your staked amount.{" "}
             {/* <Link
               target="_blank"
               href={LINKS.ENDUR_VALUE_DISTRUBUTION_BLOG_LINK}
-              className="text-blue-600 underline"
             >
               Learn more
             </Link> */}
-          </>
-        }
-      />
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
     </p>
     <p>
       <span className="">{REWARD_FEES}%</span>{" "}
@@ -152,21 +157,42 @@ const FeeSection = () => (
 const YouWillGetSection = ({
   amount,
   tooltipContent,
+  usdValue,
 }: {
   amount: string;
   tooltipContent: React.ReactNode;
+  usdValue?: number | null;
 }) => {
   const lstConfig = useAtomValue(lstConfigAtom)!;
   const isBTC = lstConfig.SYMBOL?.toLowerCase().includes("btc");
   return (
-    <div className="flex items-center justify-between rounded-md text-xs font-bold text-[#03624C] lg:text-[13px]">
+    <div className="flex items-center justify-between rounded-md text-xs text-[#03624C] lg:text-[13px]">
       <p className="flex items-center gap-1">
-        You will get
-        <InfoTooltip content={tooltipContent} />
+        You will receive
+        <TooltipProvider delayDuration={0}>
+          <Tooltip>
+            <TooltipTrigger>
+              <Info className="size-3 text-[#3F6870] lg:text-[#8D9C9C]" />
+            </TooltipTrigger>
+            <TooltipContent
+              side="right"
+              className="max-w-60 rounded-md border border-[#03624C] bg-white text-[#03624C]"
+            >
+              {tooltipContent}
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       </p>
-      <span className="text-xs lg:text-[13px]">
-        {formatNumberWithCommas(amount, isBTC ? 8 : 2)} {lstConfig.SYMBOL}
-      </span>
+      <div className="flex flex-col">
+        <span className="text-xs">
+          {formatNumberWithCommas(amount, isBTC ? 8 : 2)} {lstConfig.SYMBOL}
+        </span>
+        {usdValue !== null && usdValue !== undefined && (
+          <span className="text-right text-xs text-[#6B7780]">
+            ≈ ${usdValue.toFixed(2)}
+          </span>
+        )}
+      </div>
     </div>
   );
 };
@@ -227,16 +253,28 @@ const UnstakeOptionCard = ({
   return (
     <TabsTrigger
       value={title.toLowerCase().includes("endur") ? "endur" : "dex"}
-      className={`flex w-full flex-col gap-1.5 rounded-[15px] border border-[#8D9C9C20] px-4 py-3 ${
-        isActive ? "border-[#17876D]" : ""
+      className={`flex w-full cursor-pointer flex-col gap-1.5 rounded-[15px] border px-4 py-3 transition-all ${
+        isActive
+          ? "border-[#17876D] bg-[#D0E6E0]"
+          : "border-[#8D9C9C20] bg-white"
       }`}
-      style={{ backgroundColor: isActive ? "#D0E6E0" : bgColor }}
     >
       <div className="flex w-full items-center justify-between">
-        <p className="text-sm font-semibold">
-          {title}
-          {isRecommended && " (Recommended)"}
-        </p>
+        <div className="flex items-center gap-3">
+          <div
+            className={`flex h-4 w-4 items-center justify-center rounded-full border-2 ${
+              isActive
+                ? "border-[#17876D] bg-[#17876D]"
+                : "border-[#8D9C9C] bg-transparent"
+            }`}
+          >
+            {isActive && <div className="h-2 w-2 rounded-full bg-white" />}
+          </div>
+          <p className="text-sm font-semibold">
+            {title}
+            {isRecommended && " (Recommended)"}
+          </p>
+        </div>
         {logo}
       </div>
 
@@ -295,6 +333,7 @@ const Unstake = () => {
   const currentLSTBalance = useAtomValue(userLSTBalanceAtom);
   const queueState = useAtomValue(withdrawalQueueStateAtom);
   const lstConfig = useAtomValue(lstConfigAtom)!;
+  const { data: assetPrice } = useAtomValue(assetPriceAtom);
   const isBTC = lstConfig.SYMBOL?.toLowerCase().includes("btc");
 
   const form = useForm<FormValues>({
@@ -336,6 +375,13 @@ const Unstake = () => {
     }
     return "0";
   }, [exRate.rate, form.watch("unstakeAmount"), txnDapp, avnuQuote, dexRate]);
+
+  const youWillGetUSD = React.useMemo(() => {
+    if (!youWillGet || youWillGet === "0" || !assetPrice) return null;
+    const amount = Number(youWillGet);
+    if (isNaN(amount) || amount <= 0) return null;
+    return amount * assetPrice;
+  }, [youWillGet, assetPrice]);
 
   const waitingTime = React.useMemo(() => {
     return "~7 days";
@@ -569,34 +615,46 @@ const Unstake = () => {
   };
 
   return (
-    <div className="relative h-full w-full">
+    <div className="relative flex h-full w-full flex-col gap-6">
       <Stats mode="unstake" />
 
-      <div className="flex w-full items-start px-7 pb-2 pt-5 lg:gap-2">
-        <div className="flex flex-1 flex-col items-start">
+      <div className="flex w-full max-w-full flex-col items-start gap-2 lg:max-w-none">
+        <div className="flex w-full max-w-full flex-1 flex-col items-start lg:max-w-none">
           <Form {...form}>
-            <div className="flex items-center gap-2">
-              {ASSET_ICONS[lstConfig.SYMBOL] &&
-                React.createElement(ASSET_ICONS[lstConfig.SYMBOL], {
-                  className: "size-4",
-                })}
-              <p className="text-xs text-[#06302B]">
-                Enter Amount ({lstConfig.LST_SYMBOL})
-              </p>
+            <div className="flex w-full items-center justify-between">
+              <div>
+                <p className="text-xs text-[#6B7780]">Enter Amount</p>
+              </div>
+
+              <div className="flex items-center gap-1">
+                <Icons.wallet className="size-3" />
+                <span className="hidden text-xs text-[#6B7780] md:block">
+                  Balance:
+                </span>
+                <span className="text-xs text-[#1A1F24]">
+                  {Number(
+                    currentLSTBalance.value.toEtherToFixedDecimals(
+                      isBTC ? 8 : 2,
+                    ),
+                  ).toFixed(isBTC ? 8 : 2)}{" "}
+                  {lstConfig.LST_SYMBOL}
+                </span>
+              </div>
             </div>
             <form onSubmit={form.handleSubmit(onSubmit)} className="w-full">
               <FormField
                 control={form.control}
                 name="displayUnstakeAmount"
-                render={({ field }) => {
+                render={({ field, fieldState }) => {
                   const maxDecimals = isBTC ? 8 : 6;
+                  const hasError = !!fieldState.error;
 
                   // Format for display: limit decimal places while preserving precision in storage
                   const getDisplayValue = (value: string) => {
                     if (!value || value === "") return "";
 
                     // Allow typing decimal point and trailing zeros
-                    if (value.endsWith(".") || (/\.\d*0+$/).test(value)) {
+                    if (value.endsWith(".") || /\.\d*0+$/.test(value)) {
                       return value;
                     }
 
@@ -613,24 +671,63 @@ const Unstake = () => {
                     return value;
                   };
 
+                  // Calculate USD value for display (based on what user will receive)
+                  const unstakeAmountUSD = React.useMemo(() => {
+                    const unstakeAmount = form.getValues("unstakeAmount");
+                    if (!unstakeAmount || unstakeAmount === "" || !assetPrice) {
+                      return null;
+                    }
+                    const amount = Number(unstakeAmount);
+                    if (isNaN(amount) || amount <= 0) {
+                      return null;
+                    }
+                    // Calculate USD value based on the amount of underlying asset user will receive
+                    const underlyingAmount =
+                      amount * (txnDapp === "endur" ? exRate.rate : dexRate);
+                    return underlyingAmount * assetPrice;
+                  }, [
+                    form.watch("unstakeAmount"),
+                    assetPrice,
+                    txnDapp,
+                    exRate.rate,
+                    dexRate,
+                  ]);
+
                   return (
-                    <FormItem className="space-y-1">
+                    <FormItem className="w-full space-y-1">
                       <FormControl>
-                        <div className="relative">
-                          <Input
-                            className="h-fit border-none px-0 pr-1 text-2xl shadow-none outline-none placeholder:text-[#8D9C9C] focus-visible:ring-0 lg:pr-0 lg:!text-3xl"
-                            placeholder="0.00"
-                            value={getDisplayValue(field.value)}
-                            onChange={(e) => {
-                              const value = e.target.value;
-                              // Store the precise value as-is (string)
-                              field.onChange(value);
-                              form.setValue("unstakeAmount", value);
-                            }}
-                            onBlur={field.onBlur}
-                            name={field.name}
-                            ref={field.ref}
-                          />
+                        <div
+                          className={cn(
+                            "w-full rounded-[14px] border px-3 py-4",
+                            hasError
+                              ? "border-destructive"
+                              : "border-[#E5E8EB]",
+                          )}
+                        >
+                          <div className="flex items-center gap-2">
+                            <Input
+                              className="h-fit flex-1 border-none px-0 pr-1 text-2xl shadow-none outline-none placeholder:text-[#8D9C9C] focus-visible:ring-0 lg:pr-0 lg:!text-3xl"
+                              placeholder="0.00"
+                              value={getDisplayValue(field.value)}
+                              onChange={(e) => {
+                                const value = e.target.value;
+                                // Store the precise value as-is (string)
+                                field.onChange(value);
+                                form.setValue("unstakeAmount", value);
+                              }}
+                              onBlur={field.onBlur}
+                              name={field.name}
+                              ref={field.ref}
+                            />
+                            <span className="text-xl text-[#8D9C9C]">
+                              {lstConfig.LST_SYMBOL}
+                            </span>
+                          </div>
+                          {assetPrice && (
+                            <div className="px-3 text-xs text-[#6B7780]">
+                              &asymp; ${(unstakeAmountUSD ?? 0).toFixed(2)}
+                            </div>
+                          )}
                         </div>
                       </FormControl>
                       <FormMessage className="text-xs text-destructive" />
@@ -642,61 +739,38 @@ const Unstake = () => {
           </Form>
         </div>
 
-        <div className="flex flex-col items-end">
-          <div className="hidden text-[#8D9C9C] lg:block">
-            <button
-              onClick={() => handleQuickUnstakePrice(25)}
-              className="rounded-md rounded-r-none border border-[#8D9C9C33] px-2 py-1 text-xs font-semibold text-[#8D9C9C] transition-all hover:bg-[#8D9C9C33]"
-            >
-              25%
-            </button>
-            <button
-              onClick={() => handleQuickUnstakePrice(50)}
-              className="border border-x-0 border-[#8D9C9C33] px-2 py-1 text-xs font-semibold text-[#8D9C9C] transition-all hover:bg-[#8D9C9C33]"
-            >
-              50%
-            </button>
-            <button
-              onClick={() => handleQuickUnstakePrice(75)}
-              className="border border-r-0 border-[#8D9C9C33] px-2 py-1 text-xs font-semibold text-[#8D9C9C] transition-all hover:bg-[#8D9C9C33]"
-            >
-              75%
-            </button>
-            <button
-              onClick={() => handleQuickUnstakePrice(100)}
-              className="rounded-md rounded-l-none border border-[#8D9C9C33] px-2 py-1 text-xs font-semibold text-[#8D9C9C] transition-all hover:bg-[#8D9C9C33]"
-            >
-              Max
-            </button>
-          </div>
-
-          <button
-            onClick={() => handleQuickUnstakePrice(100)}
-            className="rounded-md bg-[#BBE7E7] px-2 py-1 text-xs font-semibold text-[#215959] transition-all hover:bg-[#BBE7E7] hover:opacity-80 lg:hidden"
-          >
-            Max
-          </button>
-
-          <div className="mt-3 flex items-center gap-2 text-xs font-semibold text-[#8D9C9C] lg:text-sm">
-            <Icons.wallet className="size-3 lg:size-5" />
-            <span className="hidden md:block">Balance:</span>
-            <span className="font-bold">
-              {Number(
-                currentLSTBalance.value.toEtherToFixedDecimals(isBTC ? 8 : 2),
-              ).toFixed(isBTC ? 8 : 2)}{" "}
-              {lstConfig.LST_SYMBOL}
-            </span>
-          </div>
+        <div className="flex w-full flex-col items-end">
+          {(() => {
+            const quickUnstakeOptions = [
+              { label: "25%", value: 25 },
+              { label: "50%", value: 50 },
+              { label: "75%", value: 75 },
+              { label: "Max", value: 100 },
+            ];
+            return (
+              <div className="flex w-full gap-2 text-[#8D9C9C]">
+                {quickUnstakeOptions.map(({ label, value }) => (
+                  <button
+                    key={label}
+                    onClick={() => handleQuickUnstakePrice(value)}
+                    className={`w-full rounded-md bg-[#F5F7F8] px-2 py-2 text-xs text-[#6B7780] transition-all hover:bg-[#8D9C9C33]`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            );
+          })()}
         </div>
       </div>
 
       <Tabs
         value={txnDapp}
         defaultValue="endur"
-        className="w-full max-w-none pt-1"
+        className="w-full max-w-none"
         onValueChange={(value) => setTxnDapp(value as "endur" | "dex")}
       >
-        <TabsList className="flex h-full w-full flex-col items-center justify-between gap-2 bg-transparent px-5 md:flex-row">
+        <TabsList className="flex h-full w-full flex-col items-center justify-between gap-3 bg-transparent">
           <UnstakeOptionCard
             isActive={txnDapp === "endur"}
             title="Use Endur"
@@ -726,16 +800,17 @@ const Unstake = () => {
 
       {txnDapp === "endur" ? (
         <>
-          <div className="my-5 h-px w-full rounded-full bg-[#AACBC480]" />
-          <div className="space-y-3 px-7">
+          <div className="space-y-3">
+            <h2 className="text-md text-[#6B7780]">TRANSACTION SUMMARY</h2>
             <YouWillGetSection
               amount={youWillGet}
               tooltipContent={`You will receive the equivalent amount of ${lstConfig.SYMBOL} for the ${lstConfig.LST_SYMBOL} you are unstaking. The amount of ${lstConfig.SYMBOL} you receive will be based on the current exchange rate of ${lstConfig.LST_SYMBOL} to ${lstConfig.SYMBOL}.`}
+              usdValue={youWillGetUSD}
             />
             <FeeSection />
           </div>
 
-          <div className="mt-6 px-5">
+          <div className="">
             {!address ? (
               <StyledButton onClick={() => connectWallet()}>
                 Connect Wallet
@@ -756,16 +831,29 @@ const Unstake = () => {
         </>
       ) : (
         <>
-          <div className="my-5 h-px w-full rounded-full bg-[#AACBC480]" />
-          <div className="space-y-3 px-7">
+          <div className="space-y-3">
+            <h2 className="text-md text-[#6B7780]">TRANSACTION SUMMARY</h2>
             <YouWillGetSection
               amount={youWillGet}
               tooltipContent="Instant unstaking via Avnu DEX. The amount you receive will be based on current market rates."
+              usdValue={youWillGetUSD}
             />
             <div className="flex items-center justify-between rounded-md text-xs font-medium text-[#939494] lg:text-[13px]">
               <p className="flex items-center gap-1">
                 Unstake DEX fee
-                <InfoTooltip content="Avnu and Endur service fee for using DEX unstake" />
+                <TooltipProvider delayDuration={0}>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <Info className="size-3 text-[#3F6870] lg:text-[#8D9C9C]" />
+                    </TooltipTrigger>
+                    <TooltipContent
+                      side="right"
+                      className="max-w-60 rounded-md border border-[#03624C] bg-white text-[#03624C]"
+                    >
+                      Avnu and Endur service fee for using DEX unstake
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </p>
               <p>0.05%</p>
             </div>
@@ -786,7 +874,7 @@ const Unstake = () => {
               </p>
             </div> */}
           </div>
-          <div className="mt-6 px-5">
+          <div className="">
             {!address ? (
               <StyledButton onClick={() => connectWallet()}>
                 Connect Wallet
