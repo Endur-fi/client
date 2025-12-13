@@ -19,6 +19,8 @@ import { lstStatsQueryAtom } from "@/store/lst.store";
 import { assetPriceAtom } from "@/store/common.store";
 import { btcPriceAtom } from "@/store/staking.store";
 import MyNumber from "@/lib/MyNumber";
+import { GET_USER_COMPLETE_DETAILS } from "@/constants/queries";
+import apolloClient from "@/lib/apollo-client";
 
 const PortfolioSection: React.FC = () => {
   const { address } = useAccount();
@@ -165,6 +167,50 @@ const PortfolioSection: React.FC = () => {
     return total;
   }, [strkHoldings, btcHoldings]);
 
+  // Fetch Season 1 points from API
+  const [season1Points, setSeason1Points] = React.useState<string | null>(null);
+  const [season1Loading, setSeason1Loading] = React.useState(false);
+
+  React.useEffect(() => {
+    if (!address) {
+      setSeason1Points(null);
+      return;
+    }
+
+    const fetchSeason1Points = async () => {
+      setSeason1Loading(true);
+      try {
+        const result = await apolloClient.query({
+          query: GET_USER_COMPLETE_DETAILS,
+          variables: { userAddress: address },
+          fetchPolicy: "cache-first",
+        });
+
+        const userDetails = result.data?.getUserCompleteDetails;
+        if (userDetails?.points?.total_points) {
+          const totalPoints = userDetails.points.total_points;
+          setSeason1Points(
+            typeof totalPoints === "bigint"
+              ? totalPoints.toString()
+              : String(totalPoints),
+          );
+        } else {
+          setSeason1Points("0");
+        }
+      } catch (error) {
+        console.error("Error fetching Season 1 points:", error);
+        setSeason1Points("0");
+      } finally {
+        setSeason1Loading(false);
+      }
+    };
+
+    fetchSeason1Points();
+  }, [address]);
+
+  // Season 2 is 0 for now
+  const season2Points = "0";
+
   // if (!address) {
   //   return null;
   // }
@@ -185,7 +231,9 @@ const PortfolioSection: React.FC = () => {
         <div className="flex items-center justify-between gap-2 border-b border-[#E5E8EB] pb-2">
           <span className="text-sm text-[#6B7780]">Your Stake</span>
           <span className="text-xl text-[#1A1F24]">
-            {!address ? "-" : `$${formatNumberWithCommas(totalValueStaked.toFixed(2))}`}
+            {!address
+              ? "-"
+              : `$${formatNumberWithCommas(totalValueStaked.toFixed(2))}`}
           </span>
         </div>
 
@@ -299,7 +347,15 @@ const PortfolioSection: React.FC = () => {
                   </Tooltip>
                 </TooltipProvider>
               </div>
-              <span className="text-sm text-[#1A1F24]">15,840 pts</span>
+              <span className="text-sm text-[#1A1F24]">
+                {!address
+                  ? "-"
+                  : season1Loading
+                    ? "..."
+                    : season1Points
+                      ? `${formatNumberWithCommas(season1Points)} pts`
+                      : "0 pts"}
+              </span>
             </div>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-1">
@@ -315,7 +371,11 @@ const PortfolioSection: React.FC = () => {
                   </Tooltip>
                 </TooltipProvider>
               </div>
-              <span className="text-sm text-[#1A1F24]">15,840 pts</span>
+              <span className="text-sm text-[#1A1F24]">
+                {!address
+                  ? "-"
+                  : `${formatNumberWithCommas(season2Points)} pts`}
+              </span>
             </div>
           </div>
         </div>

@@ -262,8 +262,8 @@ export const btcProtocolConfigs: Partial<
   // BTC Concentrated Liquidity Strategies
   ekuboBTCxWBTC: {
     tokens: [
-      { icon: <Icons.btcLogo className="size-[22px]" />, name: "xWBTC" },
-      { icon: <Icons.btcLogo className="size-[22px]" />, name: "WBTC" },
+      { icon: <Icons.xwbtc className="size-[22px]" />, name: "xWBTC" },
+      { icon: <Icons.wbtc className="size-[22px]" />, name: "WBTC" },
     ],
     protocolIcon: <Icons.trovesLogoLight className="rounded-full" />,
     protocolName: "Troves",
@@ -289,8 +289,8 @@ export const btcProtocolConfigs: Partial<
   },
   ekuboBTCxtBTC: {
     tokens: [
-      { icon: <Icons.btcLogo className="size-[22px]" />, name: "xtBTC" },
-      { icon: <Icons.btcLogo className="size-[22px]" />, name: "tBTC" },
+      { icon: <Icons.xtbtc className="size-[22px]" />, name: "xtBTC" },
+      { icon: <Icons.tbtc className="size-[22px]" />, name: "tBTC" },
     ],
     protocolIcon: <Icons.trovesLogoLight className="rounded-full" />,
     protocolName: "Troves",
@@ -316,8 +316,8 @@ export const btcProtocolConfigs: Partial<
   },
   ekuboBTCxLBTC: {
     tokens: [
-      { icon: <Icons.btcLogo className="size-[22px]" />, name: "xLBTC" },
-      { icon: <Icons.btcLogo className="size-[22px]" />, name: "LBTC" },
+      { icon: <Icons.xlbtc className="size-[22px]" />, name: "xLBTC" },
+      { icon: <Icons.lbtc className="size-[22px]" />, name: "LBTC" },
     ],
     protocolIcon: <Icons.trovesLogoLight className="rounded-full" />,
     protocolName: "Troves",
@@ -343,8 +343,8 @@ export const btcProtocolConfigs: Partial<
   },
   ekuboBTCxsBTC: {
     tokens: [
-      { icon: <Icons.btcLogo className="size-[22px]" />, name: "xsBTC" },
-      { icon: <Icons.btcLogo className="size-[22px]" />, name: "solvBTC" },
+      { icon: <Icons.xsbtc className="size-[22px]" />, name: "xsBTC" },
+      { icon: <Icons.solvbtc className="size-[22px]" />, name: "solvBTC" },
     ],
     protocolIcon: <Icons.trovesLogoLight className="rounded-full" />,
     protocolName: "Troves",
@@ -370,9 +370,7 @@ export const btcProtocolConfigs: Partial<
   },
   // BTC Hyper Vault Strategies
   hyperxWBTC: {
-    tokens: [
-      { icon: <Icons.btcLogo className="size-[22px]" />, name: "xWBTC" },
-    ],
+    tokens: [{ icon: <Icons.xwbtc className="size-[22px]" />, name: "xWBTC" }],
     protocolIcon: <Icons.trovesLogoLight className="rounded-full" />,
     protocolName: "Troves",
     badges: [
@@ -396,9 +394,7 @@ export const btcProtocolConfigs: Partial<
     },
   },
   hyperxtBTC: {
-    tokens: [
-      { icon: <Icons.btcLogo className="size-[22px]" />, name: "xtBTC" },
-    ],
+    tokens: [{ icon: <Icons.xtbtc className="size-[22px]" />, name: "xtBTC" }],
     protocolIcon: <Icons.trovesLogoLight className="rounded-full" />,
     protocolName: "Troves",
     badges: [
@@ -422,9 +418,7 @@ export const btcProtocolConfigs: Partial<
     },
   },
   hyperxsBTC: {
-    tokens: [
-      { icon: <Icons.btcLogo className="size-[22px]" />, name: "xsBTC" },
-    ],
+    tokens: [{ icon: <Icons.xsbtc className="size-[22px]" />, name: "xsBTC" }],
     protocolIcon: <Icons.trovesLogoLight className="rounded-full" />,
     protocolName: "Troves",
     badges: [
@@ -448,9 +442,7 @@ export const btcProtocolConfigs: Partial<
     },
   },
   hyperxLBTC: {
-    tokens: [
-      { icon: <Icons.btcLogo className="size-[22px]" />, name: "xLBTC" },
-    ],
+    tokens: [{ icon: <Icons.xlbtc className="size-[22px]" />, name: "xLBTC" }],
     protocolIcon: <Icons.trovesLogoLight className="rounded-full" />,
     protocolName: "Troves",
     badges: [
@@ -476,8 +468,8 @@ export const btcProtocolConfigs: Partial<
   // BTC Token Swapping on Avnu
   avnuBTCxWBTC: {
     tokens: [
-      { icon: <Icons.btcLogo className="size-[22px]" />, name: "xWBTC" },
-      { icon: <Icons.btcLogo className="size-[22px]" />, name: "WBTC" },
+      { icon: <Icons.xwbtc className="size-[22px]" />, name: "xWBTC" },
+      { icon: <Icons.wbtc className="size-[22px]" />, name: "WBTC" },
     ],
     protocolIcon: <Icons.avnuLogo className="rounded-full border" />,
     protocolName: "Avnu",
@@ -497,8 +489,8 @@ export const btcProtocolConfigs: Partial<
   },
   avnuBTCxtBTC: {
     tokens: [
-      { icon: <Icons.btcLogo className="size-[22px]" />, name: "xtBTC" },
-      { icon: <Icons.btcLogo className="size-[22px]" />, name: "tBTC" },
+      { icon: <Icons.xtbtc className="size-[22px]" />, name: "xtBTC" },
+      { icon: <Icons.tbtc className="size-[22px]" />, name: "tBTC" },
     ],
     protocolIcon: <Icons.avnuLogo className="rounded-full border" />,
     protocolName: "Avnu",
@@ -518,8 +510,8 @@ export const btcProtocolConfigs: Partial<
   },
   avnuBTCxLBTC: {
     tokens: [
-      { icon: <Icons.btcLogo className="size-[22px]" />, name: "xLBTC" },
-      { icon: <Icons.btcLogo className="size-[22px]" />, name: "LBTC" },
+      { icon: <Icons.xlbtc className="size-[22px]" />, name: "xLBTC" },
+      { icon: <Icons.lbtc className="size-[22px]" />, name: "LBTC" },
     ],
     protocolIcon: <Icons.avnuLogo className="rounded-full border" />,
     protocolName: "Avnu",
@@ -539,8 +531,8 @@ export const btcProtocolConfigs: Partial<
   },
   avnuBTCxsBTC: {
     tokens: [
-      { icon: <Icons.btcLogo className="size-[22px]" />, name: "xsBTC" },
-      { icon: <Icons.btcLogo className="size-[22px]" />, name: "solvBTC" },
+      { icon: <Icons.xsbtc className="size-[22px]" />, name: "xsBTC" },
+      { icon: <Icons.solvbtc className="size-[22px]" />, name: "solvBTC" },
     ],
     protocolIcon: <Icons.avnuLogo className="rounded-full border" />,
     protocolName: "Avnu",
@@ -560,9 +552,7 @@ export const btcProtocolConfigs: Partial<
   },
   // Vesu BTC Borrow Pools
   vesuBTCxWBTC: {
-    tokens: [
-      { icon: <Icons.btcLogo className="size-[22px]" />, name: "xWBTC" },
-    ],
+    tokens: [{ icon: <Icons.xwbtc className="size-[22px]" />, name: "xWBTC" }],
     protocolIcon: <Icons.vesuLogo className="rounded-full" />,
     protocolName: "Vesu",
     badges: [{ type: "Lending Pool", color: "bg-[#E8F4FD] text-[#1E40AF]" }],
@@ -580,9 +570,7 @@ export const btcProtocolConfigs: Partial<
     },
   },
   vesuBTCxtBTC: {
-    tokens: [
-      { icon: <Icons.btcLogo className="size-[22px]" />, name: "xtBTC" },
-    ],
+    tokens: [{ icon: <Icons.xtbtc className="size-[22px]" />, name: "xtBTC" }],
     protocolIcon: <Icons.vesuLogo className="rounded-full" />,
     protocolName: "Vesu",
     badges: [{ type: "Lending Pool", color: "bg-[#E8F4FD] text-[#1E40AF]" }],
@@ -600,9 +588,7 @@ export const btcProtocolConfigs: Partial<
     },
   },
   vesuBTCxLBTC: {
-    tokens: [
-      { icon: <Icons.btcLogo className="size-[22px]" />, name: "xLBTC" },
-    ],
+    tokens: [{ icon: <Icons.xlbtc className="size-[22px]" />, name: "xLBTC" }],
     protocolIcon: <Icons.vesuLogo className="rounded-full" />,
     protocolName: "Vesu",
     badges: [{ type: "Lending Pool", color: "bg-[#E8F4FD] text-[#1E40AF]" }],
@@ -620,9 +606,7 @@ export const btcProtocolConfigs: Partial<
     },
   },
   vesuBTCxsBTC: {
-    tokens: [
-      { icon: <Icons.btcLogo className="size-[22px]" />, name: "xsBTC" },
-    ],
+    tokens: [{ icon: <Icons.xsbtc className="size-[22px]" />, name: "xsBTC" }],
     protocolIcon: <Icons.vesuLogo className="rounded-full" />,
     protocolName: "Vesu",
     badges: [{ type: "Lending Pool", color: "bg-[#E8F4FD] text-[#1E40AF]" }],
@@ -709,6 +693,24 @@ const Filters: React.FC<FiltersProps> = ({
   onProtocolChange,
   onToggleMoreFilters,
 }) => {
+  // Helper function to get icon for each asset
+  const getAssetIcon = (asset: AssetFilter) => {
+    switch (asset) {
+      case "xSTRK":
+        return <Icons.endurLogo className="h-4 w-4" />;
+      case "xtBTC":
+        return <Icons.xtbtc className="h-4 w-4" />;
+      case "xLBTC":
+        return <Icons.xlbtc className="h-4 w-4" />;
+      case "xWBTC":
+        return <Icons.xwbtc className="h-4 w-4" />;
+      case "xSolvBTC":
+        return <Icons.xsbtc className="h-4 w-4" />;
+      default:
+        return null;
+    }
+  };
+
   return (
     <>
       {/* Asset Filters */}
@@ -719,20 +721,24 @@ const Filters: React.FC<FiltersProps> = ({
         </div> */}
         <div className="flex flex-wrap justify-between gap-2">
           <div className="flex flex-wrap gap-2">
-            {assetFilters.map((asset) => (
-              <button
-                key={asset}
-                onClick={() => onAssetChange(asset)}
-                className={cn(
-                  "rounded-lg border border-[#0000000D] bg-white px-3 py-2 text-xs font-medium text-[#5B616D] shadow-sm",
-                  {
-                    "bg-[#17876D] text-white": selectedAsset === asset,
-                  },
-                )}
-              >
-                {asset === "all" ? "All Assets" : asset}
-              </button>
-            ))}
+            {assetFilters.map((asset) => {
+              const icon = getAssetIcon(asset);
+              return (
+                <button
+                  key={asset}
+                  onClick={() => onAssetChange(asset)}
+                  className={cn(
+                    "flex items-center gap-1.5 rounded-lg border border-[#0000000D] bg-white px-3 py-2 text-xs font-medium text-[#5B616D] shadow-sm",
+                    {
+                      "bg-[#17876D] text-white": selectedAsset === asset,
+                    },
+                  )}
+                >
+                  {icon}
+                  {asset === "all" ? "All Assets" : asset}
+                </button>
+              );
+            })}
           </div>
           {activeTab === "supply" && (
             <button
@@ -924,16 +930,54 @@ const Defi: React.FC = () => {
       const collateralIcon =
         pool.collateralSymbol === "xSTRK" ? (
           <Icons.endurLogo className="size-[22px]" />
+        ) : pool.collateralSymbol === "xWBTC" ? (
+          <Icons.xwbtc className="size-[22px]" />
+        ) : pool.collateralSymbol === "xtBTC" ? (
+          <Icons.xtbtc className="size-[22px]" />
+        ) : pool.collateralSymbol === "xLBTC" ? (
+          <Icons.xlbtc className="size-[22px]" />
+        ) : pool.collateralSymbol === "xsBTC" ? (
+          <Icons.xsbtc className="size-[22px]" />
+        ) : pool.collateralSymbol === "WBTC" ? (
+          <Icons.wbtc className="size-[22px]" />
+        ) : pool.collateralSymbol === "tBTC" ? (
+          <Icons.tbtc className="size-[22px]" />
+        ) : pool.collateralSymbol === "LBTC" ? (
+          <Icons.lbtc className="size-[22px]" />
+        ) : pool.collateralSymbol === "solvBTC" ? (
+          <Icons.solvbtc className="size-[22px]" />
+        ) : pool.collateralSymbol === "ETH" ? (
+          <Icons.eth className="size-[22px]" />
         ) : (
           <Icons.btcLogo className="size-[22px]" />
         );
       const debtIcon =
         pool.debtSymbol === "STRK" ? (
           <Icons.strkLogo className="size-[22px]" />
+        ) : pool.debtSymbol === "xWBTC" ? (
+          <Icons.xwbtc className="size-[22px]" />
+        ) : pool.debtSymbol === "xtBTC" ? (
+          <Icons.xtbtc className="size-[22px]" />
+        ) : pool.debtSymbol === "xLBTC" ? (
+          <Icons.xlbtc className="size-[22px]" />
+        ) : pool.debtSymbol === "xsBTC" ? (
+          <Icons.xsbtc className="size-[22px]" />
+        ) : pool.debtSymbol === "WBTC" ? (
+          <Icons.wbtc className="size-[22px]" />
+        ) : pool.debtSymbol === "tBTC" ? (
+          <Icons.tbtc className="size-[22px]" />
+        ) : pool.debtSymbol === "LBTC" ? (
+          <Icons.lbtc className="size-[22px]" />
+        ) : pool.debtSymbol === "solvBTC" ? (
+          <Icons.solvbtc className="size-[22px]" />
+        ) : pool.debtSymbol === "ETH" ? (
+          <Icons.eth className="size-[22px]" />
         ) : pool.debtSymbol.includes("BTC") ? (
           <Icons.btcLogo className="size-[22px]" />
         ) : pool.debtSymbol === "USDC" || pool.debtSymbol === "USDC.e" ? (
           <Icons.usdcLogo className="size-[22px]" />
+        ) : pool.debtSymbol === "USDT" ? (
+          <Icons.usdt className="size-[22px]" />
         ) : (
           <Icons.btcLogo className="size-[22px]" />
         );
@@ -1261,170 +1305,6 @@ const Defi: React.FC = () => {
           capacity={capacity}
           onActionClick={handleCTAClick}
         />
-      );
-    });
-  };
-
-  const renderTableRows = (protocols: string[]) => {
-    return protocols.map((protocol) => {
-      const configsToUse =
-        activeTab === "supply"
-          ? (protocolConfigs as Record<string, ProtocolConfig>)
-          : protocolConfigsWithBorrow;
-      const config = configsToUse[protocol];
-      if (!config) return null;
-
-      const shouldShowApy = ![
-        "avnu",
-        "fibrous",
-        "avnuBTCxWBTC",
-        "avnuBTCxtBTC",
-        "avnuBTCxLBTC",
-        "avnuBTCxsBTC",
-      ].includes(protocol);
-
-      // For borrow pools, use the apy from config; for supply, use getYieldDataForProtocol
-      const apyValue =
-        activeTab === "borrow" && config.apy
-          ? config.apy * 100
-          : (getYieldDataForProtocol(protocol as SupportedDApp)?.value ?? null);
-      const isLoading =
-        activeTab === "borrow"
-          ? false
-          : (getYieldDataForProtocol(protocol as SupportedDApp)?.isLoading ??
-            false);
-
-      // Get token pair display
-      const tokenPair = config.tokens.map((t) => t.name).join("/");
-      const primaryToken = config.tokens[0];
-      const secondaryToken = config.tokens[1];
-
-      // Get badge type
-      const badgeType = config.badges[0]?.type || "";
-
-      // Calculate capacity for supply tab
-      let capacity: { used: number; total: number | null } | undefined;
-      if (activeTab === "supply") {
-        const protocolKey = protocol as SupportedDApp;
-
-        // Vesu: no limit
-        if (protocolKey === "vesu" || protocolKey.startsWith("vesuBTC")) {
-          capacity = undefined; // No limit
-        } else if (
-          // Ekubo: no limit
-          protocolKey === "ekuboBTCxWBTC" ||
-          protocolKey === "ekuboBTCxtBTC" ||
-          protocolKey === "ekuboBTCxLBTC" ||
-          protocolKey === "ekuboBTCxsBTC" ||
-          protocolKey === "strkfarmEkubo"
-        ) {
-          capacity = undefined; // No limit
-        } else if (
-          // Troves hyper vaults: fetch from contract
-          protocolKey === "hyperxWBTC" ||
-          protocolKey === "hyperxtBTC" ||
-          protocolKey === "hyperxLBTC" ||
-          protocolKey === "hyperxsBTC" ||
-          protocolKey === "hyperxSTRK" ||
-          protocolKey === "trovesHyper" ||
-          protocolKey === "strkfarm"
-        ) {
-          const vaultCapacity = getVaultCapacity(protocolKey);
-          if (vaultCapacity) {
-            capacity = vaultCapacity;
-          }
-        }
-      }
-
-      const capacityText = capacity
-        ? capacity.total === null
-          ? null // No limit - will show "No limit" instead
-          : `${formatNumber(capacity.used)} used of ${formatNumber(capacity.total)}`
-        : null;
-      const capacityPercent =
-        capacity && capacity.total !== null && capacity.total > 0
-          ? (capacity.used / capacity.total) * 100
-          : 0;
-
-      return (
-        <TableRow
-          key={protocol}
-          className="border-b border-[#E5E8EB] bg-white hover:bg-[#F7F9FA]"
-        >
-          <TableCell className="px-6 py-4">
-            <div className="flex items-center gap-3">
-              <div className="flex items-center">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-white">
-                  {primaryToken.icon}
-                </div>
-                {secondaryToken && (
-                  <div className="-ml-2 flex h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-white">
-                    {secondaryToken.icon}
-                  </div>
-                )}
-              </div>
-              <div>
-                <div className="font-medium text-[#1A1F24]">{tokenPair}</div>
-                <div className="mt-1.5">
-                  <span
-                    className={cn(
-                      "rounded-full px-2 py-0.5 text-xs font-medium",
-                      config.badges[0]?.color || "bg-gray-100 text-gray-600",
-                    )}
-                  >
-                    {badgeType}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </TableCell>
-          <TableCell className="px-6 py-4">
-            {isLoading ? (
-              <div className="h-8 w-20 animate-pulse rounded-lg bg-gray-200" />
-            ) : apyValue !== null ? (
-              <div className="inline-flex flex-col gap-1">
-                <div className="rounded-lg bg-[#FEF3C7] px-3 py-1.5 text-sm font-semibold text-[#D97706]">
-                  {apyValue.toFixed(2)}%
-                </div>
-                <div className="text-xs text-[#6B7780]">Supply yield: 0%</div>
-              </div>
-            ) : (
-              <span className="text-[#6B7780]">-</span>
-            )}
-          </TableCell>
-          <TableCell className="px-6 py-4">
-            {capacity ? (
-              capacityText ? (
-                <div className="flex flex-col gap-2">
-                  <div className="text-sm text-[#1A1F24]">{capacityText}</div>
-                  <Progress
-                    value={Math.min(capacityPercent, 100)}
-                    className="h-1.5 bg-[#E5E8EB]"
-                    indicatorClassName="bg-[#10B981]"
-                  />
-                </div>
-              ) : (
-                <div className="text-sm text-[#1A1F24]">No limit</div>
-              )
-            ) : (
-              <div className="text-sm text-[#1A1F24]">No limit</div>
-            )}
-          </TableCell>
-          <TableCell className="px-6 py-4 text-right">
-            {config.action && (
-              <Button
-                onClick={() => {
-                  if (config.action?.link) {
-                    handleCTAClick(config.action.link, config.action.onClick);
-                  }
-                }}
-                className="rounded-lg bg-[#F59E0B] px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90"
-              >
-                {activeTab === "supply" ? "Supply" : "Borrow"}
-              </Button>
-            )}
-          </TableCell>
-        </TableRow>
       );
     });
   };
@@ -1901,24 +1781,37 @@ const Defi: React.FC = () => {
                             // Values are already converted from wei to human-readable format in the store
                             const totalDebt = pool ? pool.totalDebt : 0;
                             const debtCap = pool ? pool.debtCap : 0;
+                            const totalSupplied = pool ? pool.totalSupplied : 0;
 
-                            // If debtCap is 0 or very small (effectively 0), show no limit (no borrowing limit)
+                            // Cap should be min(available supply + borrowed, debt cap)
+                            // available supply + borrowed = (totalSupplied - totalDebt) + totalDebt = totalSupplied
+                            const effectiveCap =
+                              totalSupplied > 0 && debtCap > 0
+                                ? Math.min(totalSupplied, debtCap)
+                                : debtCap > 0
+                                  ? debtCap
+                                  : totalSupplied > 0
+                                    ? totalSupplied
+                                    : 0;
+
+                            // If effectiveCap is 0 or very small (effectively 0), show no limit (no borrowing limit)
                             // Check both the raw value and formatted value to avoid showing "$0 of $0"
                             const formattedTotalDebt = formatNumber(totalDebt);
-                            const formattedDebtCap = formatNumber(debtCap);
+                            const formattedEffectiveCap =
+                              formatNumber(effectiveCap);
                             const hasNoLimit =
                               !pool ||
-                              debtCap <= 0 ||
-                              debtCap < 0.01 ||
-                              formattedDebtCap === "0" ||
+                              effectiveCap <= 0 ||
+                              effectiveCap < 0.01 ||
+                              formattedEffectiveCap === "0" ||
                               (formattedTotalDebt === "0" &&
-                                formattedDebtCap === "0");
+                                formattedEffectiveCap === "0");
                             const capacityText = hasNoLimit
                               ? null
-                              : `$${formattedTotalDebt} of $${formattedDebtCap} used`;
+                              : `$${formattedTotalDebt} of $${formattedEffectiveCap} used`;
                             const capacityUsed =
-                              pool && pool.debtCap > 0
-                                ? (pool.totalDebt / pool.debtCap) * 100
+                              pool && effectiveCap > 0
+                                ? (pool.totalDebt / effectiveCap) * 100
                                 : 0;
 
                             // Accent colors: green for supply, yellow/orange for borrow
@@ -1983,13 +1876,6 @@ const Defi: React.FC = () => {
                                               {badgeType}
                                             </span>
                                           </div>
-                                          {pool &&
-                                            pool.maxLTV !== undefined && (
-                                              <div className="mt-2 text-xs text-[#6B7780]">
-                                                Max LTV -{" "}
-                                                {pool.maxLTV.toFixed(0)}%
-                                              </div>
-                                            )}
                                         </div>
                                       </div>
 
@@ -2010,11 +1896,6 @@ const Defi: React.FC = () => {
                                               )}
                                             >
                                               {apyValue.toFixed(2)}%
-                                            </div>
-                                            <div className="text-xs text-[#6B7780]">
-                                              {isBorrowPool
-                                                ? "Borrow rate"
-                                                : "Supply yield: 0%"}
                                             </div>
                                           </div>
                                         ) : (
@@ -2041,10 +1922,26 @@ const Defi: React.FC = () => {
                                                 accentColor.progressBar
                                               }
                                             />
+                                            {pool &&
+                                              pool.maxLTV !== undefined && (
+                                                <div className="mt-2 text-xs text-[#6B7780]">
+                                                  Max LTV -{" "}
+                                                  {pool.maxLTV.toFixed(0)}%
+                                                </div>
+                                              )}
                                           </div>
                                         ) : (
-                                          <div className="text-sm text-[#1A1F24]">
-                                            No limit
+                                          <div>
+                                            <div className="text-sm text-[#1A1F24]">
+                                              No limit
+                                            </div>
+                                            {pool &&
+                                              pool.maxLTV !== undefined && (
+                                                <div className="mt-2 text-xs text-[#6B7780]">
+                                                  Max LTV -{" "}
+                                                  {pool.maxLTV.toFixed(0)}%
+                                                </div>
+                                              )}
                                           </div>
                                         )}
                                       </div>
