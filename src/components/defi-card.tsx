@@ -68,7 +68,7 @@ const DefiCard: React.FC<DefiCardProps> = ({
         buttonBg: "bg-[#10B981]",
       };
 
-  const yieldLabel = isBorrow ? "Borrow yield" : "Supply yield";
+  const yieldLabel = isBorrow ? "Borrow rate" : "Supply yield";
   const yieldValue = apy?.isLoading
     ? "-"
     : apy?.value !== null && apy?.value !== undefined && !apy?.error

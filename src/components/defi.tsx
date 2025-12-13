@@ -710,9 +710,28 @@ const Filters: React.FC<FiltersProps> = ({
   return (
     <>
       {/* Asset Filters */}
-      <div className="mb-4">
-        <div className="mb-2 flex items-center justify-between">
+      <div className="">
+        {/* <div className="mb-2 flex items-center justify-between">
           <p className="text-sm text-[#5B616D]">Assets</p>
+         
+        </div> */}
+        <div className="flex flex-wrap gap-2 justify-between">
+          <div className="flex flex-wrap gap-2">
+            {assetFilters.map((asset) => (
+              <button
+                key={asset}
+                onClick={() => onAssetChange(asset)}
+                className={cn(
+                  "rounded-lg border border-[#0000000D] bg-white px-3 py-2 text-xs font-medium text-[#5B616D] shadow-sm",
+                  {
+                    "bg-[#17876D] text-white": selectedAsset === asset,
+                  },
+                )}
+              >
+                {asset === "all" ? "All Assets" : asset}
+              </button>
+            ))}
+          </div>
           <button
             onClick={onToggleMoreFilters}
             className="flex items-center gap-1 rounded-lg border border-[#0000000D] bg-[#F2F2F4CC] px-3 py-2 text-xs font-medium text-[#6B7780] shadow-sm"
@@ -725,32 +744,16 @@ const Filters: React.FC<FiltersProps> = ({
             />
           </button>
         </div>
-        <div className="flex flex-wrap gap-2">
-          {assetFilters.map((asset) => (
-            <button
-              key={asset}
-              onClick={() => onAssetChange(asset)}
-              className={cn(
-                "rounded-lg border border-[#0000000D] bg-white px-3 py-2 text-xs font-medium text-[#5B616D] shadow-sm",
-                {
-                  "bg-[#17876D] text-white": selectedAsset === asset,
-                },
-              )}
-            >
-              {asset === "all" ? "All Assets" : asset}
-            </button>
-          ))}
-        </div>
       </div>
 
       {/* Protocol Filters */}
       <div
-        className={cn("mb-4 lg:mb-6", {
+        className={cn("mb-4 lg:mb-0", {
           hidden: !showMoreFilters,
         })}
       >
-        <p className="mb-2 text-sm font-medium text-[#1A1F24]">Protocols</p>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2 mt-5 items-center">
+          <p className="mb-0 text-sm font-medium text-[#1A1F24]">Protocols:</p>
           {protocolFilters.map((protocol) => (
             <button
               key={protocol}
@@ -990,13 +993,14 @@ const Defi: React.FC = () => {
           return -1;
 
         // Sort by yield
+        // if borrow, sort by negative yield
         const yieldA =
           activeTab === "borrow" && configA?.apy
-            ? configA.apy * 100
+            ? -1 * configA.apy * 100
             : (getProtocolYield(a as SupportedDApp) ?? -Infinity);
         const yieldB =
           activeTab === "borrow" && configB?.apy
-            ? configB.apy * 100
+            ? -1 * configB.apy * 100
             : (getProtocolYield(b as SupportedDApp) ?? -Infinity);
         return yieldB - yieldA;
       });
@@ -1469,9 +1473,8 @@ const Defi: React.FC = () => {
             </h1>
           </div>
           <div className="col-span-full w-full lg:col-start-2">
-            <p className="text-xs text-[#5F6C72] lg:text-sm">
-              Convert your STRK, BTC into xSTRK, xyBTC to earn staking and
-              participate in DeFi opportunities across the Starknet ecosystem.
+            <p className="text-xs text-[#5F6C72] lg:text-md">
+            Put your STRK and BTC LSTs to work in Starknet DeFi — earn extra yield, unlock liquidity, and rack up points.
             </p>
           </div>
         </div>
@@ -1486,8 +1489,8 @@ const Defi: React.FC = () => {
             className="w-full"
           >
             {/* Header Section: Tabs and Filters */}
-            <div className="w-full rounded-[14px] border border-[#E5E8EB] bg-white p-2">
-              <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div className="w-full rounded-[14px]">
+              <div className="flex flex-col px-2 gap-4 lg:flex-row lg:items-center lg:justify-between">
                 <TabsList className="flex h-auto w-full gap-0 rounded-[14px] border border-[#E5E8EB] bg-white p-1 lg:w-[350px]">
                   {[
                     { value: "supply", label: "Supply & Earn" },
@@ -1517,7 +1520,7 @@ const Defi: React.FC = () => {
                 <TabsContent
                   key={tab}
                   value={tab}
-                  className="mt-6 rounded-lg bg-[#17876D08] p-2"
+                  className="mt-6 rounded-lg bg-[#17876D26] p-4"
                 >
                   <Filters
                     assetFilters={assetFilters}
@@ -1536,7 +1539,7 @@ const Defi: React.FC = () => {
             </div>
 
             {/* Content Section - Tables (Desktop) and Cards (Mobile) */}
-            <div className="mt-6 w-full">
+            <div className="mt-2 w-full">
               {/* Desktop: Tables */}
               <div className="hidden lg:block">
                 <TabsContent value="supply" className="mt-0">
@@ -1544,16 +1547,16 @@ const Defi: React.FC = () => {
                     <table className="w-full table-fixed border-separate border-spacing-y-2">
                       <thead>
                         <tr>
-                          <th className="w-[25%] rounded-tl-[14px] bg-gradient-to-b from-[#F0F9F7] to-white px-6 py-2 text-left text-sm font-medium text-[#5B616D] shadow-sm">
-                            Pair & Pool
+                          <th className="w-[25%] rounded-tl-[14px] bg-white px-6 py-2 text-left text-sm font-medium text-[#5B616D] shadow-sm">
+                            Vault
                           </th>
-                          <th className="w-[25%] bg-gradient-to-b from-[#F0F9F7] to-white px-6 py-2 text-center text-sm font-medium text-[#5B616D] shadow-sm">
+                          <th className="w-[25%] bg-white px-6 py-2 text-center text-sm font-medium text-[#5B616D] shadow-sm">
                             Yield
                           </th>
-                          <th className="w-[25%] bg-gradient-to-b from-[#F0F9F7] to-white px-6 py-2 text-center text-sm font-medium text-[#5B616D] shadow-sm">
+                          <th className="w-[25%] bg-white px-6 py-2 text-center text-sm font-medium text-[#5B616D] shadow-sm">
                             Capacity
                           </th>
-                          <th className="w-[25%] rounded-tr-[14px] bg-gradient-to-b from-[#F0F9F7] to-white px-6 py-2 text-center text-sm font-medium text-[#5B616D] shadow-sm"></th>
+                          <th className="w-[25%] rounded-tr-[14px] bg-white px-6 py-2 text-center text-sm font-medium text-[#5B616D] shadow-sm"></th>
                         </tr>
                       </thead>
                       <tbody>
@@ -1650,7 +1653,7 @@ const Defi: React.FC = () => {
                                       className={cn(
                                         "px-4 py-8",
                                         "flex items-center gap-4",
-                                        "shadow-[0_1px_1px_-0.5px_rgba(0,0,0,0.08),_0_3px_3px_-1.5px_rgba(0,0,0,0.08),_0_20px_20px_-12px_rgba(0,0,0,0.08),_0_32px_32px_-16px_rgba(0,0,0,0.08)]",
+                                        "shadow-[0_1px_1px_-0.5px_rgba(0,0,0,0.08),_0_3px_3px_-1.5px_rgba(0,0,0,0.08),_0_2px_2px_-2px_rgba(0,0,0,0.08),_0_2px_2px_-6px_rgba(0,0,0,0.08)]",
                                       )}
                                     >
                                       {/* Pair & Pool Column */}
@@ -1692,8 +1695,11 @@ const Defi: React.FC = () => {
                                             <div className="w-fit rounded-lg border border-[#059669] bg-[#D1FAE5] px-2 py-1 text-sm font-semibold text-[#059669]">
                                               {apyValue.toFixed(2)}%
                                             </div>
-                                            <div className="text-xs text-[#6B7780]">
-                                              Supply yield: 0%
+                                            <div className="w-fit rounded-lg border border-[#059669] bg-[#D1FAE5] px-2 py-1 text-xs font-semibold text-[#059669]">
+                                              +5-20x Endur Points
+                                            </div>
+                                            <div className="w-fit rounded-lg border border-[#059669] bg-[#D1FAE5] px-2 py-1 text-xs font-semibold text-[#059669]">
+                                              +Vesu Points
                                             </div>
                                           </div>
                                         ) : (
@@ -1761,7 +1767,7 @@ const Defi: React.FC = () => {
                                         {/* Protocol */}
                                         <div className="flex flex-1 items-center gap-2">
                                           <span className="text-xs text-[#6B7780]">
-                                            Protocol:
+                                            Provider:
                                           </span>
                                           <div className="flex h-5 w-5 items-center justify-center">
                                             {config.protocolIcon}
@@ -1822,16 +1828,16 @@ const Defi: React.FC = () => {
                     <table className="w-full table-fixed border-separate border-spacing-y-2">
                       <thead>
                         <tr>
-                          <th className="w-[25%] rounded-tl-[14px] bg-gradient-to-b from-[#F0F9F7] to-white px-6 py-2 text-left text-sm font-medium text-[#5B616D] shadow-sm">
+                          <th className="w-[25%] rounded-tl-[14px] bg-white px-6 py-2 text-left text-sm font-medium text-[#5B616D] shadow-sm">
                             Pair & Pool
                           </th>
-                          <th className="w-[25%] bg-gradient-to-b from-[#F0F9F7] to-white px-6 py-2 text-center text-sm font-medium text-[#5B616D] shadow-sm">
-                            Yield
+                          <th className="w-[25%] bg-white px-6 py-2 text-center text-sm font-medium text-[#5B616D] shadow-sm">
+                            Borrow Rate
                           </th>
-                          <th className="w-[25%] bg-gradient-to-b from-[#F0F9F7] to-white px-6 py-2 text-center text-sm font-medium text-[#5B616D] shadow-sm">
+                          <th className="w-[25%] bg-white px-6 py-2 text-center text-sm font-medium text-[#5B616D] shadow-sm">
                             Capacity
                           </th>
-                          <th className="w-[25%] rounded-tr-[14px] bg-gradient-to-b from-[#F0F9F7] to-white px-6 py-2 text-center text-sm font-medium text-[#5B616D] shadow-sm"></th>
+                          <th className="w-[25%] rounded-tr-[14px] bg-white px-6 py-2 text-center text-sm font-medium text-[#5B616D] shadow-sm"></th>
                         </tr>
                       </thead>
                       <tbody>
@@ -1915,7 +1921,7 @@ const Defi: React.FC = () => {
                                       className={cn(
                                         "px-4 py-8",
                                         "flex items-center gap-4",
-                                        "shadow-[0_1px_1px_-0.5px_rgba(0,0,0,0.08),_0_3px_3px_-1.5px_rgba(0,0,0,0.08),_0_20px_20px_-12px_rgba(0,0,0,0.08),_0_32px_32px_-16px_rgba(0,0,0,0.08)]",
+                                        "shadow-[0_1px_1px_-0.5px_rgba(0,0,0,0.08),_0_3px_3px_-1.5px_rgba(0,0,0,0.08),_0_2px_2px_-2px_rgba(0,0,0,0.08),_0_2px_2px_-6px_rgba(0,0,0,0.08)]",
                                       )}
                                     >
                                       {/* Pair & Pool Column */}
@@ -1977,7 +1983,7 @@ const Defi: React.FC = () => {
                                             </div>
                                             <div className="text-xs text-[#6B7780]">
                                               {isBorrowPool
-                                                ? "Borrow yield"
+                                                ? "Borrow rate"
                                                 : "Supply yield: 0%"}
                                             </div>
                                           </div>
@@ -2045,7 +2051,7 @@ const Defi: React.FC = () => {
                                         {/* Protocol */}
                                         <div className="flex flex-1 items-center gap-2">
                                           <span className="text-xs text-[#6B7780]">
-                                            Protocol:
+                                            Provider:
                                           </span>
                                           <div className="flex h-5 w-5 items-center justify-center">
                                             {config.protocolIcon}

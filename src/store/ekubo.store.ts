@@ -49,10 +49,10 @@ export const getEkuboHoldings: DAppHoldingsFn = async ({
   // let res: any = ekuboPositionsCache[address];
   // if (!res) {
   const resp = await axios.get(
-    `https://mainnet-api.ekubo.org/positions/${address}?showClosed=true`,
+    `https://prod-api.ekubo.org/positions/${address}?showClosed=true`,
     {
       headers: {
-        Host: "mainnet-api.ekubo.org",
+        Host: "prod-api.ekubo.org",
       },
     },
     // `https://mainnet-api.ekubo.org/positions/0x067138f4b11ac7757e39ee65814d7a714841586e2aa714ce4ececf38874af245`,
