@@ -1695,12 +1695,12 @@ const Defi: React.FC = () => {
                                             <div className="w-fit rounded-lg border border-[#059669] bg-[#D1FAE5] px-2 py-1 text-sm font-semibold text-[#059669]">
                                               {apyValue.toFixed(2)}%
                                             </div>
-                                            <div className="w-fit rounded-lg border border-[#059669] bg-[#D1FAE5] px-2 py-1 text-xs font-semibold text-[#059669]">
+                                            {/* <div className="w-fit rounded-lg border border-[#059669] bg-[#D1FAE5] px-2 py-1 text-xs font-semibold text-[#059669]">
                                               +5-20x Endur Points
                                             </div>
                                             <div className="w-fit rounded-lg border border-[#059669] bg-[#D1FAE5] px-2 py-1 text-xs font-semibold text-[#059669]">
                                               +Vesu Points
-                                            </div>
+                                            </div> */}
                                           </div>
                                         ) : (
                                           <span className="text-[#6B7780]">
