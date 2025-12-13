@@ -6,7 +6,7 @@ import { HelpCircle, OctagonAlert, ShieldAlert } from "lucide-react";
 
 import { useSidebar } from "@/components/ui/sidebar";
 import { MyAnalytics } from "@/lib/analytics";
-import { cn, eventNames } from "@/lib/utils";
+import { cn, eventNames, formatNumber } from "@/lib/utils";
 import {
   protocolYieldsAtom,
   SupportedDApp,
@@ -24,6 +24,12 @@ import {
   trovesEkuboBTCxsBTCYieldAtom,
   vesuBorrowPoolsAtom,
   VesuBorrowPool,
+  hyperxWBTCVaultCapacityAtom,
+  hyperxtBTCVaultCapacityAtom,
+  hyperxLBTCVaultCapacityAtom,
+  hyperxsBTCVaultCapacityAtom,
+  hyperxSTRKVaultCapacityAtom,
+  VaultCapacity,
 } from "@/store/defi.store";
 import { useAtom } from "jotai";
 
@@ -57,6 +63,7 @@ import {
 } from "./ui/tooltip";
 import { TableCell, TableRow } from "./ui/table";
 import { ChevronDown } from "lucide-react";
+import { Web3Number } from "@strkfarm/sdk";
 
 export interface ProtocolConfig {
   tokens: TokenDisplay[];
@@ -766,7 +773,7 @@ const Filters: React.FC<FiltersProps> = ({
   );
 };
 
-const UnifiedDefi: React.FC = () => {
+const Defi: React.FC = () => {
   const { isPinned } = useSidebar();
   const yields: any = useAtomValue(protocolYieldsAtom);
   const [activeTab, setActiveTab] = useState<"supply" | "borrow">("supply");
@@ -794,6 +801,50 @@ const UnifiedDefi: React.FC = () => {
   const [vesuBTCxLBTCYield] = useAtom(vesuBTCxLBTCYieldAtom);
   const [vesuBTCxsBTCYield] = useAtom(vesuBTCxsBTCYieldAtom);
   const vesuBorrowPools = useAtomValue(vesuBorrowPoolsAtom);
+
+  // Vault capacity atoms
+  const [hyperxWBTCVaultCapacity] = useAtom(hyperxWBTCVaultCapacityAtom);
+  const [hyperxtBTCVaultCapacity] = useAtom(hyperxtBTCVaultCapacityAtom);
+  const [hyperxLBTCVaultCapacity] = useAtom(hyperxLBTCVaultCapacityAtom);
+  const [hyperxsBTCVaultCapacity] = useAtom(hyperxsBTCVaultCapacityAtom);
+  const [hyperxSTRKVaultCapacity] = useAtom(hyperxSTRKVaultCapacityAtom);
+
+  // Helper function to get vault capacity for a protocol
+  const getVaultCapacity = (
+    protocol: SupportedDApp,
+  ): { used: number; total: number | null } | undefined => {
+    if (protocol === "hyperxWBTC") {
+      const capacity = hyperxWBTCVaultCapacity?.data;
+      return capacity
+        ? { used: capacity.used, total: capacity.total }
+        : undefined;
+    }
+    if (protocol === "hyperxtBTC") {
+      const capacity = hyperxtBTCVaultCapacity?.data;
+      return capacity
+        ? { used: capacity.used, total: capacity.total }
+        : undefined;
+    }
+    if (protocol === "hyperxLBTC") {
+      const capacity = hyperxLBTCVaultCapacity?.data;
+      return capacity
+        ? { used: capacity.used, total: capacity.total }
+        : undefined;
+    }
+    if (protocol === "hyperxsBTC") {
+      const capacity = hyperxsBTCVaultCapacity?.data;
+      return capacity
+        ? { used: capacity.used, total: capacity.total }
+        : undefined;
+    }
+    if (protocol === "hyperxSTRK" || protocol === "trovesHyper") {
+      const capacity = hyperxSTRKVaultCapacity?.data;
+      return capacity
+        ? { used: capacity.used, total: capacity.total }
+        : undefined;
+    }
+    return undefined;
+  };
 
   // Helper function to get yield for a protocol
   const getProtocolYield = (protocol: SupportedDApp): number | null => {
@@ -1099,7 +1150,7 @@ const UnifiedDefi: React.FC = () => {
       // Find matching borrow pool data for capacity, maxLTV, and pool name
       let pool: VesuBorrowPool | undefined;
       let maxLTV: number | undefined;
-      let capacity: { used: number; total: number } | undefined;
+      let capacity: { used: number; total: number | null } | undefined;
 
       if (activeTab === "borrow" && config.tokens.length >= 2) {
         pool = vesuBorrowPools.find(
@@ -1109,10 +1160,48 @@ const UnifiedDefi: React.FC = () => {
         );
         if (pool) {
           maxLTV = pool.maxLTV;
-          capacity = {
-            used: pool.totalDebt,
-            total: pool.debtCap,
-          };
+          // If debtCap is 0 or very small (effectively 0), show no limit
+          if (pool.debtCap <= 0 || pool.debtCap < 0.01) {
+            capacity = undefined;
+          } else {
+            capacity = {
+              used: pool.totalDebt,
+              total: pool.debtCap,
+            };
+          }
+        }
+      } else if (activeTab === "supply") {
+        // For earn vaults (supply tab)
+        const protocolKey = protocol as SupportedDApp;
+
+        // Vesu: no limit
+        if (protocolKey === "vesu" || protocolKey.startsWith("vesuBTC")) {
+          capacity = undefined; // No limit
+        }
+        // Ekubo: no limit
+        else if (
+          protocolKey === "ekuboBTCxWBTC" ||
+          protocolKey === "ekuboBTCxtBTC" ||
+          protocolKey === "ekuboBTCxLBTC" ||
+          protocolKey === "ekuboBTCxsBTC" ||
+          protocolKey === "strkfarmEkubo"
+        ) {
+          capacity = undefined; // No limit
+        }
+        // Troves hyper vaults: fetch from contract
+        else if (
+          protocolKey === "hyperxWBTC" ||
+          protocolKey === "hyperxtBTC" ||
+          protocolKey === "hyperxLBTC" ||
+          protocolKey === "hyperxsBTC" ||
+          protocolKey === "hyperxSTRK" ||
+          protocolKey === "trovesHyper" ||
+          protocolKey === "strkfarm"
+        ) {
+          const vaultCapacity = getVaultCapacity(protocolKey);
+          if (vaultCapacity) {
+            capacity = vaultCapacity;
+          }
         }
       }
 
@@ -1192,6 +1281,52 @@ const UnifiedDefi: React.FC = () => {
       // Get badge type
       const badgeType = config.badges[0]?.type || "";
 
+      // Calculate capacity for supply tab
+      let capacity: { used: number; total: number | null } | undefined;
+      if (activeTab === "supply") {
+        const protocolKey = protocol as SupportedDApp;
+
+        // Vesu: no limit
+        if (protocolKey === "vesu" || protocolKey.startsWith("vesuBTC")) {
+          capacity = undefined; // No limit
+        }
+        // Ekubo: no limit
+        else if (
+          protocolKey === "ekuboBTCxWBTC" ||
+          protocolKey === "ekuboBTCxtBTC" ||
+          protocolKey === "ekuboBTCxLBTC" ||
+          protocolKey === "ekuboBTCxsBTC" ||
+          protocolKey === "strkfarmEkubo"
+        ) {
+          capacity = undefined; // No limit
+        }
+        // Troves hyper vaults: fetch from contract
+        else if (
+          protocolKey === "hyperxWBTC" ||
+          protocolKey === "hyperxtBTC" ||
+          protocolKey === "hyperxLBTC" ||
+          protocolKey === "hyperxsBTC" ||
+          protocolKey === "hyperxSTRK" ||
+          protocolKey === "trovesHyper" ||
+          protocolKey === "strkfarm"
+        ) {
+          const vaultCapacity = getVaultCapacity(protocolKey);
+          if (vaultCapacity) {
+            capacity = vaultCapacity;
+          }
+        }
+      }
+
+      const capacityText = capacity
+        ? capacity.total === null
+          ? null // No limit - will show "No limit" instead
+          : `${formatNumber(capacity.used)} used of ${formatNumber(capacity.total)}`
+        : null;
+      const capacityPercent =
+        capacity && capacity.total !== null && capacity.total > 0
+          ? (capacity.used / capacity.total) * 100
+          : 0;
+
       return (
         <TableRow
           key={protocol}
@@ -1239,14 +1374,22 @@ const UnifiedDefi: React.FC = () => {
             )}
           </TableCell>
           <TableCell className="px-6 py-4">
-            <div className="flex flex-col gap-2">
-              <div className="text-sm text-[#1A1F24]">$13.32M of $50M used</div>
-              <Progress
-                value={26.64}
-                className="h-1.5 bg-[#E5E8EB]"
-                indicatorClassName="bg-[#10B981]"
-              />
-            </div>
+            {capacity ? (
+              capacityText ? (
+                <div className="flex flex-col gap-2">
+                  <div className="text-sm text-[#1A1F24]">{capacityText}</div>
+                  <Progress
+                    value={Math.min(capacityPercent, 100)}
+                    className="h-1.5 bg-[#E5E8EB]"
+                    indicatorClassName="bg-[#10B981]"
+                  />
+                </div>
+              ) : (
+                <div className="text-sm text-[#1A1F24]">No limit</div>
+              )
+            ) : (
+              <div className="text-sm text-[#1A1F24]">No limit</div>
+            )}
           </TableCell>
           <TableCell className="px-6 py-4 text-right">
             {config.action && (
@@ -1449,6 +1592,58 @@ const UnifiedDefi: React.FC = () => {
                             const secondaryToken = config.tokens[1];
                             const badgeType = config.badges[0]?.type || "";
 
+                            // Calculate capacity for supply tab
+                            let capacity:
+                              | { used: number; total: number | null }
+                              | undefined;
+                            const protocolKey = protocol as SupportedDApp;
+
+                            // Vesu: no limit
+                            if (
+                              protocolKey === "vesu" ||
+                              protocolKey.startsWith("vesuBTC")
+                            ) {
+                              capacity = undefined; // No limit
+                            }
+                            // Ekubo: no limit
+                            else if (
+                              protocolKey === "ekuboBTCxWBTC" ||
+                              protocolKey === "ekuboBTCxtBTC" ||
+                              protocolKey === "ekuboBTCxLBTC" ||
+                              protocolKey === "ekuboBTCxsBTC" ||
+                              protocolKey === "strkfarmEkubo"
+                            ) {
+                              capacity = undefined; // No limit
+                            }
+                            // Troves hyper vaults: fetch from contract
+                            else if (
+                              protocolKey === "hyperxWBTC" ||
+                              protocolKey === "hyperxtBTC" ||
+                              protocolKey === "hyperxLBTC" ||
+                              protocolKey === "hyperxsBTC" ||
+                              protocolKey === "hyperxSTRK" ||
+                              protocolKey === "trovesHyper" ||
+                              protocolKey === "strkfarm"
+                            ) {
+                              const vaultCapacity =
+                                getVaultCapacity(protocolKey);
+                              if (vaultCapacity) {
+                                capacity = vaultCapacity;
+                              }
+                            }
+
+                            const capacityText = capacity
+                              ? capacity.total === null
+                                ? null // No limit - will show "No limit" instead
+                                : `${formatNumber(capacity.used)} used of ${formatNumber(capacity.total)}`
+                              : null;
+                            const capacityPercent =
+                              capacity &&
+                              capacity.total !== null &&
+                              capacity.total > 0
+                                ? (capacity.used / capacity.total) * 100
+                                : 0;
+
                             return (
                               <tr key={protocol}>
                                 <td
@@ -1518,16 +1713,31 @@ const UnifiedDefi: React.FC = () => {
 
                                       {/* Capacity Column */}
                                       <div className="flex flex-1 flex-col items-center justify-center">
-                                        <div>
-                                          <div className="mb-2 text-sm text-[#1A1F24]">
-                                            $13.32M of $50M used
+                                        {capacity ? (
+                                          capacityText ? (
+                                            <div>
+                                              <div className="mb-2 text-sm text-[#1A1F24]">
+                                                {capacityText}
+                                              </div>
+                                              <Progress
+                                                value={Math.min(
+                                                  capacityPercent,
+                                                  100,
+                                                )}
+                                                className="h-1.5 bg-[#E6F1EF]"
+                                                indicatorClassName="bg-[#38EF7DB2]"
+                                              />
+                                            </div>
+                                          ) : (
+                                            <div className="text-sm text-[#1A1F24]">
+                                              No limit
+                                            </div>
+                                          )
+                                        ) : (
+                                          <div className="text-sm text-[#1A1F24]">
+                                            No limit
                                           </div>
-                                          <Progress
-                                            value={26.64}
-                                            className="h-1.5 bg-[#E6F1EF]"
-                                            indicatorClassName="bg-[#38EF7DB2]"
-                                          />
-                                        </div>
+                                        )}
                                       </div>
 
                                       {/* Action Column */}
@@ -1660,34 +1870,28 @@ const UnifiedDefi: React.FC = () => {
                                 p.collateralSymbol === primaryToken.name &&
                                 p.debtSymbol === secondaryToken.name,
                             );
+                            // Values are already converted from wei to human-readable format in the store
+                            const totalDebt = pool ? pool.totalDebt : 0;
+                            const debtCap = pool ? pool.debtCap : 0;
+
+                            // If debtCap is 0 or very small (effectively 0), show no limit (no borrowing limit)
+                            // Check both the raw value and formatted value to avoid showing "$0 of $0"
+                            const formattedTotalDebt = formatNumber(totalDebt);
+                            const formattedDebtCap = formatNumber(debtCap);
+                            const hasNoLimit =
+                              !pool ||
+                              debtCap <= 0 ||
+                              debtCap < 0.01 ||
+                              formattedDebtCap === "0" ||
+                              (formattedTotalDebt === "0" &&
+                                formattedDebtCap === "0");
+                            const capacityText = hasNoLimit
+                              ? null
+                              : `$${formattedTotalDebt} of $${formattedDebtCap} used`;
                             const capacityUsed =
                               pool && pool.debtCap > 0
                                 ? (pool.totalDebt / pool.debtCap) * 100
                                 : 0;
-
-                            // Format capacity text - values are already converted from wei/base units
-                            // Format: "$X.XXM of $YM used" (matching image design)
-                            const formatCapacityValue = (
-                              value: number,
-                            ): string => {
-                              if (value >= 1e6) {
-                                const millions = value / 1e6;
-                                // Show decimals only if not a whole number
-                                return millions % 1 === 0
-                                  ? `$${millions.toFixed(0)}M`
-                                  : `$${millions.toFixed(2)}M`;
-                              } else if (value >= 1e3) {
-                                const thousands = value / 1e3;
-                                return thousands % 1 === 0
-                                  ? `$${thousands.toFixed(0)}K`
-                                  : `$${thousands.toFixed(2)}K`;
-                              }
-                              return `$${value.toFixed(2)}`;
-                            };
-
-                            const capacityText = pool
-                              ? `${formatCapacityValue(pool.totalDebt)} of ${formatCapacityValue(pool.debtCap)} used`
-                              : "$0 of $0 used";
 
                             // Accent colors: green for supply, yellow/orange for borrow
                             const isBorrowPool = activeTab === "borrow";
@@ -1794,18 +1998,27 @@ const UnifiedDefi: React.FC = () => {
 
                                       {/* Capacity Column */}
                                       <div className="flex flex-1 flex-col items-center justify-center">
-                                        <div>
-                                          <div className="mb-2 text-sm text-[#1A1F24]">
-                                            {capacityText}
+                                        {capacityText ? (
+                                          <div>
+                                            <div className="mb-2 text-sm text-[#1A1F24]">
+                                              {capacityText}
+                                            </div>
+                                            <Progress
+                                              value={Math.min(
+                                                capacityUsed,
+                                                100,
+                                              )}
+                                              className="h-1.5 bg-[#E6F1EF]"
+                                              indicatorClassName={
+                                                accentColor.progressBar
+                                              }
+                                            />
                                           </div>
-                                          <Progress
-                                            value={Math.min(capacityUsed, 100)}
-                                            className="h-1.5 bg-[#E6F1EF]"
-                                            indicatorClassName={
-                                              accentColor.progressBar
-                                            }
-                                          />
-                                        </div>
+                                        ) : (
+                                          <div className="text-sm text-[#1A1F24]">
+                                            No limit
+                                          </div>
+                                        )}
                                       </div>
 
                                       {/* Action Column */}
@@ -1929,4 +2142,4 @@ const UnifiedDefi: React.FC = () => {
   );
 };
 
-export default UnifiedDefi;
+export default Defi;

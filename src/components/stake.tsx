@@ -648,10 +648,7 @@ const Stake: React.FC = () => {
                 </span>
                 {balance?.formatted && assetPrice && (
                   <span className="text-xs text-[#6B7780]">
-                    | $
-                    {formatNumber(
-                      (Number(balance.formatted) * assetPrice).toFixed(2),
-                    )}
+                    | ${(Number(balance.formatted) * assetPrice).toFixed(2)}
                   </span>
                 )}
               </div>
@@ -660,15 +657,16 @@ const Stake: React.FC = () => {
               <FormField
                 control={form.control}
                 name="stakeAmount"
-                render={({ field }) => {
+                render={({ field, fieldState }) => {
                   const maxDecimals = isBTC ? 8 : 6;
+                  const hasError = !!fieldState.error;
 
                   // Format for display: limit decimal places while preserving precision in storage
                   const getDisplayValue = (value: string) => {
                     if (!value || value === "") return "";
 
                     // Allow typing decimal point and trailing zeros
-                    if (value.endsWith(".") || (/\.\d*0+$/).test(value)) {
+                    if (value.endsWith(".") || /\.\d*0+$/.test(value)) {
                       return value;
                     }
 
@@ -688,23 +686,35 @@ const Stake: React.FC = () => {
                   return (
                     <FormItem className="w-full space-y-1">
                       <FormControl>
-                        <div className="w-full rounded-[14px] border border-[#E5E8EB] px-3 py-4">
-                          <Input
-                            className="h-fit border-none px-0 pr-1 text-2xl shadow-none outline-none placeholder:text-[#8D9C9C] focus-visible:ring-0 lg:pr-0 lg:!text-3xl"
-                            placeholder="0.00"
-                            value={getDisplayValue(field.value)}
-                            onChange={(e) => {
-                              const value = e.target.value;
-                              // Store the precise value as-is (string)
-                              field.onChange(value);
-                            }}
-                            onBlur={field.onBlur}
-                            name={field.name}
-                            ref={field.ref}
-                          />
-                          {stakeAmountUSD !== null && (
+                        <div
+                          className={cn(
+                            "w-full rounded-[14px] border px-3 py-4",
+                            hasError
+                              ? "border-destructive"
+                              : "border-[#E5E8EB]",
+                          )}
+                        >
+                          <div className="flex items-center gap-2">
+                            <Input
+                              className="h-fit flex-1 border-none px-0 pr-1 text-2xl shadow-none outline-none placeholder:text-[#8D9C9C] focus-visible:ring-0 lg:pr-0 lg:!text-3xl"
+                              placeholder="0.00"
+                              value={getDisplayValue(field.value)}
+                              onChange={(e) => {
+                                const value = e.target.value;
+                                // Store the precise value as-is (string)
+                                field.onChange(value);
+                              }}
+                              onBlur={field.onBlur}
+                              name={field.name}
+                              ref={field.ref}
+                            />
+                            <span className="text-xl text-[#8D9C9C]">
+                              {lstConfig.SYMBOL}
+                            </span>
+                          </div>
+                          {assetPrice && (
                             <div className="px-3 text-xs text-[#6B7780]">
-                              &asymp; ${formatNumber(stakeAmountUSD.toFixed(2))}
+                              &asymp; ${(stakeAmountUSD ?? 0).toFixed(2)}
                             </div>
                           )}
                         </div>
@@ -841,9 +851,9 @@ const Stake: React.FC = () => {
               {formatNumberWithCommas(getCalculatedLSTAmount(), isBTC ? 8 : 2)}{" "}
               {lstConfig.LST_SYMBOL}
             </span>
-            {calculatedLSTAmountUSD !== null && (
+            {assetPrice && exchangeRate.rate && (
               <span className="text-right text-xs text-[#6B7780]">
-                ≈ ${formatNumber(calculatedLSTAmountUSD.toFixed(2))}
+                ≈ ${(calculatedLSTAmountUSD ?? 0).toFixed(2)}
               </span>
             )}
           </div>
