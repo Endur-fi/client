@@ -692,6 +692,7 @@ interface FiltersProps {
   selectedAsset: AssetFilter;
   selectedProtocol: ProtocolFilter;
   showMoreFilters: boolean;
+  activeTab: "supply" | "borrow";
   onAssetChange: (asset: AssetFilter) => void;
   onProtocolChange: (protocol: ProtocolFilter) => void;
   onToggleMoreFilters: () => void;
@@ -703,6 +704,7 @@ const Filters: React.FC<FiltersProps> = ({
   selectedAsset,
   selectedProtocol,
   showMoreFilters,
+  activeTab,
   onAssetChange,
   onProtocolChange,
   onToggleMoreFilters,
@@ -732,17 +734,19 @@ const Filters: React.FC<FiltersProps> = ({
               </button>
             ))}
           </div>
-          <button
-            onClick={onToggleMoreFilters}
-            className="flex items-center gap-1 rounded-lg border border-[#0000000D] bg-[#F2F2F4CC] px-3 py-2 text-xs font-medium text-[#6B7780] shadow-sm"
-          >
-            Show more filters
-            <ChevronDown
-              className={cn("h-4 w-4 transition-transform", {
-                "rotate-180": showMoreFilters,
-              })}
-            />
-          </button>
+          {activeTab === "supply" && (
+            <button
+              onClick={onToggleMoreFilters}
+              className="flex items-center gap-1 rounded-lg border border-[#0000000D] bg-[#F2F2F4CC] px-3 py-2 text-xs font-medium text-[#6B7780] shadow-sm"
+            >
+              Show more filters
+              <ChevronDown
+                className={cn("h-4 w-4 transition-transform", {
+                  "rotate-180": showMoreFilters,
+                })}
+              />
+            </button>
+          )}
         </div>
       </div>
 
@@ -1556,6 +1560,7 @@ const Defi: React.FC = () => {
                     selectedAsset={selectedAsset}
                     selectedProtocol={selectedProtocol}
                     showMoreFilters={showMoreFilters}
+                    activeTab={tab}
                     onAssetChange={setSelectedAsset}
                     onProtocolChange={setSelectedProtocol}
                     onToggleMoreFilters={() =>
