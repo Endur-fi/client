@@ -3,8 +3,7 @@
 import { useAtomValue } from "jotai";
 import { useAccount, useBalance } from "@starknet-react/core";
 import React from "react";
-import Link from "next/link";
-import { ExternalLink, Info } from "lucide-react";
+import { Info } from "lucide-react";
 
 import { Icons } from "./Icons";
 
@@ -273,13 +272,14 @@ const PortfolioSection: React.FC = () => {
             Only wallet-held LSTs are shown. LSTs deployed in third-party dApps
             {"won't"} appear here.
           </p>
-          <Link
+          {/* TODO: Add link to portfolio page */}
+          {/* <Link
             href="/portfolio"
             className="inline-flex items-center gap-1 font-medium text-[#0D5F4E] hover:underline"
           >
             Visit Portfolio page
             <ExternalLink className="h-3 w-3" />
-          </Link>
+          </Link> */}
         </div>
 
         {/* Season Points */}

@@ -124,7 +124,7 @@ const MobileNav = () => {
                       )}
                     >
                       <HandCoinsIcon className="-ml-0.5 size-5" />
-                      DeFi with xSTRK
+                      DeFi Opportunities
                     </Link>
 
                     <Link
@@ -135,7 +135,8 @@ const MobileNav = () => {
                       xSTRK Analytics
                     </Link>
 
-                    <Link
+                    {/* TODO: Add link to portfolio page */}
+                    {/* <Link
                       href="/portfolio"
                       className={cn(
                         "flex w-full cursor-pointer flex-row items-center gap-2 text-nowrap rounded-md p-2 px-3 text-sm font-semibold text-[#03624C] transition-all hover:bg-[#17876D] hover:text-white",
@@ -146,7 +147,7 @@ const MobileNav = () => {
                     >
                       <UserIcon className="-ml-0.5 size-5" />
                       xSTRK Portfolio
-                    </Link>
+                    </Link> */}
                   </div>
                 )}
               </div>
@@ -166,13 +167,13 @@ const MobileNav = () => {
 
                 {btcExpanded && (
                   <div className="space-y-1">
-                    <div className="flex w-full cursor-not-allowed flex-row items-center gap-2 text-nowrap rounded-md p-2 px-3 text-sm font-semibold text-[#03624C] opacity-50 transition-all">
+                    {/* <div className="flex w-full cursor-not-allowed flex-row items-center gap-2 text-nowrap rounded-md p-2 px-3 text-sm font-semibold text-[#03624C] opacity-50 transition-all">
                       <HandCoinsIcon className="-ml-0.5 size-5" />
                       <div>
                         <p>DeFi with xyBTCs</p>
                         <p className="text-xs text-[#8D9C9C]">Coming soon</p>
                       </div>
-                    </div>
+                    </div> */}
 
                     <div className="flex w-full cursor-not-allowed flex-row items-center gap-2 text-nowrap rounded-md p-2 px-3 text-sm font-semibold text-[#03624C] opacity-50 transition-all">
                       <ChartColumnDecreasingIcon className="size-5" />

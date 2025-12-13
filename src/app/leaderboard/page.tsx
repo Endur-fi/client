@@ -249,7 +249,7 @@ const useLeaderboardData = () => {
 };
 
 const LoadingSpinner = React.memo(
-  ({ message = "Loading leaderboard data..." }: { message?: string }) => (
+  ({ message = "Loading Rewards & Leaderboard data..." }: { message?: string }) => (
     <div className="mt-8 flex items-center justify-center">
       <div className="flex items-center gap-3">
         <div className="h-6 w-6 animate-spin rounded-full border-2 border-[#17876D] border-t-transparent" />
@@ -282,7 +282,7 @@ const Season2Banner = React.memo(() => (
           LIVE
         </span>
         <p className="text-xs text-[#17876D] lg:text-sm">
-          Earn points by staking on Endur throughout the season
+          Earn points by staking or contributing to Endur throughout the season
         </p>
       </div>
     </div>
@@ -406,7 +406,7 @@ const Leaderboard: React.FC = () => {
     return (
       <div className={containerClasses}>
         <h1 className="text-2xl font-semibold tracking-[-1%] text-[#17876D]">
-          Leaderboard
+          Rewards & Leaderboard
         </h1>
         <LoadingSpinner />
       </div>
@@ -417,7 +417,7 @@ const Leaderboard: React.FC = () => {
     return (
       <div className={containerClasses}>
         <h1 className="text-2xl font-semibold tracking-[-1%] text-[#17876D]">
-          Leaderboard
+          Rewards & Leaderboard
         </h1>
         <ErrorDisplay error={error} />
       </div>
@@ -446,7 +446,7 @@ const Leaderboard: React.FC = () => {
       isActive: true,
       startDate: new Date("2024-05-10T00:00:00Z"),
       endDate: new Date("2024-06-10T23:59:59Z"),
-      points: 75000000,
+      points: 7500000,
     },
     {
       season: 1,
@@ -467,17 +467,9 @@ const Leaderboard: React.FC = () => {
               Rewards & Leaderboard
             </h1>
           </div>
+          {/* TODO: Add learn more button */}
           <p className="mt-1 text-sm text-[#021B1A] lg:text-base">
-            Track your ranking and earn rewards. your position on the
-            leaderboard is based on the total amount you&apos;ve staked on Endur.
-            Learn more in the{" "}
-            <a
-              href="https://docs.endur.fi/docs"
-              target="_blank"
-              className="text-[#3B82F6] underline"
-            >
-              docs.
-            </a>
+            Track your ranking and earn rewards. 
           </p>
         </div>
       </div>
@@ -489,21 +481,18 @@ const Leaderboard: React.FC = () => {
               <Icons.gift />
             </div>
             <h2 className="font-bold text-white lg:hidden lg:text-xl">
-              125,000 STRK Rewards Distributed
+              250,000 xSTRK Rewards Distributed
             </h2>
           </div>
           <div className="flex-1 space-y-2 lg:block">
             <div className="hidden lg:block">
               <h2 className="font-bold text-white lg:text-xl">
-                125,000 STRK Rewards Distributed
+                250,000 xSTRK Rewards Distributed
               </h2>
               <div className="mt-2 h-px w-full bg-white/20"></div>
             </div>
             <p className="text-sm text-white lg:text-base">
-              Season 1 rewards have been successfully distributed to all
-              eligible participants. Check if you&apos;re eligible for upcoming
-              Season 2 rewards based on your staking activity and position on
-              the leaderboard.
+            In May 2025, we distributed 250,000 xSTRK in rewards to users from the {"platform’s"} first six months. The distribution was calculated based on Season 1 points as recorded at that time.
             </p>
           </div>
           <div className="lg:flex-shrink-0 lg:self-center">

@@ -13,7 +13,6 @@ import { FlameIcon } from "./ui/flame";
 import { GaugeIcon } from "./ui/gauge";
 import { HandCoinsIcon } from "./ui/hand-coins";
 import { SidebarMenuButton, SidebarMenuItem, useSidebar } from "./ui/sidebar";
-import { UserIcon } from "./ui/user";
 
 const SidebarMenuItems = () => {
   const [triggerLSTIconAnimation, setTriggerLSTIconAnimation] =
@@ -73,7 +72,7 @@ const SidebarMenuItems = () => {
               className="-ml-0.5 size-5"
               triggerAnimation={triggerLSTIconAnimation}
             />
-            <span>{open && "Liquidity Staking"}</span>
+            <span>{open && "Liquid Staking"}</span>
           </Link>
         </SidebarMenuButton>
       </SidebarMenuItem>
@@ -104,7 +103,7 @@ const SidebarMenuItems = () => {
               className="-ml-0.5 size-5"
               triggerAnimation={triggerDefiIconAnimation}
             />
-            {open && "DeFi with xSTRK"}
+            {open && "DeFi Opportunities"}
           </Link>
         </SidebarMenuButton>
       </SidebarMenuItem>
@@ -154,7 +153,8 @@ const SidebarMenuItems = () => {
       </SidebarMenuItem>
 
       {/* Portfolio */}
-      <SidebarMenuItem>
+      {/* TODO: Add link to portfolio page */}
+      {/* <SidebarMenuItem>
         <SidebarMenuButton
           asChild
           className={cn("opacity-70 transition-all hover:opacity-100", {
@@ -179,7 +179,7 @@ const SidebarMenuItems = () => {
             {open && "Portfolio"}
           </Link>
         </SidebarMenuButton>
-      </SidebarMenuItem>
+      </SidebarMenuItem> */}
 
       {/* Leaderboard */}
       <SidebarMenuItem>
