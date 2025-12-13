@@ -715,7 +715,7 @@ const Filters: React.FC<FiltersProps> = ({
           <p className="text-sm text-[#5B616D]">Assets</p>
          
         </div> */}
-        <div className="flex flex-wrap gap-2 justify-between">
+        <div className="flex flex-wrap justify-between gap-2">
           <div className="flex flex-wrap gap-2">
             {assetFilters.map((asset) => (
               <button
@@ -752,7 +752,7 @@ const Filters: React.FC<FiltersProps> = ({
           hidden: !showMoreFilters,
         })}
       >
-        <div className="flex flex-wrap gap-2 mt-5 items-center">
+        <div className="mt-5 flex flex-wrap items-center gap-2">
           <p className="mb-0 text-sm font-medium text-[#1A1F24]">Protocols:</p>
           {protocolFilters.map((protocol) => (
             <button
@@ -783,9 +783,24 @@ const Defi: React.FC = () => {
     useState<ProtocolFilter>("all");
   const [showDisclaimer, setShowDisclaimer] = useState(false);
   const [showMoreFilters, setShowMoreFilters] = useState(false);
+  const [pendingProtocolLink, setPendingProtocolLink] = useState<string | null>(
+    null,
+  );
 
   const handleContinue = () => {
     setShowDisclaimer(false);
+    if (pendingProtocolLink) {
+      window.open(pendingProtocolLink, "_blank");
+      setPendingProtocolLink(null);
+    }
+  };
+
+  const handleCTAClick = (link: string, onClick?: () => void) => {
+    if (onClick) {
+      onClick();
+    }
+    setPendingProtocolLink(link);
+    setShowDisclaimer(true);
   };
 
   // BTC yield atoms
@@ -1223,6 +1238,7 @@ const Defi: React.FC = () => {
             isBorrow={activeTab === "borrow"}
             maxLTV={maxLTV}
             capacity={capacity}
+            onActionClick={handleCTAClick}
           />
         ));
       }
@@ -1239,6 +1255,7 @@ const Defi: React.FC = () => {
           isBorrow={activeTab === "borrow"}
           maxLTV={maxLTV}
           capacity={capacity}
+          onActionClick={handleCTAClick}
         />
       );
     });
@@ -1393,11 +1410,8 @@ const Defi: React.FC = () => {
             {config.action && (
               <Button
                 onClick={() => {
-                  if (config.action?.onClick) {
-                    config.action.onClick();
-                  }
                   if (config.action?.link) {
-                    window.open(config.action.link, "_blank");
+                    handleCTAClick(config.action.link, config.action.onClick);
                   }
                 }}
                 className="rounded-lg bg-[#F59E0B] px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90"
@@ -1473,8 +1487,9 @@ const Defi: React.FC = () => {
             </h1>
           </div>
           <div className="col-span-full w-full lg:col-start-2">
-            <p className="text-xs text-[#5F6C72] lg:text-md">
-            Put your STRK and BTC LSTs to work in Starknet DeFi — earn extra yield, unlock liquidity, and rack up points.
+            <p className="lg:text-md text-xs text-[#5F6C72]">
+              Put your STRK and BTC LSTs to work in Starknet DeFi — earn extra
+              yield, unlock liquidity, and rack up points.
             </p>
           </div>
         </div>
@@ -1490,7 +1505,7 @@ const Defi: React.FC = () => {
           >
             {/* Header Section: Tabs and Filters */}
             <div className="w-full rounded-[14px]">
-              <div className="flex flex-col px-2 gap-4 lg:flex-row lg:items-center lg:justify-between">
+              <div className="flex flex-col gap-4 px-2 lg:flex-row lg:items-center lg:justify-between">
                 <TabsList className="flex h-auto w-full gap-0 rounded-[14px] border border-[#E5E8EB] bg-white p-1 lg:w-[350px]">
                   {[
                     { value: "supply", label: "Supply & Earn" },
@@ -1507,13 +1522,26 @@ const Defi: React.FC = () => {
                     </TabsTrigger>
                   ))}
                 </TabsList>
-                <button
-                  onClick={() => setShowDisclaimer(true)}
-                  className="flex w-fit items-center justify-center gap-2 rounded-full border border-[#D69733] bg-[#D697331A] px-2 py-1 text-xs text-[#F59E0B] lg:self-end"
-                >
-                  <OctagonAlert className="h-4 w-4" />
-                  Disclaimer
-                </button>
+                <TooltipProvider delayDuration={0}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button className="flex w-fit items-center justify-center gap-2 rounded-full border border-[#D69733] bg-[#D697331A] px-2 py-1 text-xs text-[#F59E0B] lg:self-end">
+                        <OctagonAlert className="h-4 w-4" />
+                        Disclaimer
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent
+                      side="bottom"
+                      className="max-w-xs rounded-md border border-[#D69733] bg-white text-xs text-[#717182]"
+                    >
+                      The protocols listed here are third-party services not
+                      affiliated with or endorsed by Endur. This list is
+                      provided for informational convenience only. Always do
+                      your own research and understand the risks before using
+                      any DeFi protocol.
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </div>
 
               {(["supply", "borrow"] as const).map((tab) => (
@@ -1743,13 +1771,10 @@ const Defi: React.FC = () => {
                                         {config.action && (
                                           <button
                                             onClick={() => {
-                                              if (config.action?.onClick) {
-                                                config.action.onClick();
-                                              }
                                               if (config.action?.link) {
-                                                window.open(
+                                                handleCTAClick(
                                                   config.action.link,
-                                                  "_blank",
+                                                  config.action.onClick,
                                                 );
                                               }
                                             }}
@@ -2024,13 +2049,10 @@ const Defi: React.FC = () => {
                                         {config.action && (
                                           <button
                                             onClick={() => {
-                                              if (config.action?.onClick) {
-                                                config.action.onClick();
-                                              }
                                               if (config.action?.link) {
-                                                window.open(
+                                                handleCTAClick(
                                                   config.action.link,
-                                                  "_blank",
+                                                  config.action.onClick,
                                                 );
                                               }
                                             }}

@@ -41,6 +41,7 @@ interface DefiCardProps {
     total: number | null; // null means no limit
   };
   rewardPoints?: string;
+  onActionClick?: (link: string, onClick?: () => void) => void;
 }
 
 const DefiCard: React.FC<DefiCardProps> = ({
@@ -54,6 +55,7 @@ const DefiCard: React.FC<DefiCardProps> = ({
   maxLTV,
   capacity,
   rewardPoints,
+  onActionClick,
 }) => {
   // Accent colors: green for supply, yellow/orange for borrow
   const accentColor = isBorrow
@@ -214,13 +216,9 @@ const DefiCard: React.FC<DefiCardProps> = ({
       {/* Action Button */}
       <div className="mt-auto">
         {action ? (
-          <Link
-            href={action.link}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={action.onClick}
-          >
+          onActionClick ? (
             <Button
+              onClick={() => onActionClick(action.link, action.onClick)}
               className={cn(
                 "w-full rounded-full px-4 py-3 text-sm font-semibold text-white transition-opacity",
                 accentColor.buttonBg,
@@ -228,7 +226,23 @@ const DefiCard: React.FC<DefiCardProps> = ({
             >
               {action.buttonText}
             </Button>
-          </Link>
+          ) : (
+            <Link
+              href={action.link}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={action.onClick}
+            >
+              <Button
+                className={cn(
+                  "w-full rounded-full px-4 py-3 text-sm font-semibold text-white transition-opacity",
+                  accentColor.buttonBg,
+                )}
+              >
+                {action.buttonText}
+              </Button>
+            </Link>
+          )
         ) : (
           <Button
             disabled
