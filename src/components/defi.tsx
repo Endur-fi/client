@@ -29,7 +29,6 @@ import {
   hyperxLBTCVaultCapacityAtom,
   hyperxsBTCVaultCapacityAtom,
   hyperxSTRKVaultCapacityAtom,
-  VaultCapacity,
 } from "@/store/defi.store";
 import { useAtom } from "jotai";
 
@@ -63,7 +62,6 @@ import {
 } from "./ui/tooltip";
 import { TableCell, TableRow } from "./ui/table";
 import { ChevronDown } from "lucide-react";
-import { Web3Number } from "@strkfarm/sdk";
 
 export interface ProtocolConfig {
   tokens: TokenDisplay[];
@@ -1177,9 +1175,8 @@ const Defi: React.FC = () => {
         // Vesu: no limit
         if (protocolKey === "vesu" || protocolKey.startsWith("vesuBTC")) {
           capacity = undefined; // No limit
-        }
-        // Ekubo: no limit
-        else if (
+        } else if (
+          // Ekubo: no limit
           protocolKey === "ekuboBTCxWBTC" ||
           protocolKey === "ekuboBTCxtBTC" ||
           protocolKey === "ekuboBTCxLBTC" ||
@@ -1187,9 +1184,8 @@ const Defi: React.FC = () => {
           protocolKey === "strkfarmEkubo"
         ) {
           capacity = undefined; // No limit
-        }
-        // Troves hyper vaults: fetch from contract
-        else if (
+        } else if (
+          // Troves hyper vaults: fetch from contract
           protocolKey === "hyperxWBTC" ||
           protocolKey === "hyperxtBTC" ||
           protocolKey === "hyperxLBTC" ||
@@ -1289,9 +1285,8 @@ const Defi: React.FC = () => {
         // Vesu: no limit
         if (protocolKey === "vesu" || protocolKey.startsWith("vesuBTC")) {
           capacity = undefined; // No limit
-        }
-        // Ekubo: no limit
-        else if (
+        } else if (
+          // Ekubo: no limit
           protocolKey === "ekuboBTCxWBTC" ||
           protocolKey === "ekuboBTCxtBTC" ||
           protocolKey === "ekuboBTCxLBTC" ||
@@ -1299,9 +1294,8 @@ const Defi: React.FC = () => {
           protocolKey === "strkfarmEkubo"
         ) {
           capacity = undefined; // No limit
-        }
-        // Troves hyper vaults: fetch from contract
-        else if (
+        } else if (
+          // Troves hyper vaults: fetch from contract
           protocolKey === "hyperxWBTC" ||
           protocolKey === "hyperxtBTC" ||
           protocolKey === "hyperxLBTC" ||
@@ -1604,9 +1598,8 @@ const Defi: React.FC = () => {
                               protocolKey.startsWith("vesuBTC")
                             ) {
                               capacity = undefined; // No limit
-                            }
-                            // Ekubo: no limit
-                            else if (
+                            } else if (
+                              // Ekubo: no limit
                               protocolKey === "ekuboBTCxWBTC" ||
                               protocolKey === "ekuboBTCxtBTC" ||
                               protocolKey === "ekuboBTCxLBTC" ||
@@ -1614,9 +1607,8 @@ const Defi: React.FC = () => {
                               protocolKey === "strkfarmEkubo"
                             ) {
                               capacity = undefined; // No limit
-                            }
-                            // Troves hyper vaults: fetch from contract
-                            else if (
+                            } else if (
+                              // Troves hyper vaults: fetch from contract
                               protocolKey === "hyperxWBTC" ||
                               protocolKey === "hyperxtBTC" ||
                               protocolKey === "hyperxLBTC" ||

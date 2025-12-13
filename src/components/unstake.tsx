@@ -50,7 +50,6 @@ import Stats from "./stats";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { assetPriceAtom, lstConfigAtom } from "@/store/common.store";
-import { ASSET_ICONS } from "./asset-selector";
 import { Web3Number } from "@strkfarm/sdk";
 
 const formSchema = z.object({
@@ -92,28 +91,6 @@ const StyledButton = ({
   >
     {children}
   </Button>
-);
-
-const InfoTooltip = ({
-  content,
-  side = "right",
-}: {
-  content: React.ReactNode;
-  side?: "right" | "left" | "top" | "bottom";
-}) => (
-  <TooltipProvider delayDuration={0}>
-    <Tooltip>
-      <TooltipTrigger>
-        <Info className="size-3 text-[#3F6870] lg:text-[#8D9C9C]" />
-      </TooltipTrigger>
-      <TooltipContent
-        side={side}
-        className="max-w-60 rounded-md border border-[#03624C] bg-white text-[#03624C]"
-      >
-        {content}
-      </TooltipContent>
-    </Tooltip>
-  </TooltipProvider>
 );
 
 const FeeSection = () => (
@@ -234,7 +211,6 @@ interface UnstakeOptionCardProps {
   isLoading?: boolean;
   isRecommended?: boolean;
   isBestRate?: boolean;
-  bgColor?: string;
 }
 
 const UnstakeOptionCard = ({
@@ -246,7 +222,6 @@ const UnstakeOptionCard = ({
   isLoading,
   isRecommended,
   isBestRate,
-  bgColor = "#E9F3F0",
 }: UnstakeOptionCardProps) => {
   const lstConfig = useAtomValue(lstConfigAtom)!;
 
@@ -383,6 +358,22 @@ const Unstake = () => {
     return amount * assetPrice;
   }, [youWillGet, assetPrice]);
 
+  // Calculate USD value for display (based on what user will receive)
+  const unstakeAmountUSD = React.useMemo(() => {
+    const unstakeAmount = form.getValues("unstakeAmount");
+    if (!unstakeAmount || unstakeAmount === "" || !assetPrice) {
+      return null;
+    }
+    const amount = Number(unstakeAmount);
+    if (isNaN(amount) || amount <= 0) {
+      return null;
+    }
+    // Calculate USD value based on the amount of underlying asset user will receive
+    const underlyingAmount =
+      amount * (txnDapp === "endur" ? exRate.rate : dexRate);
+    return underlyingAmount * assetPrice;
+  }, [form.watch("unstakeAmount"), assetPrice, txnDapp, exRate.rate, dexRate]);
+
   const waitingTime = React.useMemo(() => {
     return "~7 days";
   }, [queueState.value, form.watch("unstakeAmount")]);
@@ -475,7 +466,7 @@ const Unstake = () => {
 
     // exact balance will be used for unstake amount only when percentage is 100
     // for other percentages, we are still rounding up to 8/2 decimals precision
-    if (Number(currentLSTBalance.value.toEtherToFixedDecimals(8)) == 0) {
+    if (Number(currentLSTBalance.value.toEtherToFixedDecimals(8)) === 0) {
       return;
     }
     if (percentage === 100) {
@@ -654,7 +645,8 @@ const Unstake = () => {
                     if (!value || value === "") return "";
 
                     // Allow typing decimal point and trailing zeros
-                    if (value.endsWith(".") || /\.\d*0+$/.test(value)) {
+                    const trailingZerosRegex = /\.\d*0+$/;
+                    if (value.endsWith(".") || trailingZerosRegex.test(value)) {
                       return value;
                     }
 
@@ -670,28 +662,6 @@ const Unstake = () => {
 
                     return value;
                   };
-
-                  // Calculate USD value for display (based on what user will receive)
-                  const unstakeAmountUSD = React.useMemo(() => {
-                    const unstakeAmount = form.getValues("unstakeAmount");
-                    if (!unstakeAmount || unstakeAmount === "" || !assetPrice) {
-                      return null;
-                    }
-                    const amount = Number(unstakeAmount);
-                    if (isNaN(amount) || amount <= 0) {
-                      return null;
-                    }
-                    // Calculate USD value based on the amount of underlying asset user will receive
-                    const underlyingAmount =
-                      amount * (txnDapp === "endur" ? exRate.rate : dexRate);
-                    return underlyingAmount * assetPrice;
-                  }, [
-                    form.watch("unstakeAmount"),
-                    assetPrice,
-                    txnDapp,
-                    exRate.rate,
-                    dexRate,
-                  ]);
 
                   return (
                     <FormItem className="w-full space-y-1">
@@ -778,7 +748,6 @@ const Unstake = () => {
             rate={exRate.rate}
             waitingTime={waitingTime}
             isBestRate={getBetterRate() === "endur"}
-            bgColor="transparent"
           />
 
           {isMainnet() && (

@@ -15,7 +15,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { IS_PAUSED, getLSTAssetsByCategory, getSTRKAsset } from "@/constants";
-import { cn, formatNumber, formatNumberWithCommas } from "@/lib/utils";
+import { cn, formatNumberWithCommas } from "@/lib/utils";
 import {
   isMerryChristmasAtom,
   tabsAtom,

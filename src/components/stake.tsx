@@ -58,12 +58,7 @@ import { useTransactionHandler } from "@/hooks/use-transactions";
 import { useWalletConnection } from "@/hooks/use-wallet-connection";
 import { MyAnalytics } from "@/lib/analytics";
 import MyNumber from "@/lib/MyNumber";
-import {
-  cn,
-  eventNames,
-  formatNumberWithCommas,
-  formatNumber,
-} from "@/lib/utils";
+import { cn, eventNames, formatNumberWithCommas } from "@/lib/utils";
 import LSTService from "@/services/lst";
 import { lstConfigAtom, assetPriceAtom } from "@/store/common.store";
 import { protocolYieldsAtom, type SupportedDApp } from "@/store/defi.store";
@@ -666,7 +661,8 @@ const Stake: React.FC = () => {
                     if (!value || value === "") return "";
 
                     // Allow typing decimal point and trailing zeros
-                    if (value.endsWith(".") || /\.\d*0+$/.test(value)) {
+                    const trailingZerosRegex = /\.\d*0+$/;
+                    if (value.endsWith(".") || trailingZerosRegex.test(value)) {
                       return value;
                     }
 
