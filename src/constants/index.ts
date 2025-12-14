@@ -140,7 +140,7 @@ const LST_ASSETS: Record<string, LSTAssetConfig> = {
         WITHDRAWAL_QUEUE_ADDRESS:
           "0x293caaca81259f02f17bd85de5056624626fc7cb25ff79f104c3ef07a4649ec",
         TROVES_HYPER_VAULT_ADDRESS:
-          "0x038e96a301428d204ab4553799aa386a0f14a5ef9b30a5830be1814e4fb8da1c",
+          "0x064cf24d4883fe569926419a0569ab34497c6956a1a308fa883257f7486d7030",
       },
     },
   },

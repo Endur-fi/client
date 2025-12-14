@@ -192,7 +192,7 @@ const DefiCard: React.FC<DefiCardProps> = ({
           ) : (
             <div className="mb-4">
               <div className="mb-2 text-xs text-[#6B7780]">
-                <span className="font-medium text-[#1A1F24]">No limit</span>
+                <span className="font-medium text-[#1A1F24]">Limitless</span>
               </div>
             </div>
           )

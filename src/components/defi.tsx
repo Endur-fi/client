@@ -24,6 +24,7 @@ import {
   trovesEkuboBTCxLBTCYieldAtom,
   trovesEkuboBTCxsBTCYieldAtom,
   vesuBorrowPoolsAtom,
+  vesuPoolsFilteredAtom,
   VesuBorrowPool,
   hyperxWBTCVaultCapacityAtom,
   hyperxtBTCVaultCapacityAtom,
@@ -39,6 +40,7 @@ import DefiCard, {
   TokenDisplay,
 } from "./defi-card";
 import { Icons } from "./Icons";
+import { MyDottedTooltip } from "./my-tooltip";
 import {
   Tabs as ShadCNTabs,
   TabsContent,
@@ -63,6 +65,11 @@ import {
 import { ChevronDown } from "lucide-react";
 import MyHeader from "./header";
 
+export const POINTS_CONFIG = {
+  USDC_BORROWING: 3, // additional 3x of borrowed value normalised
+  UNDERLYING_BORROWING: 0, // no additional points for underlying borrowing
+  STAKING: 1 // simply for staking
+};
 export interface ProtocolConfig {
   tokens: TokenDisplay[];
   protocolIcon: React.ReactNode;
@@ -71,39 +78,90 @@ export interface ProtocolConfig {
   description: string;
   apy?: number; // not %
   action?: ProtocolAction;
+  pointsMultiplier?: { min: number; max: number, description: string };
+  externalPointsInfo?: string | null; // "+Vesu Points" for vesu linked protocols, null for rest
 }
+
+// Factory function for Ekubo pool configs
+const createEkuboPoolConfig = (
+  token1: { icon: React.ReactNode; name: string },
+  token2: { icon: React.ReactNode; name: string },
+  quoteCurrency: string,
+  baseCurrency: string,
+  protocolKey: string,
+): ProtocolConfig => ({
+  tokens: [token1, token2],
+  protocolIcon: <Icons.ekuboLogo className="rounded-full" />,
+  protocolName: "Ekubo",
+  badges: [{ type: "Liquidity Pool", color: "bg-[#FFF7ED] text-[#EA580C]" }],
+  description: `Provide liquidity to the ${token1.name}/${token2.name} pool on Ekubo and earn trading fees & DeFi Spring rewards`,
+  externalPointsInfo: null,
+  action: {
+    type: "pool",
+    link: `https://app.ekubo.org/starknet/positions/new?quoteCurrency=${quoteCurrency}&baseCurrency=${baseCurrency}`,
+    buttonText: "Add Liquidity",
+    onClick: () => {
+      MyAnalytics.track(eventNames.OPPORTUNITIES, {
+        protocol: protocolKey,
+        buttonText: "Add Liquidity",
+      });
+    },
+  },
+  pointsMultiplier: {
+    min: 8,
+    max: 12,
+    description: `To boost DEX liquidity of ${token1.name}/${token2.name} pool, this pool receives high season 2 points under contributor category. It is important to ensure liquidity is provided within 0.5% of the true price of LST. Your entire position value in either tokens is counter for points.`,
+  }
+});
+
+// Factory functions for protocol configs
+const createTrovesEkuboLiquidityConfig = (
+  key: string,
+  token1: { icon: React.ReactNode; name: string },
+  token2: { icon: React.ReactNode; name: string },
+  strategyPath: string,
+  protocolKey: string,
+): ProtocolConfig => ({
+  tokens: [token1, token2],
+  protocolIcon: <Icons.trovesLogoLight className="rounded-full" />,
+  protocolName: "Troves",
+  badges: [
+    {
+      type: "Automated Liquidity Pool",
+      color: "bg-[#E9F3F0] text-[#17876D]",
+    },
+  ],
+  description: `Auto-managed liquidity vault for Ekubo's ${token1.name}/${token2.name} pool. Rebalances range and compounds fees and rewards automatically.`,
+  pointsMultiplier: {
+    min: 8,
+    max: 15,
+    description: `To boost liquidity of ${token1.name}/${token2.name} pool, this pool receives high season 2 points under contributor category. Without the headache of active rebalancing, this pool is a great way to earn points. Your entire position value in either tokens is counted for points.`,
+  },
+  externalPointsInfo: null,
+  action: {
+    type: "pool",
+    link: `https://app.troves.fi/strategy/${strategyPath}`,
+    buttonText: "Add Liquidity",
+    onClick: () => {
+      MyAnalytics.track(eventNames.OPPORTUNITIES, {
+        protocol: protocolKey,
+        buttonText: "Add Liquidity",
+      });
+    },
+  },
+});
 
 // STRK protocol configurations
 export const strkProtocolConfigs: Partial<
   Record<SupportedDApp, ProtocolConfig>
 > = {
-  strkfarmEkubo: {
-    tokens: [
-      { icon: <Icons.endurLogo className="size-[22px]" />, name: "xSTRK" },
-      { icon: <Icons.strkLogo className="size-[22px]" />, name: "STRK" },
-    ],
-    protocolIcon: <Icons.trovesLogoLight className="rounded-full" />,
-    protocolName: "Troves",
-    badges: [
-      {
-        type: "Automated Liquidity Pool",
-        color: "bg-[#E9F3F0] text-[#17876D]",
-      },
-    ],
-    description:
-      "Auto-managed liquidity vault for Ekubo's xSTRK/STRK pool. Rebalances range and compounds fees and rewards automatically.",
-    action: {
-      type: "pool",
-      link: "https://app.troves.fi/strategy/ekubo_cl_xstrkstrk",
-      buttonText: "Add Liquidity",
-      onClick: () => {
-        MyAnalytics.track(eventNames.OPPORTUNITIES, {
-          protocol: "trovesEkubo",
-          buttonText: "Add Liquidity",
-        });
-      },
-    },
-  },
+  strkfarmEkubo: createTrovesEkuboLiquidityConfig(
+    "strkfarmEkubo",
+    { icon: <Icons.endurLogo className="size-[22px]" />, name: "xSTRK" },
+    { icon: <Icons.strkLogo className="size-[22px]" />, name: "STRK" },
+    "ekubo_cl_xstrkstrk",
+    "trovesEkubo",
+  ),
   avnu: {
     tokens: [
       { icon: <Icons.endurLogo className="size-[22px]" />, name: "xSTRK" },
@@ -113,6 +171,7 @@ export const strkProtocolConfigs: Partial<
     protocolName: "Avnu",
     badges: [{ type: "DEX Aggregator", color: "bg-[#F3E8FF] text-[#9333EA]" }],
     description: "Swap xSTRK for STRK on Avnu",
+    externalPointsInfo: null,
     action: {
       type: "swap",
       link: "https://app.avnu.fi/en?mode=simple&tokenFrom=0x28d709c875c0ceac3dce7065bec5328186dc89fe254527084d1689910954b0a&tokenTo=0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d&amount=100",
@@ -134,6 +193,7 @@ export const strkProtocolConfigs: Partial<
     protocolName: "Fibrous",
     badges: [{ type: "DEX Aggregator", color: "bg-[#F3E8FF] text-[#9333EA]" }],
     description: "Swap xSTRK for STRK on Fibrous",
+    externalPointsInfo: null,
     action: {
       type: "swap",
       link: "https://app.fibrous.finance/en?network=starknet&mode=swap&source=0x028d709c875c0ceac3dce7065bec5328186dc89fe254527084d1689910954b0a&destination=0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
@@ -156,6 +216,7 @@ export const strkProtocolConfigs: Partial<
     badges: [{ type: "Liquidity Pool", color: "bg-[#FFF7ED] text-[#EA580C]" }],
     description:
       "Provide liquidity to the xSTRK/STRK pool on Nostra and earn trading fees",
+    externalPointsInfo: null,
     action: {
       type: "pool",
       link: "https://app.nostra.finance/pools/xSTRK-STRK/deposit",
@@ -168,28 +229,13 @@ export const strkProtocolConfigs: Partial<
       },
     },
   },
-  ekubo: {
-    tokens: [
-      { icon: <Icons.endurLogo className="size-[22px]" />, name: "xSTRK" },
-      { icon: <Icons.strkLogo className="size-[22px]" />, name: "STRK" },
-    ],
-    protocolIcon: <Icons.ekuboLogo className="rounded-full" />,
-    protocolName: "Ekubo",
-    badges: [{ type: "Liquidity Pool", color: "bg-[#FFF7ED] text-[#EA580C]" }],
-    description:
-      "Provide liquidity to the xSTRK/STRK pool on Ekubo and earn trading fees & DeFi Spring rewards",
-    action: {
-      type: "pool",
-      link: "https://app.ekubo.org/starknet/positions/new?quoteCurrency=0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d&baseCurrency=0x28d709c875c0ceac3dce7065bec5328186dc89fe254527084d1689910954b0a",
-      buttonText: "Add Liquidity",
-      onClick: () => {
-        MyAnalytics.track(eventNames.OPPORTUNITIES, {
-          protocol: "ekubo",
-          buttonText: "Add Liquidity",
-        });
-      },
-    },
-  },
+  ekuboSTRK: createEkuboPoolConfig(
+    { icon: <Icons.endurLogo className="size-[22px]" />, name: "xSTRK" },
+    { icon: <Icons.strkLogo className="size-[22px]" />, name: "STRK" },
+    "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d", // STRK
+    "0x28d709c875c0ceac3dce7065bec5328186dc89fe254527084d1689910954b0a", // xSTRK
+    "ekuboSTRK",
+  ),
   opus: {
     tokens: [
       { icon: <Icons.endurLogo className="size-[22px]" />, name: "xSTRK" },
@@ -200,6 +246,7 @@ export const strkProtocolConfigs: Partial<
     protocolName: "Opus",
     description:
       "Deposit your xSTRK on Opus to borrow CASH and earn more rewards",
+    externalPointsInfo: null,
     action: {
       type: "lend",
       link: "https://app.opus.money/",
@@ -213,37 +260,6 @@ export const strkProtocolConfigs: Partial<
     },
   },
 };
-
-// Factory functions for protocol configs
-const createEkuboLiquidityConfig = (
-  key: string,
-  token1: { icon: React.ReactNode; name: string },
-  token2: { icon: React.ReactNode; name: string },
-  strategyPath: string,
-  protocolKey: string,
-): ProtocolConfig => ({
-  tokens: [token1, token2],
-  protocolIcon: <Icons.trovesLogoLight className="rounded-full" />,
-  protocolName: "Troves",
-  badges: [
-    {
-      type: "Automated Liquidity Pool",
-      color: "bg-[#E9F3F0] text-[#17876D]",
-    },
-  ],
-  description: `Auto-managed liquidity vault for Ekubo's ${token1.name}/${token2.name} pool. Rebalances range and compounds fees and rewards automatically.`,
-  action: {
-    type: "pool",
-    link: `https://app.troves.fi/strategy/${strategyPath}`,
-    buttonText: "Add Liquidity",
-    onClick: () => {
-      MyAnalytics.track(eventNames.OPPORTUNITIES, {
-        protocol: protocolKey,
-        buttonText: "Add Liquidity",
-      });
-    },
-  },
-});
 
 const createHyperVaultConfig = (
   token: { icon: React.ReactNode; name: string },
@@ -261,6 +277,11 @@ const createHyperVaultConfig = (
     },
   ],
   description: `Automated leveraged looping strategy for ${token.name}. Maximizes yield through borrowing ${borrowToken} and lending ${token.name} on Vesu.`,
+  pointsMultiplier: {
+    min: token.name === "xSTRK" ? 1 : 1,
+    max: token.name === "xSTRK" ? 3 : 5,
+    description: `A one-click vault that amplifies yield and points through real leverage. Rather than relying on bonus multipliers, the vault expands your deposited asset value by 3–5× by borrowing the underlying assets on Vesu and staking them back.`
+  },
   action: {
     type: "vault",
     link: `https://app.troves.fi/strategy/${strategyPath}`,
@@ -287,6 +308,7 @@ const createAvnuSwapConfig = (
   protocolName: "Avnu",
   badges: [{ type: "DEX Aggregator", color: "bg-[#F3E8FF] text-[#9333EA]" }],
   description: `Swap ${token1.name} for ${token2.name} on Avnu DEX aggregator`,
+  externalPointsInfo: null,
   action: {
     type: "swap",
     link: `https://app.avnu.fi/en?mode=simple&tokenFrom=${tokenFrom}&tokenTo=${tokenTo}&amount=100`,
@@ -300,6 +322,49 @@ const createAvnuSwapConfig = (
   },
 });
 
+// Generic function to create Vesu lending configs from pools
+const createVesuLendingConfigsFromPools = (
+  pools: VesuBorrowPool[],
+): Record<string, ProtocolConfig> => {
+  const configs: Record<string, ProtocolConfig> = {};
+  
+  // Group by collateral symbol to create lending configs
+  const poolsByCollateral = pools.reduce((acc, pool) => {
+    if (!acc[pool.collateralSymbol]) {
+      acc[pool.collateralSymbol] = pool;
+    }
+    return acc;
+  }, {} as Record<string, VesuBorrowPool>);
+
+  Object.values(poolsByCollateral).forEach((pool) => {
+    const key = `vesuLending_${pool.collateralSymbol}`;
+    configs[key] = {
+      tokens: [
+        { icon: getTokenIcon(pool.collateralSymbol), name: pool.collateralSymbol },
+      ],
+      protocolIcon: <Icons.vesuLogo className="rounded-full" />,
+      protocolName: "Vesu",
+      badges: [{ type: "Lending Pool", color: "bg-[#E8F4FD] text-[#1E40AF]" }],
+      description: `Lend and borrow against ${pool.collateralSymbol} on Vesu`,
+      externalPointsInfo: "+Vesu Points",
+      action: {
+        type: "lend",
+        link: "http://vesu.xyz/earn?onlyV2Markets=true&includeIsolatedMarkets=true",
+        buttonText: "Lend & Borrow",
+        onClick: () => {
+          MyAnalytics.track(eventNames.OPPORTUNITIES, {
+            protocol: `vesuLending_${pool.collateralSymbol}`,
+            buttonText: "Lend & Borrow",
+          });
+        },
+      },
+    };
+  });
+
+  return configs;
+};
+
+// Legacy function for backward compatibility
 const createVesuLendingConfig = (
   token: { icon: React.ReactNode; name: string },
   protocolKey: string,
@@ -309,6 +374,7 @@ const createVesuLendingConfig = (
   protocolName: "Vesu",
   badges: [{ type: "Lending Pool", color: "bg-[#E8F4FD] text-[#1E40AF]" }],
   description: `Lend and borrow against ${token.name} on Vesu`,
+  externalPointsInfo: "+Vesu Points",
   action: {
     type: "lend",
     link: "http://vesu.xyz/earn?onlyV2Markets=true&includeIsolatedMarkets=true",
@@ -326,29 +392,59 @@ const createVesuLendingConfig = (
 export const btcProtocolConfigs: Partial<
   Record<SupportedDApp, ProtocolConfig>
 > = {
+  // Ekubo Direct Pool Configurations
+  ekuboxWBTC: createEkuboPoolConfig(
+    { icon: <Icons.xwbtc className="size-[22px]" />, name: "xWBTC" },
+    { icon: <Icons.wbtc className="size-[22px]" />, name: "WBTC" },
+    "0x3fe2b97c1fd336e750087d68b9b867997fd64a2661ff3ca5a7c771641e8e7ac", // WBTC
+    "0x6a567e68c805323525fe1649adb80b03cddf92c23d2629a6779f54192dffc13", // xWBTC
+    "ekuboxWBTC",
+  ),
+  ekuboxtBTC: createEkuboPoolConfig(
+    { icon: <Icons.xtbtc className="size-[22px]" />, name: "xtBTC" },
+    { icon: <Icons.tbtc className="size-[22px]" />, name: "tBTC" },
+    "0x4daa17763b286d1e59b97c283c0b8c949994c361e426a28f743c67bdfe9a32f", // tBTC
+    "0x43a35c1425a0125ef8c171f1a75c6f31ef8648edcc8324b55ce1917db3f9b91", // xtBTC
+    "ekuboxtBTC",
+  ),
+  ekuboxLBTC: createEkuboPoolConfig(
+    { icon: <Icons.xlbtc className="size-[22px]" />, name: "xLBTC" },
+    { icon: <Icons.lbtc className="size-[22px]" />, name: "LBTC" },
+    "0x036834a40984312f7f7de8d31e3f6305b325389eaeea5b1c0664b2fb936461a4", // LBTC
+    "0x7dd3c80de9fcc5545f0cb83678826819c79619ed7992cc06ff81fc67cd2efe0", // xLBTC
+    "ekuboxLBTC",
+  ),
+  ekuboxsBTC: createEkuboPoolConfig(
+    { icon: <Icons.xsbtc className="size-[22px]" />, name: "xsBTC" },
+    { icon: <Icons.solvbtc className="size-[22px]" />, name: "solvBTC" },
+    "0x0593e034dda23eea82d2ba9a30960ed42cf4a01502cc2351dc9b9881f9931a68", // solvBTC
+    "0x580f3dc564a7b82f21d40d404b3842d490ae7205e6ac07b1b7af2b4a5183dc9", // xsBTC
+    "ekuboxsBTC",
+  ),
+  
   // BTC Concentrated Liquidity Strategies
-  ekuboBTCxWBTC: createEkuboLiquidityConfig(
+  ekuboBTCxWBTC: createTrovesEkuboLiquidityConfig(
     "ekuboBTCxWBTC",
     { icon: <Icons.xwbtc className="size-[22px]" />, name: "xWBTC" },
     { icon: <Icons.wbtc className="size-[22px]" />, name: "WBTC" },
     "ekubo_cl_xwbtcwbtc",
     "trovesEkuboBTCxWBTC",
   ),
-  ekuboBTCxtBTC: createEkuboLiquidityConfig(
+  ekuboBTCxtBTC: createTrovesEkuboLiquidityConfig(
     "ekuboBTCxtBTC",
     { icon: <Icons.xtbtc className="size-[22px]" />, name: "xtBTC" },
     { icon: <Icons.tbtc className="size-[22px]" />, name: "tBTC" },
     "ekubo_cl_xtbtctbtc",
     "trovesEkuboBTCxtBTC",
   ),
-  ekuboBTCxLBTC: createEkuboLiquidityConfig(
+  ekuboBTCxLBTC: createTrovesEkuboLiquidityConfig(
     "ekuboBTCxLBTC",
     { icon: <Icons.xlbtc className="size-[22px]" />, name: "xLBTC" },
     { icon: <Icons.lbtc className="size-[22px]" />, name: "LBTC" },
     "ekubo_cl_xlbtclbtc",
     "trovesEkuboBTCxLBTC",
   ),
-  ekuboBTCxsBTC: createEkuboLiquidityConfig(
+  ekuboBTCxsBTC: createTrovesEkuboLiquidityConfig(
     "ekuboBTCxsBTC",
     { icon: <Icons.xsbtc className="size-[22px]" />, name: "xsBTC" },
     { icon: <Icons.solvbtc className="size-[22px]" />, name: "solvBTC" },
@@ -418,23 +514,9 @@ export const btcProtocolConfigs: Partial<
     "avnuBTCxsBTC",
   ),
   
-  // Vesu BTC Lending Pools
-  vesuBTCxWBTC: createVesuLendingConfig(
-    { icon: <Icons.xwbtc className="size-[22px]" />, name: "xWBTC" },
-    "vesuBTCxWBTC",
-  ),
-  vesuBTCxtBTC: createVesuLendingConfig(
-    { icon: <Icons.xtbtc className="size-[22px]" />, name: "xtBTC" },
-    "vesuBTCxtBTC",
-  ),
-  vesuBTCxLBTC: createVesuLendingConfig(
-    { icon: <Icons.xlbtc className="size-[22px]" />, name: "xLBTC" },
-    "vesuBTCxLBTC",
-  ),
-  vesuBTCxsBTC: createVesuLendingConfig(
-    { icon: <Icons.xsbtc className="size-[22px]" />, name: "xsBTC" },
-    "vesuBTCxsBTC",
-  ),
+  // Note: Vesu BTC Lending Pools are now dynamically generated from API
+  // These are kept for backward compatibility but may be removed if not needed
+  // vesuBTCxWBTC, vesuBTCxtBTC, vesuBTCxLBTC, vesuBTCxsBTC
 };
 
 // Combine all protocol configs
@@ -448,7 +530,11 @@ const supplyProtocols: SupportedDApp[] = [
   "strkfarm",
   "strkfarmEkubo",
   "vesu",
-  "ekubo",
+  "ekuboSTRK",
+  "ekuboxWBTC",
+  "ekuboxtBTC",
+  "ekuboxLBTC",
+  "ekuboxsBTC",
   "nostraDex",
   // "opus",
   "hyperxSTRK",
@@ -460,10 +546,7 @@ const supplyProtocols: SupportedDApp[] = [
   "ekuboBTCxtBTC",
   "ekuboBTCxLBTC",
   "ekuboBTCxsBTC",
-  // "vesuBTCxWBTC",
-  // "vesuBTCxtBTC",
-  // "vesuBTCxLBTC",
-  // "vesuBTCxsBTC",
+  // Vesu lending pools are now dynamically added via vesuLendingConfigs
   // "avnu",
   // "fibrous",
   // "avnuBTCxWBTC",
@@ -597,34 +680,124 @@ const Filters: React.FC<FiltersProps> = ({
   );
 };
 
+// Token icon mapping - centralized for reusability
+const TOKEN_ICON_MAP: Record<string, (className?: string) => React.ReactNode> = {
+  xSTRK: (className) => <Icons.endurLogo className={className} />,
+  xWBTC: (className) => <Icons.xwbtc className={className} />,
+  xtBTC: (className) => <Icons.xtbtc className={className} />,
+  xLBTC: (className) => <Icons.xlbtc className={className} />,
+  xsBTC: (className) => <Icons.xsbtc className={className} />,
+  STRK: (className) => <Icons.strkLogo className={className} />,
+  WBTC: (className) => <Icons.wbtc className={className} />,
+  tBTC: (className) => <Icons.tbtc className={className} />,
+  LBTC: (className) => <Icons.lbtc className={className} />,
+  solvBTC: (className) => <Icons.solvbtc className={className} />,
+  ETH: (className) => <Icons.eth className={className} />,
+  USDC: (className) => <Icons.usdcLogo className={className} />,
+  "USDC.e": (className) => <Icons.usdcLogo className={className} />,
+  USDT: (className) => <Icons.usdt className={className} />,
+  CASH: (className) => <Icons.cashLogo className={className} />,
+};
+
 // Helper function to get token icon by symbol
 const getTokenIcon = (symbol: string, className = "size-[22px]"): React.ReactNode => {
-  const iconMap: Record<string, React.ReactNode> = {
-    xSTRK: <Icons.endurLogo className={className} />,
-    xWBTC: <Icons.xwbtc className={className} />,
-    xtBTC: <Icons.xtbtc className={className} />,
-    xLBTC: <Icons.xlbtc className={className} />,
-    xsBTC: <Icons.xsbtc className={className} />,
-    STRK: <Icons.strkLogo className={className} />,
-    WBTC: <Icons.wbtc className={className} />,
-    tBTC: <Icons.tbtc className={className} />,
-    LBTC: <Icons.lbtc className={className} />,
-    solvBTC: <Icons.solvbtc className={className} />,
-    ETH: <Icons.eth className={className} />,
-    USDC: <Icons.usdcLogo className={className} />,
-    "USDC.e": <Icons.usdcLogo className={className} />,
-    USDT: <Icons.usdt className={className} />,
-  };
-  
-  if (iconMap[symbol]) return iconMap[symbol];
+  const iconFactory = TOKEN_ICON_MAP[symbol];
+  if (iconFactory) return iconFactory(className);
   if (symbol.includes("BTC")) return <Icons.btcLogo className={className} />;
   return <Icons.btcLogo className={className} />;
+};
+
+// Helper function to calculate borrow pool capacity and related data
+const calculateBorrowPoolData = (
+  config: ProtocolConfig,
+  vesuBorrowPools: VesuBorrowPool[],
+  formatNumber: (value: number) => string,
+) => {
+  // For borrow pools, use the apy from config
+  const apyValue =
+    config.apy !== undefined
+      ? config.apy * 100
+      : null;
+  const isLoading = false;
+
+  const tokenPair = config.tokens
+    .map((t: TokenDisplay) => t.name)
+    .join("/");
+  const primaryToken = config.tokens[0];
+  const secondaryToken = config.tokens[1];
+  const badgeType = config.badges[0]?.type || "";
+
+  // Find the corresponding pool for capacity data
+  const pool = vesuBorrowPools.find(
+    (p) =>
+      primaryToken &&
+      secondaryToken &&
+      p.collateralSymbol === primaryToken.name &&
+      p.debtSymbol === secondaryToken.name &&
+      config.badges.map((b) => b.type).includes(p.poolName)
+  );
+  // Values are already converted from wei to human-readable format in the store
+  const totalDebt = pool ? pool.totalDebt : 0;
+  const debtCap = pool ? pool.debtCap : 0;
+  const totalSupplied = pool ? pool.totalSupplied : 0;
+
+  const debtPrice = pool ? pool.debtPrice : 0;
+
+  // Cap should be min(available supply + borrowed, debt cap)
+  // available supply + borrowed = (totalSupplied - totalDebt) + totalDebt = totalSupplied
+  const effectiveCap =
+    totalSupplied > 0 && debtCap > 0
+      ? Math.min(totalSupplied, debtCap)
+      : debtCap > 0
+        ? debtCap
+        : totalSupplied > 0
+          ? totalSupplied
+          : 0;
+
+  const effectiveCapUSD = effectiveCap * debtPrice;
+
+  // If effectiveCap is 0 or very small (effectively 0), show no limit (no borrowing limit)
+  // Check both the raw value and formatted value to avoid showing "$0 of $0"
+  const formattedTotalDebt = formatNumber(totalDebt * debtPrice);
+  const formattedEffectiveCap =
+    formatNumber(effectiveCapUSD);
+  const hasNoLimit = effectiveCapUSD > 1000000000;
+  const capacityText = hasNoLimit
+    ? null
+    : `$${formattedTotalDebt} of $${formattedEffectiveCap} used`;
+  const capacityUsed =
+    pool && effectiveCapUSD > 0
+      ? ((pool.totalDebt * debtPrice) / effectiveCapUSD) * 100
+      : 0;
+
+  return {
+    apyValue,
+    isLoading,
+    tokenPair,
+    primaryToken,
+    secondaryToken,
+    badgeType,
+    pool,
+    totalDebt,
+    debtCap,
+    totalSupplied,
+    debtPrice,
+    effectiveCap,
+    effectiveCapUSD,
+    formattedTotalDebt,
+    formattedEffectiveCap,
+    hasNoLimit,
+    capacityText,
+    capacityUsed,
+    supplyApy: pool?.supplyApy ?? 0,
+    borrowApr: pool?.borrowApr ?? 0,
+  };
 };
 
 const Defi: React.FC = () => {
   const { isPinned } = useSidebar();
   const yields: any = useAtomValue(protocolYieldsAtom);
-  const [activeTab, setActiveTab] = useState<"supply" | "borrow">("supply");
+  const [activeTab, setActiveTab] = useState<"supply" | "borrow">("borrow");
   const [selectedAsset, setSelectedAsset] = useState<AssetFilter>("all");
   const [selectedProtocol, setSelectedProtocol] =
     useState<ProtocolFilter>("all");
@@ -646,8 +819,11 @@ const Defi: React.FC = () => {
     if (onClick) {
       onClick();
     }
-    setPendingProtocolLink(link);
-    setShowDisclaimer(true);
+    window.open(link, "_blank");
+    setPendingProtocolLink(null);
+    // handleContinue();
+    // setPendingProtocolLink(link);
+    // setShowDisclaimer(true);
   };
 
   // BTC yield atoms - using a map for easier access
@@ -665,6 +841,22 @@ const Defi: React.FC = () => {
   const [vesuBTCxLBTCYield] = useAtom(vesuBTCxLBTCYieldAtom);
   const [vesuBTCxsBTCYield] = useAtom(vesuBTCxsBTCYieldAtom);
   const vesuBorrowPools = useAtomValue(vesuBorrowPoolsAtom);
+  const vesuPoolsFilterFn = useAtomValue(vesuPoolsFilteredAtom);
+  
+  // Get all Vesu pools for lending (all verified pools with LST assets)
+  const vesuLendingPools = useMemo(() => {
+    return vesuPoolsFilterFn({ isVerified: true, collateralIsLST: true });
+  }, [vesuPoolsFilterFn]);
+  
+  // Generate lending configs from pools
+  const vesuLendingConfigs = useMemo(() => {
+    const configs = createVesuLendingConfigsFromPools(vesuLendingPools);
+    // Add externalPointsInfo to all Vesu configs
+    Object.values(configs).forEach((config) => {
+      config.externalPointsInfo = "+Vesu Points";
+    });
+    return configs;
+  }, [vesuLendingPools]);
 
   // Vault capacity atoms
   const [hyperxWBTCVaultCapacity] = useAtom(hyperxWBTCVaultCapacityAtom);
@@ -758,7 +950,7 @@ const Defi: React.FC = () => {
   // Protocol filter mapping
   const protocolFilterMap: Record<ProtocolFilter, (name: string) => boolean> = {
     all: () => true,
-    Ekubo: (name) => name === "ekubo",
+    Ekubo: (name) => name.toLowerCase().includes("ekubo"),
     Vesu: (name) => name === "vesu",
     Nostra: (name) => name.includes("nostra"),
     Troves: (name) => name.includes("troves"),
@@ -770,12 +962,15 @@ const Defi: React.FC = () => {
     return protocolFilterMap[selectedProtocol](protocolName);
   };
 
-  // Create dynamic protocol configs from Vesu borrow pools
+  // assumes, we compute net borrow APY by assuming users borrows 80% of LTV of the collateral
+  const MAX_BORROWING_ON_LTV_ASSUMPTION = 0.8;
+
+  // Create dynamic protocol configs from Vesu borrow pools using generic atom
   const vesuBorrowConfigs = useMemo(() => {
     const configs: Record<string, ProtocolConfig> = {};
     vesuBorrowPools.forEach((pool, index) => {
       const key = `vesuBorrow_${pool.collateralSymbol}_${pool.debtSymbol}_${index}`;
-      
+      const isDebtUSDC = pool.debtSymbol === "USDC";
       configs[key] = {
         tokens: [
           { icon: getTokenIcon(pool.collateralSymbol), name: pool.collateralSymbol },
@@ -790,10 +985,11 @@ const Defi: React.FC = () => {
           },
         ],
         description: `Borrow ${pool.debtSymbol} against ${pool.collateralSymbol} on Vesu`,
-        apy: pool.borrowApr ? pool.borrowApr / 100 : undefined,
+        apy: pool.borrowApr && pool.supplyApy ? ((pool.borrowApr * pool.maxLTV * MAX_BORROWING_ON_LTV_ASSUMPTION / 100) - pool.supplyApy) / 100 : undefined,
+        externalPointsInfo: "+Vesu Points",
         action: {
           type: "borrow",
-          link: `https://vesu.xyz/lend?form=true&poolId=${pool.poolId}&collateralAddress=${pool.collateralAddress}`,
+          link: `https://vesu.xyz/borrow/${pool.poolId}/${pool.collateralAddress}/${pool.debtAddress}`,
           buttonText: "Borrow",
           onClick: () => {
             MyAnalytics.track(eventNames.OPPORTUNITIES, {
@@ -802,31 +998,92 @@ const Defi: React.FC = () => {
             });
           },
         },
+        pointsMultiplier: {
+          min: isDebtUSDC ? POINTS_CONFIG.USDC_BORROWING : (POINTS_CONFIG.STAKING + POINTS_CONFIG.UNDERLYING_BORROWING),
+          max: isDebtUSDC ? (POINTS_CONFIG.USDC_BORROWING + POINTS_CONFIG.STAKING) : (POINTS_CONFIG.UNDERLYING_BORROWING + POINTS_CONFIG.STAKING),
+          description: isDebtUSDC ? `Earn 3x season 2 points on borrowing stablecoins value + 1x on staked assets value` : `Earn 1x season 2 points on staked assets value while borrowing underlying assets. Staking these borrowed assets will earn you additional points, simply depending on the assets you stake.`,
+        }
       };
     });
     return configs;
   }, [vesuBorrowPools]);
 
-  // Combine all protocol configs including dynamic Vesu borrow pools
+  // Combine all protocol configs including dynamic Vesu borrow and lending pools
   const protocolConfigsWithBorrow = useMemo(() => {
-    return { ...protocolConfigs, ...vesuBorrowConfigs } as Record<
-      string,
-      ProtocolConfig
-    >;
-  }, [vesuBorrowConfigs]);
+    return { 
+      ...protocolConfigs, 
+      ...vesuBorrowConfigs,
+      ...vesuLendingConfigs,
+    } as Record<string, ProtocolConfig>;
+  }, [vesuBorrowConfigs, vesuLendingConfigs]);
+
+  // Protocols that don't show APY
+  const noApyProtocols = new Set([
+    "avnu",
+    "fibrous",
+    "avnuBTCxWBTC",
+    "avnuBTCxtBTC",
+    "avnuBTCxLBTC",
+    "avnuBTCxsBTC",
+  ]);
+
+  // Protocols with no capacity limit
+  const noLimitProtocols = new Set([
+    "vesu",
+    "ekuboBTCxWBTC",
+    "ekuboBTCxtBTC",
+    "ekuboBTCxLBTC",
+    "ekuboBTCxsBTC",
+    "strkfarmEkubo",
+  ]);
 
   // Get borrow protocol keys
   const borrowProtocolKeys = useMemo(() => {
     return Object.keys(vesuBorrowConfigs);
   }, [vesuBorrowConfigs]);
 
+    // Helper to get capacity for a protocol
+    const getProtocolCapacity = (
+      protocol: string,
+      config: ProtocolConfig,
+      tab: "supply" | "borrow",
+    ): { used: number; total: number | null } | undefined => {
+      if (tab === "borrow" && config.tokens.length >= 2) {
+        const pool = vesuBorrowPools.find(
+          (p) =>
+            p.collateralSymbol === config.tokens[0].name &&
+            p.debtSymbol === config.tokens[1].name,
+        );
+        if (pool && pool.debtCap > 0 && pool.debtCap >= 0.01) {
+          return { used: pool.totalDebt, total: pool.debtCap };
+        }
+        return undefined;
+      }
+  
+      // Supply tab
+      const protocolKey = protocol as SupportedDApp;
+      if (protocolKey === "vesu" || protocolKey.startsWith("vesuBTC") || noLimitProtocols.has(protocolKey)) {
+        return undefined; // No limit
+      }
+      
+      // Check if it's a hyper vault that has capacity
+      return getVaultCapacity(protocolKey);
+  };
+    
+  // Get lending protocol keys (including dynamic Vesu lending)
+  const lendingProtocolKeys = useMemo(() => {
+    return Object.keys(vesuLendingConfigs);
+  }, [vesuLendingConfigs]);
+
   // Filter and sort protocols based on active tab and filters
   const filteredAndSortedProtocols = useMemo(() => {
     const currentProtocols =
-      activeTab === "supply" ? supplyProtocols : borrowProtocolKeys;
+      activeTab === "supply" 
+        ? [...supplyProtocols, ...lendingProtocolKeys]
+        : borrowProtocolKeys;
     const configsToUse: Record<string, ProtocolConfig> =
       activeTab === "supply"
-        ? (protocolConfigs as Record<string, ProtocolConfig>)
+        ? { ...protocolConfigs, ...vesuLendingConfigs } as Record<string, ProtocolConfig>
         : protocolConfigsWithBorrow;
 
     return currentProtocols
@@ -859,6 +1116,13 @@ const Defi: React.FC = () => {
           activeTab === "borrow" && configB?.apy
             ? -1 * configB.apy * 100
             : (getProtocolYield(b as SupportedDApp) ?? -Infinity);
+
+        const usedA = getProtocolCapacity(a as SupportedDApp, configA, activeTab)?.used;
+        const usedB = getProtocolCapacity(b as SupportedDApp, configB, activeTab)?.used;
+        console.log(`usedA: ${usedA}, usedB: ${usedB}, configA: ${configA.protocolName}, configB: ${configB.protocolName}`);
+        if (usedA && usedB) {
+          return usedB - usedA;
+        }
         return yieldB - yieldA;
       });
   }, [
@@ -879,56 +1143,10 @@ const Defi: React.FC = () => {
     vesuBTCxLBTCYield,
     vesuBTCxsBTCYield,
     borrowProtocolKeys,
+    lendingProtocolKeys,
     protocolConfigsWithBorrow,
+    vesuLendingConfigs,
   ]);
-
-  // Protocols that don't show APY
-  const noApyProtocols = new Set([
-    "avnu",
-    "fibrous",
-    "avnuBTCxWBTC",
-    "avnuBTCxtBTC",
-    "avnuBTCxLBTC",
-    "avnuBTCxsBTC",
-  ]);
-
-  // Protocols with no capacity limit
-  const noLimitProtocols = new Set([
-    "vesu",
-    "ekuboBTCxWBTC",
-    "ekuboBTCxtBTC",
-    "ekuboBTCxLBTC",
-    "ekuboBTCxsBTC",
-    "strkfarmEkubo",
-  ]);
-
-  // Helper to get capacity for a protocol
-  const getProtocolCapacity = (
-    protocol: string,
-    config: ProtocolConfig,
-    tab: "supply" | "borrow",
-  ): { used: number; total: number | null } | undefined => {
-    if (tab === "borrow" && config.tokens.length >= 2) {
-      const pool = vesuBorrowPools.find(
-        (p) =>
-          p.collateralSymbol === config.tokens[0].name &&
-          p.debtSymbol === config.tokens[1].name,
-      );
-      if (pool && pool.debtCap > 0 && pool.debtCap >= 0.01) {
-        return { used: pool.totalDebt, total: pool.debtCap };
-      }
-      return undefined;
-    }
-
-    // Supply tab
-    const protocolKey = protocol as SupportedDApp;
-    if (protocolKey === "vesu" || protocolKey.startsWith("vesuBTC") || noLimitProtocols.has(protocolKey)) {
-      return undefined; // No limit
-    }
-    
-    // Check if it's a hyper vault that has capacity
-    return getVaultCapacity(protocolKey);
-  };
 
   // Helper function to get yield data for a protocol
   const getYieldDataForProtocol = (
@@ -1106,12 +1324,12 @@ const Defi: React.FC = () => {
           >
             {/* Header Section: Tabs and Filters */}
             <div className="w-full rounded-[14px]">
-              <div className="flex flex-col gap-4 px-2 lg:flex-row lg:items-center lg:justify-between">
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                 <TabsList className="flex h-auto w-full gap-0 rounded-[14px] border border-[#E5E8EB] bg-white p-1 lg:w-[450px]">
                   {[
-                    { value: "supply", label: "Supply & Earn" },
+                    { value: "supply", label: "Earn" },
                     { value: "borrow", label: "Borrow" },
-                    { value: "liquidity-provider", label: "Liquidity Provider" },
+                    { value: "contribute-liquidity", label: "Contribute liquidity" },
                   ].map((tab) => (
                     <TabsTrigger
                       key={tab.value}
@@ -1187,7 +1405,9 @@ const Defi: React.FC = () => {
                           <th className="w-[25%] bg-white px-6 py-2 text-center text-sm font-medium text-[#5B616D] shadow-sm">
                             Capacity
                           </th>
-                          <th className="w-[25%] rounded-tr-[14px] bg-white px-6 py-2 text-center text-sm font-medium text-[#5B616D] shadow-sm"></th>
+                          <th className="w-[25%] rounded-tr-[14px] bg-white px-6 py-2 text-center text-sm font-medium text-[#5B616D] shadow-sm">
+                            Points Multiplier
+                          </th>
                         </tr>
                       </thead>
                       <tbody>
@@ -1317,32 +1537,27 @@ const Defi: React.FC = () => {
                                             </div>
                                           ) : (
                                             <div className="text-sm text-[#1A1F24]">
-                                              No limit
+                                              Limitless
                                             </div>
                                           )
                                         ) : (
                                           <div className="text-sm text-[#1A1F24]">
-                                            No limit
+                                            Limitless
                                           </div>
                                         )}
                                       </div>
 
-                                      {/* Action Column */}
+                                      {/* Points Multiplier Column */}
                                       <div className="flex flex-1 flex-col items-center justify-center">
-                                        {config.action && (
-                                          <button
-                                            onClick={() => {
-                                              if (config.action?.link) {
-                                                handleCTAClick(
-                                                  config.action.link,
-                                                  config.action.onClick,
-                                                );
-                                              }
-                                            }}
-                                            className="w-36 rounded-full bg-[#10B981] px-6 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90"
+                                        {config.pointsMultiplier ? (
+                                          <MyDottedTooltip
+                                            tooltip={config.pointsMultiplier.description}
+                                            className="text-sm text-[#1A1F24]"
                                           >
-                                            {config.action.buttonText}
-                                          </button>
+                                            {config.pointsMultiplier.min == config.pointsMultiplier.max ? `${config.pointsMultiplier.min}x` : `${config.pointsMultiplier.min}x - ${config.pointsMultiplier.max}x`}
+                                          </MyDottedTooltip>
+                                        ) : (
+                                          <span className="text-[#6B7780]">-</span>
                                         )}
                                       </div>
                                     </div>
@@ -1366,9 +1581,7 @@ const Defi: React.FC = () => {
                                         {/* Rewards (empty) */}
                                         <div className="flex-1"></div>
 
-                                        {/* Description */}
-                                        <div className="flex flex-1"></div>
-
+                                        {/* Description and Action Button */}
                                         <div className="flex min-w-0 flex-1 items-center justify-end gap-2">
                                           <span className="truncate text-xs text-[#1A1F24]">
                                             {config.description}
@@ -1386,6 +1599,21 @@ const Defi: React.FC = () => {
                                               </TooltipContent>
                                             </Tooltip>
                                           </TooltipProvider>
+                                          {config.action && (
+                                            <button
+                                              onClick={() => {
+                                                if (config.action?.link) {
+                                                  handleCTAClick(
+                                                    config.action.link,
+                                                    config.action.onClick,
+                                                  );
+                                                }
+                                              }}
+                                              className="w-32 rounded-full bg-[#10B981] px-4 py-1.5 text-xs font-medium text-white transition-opacity hover:opacity-90"
+                                            >
+                                              {config.action.buttonText}
+                                            </button>
+                                          )}
                                         </div>
                                       </div>
                                     </div>
@@ -1418,81 +1646,84 @@ const Defi: React.FC = () => {
                             Pair & Pool
                           </th>
                           <th className="w-[25%] bg-white px-6 py-2 text-center text-sm font-medium text-[#5B616D] shadow-sm">
-                            Borrow Rate
+                            <div className="flex items-center justify-center gap-1">
+                            Effective Borrow APY
+                              <TooltipProvider delayDuration={0}>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <HelpCircle className="h-4 w-4 shrink-0 cursor-help text-[#6B7780]" />
+                                  </TooltipTrigger>
+                                  <TooltipContent
+                                    side="top"
+                                    className="max-w-xs rounded-md border border-[#03624C] bg-white text-xs text-[#03624C]"
+                                  >
+                                    <p>Effective Borrow APY assumes borrowing at 80% of max Loan to Value (LTV) and subtracts the LST APY from the borrow APR. This is an estimate for convenience — actual yield depends on how much you borrow.</p>
+                                    <br/>
+                                    <p><b>Negative:</b> You are earning more than you are borrowing rate.</p>
+                                    <p><b>Positive:</b> You are borrowing rate is more than you are collateral APY.</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            </div>
                           </th>
                           <th className="w-[25%] bg-white px-6 py-2 text-center text-sm font-medium text-[#5B616D] shadow-sm">
                             Capacity
                           </th>
-                          <th className="w-[25%] rounded-tr-[14px] bg-white px-6 py-2 text-center text-sm font-medium text-[#5B616D] shadow-sm"></th>
+                          <th className="w-[25%] rounded-tr-[14px] bg-white px-6 py-2 text-center text-sm font-medium text-[#5B616D] shadow-sm">
+                            Points Multiplier
+                          </th>
                         </tr>
                       </thead>
                       <tbody>
                         {filteredAndSortedProtocols.length > 0 ? (
-                          filteredAndSortedProtocols.map((protocol) => {
+                          filteredAndSortedProtocols
+                          .filter((protocol) => {
                             const config = protocolConfigsWithBorrow[protocol];
-                            if (!config) return null;
-
-                            // For borrow pools, use the apy from config
-                            const apyValue =
-                              config.apy !== undefined
-                                ? config.apy * 100
-                                : null;
-                            const isLoading = false;
-
-                            const tokenPair = config.tokens
-                              .map((t: TokenDisplay) => t.name)
-                              .join("/");
-                            const primaryToken = config.tokens[0];
-                            const secondaryToken = config.tokens[1];
-                            const badgeType = config.badges[0]?.type || "";
-
-                            // Find the corresponding pool for capacity data
-                            const pool = vesuBorrowPools.find(
-                              (p) =>
-                                primaryToken &&
-                                secondaryToken &&
-                                p.collateralSymbol === primaryToken.name &&
-                                p.debtSymbol === secondaryToken.name,
+                            return !!config;
+                          })
+                          .sort((protocolA, protocolB) => {
+                            const configA = protocolConfigsWithBorrow[protocolA];
+                            const configB = protocolConfigsWithBorrow[protocolB];
+                            if (!configA || !configB) return 0;
+                            
+                            const borrowDataA = calculateBorrowPoolData(
+                              configA,
+                              vesuBorrowPools,
+                              formatNumber,
                             );
-                            // Values are already converted from wei to human-readable format in the store
-                            const totalDebt = pool ? pool.totalDebt : 0;
-                            const debtCap = pool ? pool.debtCap : 0;
-                            const totalSupplied = pool ? pool.totalSupplied : 0;
-
-                            // Cap should be min(available supply + borrowed, debt cap)
-                            // available supply + borrowed = (totalSupplied - totalDebt) + totalDebt = totalSupplied
-                            const effectiveCap =
-                              totalSupplied > 0 && debtCap > 0
-                                ? Math.min(totalSupplied, debtCap)
-                                : debtCap > 0
-                                  ? debtCap
-                                  : totalSupplied > 0
-                                    ? totalSupplied
-                                    : 0;
-
-                            // If effectiveCap is 0 or very small (effectively 0), show no limit (no borrowing limit)
-                            // Check both the raw value and formatted value to avoid showing "$0 of $0"
-                            const formattedTotalDebt = formatNumber(totalDebt);
-                            const formattedEffectiveCap =
-                              formatNumber(effectiveCap);
-                            const hasNoLimit =
-                              !pool ||
-                              effectiveCap <= 0 ||
-                              effectiveCap < 0.01 ||
-                              formattedEffectiveCap === "0" ||
-                              (formattedTotalDebt === "0" &&
-                                formattedEffectiveCap === "0");
-                            const capacityText = hasNoLimit
-                              ? null
-                              : `$${formattedTotalDebt} of $${formattedEffectiveCap} used`;
-                            const capacityUsed =
-                              pool && effectiveCap > 0
-                                ? (pool.totalDebt / effectiveCap) * 100
-                                : 0;
+                            const borrowDataB = calculateBorrowPoolData(
+                              configB,
+                              vesuBorrowPools,
+                              formatNumber,
+                            );
+                            return borrowDataB.effectiveCapUSD - borrowDataA.effectiveCapUSD;
+                          })
+                          .map((protocol) => {
+                            const config = protocolConfigsWithBorrow[protocol];
+                            const {
+                              apyValue,
+                              isLoading,
+                              tokenPair,
+                              primaryToken,
+                              secondaryToken,
+                              badgeType,
+                              pool,
+                              capacityText,
+                              capacityUsed,
+                              supplyApy,
+                              borrowApr,
+                              debtPrice,
+                              debtCap,
+                              totalSupplied
+                            } = calculateBorrowPoolData(
+                              config,
+                              vesuBorrowPools,
+                              formatNumber,
+                            );
 
                             // Accent colors: green for supply, yellow/orange for borrow
                             const isBorrowPool = activeTab === "borrow";
-                            const accentColor = isBorrowPool
+                            const accentColor = isBorrowPool && apyValue && apyValue > 0
                               ? {
                                   yieldBg: "bg-[#FEF3C7]",
                                   yieldText: "text-[#D97706]",
@@ -1566,12 +1797,18 @@ const Defi: React.FC = () => {
                                                 "w-fit rounded-lg border px-2 py-1 text-sm font-semibold",
                                                 accentColor.yieldBg,
                                                 accentColor.yieldText,
-                                                isBorrowPool
+                                                isBorrowPool && apyValue > 0
                                                   ? "border-[#D97706]"
                                                   : "border-[#059669]",
                                               )}
                                             >
                                               {apyValue.toFixed(2)}%
+                                            </div>
+                                            <div className="text-xs text-[#6B7780]">
+                                              Supply yield: {supplyApy.toFixed(2)}%
+                                            </div>
+                                            <div className="text-xs text-[#6B7780]">
+                                              Borrow rate: {borrowApr.toFixed(2)}%
                                             </div>
                                           </div>
                                         ) : (
@@ -1609,7 +1846,7 @@ const Defi: React.FC = () => {
                                         ) : (
                                           <div>
                                             <div className="text-sm text-[#1A1F24]">
-                                              No limit
+                                              Limitless
                                             </div>
                                             {pool &&
                                               pool.maxLTV !== undefined && (
@@ -1622,25 +1859,17 @@ const Defi: React.FC = () => {
                                         )}
                                       </div>
 
-                                      {/* Action Column */}
+                                      {/* Points Multiplier Column */}
                                       <div className="flex flex-1 flex-col items-center justify-center">
-                                        {config.action && (
-                                          <button
-                                            onClick={() => {
-                                              if (config.action?.link) {
-                                                handleCTAClick(
-                                                  config.action.link,
-                                                  config.action.onClick,
-                                                );
-                                              }
-                                            }}
-                                            className={cn(
-                                              "w-36 rounded-full px-6 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90",
-                                              accentColor.buttonBg,
-                                            )}
+                                        {config.pointsMultiplier ? (
+                                          <MyDottedTooltip
+                                            tooltip={config.pointsMultiplier.description}
+                                            className="text-sm text-[#1A1F24]"
                                           >
-                                            {config.action.buttonText}
-                                          </button>
+                                            {config.pointsMultiplier.min == config.pointsMultiplier.max ? `${config.pointsMultiplier.min}x` : `${config.pointsMultiplier.min}x - ${config.pointsMultiplier.max}x`}
+                                          </MyDottedTooltip>
+                                        ) : (
+                                          <span className="text-[#6B7780]">-</span>
                                         )}
                                       </div>
                                     </div>
@@ -1664,7 +1893,7 @@ const Defi: React.FC = () => {
                                         {/* Rewards (empty) */}
                                         <div className="flex-1"></div>
 
-                                        {/* Description */}
+                                        {/* Description and Action Button */}
                                         <div className="flex min-w-0 flex-1 items-center justify-end gap-2">
                                           <span className="truncate text-xs text-[#1A1F24]">
                                             {config.description}
@@ -1682,6 +1911,24 @@ const Defi: React.FC = () => {
                                               </TooltipContent>
                                             </Tooltip>
                                           </TooltipProvider>
+                                          {config.action && (
+                                            <button
+                                              onClick={() => {
+                                                if (config.action?.link) {
+                                                  handleCTAClick(
+                                                    config.action.link,
+                                                    config.action.onClick,
+                                                  );
+                                                }
+                                              }}
+                                              className={cn(
+                                                "w-32 rounded-full px-4 py-1.5 text-xs font-medium text-white transition-opacity hover:opacity-90",
+                                                accentColor.buttonBg,
+                                              )}
+                                            >
+                                              {config.action.buttonText}
+                                            </button>
+                                          )}
                                         </div>
                                       </div>
                                     </div>
