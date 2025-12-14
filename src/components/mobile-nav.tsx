@@ -203,11 +203,11 @@ const MobileNav = () => {
               </Link>
 
               <Link
-                href="/leaderboard"
+                href="/rewards"
                 className={cn(
                   "flex w-full cursor-pointer flex-row items-center gap-2 text-nowrap rounded-md p-2 px-3 text-sm font-semibold text-[#03624C] transition-all hover:bg-[#17876D] hover:text-white",
                   {
-                    "bg-[#17876D] text-white": pathname === "/leaderboard",
+                    "bg-[#17876D] text-white": pathname === "/rewards",
                   },
                 )}
               >

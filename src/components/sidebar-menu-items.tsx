@@ -108,50 +108,6 @@ const SidebarMenuItems = () => {
         </SidebarMenuButton>
       </SidebarMenuItem>
 
-      {/* xSTRK Analytics */}
-      <SidebarMenuItem>
-        <SidebarMenuButton
-          asChild
-          className="opacity-70 transition-all hover:opacity-100"
-          onMouseEnter={() => setTriggerAnalyticsIconAnimation(true)}
-          onMouseLeave={() => setTriggerAnalyticsIconAnimation(false)}
-        >
-          <Link
-            href={LINKS.DUNE_ANALYTICS}
-            target="_blank"
-            className="flex cursor-pointer flex-row items-center gap-2 text-nowrap rounded-[12px] text-base font-semibold text-[#03624C] transition-all"
-          >
-            <ChartColumnDecreasingIcon
-              triggerAnimation={triggerAnalyticsIconAnimation}
-              className="size-5"
-            />
-            {open && <p>xSTRK Analytics</p>}
-          </Link>
-        </SidebarMenuButton>
-      </SidebarMenuItem>
-
-      {/* Staking Dashboard */}
-      <SidebarMenuItem>
-        <SidebarMenuButton
-          asChild
-          className="opacity-70 transition-all hover:opacity-100"
-          onMouseEnter={() => setTriggerDashboardIconAnimation(true)}
-          onMouseLeave={() => setTriggerDashboardIconAnimation(false)}
-        >
-          <Link
-            href={LINKS.DASHBOARD_URL}
-            target="_blank"
-            className="flex cursor-pointer flex-row items-center gap-2 text-nowrap rounded-[12px] text-base font-semibold text-[#03624C] transition-all"
-          >
-            <GaugeIcon
-              triggerAnimation={triggerDashboardIconAnimation}
-              className="-ml-0.5 size-5"
-            />
-            {open && "Staking Dashboard"}
-          </Link>
-        </SidebarMenuButton>
-      </SidebarMenuItem>
-
       {/* Portfolio */}
       {/* TODO: Add link to portfolio page */}
       {/* <SidebarMenuItem>
@@ -187,26 +143,72 @@ const SidebarMenuItems = () => {
           asChild
           className={cn("opacity-70 transition-all hover:opacity-100", {
             "bg-[rgba(23,135,109,0.2)] font-bold text-[#17876d] opacity-100":
-              pathname === "/leaderboard",
+              pathname === "/rewards",
           })}
           onMouseEnter={() =>
-            pathname !== "/leaderboard" &&
+            pathname !== "/rewards" &&
             setTriggerLeaderboardIconAnimation(true)
           }
           onMouseLeave={() =>
-            pathname !== "/leaderboard" &&
+            pathname !== "/rewards" &&
             setTriggerLeaderboardIconAnimation(false)
           }
         >
           <Link
-            href="/leaderboard"
+            href="/rewards"
             className="flex cursor-pointer flex-row items-center gap-2 text-nowrap rounded-[12px] text-base font-semibold text-[#03624C] transition-all"
           >
             <ChartSplineIcon
               triggerAnimation={triggerLeaderboardIconAnimation}
               className="size-5"
             />
-            {open && "Leaderboard"}
+            {open && "Rewards"}
+          </Link>
+        </SidebarMenuButton>
+      </SidebarMenuItem>
+
+      {/* xSTRK Analytics */}
+      <SidebarMenuItem>
+        <SidebarMenuButton
+          asChild
+          className="opacity-70 transition-all hover:opacity-100"
+          onMouseEnter={() => setTriggerAnalyticsIconAnimation(true)}
+          onMouseLeave={() => setTriggerAnalyticsIconAnimation(false)}
+        >
+          <Link
+            href={LINKS.DUNE_ANALYTICS}
+            target="_blank"
+            className="flex cursor-pointer flex-row items-center gap-2 text-nowrap rounded-[12px] text-base font-semibold text-[#03624C] transition-all"
+          >
+            <ChartColumnDecreasingIcon
+              triggerAnimation={triggerAnalyticsIconAnimation}
+              className="size-5"
+            />
+            {open && <p>xSTRK Analytics</p>}
+          </Link>
+        </SidebarMenuButton>
+      </SidebarMenuItem>
+
+      <hr className="!my-2 border-[#E5E7EB]" />
+
+      {/* Staking Dashboard */}
+      <SidebarMenuItem>
+        <SidebarMenuButton
+          asChild
+          className="opacity-70 transition-all hover:opacity-100"
+          onMouseEnter={() => setTriggerDashboardIconAnimation(true)}
+          onMouseLeave={() => setTriggerDashboardIconAnimation(false)}
+        >
+          <Link
+            href={LINKS.DASHBOARD_URL}
+            target="_blank"
+            className="flex cursor-pointer flex-row items-center gap-2 text-nowrap rounded-[12px] text-base font-semibold text-[#03624C] transition-all"
+          >
+            <GaugeIcon
+              triggerAnimation={triggerDashboardIconAnimation}
+              className="-ml-0.5 size-5"
+            />
+            {open && "Native Staking"}
           </Link>
         </SidebarMenuButton>
       </SidebarMenuItem>

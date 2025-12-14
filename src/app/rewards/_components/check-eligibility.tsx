@@ -279,10 +279,10 @@ const RewardSummary = React.memo<{
               }
             />
 
-            <VerificationStatus
+            {/* <VerificationStatus
               isVerified={isTwitterVerified}
               label={twitterStatusText}
-            />
+            /> */}
           </div>
         )}
       </div>
@@ -547,7 +547,7 @@ const ClaimModal = React.memo<{
               : "Your reward is ready"}
           </DialogTitle>
           <DialogDescription className="text-center text-sm font-normal text-[#DCF6E5]">
-            Congratulations! You&apos;ve earned fee rebates and bonus points
+            Congratulations! You&apos;ve earned fee rebates
           </DialogDescription>
           <RewardSummary
             isFollowed={isFollowed}

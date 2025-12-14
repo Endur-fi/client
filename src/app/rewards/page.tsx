@@ -2,7 +2,7 @@
 
 import { useAccount } from "@starknet-react/core";
 import React from "react";
-import { Calendar, Clock, TrendingUp } from "lucide-react";
+import { AlertCircleIcon, Calendar, Clock, TrendingUp } from "lucide-react";
 
 import { useSidebar } from "@/components/ui/sidebar";
 import { isMainnet, LEADERBOARD_ANALYTICS_EVENTS } from "@/constants";
@@ -28,6 +28,7 @@ import { columns, type SizeColumn } from "./_components/table/columns";
 import { DataTable } from "./_components/table/data-table";
 import { ApolloClient, InMemoryCache } from "@apollo/client";
 import { Icons } from "@/components/Icons";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 const PAGINATION_LIMIT = 100;
 
@@ -243,7 +244,7 @@ const useLeaderboardData = () => {
 
 const LoadingSpinner = React.memo(
   ({
-    message = "Loading Rewards & Leaderboard data...",
+    message = "Loading data...",
   }: {
     message?: string;
   }) => (
@@ -344,7 +345,7 @@ const Leaderboard: React.FC = () => {
   const { address } = useAccount();
   const { connectWallet: _connectWallet } = useWalletConnection();
   const [activeSeason, setActiveSeason] = React.useState<"season1" | "season2">(
-    "season2",
+    "season1",
   );
 
   const {
@@ -393,18 +394,33 @@ const Leaderboard: React.FC = () => {
 
   const containerClasses = React.useMemo(
     () =>
-      cn("mt-2 lg:mt-10 w-full max-w-[1200px]", {
+      cn("lg:mt-10 w-full max-w-[calc(100vw-1rem)] px-2 lg:max-w-4xl", {
         "lg:pl-28": !isPinned,
       }),
     [isPinned],
   );
 
+  function getHeader() {
+    return (<div className="flex items-start justify-between">
+      <div className="flex flex-1 flex-col gap-2 lg:gap-3">
+        <div className="flex items-center gap-2">
+          <Icons.rewards />
+          <h1 className="text-xl font-normal tracking-[-1%] text-[#1A1F24] lg:text-2xl">
+            Rewards & Leaderboard
+          </h1>
+        </div>
+        {/* TODO: Add learn more button */}
+        <p className="mt-1 text-sm text-[#021B1A] lg:text-base">
+         Track your points and rewards - and see where you stand on the leaderboard.
+        </p>
+      </div>
+    </div>);
+  }
+
   if (loading.initial) {
     return (
       <div className={containerClasses}>
-        <h1 className="text-2xl font-semibold tracking-[-1%] text-[#17876D]">
-          Rewards & Leaderboard
-        </h1>
+        {getHeader()}
         <LoadingSpinner />
       </div>
     );
@@ -413,9 +429,7 @@ const Leaderboard: React.FC = () => {
   if (error && allUsers.length === 0) {
     return (
       <div className={containerClasses}>
-        <h1 className="text-2xl font-semibold tracking-[-1%] text-[#17876D]">
-          Rewards & Leaderboard
-        </h1>
+        {getHeader()}
         <ErrorDisplay error={error} />
       </div>
     );
@@ -441,35 +455,22 @@ const Leaderboard: React.FC = () => {
     {
       season: 2,
       isActive: true,
-      startDate: new Date("2024-05-10T00:00:00Z"),
-      endDate: new Date("2024-06-10T23:59:59Z"),
+      startDate: new Date("2025-12-16:00:00Z"),
+      endDate: new Date("2026-06-15T00:00:00Z"),
       points: 7500000,
     },
     {
       season: 1,
       isActive: false,
-      startDate: new Date("2024-03-01T00:00:00Z"),
-      endDate: new Date("2024-04-01T23:59:59Z"),
+      startDate: new Date("2024-11-27T00:00:00Z"),
+      endDate: new Date("2025-12-15T00:00:00Z"),
       points: 10000000,
     },
   ];
 
   return (
     <div className={containerClasses}>
-      <div className="flex items-start justify-between">
-        <div className="flex flex-1 flex-col gap-2 lg:gap-3">
-          <div className="flex items-center gap-2">
-            <Icons.rewards />
-            <h1 className="text-xl font-normal tracking-[-1%] text-[#1A1F24] lg:text-2xl">
-              Rewards & Leaderboard
-            </h1>
-          </div>
-          {/* TODO: Add learn more button */}
-          <p className="mt-1 text-sm text-[#021B1A] lg:text-base">
-            Track your ranking and earn rewards.
-          </p>
-        </div>
-      </div>
+      {getHeader()}
 
       <div className="pt-3 lg:pt-6">
         <div className="flex flex-col gap-3 rounded-[14px] bg-gradient-to-b from-[#0D5F4E] to-[#11998E] p-2 lg:flex-row lg:items-center lg:gap-6 lg:p-4">
@@ -488,10 +489,13 @@ const Leaderboard: React.FC = () => {
               </h2>
               <div className="mt-2 h-px w-full bg-white/20"></div>
             </div>
-            <p className="text-sm text-white lg:text-base">
+            <p className="text-sm text-white lg:text-md">
               In May 2025, we distributed 250,000 xSTRK in rewards to users from
               the {"platform’s"} first six months. The distribution was
               calculated based on Season 1 points as recorded at that time.
+            </p>
+            <p className="text-sm text-white lg:text-md">
+              <span className="font-semibold">Claim Deadline: 31st Mar, 2026</span>
             </p>
           </div>
           <div className="lg:flex-shrink-0 lg:self-center">
@@ -597,10 +601,11 @@ const Leaderboard: React.FC = () => {
                   </p>
                 </div>
                 <div>
+                  {/* TODO Add blog link */}
                   <p className="text-xs text-[#5B616D]">
-                    {season.isActive
-                      ? "Allocated weekly throughout the season"
-                      : "Points have been descaled (1000:1 ratio) to a max of 10M points"}
+                    {season.season === 2
+                      ? <span>Allocated 280k points weekly throughout the season. 70% of the points will be allocated to contributors and 30% to the users. <span className="font-semibold text-[#17876D]"><a className="text-[#17876D] underline" href="https://blog.endur.fi/points" target="_blank">Learn more</a></span></span>
+                      : <span>Initial Points have been descaled (1000:1 ratio) to a max of 10M points. <span className="font-semibold"><a className="text-[#5B616D] underline" href="https://blog.endur.fi/points" target="_blank">Learn more</a></span></span>}
                   </p>
                 </div>
               </div>
@@ -608,14 +613,16 @@ const Leaderboard: React.FC = () => {
           ))}
         </div>
 
+        <hr className="my-3 lg:my-7 border-[#E5E8EB]" />
+
         <ShadCNTabs
           value={activeSeason}
           onValueChange={(value) =>
             setActiveSeason(value as "season1" | "season2")
           }
-          defaultValue="season2"
-          className="mt-6 lg:mt-8"
+          defaultValue="season1"
         >
+          <div className="mb-2">Your Points and Leaderboard:</div>
           <TabsList className="h-auto w-full gap-0 rounded-[14px] border border-[#E5E8EB] bg-white p-1 lg:w-fit">
             <TabsTrigger
               value="season2"
@@ -636,7 +643,7 @@ const Leaderboard: React.FC = () => {
           </TabsList>
 
           <TabsContent value="season2" className="mt-0">
-            <div className="mt-6 lg:mt-8">
+            <div className="mt-2 lg:mt-4">
               <div className="flex flex-col items-center justify-center rounded-[14px] border border-[#E5E8EB] bg-white p-8 text-center shadow-sm">
                 <p className="text-base text-[#6B7780] lg:text-lg">
                   First weekly points allocation coming on 23rd Dec, 2025
@@ -646,7 +653,7 @@ const Leaderboard: React.FC = () => {
           </TabsContent>
 
           <TabsContent value="season1" className="mt-0">
-            <div className="mt-6 lg:mt-8">
+            <div className="mt-2 lg:mt-4">
               {allUsers.length > 0 ? (
                 <DataTable
                   columns={columns}
@@ -659,6 +666,16 @@ const Leaderboard: React.FC = () => {
             </div>
           </TabsContent>
         </ShadCNTabs>
+
+        <Alert className="!mb-20 border border-[#03624C] bg-[#E5EFED] p-4 text-[#03624C]">
+          <AlertCircleIcon className="size-4 !text-[#03624C]" />
+          <AlertTitle className="text-base font-semibold leading-[1]">
+            Disclaimer
+          </AlertTitle>
+          <AlertDescription className="mt-2 flex flex-col items-start -space-y-0.5 text-[#5B616D]">
+            <p>Point criteria may evolve as Endur develops, and allocations can be adjusted if any bugs or inconsistencies are discovered.</p>
+          </AlertDescription>
+        </Alert>
       </div>
     </div>
   );

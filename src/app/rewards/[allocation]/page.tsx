@@ -8,7 +8,7 @@ function Allocation() {
 
   React.useEffect(() => {
     const timer = setTimeout(() => {
-      router.replace("/leaderboard");
+      router.replace("/rewards");
     }, 4000);
 
     return () => clearTimeout(timer);

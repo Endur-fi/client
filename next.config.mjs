@@ -106,6 +106,11 @@ const nextConfig = {
         destination: "/leaderboard",
         permanent: true,
       },
+      {
+        source: "/leaderboard",
+        destination: "/rewards",
+        permanent: true,
+      }
     ];
   },
   async headers() {

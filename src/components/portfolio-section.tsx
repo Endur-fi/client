@@ -270,10 +270,10 @@ const PortfolioSection: React.FC = () => {
               <div className="flex flex-1 items-start justify-between">
                 <div className="flex flex-col">
                   <span className="text-left text-sm text-[#1A1F24]">BTC</span>
-                  <span className="mt-1 text-sm text-[#1A1F24]">
+                  {/* <span className="mt-1 text-sm text-[#1A1F24]">
                     {formatNumberWithCommas(btcHoldings.totalUnderlyingBTC, 6)}{" "}
                     xyBTC
-                  </span>
+                  </span> */}
                   <span className="mt-0.5 text-left text-xs text-[#6B7780]">
                     ${formatNumberWithCommas(btcHoldings.totalUsd, 2)}
                   </span>
@@ -300,12 +300,12 @@ const PortfolioSection: React.FC = () => {
                         {holding.asset.LST_SYMBOL}
                       </span>
                       <span className="text-[#6B7780]">
-                        {formatNumberWithCommas(holding.underlyingBTC, 6)}{" "}
-                        {holding.asset.SYMBOL}
+                        ${formatNumberWithCommas(holding.usdValue, 2)}
                       </span>
                     </div>
                     <span className="text-right text-[#6B7780]">
-                      ${formatNumberWithCommas(holding.usdValue, 2)}
+                      {formatNumberWithCommas(holding.underlyingBTC, 6)}{" "}
+                        {holding.asset.SYMBOL}
                     </span>
                   </div>
                 </div>
