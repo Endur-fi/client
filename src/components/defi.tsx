@@ -1675,19 +1675,11 @@ const Defi: React.FC = () => {
                                           <span className="truncate text-xs text-[#1A1F24]">
                                             {config.description}
                                           </span>
-                                          <TooltipProvider delayDuration={0}>
-                                            <Tooltip>
-                                              <TooltipTrigger asChild>
-                                                <HelpCircle className="h-4 w-4 shrink-0 cursor-help text-[#6B7780]" />
-                                              </TooltipTrigger>
-                                              <TooltipContent
-                                                side="top"
-                                                className="max-w-xs rounded-md border border-[#03624C] bg-white text-xs text-[#03624C]"
-                                              >
-                                                {config.description}
-                                              </TooltipContent>
-                                            </Tooltip>
-                                          </TooltipProvider>
+                                          <MyDottedTooltip
+                                            tooltip={config.description}
+                                          >
+                                            <HelpCircle className="h-4 w-4 shrink-0 cursor-help text-[#6B7780]" />
+                                          </MyDottedTooltip>
                                           {config.action && (
                                             <button
                                               onClick={() => {
@@ -1698,7 +1690,7 @@ const Defi: React.FC = () => {
                                                   );
                                                 }
                                               }}
-                                              className="w-32 rounded-full bg-[#10B981] px-4 py-1.5 text-xs font-medium text-white transition-opacity hover:opacity-90"
+                                              className="w-32 whitespace-nowrap rounded-full bg-[#10B981] px-4 py-1.5 text-xs font-medium text-white transition-opacity hover:opacity-90"
                                             >
                                               {config.action.buttonText}
                                             </button>
