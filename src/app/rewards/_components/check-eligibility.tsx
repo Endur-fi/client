@@ -81,13 +81,7 @@ export interface UserCompleteDetailsApiResponse {
   };
 }
 
-type ModalType =
-  | "subscribe"
-  | "claim"
-  | "notEligible"
-  | "twitterFollow"
-  | "twitterShare"
-  | null;
+type ModalType = "subscribe" | "claim" | "notEligible" | "twitterShare" | null;
 
 interface EligibilityState {
   allocation: string | null;
@@ -317,7 +311,7 @@ const EligibilityModal = React.memo<{
   }) => (
     <DialogContent hideCloseIcon className={MODAL_CONTENT_CLASSES}>
       <div className="relative w-full">
-        <ProgressHeader step="Step 1 of 4" percentage={25} />
+        <ProgressHeader step="Step 1 of 3" percentage={33} />
         <DialogHeader>
           <div className="flex w-full items-center justify-center">
             <Image
@@ -391,122 +385,6 @@ const EligibilityModal = React.memo<{
 );
 EligibilityModal.displayName = "EligibilityModal";
 
-const TwitterFollowModal = React.memo<{
-  onContinue: () => void;
-  onFollow: () => void;
-  isFollowClicked: boolean;
-}>(({ onContinue, onFollow, isFollowClicked }) => (
-  <DialogContent
-    hideCloseIcon
-    className={cn(
-      font.className,
-      "border-0 bg-[#0C4E3F] px-3 pb-8 pt-12 sm:max-w-[480px] md:px-8",
-    )}
-  >
-    <div className="relative w-full">
-      <ProgressHeader step="Step 2 of 4" percentage={50} />
-      <DialogHeader>
-        <div className="flex w-full items-center justify-center">
-          <Image
-            src="/leaderboard/twitter_modal.svg"
-            width={266}
-            height={290}
-            alt="twitter follow illustration"
-          />
-        </div>
-        <DialogTitle className="!mt-8 text-center text-3xl font-semibold text-white">
-          Power in Numbers
-        </DialogTitle>
-        <DialogDescription className="!mt-2 text-center text-sm font-normal text-[#DCF6E5]">
-          Your follow on X shows our strength and fuels our mission. Plus, never
-          miss tiny updates and fun.
-        </DialogDescription>
-      </DialogHeader>
-
-      <div className="mt-5 flex w-full items-center justify-center">
-        <Button className="h-10 w-fit cursor-default rounded-md bg-[#17876D]/30 font-dmSans text-lg font-semibold text-white shadow-lg hover:bg-[#17876D]/30">
-          <Icons.sparklingStar className="size-12 text-[#FAFAFA]" />
-          Earn {BONUS_POINTS.toLocaleString()} bonus points
-        </Button>
-      </div>
-
-      <div className="relative !mt-6 flex w-full flex-col items-center justify-center gap-2 px-2">
-        <Link href="https://x.com/endurfi" target="_blank" className="w-full">
-          <Button
-            onClick={onFollow}
-            className="h-12 w-full rounded-md bg-white text-[#0C4E3F] hover:bg-white hover:text-[#0C4E3F]"
-          >
-            {isFollowClicked ? (
-              <div className="flex items-center justify-center gap-2">
-                <Loader2 className="size-4 animate-spin" />
-                checking...
-              </div>
-            ) : (
-              "Follow us on X"
-            )}
-          </Button>
-        </Link>
-        <Button
-          onClick={onContinue}
-          className="h-10 w-full rounded-md bg-transparent px-6 text-sm text-[#DCF6E5]/50 shadow-none transition-all hover:bg-transparent hover:text-[#DCF6E5]"
-        >
-          Skip to rewards
-        </Button>
-      </div>
-    </div>
-  </DialogContent>
-));
-TwitterFollowModal.displayName = "TwitterFollowModal";
-
-const FollowBonusAlreadyAwardedModal = React.memo<{ onContinue: () => void }>(
-  ({ onContinue }) => (
-    <DialogContent
-      hideCloseIcon
-      className={cn(
-        font.className,
-        "border-0 bg-[#0C4E3F] px-3 pb-8 pt-12 sm:max-w-[480px] md:px-8",
-      )}
-    >
-      <div className="relative w-full">
-        <ProgressHeader step="Step 2 of 4" percentage={50} />
-        <DialogHeader>
-          <div className="flex w-full items-center justify-center">
-            <Image
-              src="/leaderboard/twitter_modal.svg"
-              width={266}
-              height={290}
-              alt="twitter follow illustration"
-            />
-          </div>
-          <DialogTitle className="!mt-8 text-center text-3xl font-semibold text-white">
-            Power in Numbers
-          </DialogTitle>
-          <DialogDescription className="!mt-2 text-center text-sm font-normal text-[#DCF6E5]">
-            Thank you for following us on X! Your support fuels our mission.
-          </DialogDescription>
-        </DialogHeader>
-
-        <div className="mt-5 flex w-full items-center justify-center">
-          <Button className="h-10 w-fit cursor-default rounded-md bg-[#17876D]/30 font-dmSans text-base font-semibold text-white shadow-lg hover:bg-[#17876D]/30">
-            <Icons.sparklingStar className="size-12 text-[#FAFAFA]" />
-            {BONUS_POINTS.toLocaleString()} bonus points already awarded!
-          </Button>
-        </div>
-
-        <div className="relative !mt-6 flex w-full flex-col items-center justify-center gap-2 px-2">
-          <Button
-            onClick={onContinue}
-            className="h-10 w-full rounded-md bg-white text-[#0C4E3F] hover:bg-white hover:text-[#0C4E3F]"
-          >
-            Continue to rewards
-          </Button>
-        </div>
-      </div>
-    </DialogContent>
-  ),
-);
-FollowBonusAlreadyAwardedModal.displayName = "FollowBonusAlreadyAwardedModal";
-
 const ClaimModal = React.memo<{
   allocation: string | null;
   onBack: () => void;
@@ -531,7 +409,7 @@ const ClaimModal = React.memo<{
       )}
     >
       <div className="relative w-full">
-        <ProgressHeader step="Step 3 of 4" percentage={75} />
+        <ProgressHeader step="Step 2 of 3" percentage={67} />
         <DialogHeader>
           <div className="flex w-full items-center justify-center">
             <Image
@@ -575,15 +453,6 @@ const ClaimModal = React.memo<{
               </>
             )}
           </Button>
-          {!isFollowed && !bonusAlreadyAwarded && (
-            <Button
-              onClick={onBack}
-              disabled={isPending}
-              className="h-12 w-full rounded-md border bg-transparent px-6 text-sm text-[#DCF6E5]/80 shadow-none transition-all hover:bg-transparent hover:text-[#DCF6E5] disabled:opacity-50"
-            >
-              Go back and earn {BONUS_POINTS.toLocaleString()} points
-            </Button>
-          )}
         </div>
       </div>
     </DialogContent>
@@ -642,7 +511,7 @@ const TwitterShareModal = React.memo<{
   return (
     <DialogContent hideCloseIcon className={MODAL_CONTENT_CLASSES}>
       <div className="relative w-full">
-        <ProgressHeader step="Step 4 of 4" percentage={100} />
+        <ProgressHeader step="Step 3 of 3" percentage={100} />
         <DialogHeader>
           <div className="flex w-full items-center justify-center">
             <Image
@@ -747,11 +616,13 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
       return;
     }
 
+    const { isEligible } = eligibilityData;
+
     if (userExists) {
       return setState((prev) => ({
         ...prev,
         emailInput: "",
-        activeModal: "twitterFollow",
+        activeModal: isEligible ? "claim" : "notEligible",
       }));
     }
 
@@ -787,14 +658,14 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
       trackAnalyticsCallback(LEADERBOARD_ANALYTICS_EVENTS.EMAIL_SUBMITTED, {
         userAddress: address,
         email: state.emailInput,
-        isEligible: state.isEligible,
+        isEligible,
         wasAlreadySubscribed: subscriptionStatus.isSubscribed,
       });
 
       setState((prev) => ({
         ...prev,
         emailInput: "",
-        activeModal: "twitterFollow",
+        activeModal: isEligible ? "claim" : "notEligible",
       }));
     } catch (error) {
       console.error("Error in subscription flow:", error);
@@ -807,7 +678,7 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
   }, [
     address,
     state.emailInput,
-    state.isEligible,
+    eligibilityData,
     userExists,
     trackAnalyticsCallback,
   ]);
@@ -919,10 +790,6 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
     setState((prev) => ({ ...prev, activeModal: null }));
   }, []);
 
-  const goToTwitterFollow = React.useCallback(() => {
-    setState((prev) => ({ ...prev, activeModal: "twitterFollow" }));
-  }, []);
-
   const goToClaim = React.useCallback(() => {
     MyAnalytics.track(LEADERBOARD_ANALYTICS_EVENTS.TWITTER_FOLLOW_SKIPPED, {
       userAddress: address,
@@ -982,8 +849,12 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
   ]);
 
   const handleSkip = React.useCallback(() => {
-    setState((prev) => ({ ...prev, activeModal: "twitterFollow" }));
-  }, []);
+    const { isEligible } = eligibilityData;
+    setState((prev) => ({
+      ...prev,
+      activeModal: isEligible ? "claim" : "notEligible",
+    }));
+  }, [eligibilityData]);
 
   React.useEffect(() => {
     const checkClaimedAmount = async () => {
@@ -1142,27 +1013,11 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
         />
       </Dialog>
 
-      <Dialog
-        open={state.activeModal === "twitterFollow"}
-        onOpenChange={closeModal}
-      >
-        <ModalOverlay />
-        {bonusAlreadyAwarded ? (
-          <FollowBonusAlreadyAwardedModal onContinue={goToClaim} />
-        ) : (
-          <TwitterFollowModal
-            onContinue={goToClaim}
-            onFollow={handleTwitterFollow}
-            isFollowClicked={state.isFollowClicked}
-          />
-        )}
-      </Dialog>
-
       <Dialog open={state.activeModal === "claim"} onOpenChange={closeModal}>
         <ModalOverlay />
         <ClaimModal
           allocation={state.allocation}
-          onBack={goToTwitterFollow}
+          onBack={() => {}}
           claimRewards={handleClaim}
           isFollowed={state.isFollowed}
           bonusAlreadyAwarded={bonusAlreadyAwarded}
