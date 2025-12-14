@@ -183,7 +183,15 @@ export const eventNames = {
   OPPORTUNITIES: "opportunities",
 };
 
+const priceCache = new Map<string, { price: number, timestamp: number }>();
+
 export async function getAssetPrice(isSTRK: boolean = true): Promise<number> {
+  if (priceCache.has(isSTRK ? "STRK" : "BTC")) {
+    const { price, timestamp } = priceCache.get(isSTRK ? "STRK" : "BTC")!;
+    if (Date.now() - timestamp < 1000 * 60 * 60) { // 1 hour (just for ui purposes, so ok)
+      return price;
+    }
+  }
   const provider = new RpcProvider({
     nodeUrl:
       process.env.NEXT_PUBLIC_CHAIN_ID === "SN_MAIN"
@@ -201,7 +209,9 @@ export async function getAssetPrice(isSTRK: boolean = true): Promise<number> {
     providerOrAccount: provider,
   });
   const data = await contract.call("get_price", []);
-  return Number(data) / 10 ** 8;
+  const price = Number(data) / 10 ** 8;
+  priceCache.set(isSTRK ? "STRK" : "BTC", { price, timestamp: Date.now() });
+  return price;
 }
 
 // Types for the result object with discriminated union

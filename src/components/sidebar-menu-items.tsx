@@ -189,6 +189,28 @@ const SidebarMenuItems = () => {
         </SidebarMenuButton>
       </SidebarMenuItem>
 
+      {/* xyBTC Analytics */}
+      <SidebarMenuItem>
+        <SidebarMenuButton
+          asChild
+          className="opacity-70 transition-all hover:opacity-100"
+          onMouseEnter={() => setTriggerAnalyticsIconAnimation(true)}
+          onMouseLeave={() => setTriggerAnalyticsIconAnimation(false)}
+        >
+          <Link
+            href={LINKS.BTC_DUNE_ANALYTICS}
+            target="_blank"
+            className="flex cursor-pointer flex-row items-center gap-2 text-nowrap rounded-[12px] text-base font-semibold text-[#03624C] transition-all"
+          >
+            <ChartColumnDecreasingIcon
+              triggerAnimation={triggerAnalyticsIconAnimation}
+              className="size-5"
+            />
+            {open && <p>xyBTC Analytics</p>}
+          </Link>
+        </SidebarMenuButton>
+      </SidebarMenuItem>
+
       <hr className="!my-2 border-[#E5E7EB]" />
 
       {/* Staking Dashboard */}

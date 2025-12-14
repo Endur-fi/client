@@ -3,12 +3,13 @@ import { Atom, atom, WritableAtom } from "jotai";
 import { atomWithQuery, AtomWithQueryResult } from "jotai-tanstack-query";
 import { atomFamily } from "jotai/utils";
 import { AtomFamily } from "jotai/vanilla/utils/atomFamily";
-import { BlockIdentifier, Contract, RpcProvider, constants } from "starknet";
+import { BlockIdentifier, Contract } from "starknet";
 import { assetPriceAtom, lstConfigAtom, userAddressAtom } from "./common.store";
 import { apiExchangeRateAtom } from "./lst.store";
 import { snAPYAtom, btcPriceAtom } from "./staking.store";
-import { LSTAssetConfig, LST_CONFIG, NETWORK } from "@/constants";
+import { LSTAssetConfig, LST_CONFIG, NETWORK, getProvider } from "@/constants";
 import erc4626Abi from "@/abi/erc4626.abi.json";
+import { getAssetPrice } from "@/lib/utils";
 
 // TODO: move all the types to separate type file
 interface VesuAPIResponse {
@@ -233,7 +234,7 @@ const vesuYieldQueryAtom = atomWithQuery(() => ({
     try {
       //TODO: move the api call logic to api.ts under "defi calls" comment
       const response = await fetch(
-        "https://api.vesu.xyz/pools/0x052fb52363939c3aa848f8f4ac28f0a51379f8d1b971d8444de25fbd77d8f161",
+        "https://proxy.api.troves.fi/vesu/pools/0x052fb52363939c3aa848f8f4ac28f0a51379f8d1b971d8444de25fbd77d8f161",
       );
       const data: VesuAPIResponse = await response.json();
 
@@ -301,7 +302,7 @@ const createVesuBTCYieldQueryAtom = (
     queryFn: async (): Promise<ProtocolYield> => {
       try {
         //TODO: move the api call logic to api.ts under "defi calls" comment
-        const response = await fetch(`https://api.vesu.xyz/pools/${poolId}`);
+        const response = await fetch(`https://proxy.api.troves.fi/vesu/pools/${poolId}`);
         const data: VesuAPIResponse = await response.json();
 
         const stats = data.data.assets?.find(
@@ -745,6 +746,10 @@ const createTrovesYieldQueryAtom = (strategyId: string, queryKey: string) =>
     refetchInterval: 60000,
   }));
 
+const trovesHyperxSTRKYieldQueryAtom = createTrovesYieldQueryAtom(
+  "hyper_xstrk",
+  "trovesHyperxSTRKYield",
+);
 const trovesHyperxWBTCYieldQueryAtom = createTrovesYieldQueryAtom(
   "hyper_xwbtc",
   "trovesHyperxWBTCYield",
@@ -967,6 +972,9 @@ const createTrovesYieldAtom = (
 
 //DOUBT [ASK_AKIRA]: if we are using same function "trovesHyperYieldAtom" for protocolYieldsAtom, then why do we have different yield atom here?
 //TODO: move these all troves atom to troves.store.ts
+export const trovesHyperxSTRKYieldAtom = createTrovesYieldAtom(
+  trovesHyperxSTRKYieldQueryAtom,
+);
 export const trovesHyperxWBTCYieldAtom = createTrovesYieldAtom(
   trovesHyperxWBTCYieldQueryAtom,
 );
@@ -1135,15 +1143,10 @@ export interface VaultCapacity {
 async function fetchVaultCapacity(
   vaultAddress: string,
   vaultDecimals: number,
+  isBTC: boolean,
 ): Promise<VaultCapacity | null> {
   try {
-    const provider = new RpcProvider({
-      nodeUrl:
-        NETWORK === constants.NetworkName.SN_MAIN
-          ? process.env.NEXT_PUBLIC_RPC_URL ||
-            "https://starknet-mainnet.public.blastapi.io/rpc/v0_7"
-          : "https://starknet-sepolia.public.blastapi.io/rpc/v0_7",
-    });
+    const provider = getProvider();
 
     const contract = new Contract({
       abi: erc4626Abi,
@@ -1158,47 +1161,38 @@ async function fetchVaultCapacity(
 
     const [totalAssetsResult, maxDepositResult] = await Promise.all([
       contract.call("total_assets", []),
-      contract.call("max_deposit", [zeroAddress as `0x${string}`]),
+      contract.call("get_deposit_limit", []),
     ]);
 
     // Convert u256 results using MyNumber
     // Handle both string and u256 struct (low/high) formats
-    const totalAssetsStr =
-      typeof totalAssetsResult === "object" && "low" in totalAssetsResult
-        ? (
-            BigInt(totalAssetsResult.low.toString()) +
-            (BigInt(totalAssetsResult.high?.toString() || "0") << BigInt(128))
-          ).toString()
-        : totalAssetsResult.toString();
-    const maxDepositStr =
-      typeof maxDepositResult === "object" && "low" in maxDepositResult
-        ? (
-            BigInt(maxDepositResult.low.toString()) +
-            (BigInt(maxDepositResult.high?.toString() || "0") << BigInt(128))
-          ).toString()
-        : maxDepositResult.toString();
+    const totalAssetsStr = totalAssetsResult.toString();
+    const maxDepositStr = maxDepositResult.toString();
 
     const totalAssetsMyNum = new MyNumber(totalAssetsStr, vaultDecimals);
     const maxDepositMyNum = new MyNumber(maxDepositStr, vaultDecimals);
 
     // Calculate used capacity
-    const used = Number(totalAssetsMyNum.toEtherStr());
+    const used = Number(totalAssetsMyNum.toEtherToFixedDecimals(6));
+
+    const underlyingPrice = await getAssetPrice(!isBTC);
+
+    const usedUSD = used * underlyingPrice;
 
     // If max_deposit is 0, it means no limit
-    const maxDepositValue = Number(maxDepositMyNum.toString());
-    if (maxDepositValue === 0) {
-      return { used, total: null };
+    const maxDepositValue = Number(maxDepositMyNum.toEtherToFixedDecimals(6));
+    const maxDepositUSD = maxDepositValue * underlyingPrice;
+  
+    if (maxDepositUSD === 0) {
+      return { used: usedUSD, total: null };
     }
 
-    // Calculate max limit
-    const maxLimit = Number(maxDepositMyNum.toEtherStr());
-
-    // If max limit is > 1B, show no limit
-    if (maxLimit > 1_000_000_000) {
-      return { used, total: null };
+    // If max deposit is > 1B, show no limit
+    if (maxDepositUSD > 1_000_000_000) {
+      return { used: usedUSD, total: null };
     }
 
-    return { used, total: maxLimit };
+    return { used: usedUSD, total: maxDepositUSD };
   } catch (error) {
     console.error("Error fetching vault capacity:", error);
     return null;
@@ -1223,7 +1217,8 @@ const createVaultCapacityAtom = (vaultSymbol: string) => {
         return null;
       }
       const vaultAddress = networkConfig.TROVES_HYPER_VAULT_ADDRESS;
-      return fetchVaultCapacity(vaultAddress, asset.DECIMALS);
+      const isBTC = asset.SYMBOL.toLowerCase().includes("btc");
+      return fetchVaultCapacity(vaultAddress, asset.DECIMALS, isBTC);
     },
     refetchInterval: 60000, // Refetch every minute
     refetchOnWindowFocus: false,

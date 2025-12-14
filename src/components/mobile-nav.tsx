@@ -5,23 +5,46 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import React from "react";
-import { ChevronDown, ChevronRight } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
 import { LINKS } from "@/constants";
-import { ChartColumnDecreasingIcon } from "./ui/chart-column-decreasing";
 import { ChartSplineIcon } from "./ui/chart-spline";
 import { FlameIcon } from "./ui/flame";
 import { GaugeIcon } from "./ui/gauge";
-import { HandCoinsIcon } from "./ui/hand-coins";
 import { MenuIcon } from "./ui/menu";
-import { UserIcon } from "./ui/user";
+import { HandCoinsIcon } from "./ui/hand-coins";
+import { ChartColumnDecreasingIcon } from "./ui/chart-column-decreasing";
+
+type NavLinkProps = {
+  href: string;
+  icon: React.ReactNode;
+  children: React.ReactNode;
+  isActive?: boolean;
+  target?: string;
+};
+
+const NavLink = ({ href, icon, children, isActive = false, target }: NavLinkProps) => {
+  return (
+    <Link
+      href={href}
+      target={target}
+      rel={target === "_blank" ? "noopener noreferrer" : undefined}
+      className={cn(
+        "flex w-full cursor-pointer flex-row items-center gap-2 text-nowrap rounded-md p-2 px-3 text-sm font-semibold text-[#03624C] transition-all hover:bg-[#17876D] hover:text-white",
+        {
+          "bg-[#17876D] text-white": isActive,
+        },
+      )}
+    >
+      {icon}
+      {children}
+    </Link>
+  );
+};
 
 const MobileNav = () => {
   const [open, setOpen] = React.useState(false);
-  const [strkExpanded, setStrkExpanded] = React.useState(false);
-  const [btcExpanded, setBtcExpanded] = React.useState(false);
   const menuRef = React.useRef<HTMLDivElement>(null);
   const iconRef = React.useRef<HTMLDivElement | null>(null);
 
@@ -29,6 +52,12 @@ const MobileNav = () => {
   const searchParams = useSearchParams();
 
   const referrer = searchParams.get("referrer");
+
+  // Calculate Liquid Staking href based on current pathname and referrer
+  const getLiquidStakingHref = () => {
+    const basePath = pathname === "/btc" ? "/btc" : "/strk";
+    return referrer ? `${basePath}?referrer=${referrer}` : basePath;
+  };
 
   React.useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -76,144 +105,60 @@ const MobileNav = () => {
             >
               {/* Liquid Staking - Always on top */}
               <div className="w-full">
-                <Link
-                  href={
-                    pathname === "/btc"
-                      ? referrer
-                        ? `/btc?referrer=${referrer}`
-                        : "/btc"
-                      : referrer
-                        ? `/strk?referrer=${referrer}`
-                        : "/strk"
-                  }
-                  className={cn(
-                    "flex w-full cursor-pointer flex-row items-center gap-2 text-nowrap rounded-md p-2 px-3 text-sm font-semibold text-[#03624C] transition-all hover:bg-[#17876D] hover:text-white",
-                    {
-                      "bg-[#17876D] text-white":
-                        pathname === "/strk" || pathname === "/btc",
-                    },
-                  )}
+                <NavLink
+                  href={getLiquidStakingHref()}
+                  icon={<FlameIcon className="-ml-0.5 size-5" />}
+                  isActive={pathname === "/strk" || pathname === "/btc"}
                 >
-                  <FlameIcon className="-ml-0.5 size-5" />
                   Liquid Staking
-                </Link>
+                </NavLink>
               </div>
 
-              <div className="w-full">
-                <button
-                  onClick={() => setStrkExpanded(!strkExpanded)}
-                  className="mb-2 flex w-full items-center justify-between text-xs font-semibold uppercase tracking-wide text-[#03624C] transition-colors hover:text-[#17876D]"
-                >
-                  <span>STRK</span>
-                  {strkExpanded ? (
-                    <ChevronDown className="size-4" />
-                  ) : (
-                    <ChevronRight className="size-4" />
-                  )}
-                </button>
-
-                {strkExpanded && (
-                  <div className="space-y-1">
-                    <Link
-                      href={referrer ? `/defi?referrer=${referrer}` : "/defi"}
-                      className={cn(
-                        "flex w-full cursor-pointer flex-row items-center gap-2 text-nowrap rounded-md p-2 px-3 text-sm font-semibold text-[#03624C] transition-all hover:bg-[#17876D] hover:text-white",
-                        {
-                          "bg-[#17876D] text-white": pathname === "/defi",
-                        },
-                      )}
-                    >
-                      <HandCoinsIcon className="-ml-0.5 size-5" />
-                      DeFi Opportunities
-                    </Link>
-
-                    <Link
-                      href={LINKS.DUNE_ANALYTICS}
-                      className="flex w-full cursor-pointer flex-row items-center gap-2 text-nowrap rounded-md p-2 px-3 text-sm font-semibold text-[#03624C] transition-all hover:bg-[#17876D] hover:text-white"
-                    >
-                      <ChartColumnDecreasingIcon className="size-5" />
-                      xSTRK Analytics
-                    </Link>
-
-                    {/* TODO: Add link to portfolio page */}
-                    {/* <Link
-                      href="/portfolio"
-                      className={cn(
-                        "flex w-full cursor-pointer flex-row items-center gap-2 text-nowrap rounded-md p-2 px-3 text-sm font-semibold text-[#03624C] transition-all hover:bg-[#17876D] hover:text-white",
-                        {
-                          "bg-[#17876D] text-white": pathname === "/portfolio",
-                        },
-                      )}
-                    >
-                      <UserIcon className="-ml-0.5 size-5" />
-                      xSTRK Portfolio
-                    </Link> */}
-                  </div>
-                )}
-              </div>
-
-              <div className="w-full">
-                <button
-                  onClick={() => setBtcExpanded(!btcExpanded)}
-                  className="mb-2 flex w-full items-center justify-between text-xs font-semibold uppercase tracking-wide text-[#03624C] transition-colors hover:text-[#17876D]"
-                >
-                  <span>BTC</span>
-                  {btcExpanded ? (
-                    <ChevronDown className="size-4" />
-                  ) : (
-                    <ChevronRight className="size-4" />
-                  )}
-                </button>
-
-                {btcExpanded && (
-                  <div className="space-y-1">
-                    {/* <div className="flex w-full cursor-not-allowed flex-row items-center gap-2 text-nowrap rounded-md p-2 px-3 text-sm font-semibold text-[#03624C] opacity-50 transition-all">
-                      <HandCoinsIcon className="-ml-0.5 size-5" />
-                      <div>
-                        <p>DeFi with xyBTCs</p>
-                        <p className="text-xs text-[#8D9C9C]">Coming soon</p>
-                      </div>
-                    </div> */}
-
-                    <div className="flex w-full cursor-not-allowed flex-row items-center gap-2 text-nowrap rounded-md p-2 px-3 text-sm font-semibold text-[#03624C] opacity-50 transition-all">
-                      <ChartColumnDecreasingIcon className="size-5" />
-                      <div>
-                        <p>xyBTC Analytics</p>
-                        <p className="text-xs text-[#8D9C9C]">Coming soon</p>
-                      </div>
-                    </div>
-
-                    <div className="flex w-full cursor-not-allowed flex-row items-center gap-2 text-nowrap rounded-md p-2 px-3 text-sm font-semibold text-[#03624C] opacity-50 transition-all">
-                      <UserIcon className="-ml-0.5 size-5" />
-                      <div>
-                        <p>xyBTCs Portfolio</p>
-                        <p className="text-xs text-[#8D9C9C]">Coming soon</p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              <Link
-                href={LINKS.DASHBOARD_URL}
-                className="flex w-full cursor-pointer flex-row items-center gap-2 text-nowrap rounded-md p-2 px-3 text-sm font-semibold text-[#03624C] transition-all hover:bg-[#17876D] hover:text-white"
+              <NavLink
+                href="/defi"
+                icon={<HandCoinsIcon
+                  className="-ml-0.5 size-5"
+                />}
+                isActive={pathname === "/defi"}
               >
-                <GaugeIcon className="-ml-0.5 size-5" />
-                Staking Dashboard
-              </Link>
-
-              <Link
+                DeFi Opportunities
+              </NavLink>
+              
+              <NavLink
                 href="/rewards"
-                className={cn(
-                  "flex w-full cursor-pointer flex-row items-center gap-2 text-nowrap rounded-md p-2 px-3 text-sm font-semibold text-[#03624C] transition-all hover:bg-[#17876D] hover:text-white",
-                  {
-                    "bg-[#17876D] text-white": pathname === "/rewards",
-                  },
-                )}
+                icon={<ChartSplineIcon className="size-5" />}
+                isActive={pathname === "/rewards"}
               >
-                <ChartSplineIcon className="size-5" />
-                Leaderboard
-              </Link>
+                Rewards
+              </NavLink>
+
+              <NavLink
+                href={LINKS.DUNE_ANALYTICS}
+                target="_blank"
+                icon={<ChartColumnDecreasingIcon className="size-5" />}
+                isActive={false}
+              >
+                xSTRK Analytics
+              </NavLink>
+
+              <NavLink
+                href={LINKS.BTC_DUNE_ANALYTICS}
+                target="_blank"
+                icon={<ChartColumnDecreasingIcon className="size-5" />}
+                isActive={false}
+              >
+                xyBTC Analytics
+              </NavLink>
+
+              <hr className="!my-1 w-full border-[#b9d8d0]" />
+
+              <NavLink
+                href={LINKS.DASHBOARD_URL}
+                icon={<GaugeIcon className="-ml-0.5 size-5" />}
+                target="_blank"
+              >
+                Native Staking
+              </NavLink>
             </motion.div>
           </AnimatePresence>
         )}

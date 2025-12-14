@@ -44,6 +44,7 @@ import { useWalletConnection } from "@/hooks/use-wallet-connection";
 import { lstConfigAtom } from "@/store/common.store";
 import { MyDottedTooltip } from "./my-tooltip";
 import { useSearchParams } from "next/navigation";
+import MyHeader from "./header";
 
 const Tabs = () => {
   const router = useRouter();
@@ -362,47 +363,43 @@ const Tabs = () => {
           </div>
         )}
 
-        <div
+        {/* <div
           className={cn(
             "flex w-full max-w-[calc(100vw-1rem)] flex-col gap-4 px-2 lg:max-w-4xl lg:items-start lg:px-0",
             {
               "mb-7 xl:mb-0": !isMerry,
             },
           )}
-        >
-          <div className="flex flex-wrap items-center gap-3">
-            <div className="flex items-center gap-2">
-              <Icons.strkLogo className="size-8" />
-              <h1 className="text-left text-xl font-bold text-black">
-                Starknet Staking
-              </h1>
-            </div>
-            <Link
+        > */}
+
+          <MyHeader
+            title="Starknet Liquid Staking"
+            description={
+              <>Convert your STRK and BTC tokens into{" "}
+              <MyDottedTooltip tooltip="Liquid staking token (LST) of STRK issued by Endur">
+                xSTRK
+              </MyDottedTooltip>{" "}
+              and{" "}
+              <MyDottedTooltip tooltip="xyBTC refers to Endur's family of Bitcoin Liquid Staking Tokens (LSTs), where 'x' is Endur's prefix and 'y' represents different Bitcoin variants. Examples include xWBTC, xtBTC, xLBTC, and xsBTC.">
+                xyBTCs
+              </MyDottedTooltip>{" "}
+              to earn staking rewards and participate in DeFi opportunities across
+              the Starknet ecosystem.</>
+            }
+            icon={Icons.strkLogo}
+            customTitleSibling={<Link
               href="https://docs.endur.fi/docs/security"
               target="_blank"
               className="flex w-fit items-center gap-1 rounded-full border border-[#17876D33] bg-[#17876D1A] px-3 py-1 transition-opacity hover:opacity-80 md:mt-0"
-            >
-              <Icons.shield className="size-3.5 text-[#17876D]" />
-              <span className="text-xs text-[#17876D]">Audited</span>
-            </Link>
-          </div>
-
-          <p className="mt-2 text-sm text-[#8D9C9C]">
-            Convert your STRK and BTC tokens into{" "}
-            <MyDottedTooltip tooltip="Liquid staking token (LST) of STRK issued by Endur">
-              xSTRK
-            </MyDottedTooltip>{" "}
-            and{" "}
-            <MyDottedTooltip tooltip="xyBTC refers to Endur's family of Bitcoin Liquid Staking Tokens (LSTs), where 'x' is Endur's prefix and 'y' represents different Bitcoin variants. Examples include xWBTC, xtBTC, xLBTC, and xsBTC.">
-              xyBTCs
-            </MyDottedTooltip>{" "}
-            to earn staking rewards and participate in DeFi opportunities across
-            the Starknet ecosystem.
-          </p>
-        </div>
+              >
+                  <Icons.shield className="size-3.5 text-[#17876D]" />
+                  <span className="text-xs text-[#17876D]">Audited</span>
+              </Link>}
+          />
+        {/* </div> */}
 
         {/* Main Tabs - STRK and BTC */}
-        <div className="grid w-full max-w-[calc(100vw-1rem)] lg:max-w-4xl lg:grid-cols-[3fr_2fr] lg:gap-6">
+        <div className="grid mt-2 w-full max-w-[calc(100vw-1rem)] lg:max-w-4xl lg:grid-cols-[3fr_2fr] lg:gap-6">
           <div className="flex flex-col gap-3">
             <div className="flex w-full flex-col gap-4">
               <ShadCNTabs

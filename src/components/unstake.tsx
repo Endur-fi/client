@@ -295,7 +295,7 @@ const UnstakeOptionCard = ({
 };
 
 const Unstake = () => {
-  const [txnDapp, setTxnDapp] = React.useState<"endur" | "dex">("endur");
+  const [txnDapp, setTxnDapp] = React.useState<"endur" | "dex">("dex");
 
   const { account, address } = useAccount();
   const { connectWallet } = useWalletConnection();

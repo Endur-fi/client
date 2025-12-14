@@ -18,6 +18,7 @@ import {
   trovesHyperxtBTCYieldAtom,
   trovesHyperxLBTCYieldAtom,
   trovesHyperxsBTCYieldAtom,
+  trovesHyperxSTRKYieldAtom,
   trovesEkuboBTCxWBTCYieldAtom,
   trovesEkuboBTCxtBTCYieldAtom,
   trovesEkuboBTCxLBTCYieldAtom,
@@ -60,6 +61,7 @@ import {
   TooltipTrigger,
 } from "./ui/tooltip";
 import { ChevronDown } from "lucide-react";
+import MyHeader from "./header";
 
 export interface ProtocolConfig {
   tokens: TokenDisplay[];
@@ -75,26 +77,6 @@ export interface ProtocolConfig {
 export const strkProtocolConfigs: Partial<
   Record<SupportedDApp, ProtocolConfig>
 > = {
-  strkfarm: {
-    tokens: [
-      { icon: <Icons.endurLogo className="size-[22px]" />, name: "xSTRK" },
-    ],
-    protocolIcon: <Icons.trovesLogoLight className="rounded-full" />,
-    protocolName: "Troves",
-    badges: [{ type: "Yield Farming", color: "bg-[#E9F3F0] text-[#17876D]" }],
-    description: "Leveraged xSTRK strategy on Vesu",
-    action: {
-      type: "lend",
-      link: "https://app.troves.fi/strategy/xstrk_sensei",
-      buttonText: "Invest",
-      onClick: () => {
-        MyAnalytics.track(eventNames.OPPORTUNITIES, {
-          protocol: "troves",
-          buttonText: "Invest",
-        });
-      },
-    },
-  },
   strkfarmEkubo: {
     tokens: [
       { icon: <Icons.endurLogo className="size-[22px]" />, name: "xSTRK" },
@@ -118,27 +100,6 @@ export const strkProtocolConfigs: Partial<
         MyAnalytics.track(eventNames.OPPORTUNITIES, {
           protocol: "trovesEkubo",
           buttonText: "Add Liquidity",
-        });
-      },
-    },
-  },
-  vesu: {
-    tokens: [
-      { icon: <Icons.endurLogo className="size-[22px]" />, name: "xSTRK" },
-    ],
-    protocolIcon: <Icons.vesuLogo className="rounded-full" />,
-    protocolName: "Vesu",
-    badges: [{ type: "Lend/Borrow", color: "bg-[#EEF6FF] text-[#0369A1]" }],
-    description:
-      "Earn DeFi Spring rewards & yield, use xSTRK as collateral to Borrow and Multiply",
-    action: {
-      type: "lend",
-      link: "https://vesu.xyz/lend?form=true&poolId=2345856225134458665876812536882617294246962319062565703131100435311373119841&collateralAddress=0x028d709c875c0ceac3dce7065bec5328186dc89fe254527084d1689910954b0a",
-      buttonText: "Lend xSTRK",
-      onClick: () => {
-        MyAnalytics.track(eventNames.OPPORTUNITIES, {
-          protocol: "vesu",
-          buttonText: "Lend xSTRK",
         });
       },
     },
@@ -219,7 +180,7 @@ export const strkProtocolConfigs: Partial<
       "Provide liquidity to the xSTRK/STRK pool on Ekubo and earn trading fees & DeFi Spring rewards",
     action: {
       type: "pool",
-      link: "https://app.ekubo.org/positions/new?quoteCurrency=xSTRK&baseCurrency=STRK",
+      link: "https://app.ekubo.org/starknet/positions/new?quoteCurrency=0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d&baseCurrency=0x28d709c875c0ceac3dce7065bec5328186dc89fe254527084d1689910954b0a",
       buttonText: "Add Liquidity",
       onClick: () => {
         MyAnalytics.track(eventNames.OPPORTUNITIES, {
@@ -253,374 +214,227 @@ export const strkProtocolConfigs: Partial<
   },
 };
 
+// Factory functions for protocol configs
+const createEkuboLiquidityConfig = (
+  key: string,
+  token1: { icon: React.ReactNode; name: string },
+  token2: { icon: React.ReactNode; name: string },
+  strategyPath: string,
+  protocolKey: string,
+): ProtocolConfig => ({
+  tokens: [token1, token2],
+  protocolIcon: <Icons.trovesLogoLight className="rounded-full" />,
+  protocolName: "Troves",
+  badges: [
+    {
+      type: "Automated Liquidity Pool",
+      color: "bg-[#E9F3F0] text-[#17876D]",
+    },
+  ],
+  description: `Auto-managed liquidity vault for Ekubo's ${token1.name}/${token2.name} pool. Rebalances range and compounds fees and rewards automatically.`,
+  action: {
+    type: "pool",
+    link: `https://app.troves.fi/strategy/${strategyPath}`,
+    buttonText: "Add Liquidity",
+    onClick: () => {
+      MyAnalytics.track(eventNames.OPPORTUNITIES, {
+        protocol: protocolKey,
+        buttonText: "Add Liquidity",
+      });
+    },
+  },
+});
+
+const createHyperVaultConfig = (
+  token: { icon: React.ReactNode; name: string },
+  borrowToken: string,
+  strategyPath: string,
+  protocolKey: string,
+): ProtocolConfig => ({
+  tokens: [token],
+  protocolIcon: <Icons.trovesLogoLight className="rounded-full" />,
+  protocolName: "Troves",
+  badges: [
+    {
+      type: "Hyper Vault",
+      color: "bg-[#E9F3F0] text-[#17876D]",
+    },
+  ],
+  description: `Automated leveraged looping strategy for ${token.name}. Maximizes yield through borrowing ${borrowToken} and lending ${token.name} on Vesu.`,
+  action: {
+    type: "vault",
+    link: `https://app.troves.fi/strategy/${strategyPath}`,
+    buttonText: "Invest",
+    onClick: () => {
+      MyAnalytics.track(eventNames.OPPORTUNITIES, {
+        protocol: protocolKey,
+        buttonText: "Invest",
+      });
+    },
+  },
+});
+
+// TODO, Add Trade tab and move them there
+const createAvnuSwapConfig = (
+  token1: { icon: React.ReactNode; name: string },
+  token2: { icon: React.ReactNode; name: string },
+  tokenFrom: string,
+  tokenTo: string,
+  protocolKey: string,
+): ProtocolConfig => ({
+  tokens: [token1, token2],
+  protocolIcon: <Icons.avnuLogo className="rounded-full border" />,
+  protocolName: "Avnu",
+  badges: [{ type: "DEX Aggregator", color: "bg-[#F3E8FF] text-[#9333EA]" }],
+  description: `Swap ${token1.name} for ${token2.name} on Avnu DEX aggregator`,
+  action: {
+    type: "swap",
+    link: `https://app.avnu.fi/en?mode=simple&tokenFrom=${tokenFrom}&tokenTo=${tokenTo}&amount=100`,
+    buttonText: "Swap Tokens",
+    onClick: () => {
+      MyAnalytics.track(eventNames.OPPORTUNITIES, {
+        protocol: protocolKey,
+        buttonText: "Swap Tokens",
+      });
+    },
+  },
+});
+
+const createVesuLendingConfig = (
+  token: { icon: React.ReactNode; name: string },
+  protocolKey: string,
+): ProtocolConfig => ({
+  tokens: [token],
+  protocolIcon: <Icons.vesuLogo className="rounded-full" />,
+  protocolName: "Vesu",
+  badges: [{ type: "Lending Pool", color: "bg-[#E8F4FD] text-[#1E40AF]" }],
+  description: `Lend and borrow against ${token.name} on Vesu`,
+  action: {
+    type: "lend",
+    link: "http://vesu.xyz/earn?onlyV2Markets=true&includeIsolatedMarkets=true",
+    buttonText: "Lend & Borrow",
+    onClick: () => {
+      MyAnalytics.track(eventNames.OPPORTUNITIES, {
+        protocol: protocolKey,
+        buttonText: "Lend & Borrow",
+      });
+    },
+  },
+});
+
 // BTC-specific protocol configurations
 export const btcProtocolConfigs: Partial<
   Record<SupportedDApp, ProtocolConfig>
 > = {
   // BTC Concentrated Liquidity Strategies
-  ekuboBTCxWBTC: {
-    tokens: [
-      { icon: <Icons.xwbtc className="size-[22px]" />, name: "xWBTC" },
-      { icon: <Icons.wbtc className="size-[22px]" />, name: "WBTC" },
-    ],
-    protocolIcon: <Icons.trovesLogoLight className="rounded-full" />,
-    protocolName: "Troves",
-    badges: [
-      {
-        type: "Automated Liquidity Pool",
-        color: "bg-[#E9F3F0] text-[#17876D]",
-      },
-    ],
-    description:
-      "Auto-managed liquidity vault for Ekubo's xWBTC/WBTC pool. Rebalances range and compounds fees and rewards automatically.",
-    action: {
-      type: "pool",
-      link: "https://app.troves.fi/strategy/ekubo_cl_xwbtcwbtc",
-      buttonText: "Add Liquidity",
-      onClick: () => {
-        MyAnalytics.track(eventNames.OPPORTUNITIES, {
-          protocol: "trovesEkuboBTCxWBTC",
-          buttonText: "Add Liquidity",
-        });
-      },
-    },
-  },
-  ekuboBTCxtBTC: {
-    tokens: [
-      { icon: <Icons.xtbtc className="size-[22px]" />, name: "xtBTC" },
-      { icon: <Icons.tbtc className="size-[22px]" />, name: "tBTC" },
-    ],
-    protocolIcon: <Icons.trovesLogoLight className="rounded-full" />,
-    protocolName: "Troves",
-    badges: [
-      {
-        type: "Automated Liquidity Pool",
-        color: "bg-[#E9F3F0] text-[#17876D]",
-      },
-    ],
-    description:
-      "Auto-managed liquidity vault for Ekubo's xtBTC/tBTC pool. Rebalances range and compounds fees and rewards automatically.",
-    action: {
-      type: "pool",
-      link: "https://app.troves.fi/strategy/ekubo_cl_xtbtctbtc",
-      buttonText: "Add Liquidity",
-      onClick: () => {
-        MyAnalytics.track(eventNames.OPPORTUNITIES, {
-          protocol: "trovesEkuboBTCxtBTC",
-          buttonText: "Add Liquidity",
-        });
-      },
-    },
-  },
-  ekuboBTCxLBTC: {
-    tokens: [
-      { icon: <Icons.xlbtc className="size-[22px]" />, name: "xLBTC" },
-      { icon: <Icons.lbtc className="size-[22px]" />, name: "LBTC" },
-    ],
-    protocolIcon: <Icons.trovesLogoLight className="rounded-full" />,
-    protocolName: "Troves",
-    badges: [
-      {
-        type: "Automated Liquidity Pool",
-        color: "bg-[#E9F3F0] text-[#17876D]",
-      },
-    ],
-    description:
-      "Auto-managed liquidity vault for Ekubo's xLBTC/LBTC pool. Rebalances range and compounds fees and rewards automatically.",
-    action: {
-      type: "pool",
-      link: "https://app.troves.fi/strategy/ekubo_cl_xlbtclbtc",
-      buttonText: "Add Liquidity",
-      onClick: () => {
-        MyAnalytics.track(eventNames.OPPORTUNITIES, {
-          protocol: "trovesEkuboBTCxLBTC",
-          buttonText: "Add Liquidity",
-        });
-      },
-    },
-  },
-  ekuboBTCxsBTC: {
-    tokens: [
-      { icon: <Icons.xsbtc className="size-[22px]" />, name: "xsBTC" },
-      { icon: <Icons.solvbtc className="size-[22px]" />, name: "solvBTC" },
-    ],
-    protocolIcon: <Icons.trovesLogoLight className="rounded-full" />,
-    protocolName: "Troves",
-    badges: [
-      {
-        type: "Automated Liquidity Pool",
-        color: "bg-[#E9F3F0] text-[#17876D]",
-      },
-    ],
-    description:
-      "Auto-managed liquidity vault for Ekubo's xsBTC/solvBTC pool. Rebalances range and compounds fees and rewards automatically.",
-    action: {
-      type: "pool",
-      link: "https://app.troves.fi/strategy/ekubo_cl_xsbtcsolvbtc",
-      buttonText: "Add Liquidity",
-      onClick: () => {
-        MyAnalytics.track(eventNames.OPPORTUNITIES, {
-          protocol: "trovesEkuboBTCxsBTC",
-          buttonText: "Add Liquidity",
-        });
-      },
-    },
-  },
-  // BTC Hyper Vault Strategies
-  hyperxWBTC: {
-    tokens: [{ icon: <Icons.xwbtc className="size-[22px]" />, name: "xWBTC" }],
-    protocolIcon: <Icons.trovesLogoLight className="rounded-full" />,
-    protocolName: "Troves",
-    badges: [
-      {
-        type: "Hyper Vault",
-        color: "bg-[#E9F3F0] text-[#17876D]",
-      },
-    ],
-    description:
-      "Automated hyper vault strategy for xWBTC. Maximizes yield through advanced DeFi strategies and auto-compounding.",
-    action: {
-      type: "vault",
-      link: "https://app.troves.fi/strategy/hyper_xwbtc",
-      buttonText: "Invest",
-      onClick: () => {
-        MyAnalytics.track(eventNames.OPPORTUNITIES, {
-          protocol: "trovesHyperBTCxWBTC",
-          buttonText: "Invest",
-        });
-      },
-    },
-  },
-  hyperxtBTC: {
-    tokens: [{ icon: <Icons.xtbtc className="size-[22px]" />, name: "xtBTC" }],
-    protocolIcon: <Icons.trovesLogoLight className="rounded-full" />,
-    protocolName: "Troves",
-    badges: [
-      {
-        type: "Hyper Vault",
-        color: "bg-[#E9F3F0] text-[#17876D]",
-      },
-    ],
-    description:
-      "Automated hyper vault strategy for xtBTC. Maximizes yield through advanced DeFi strategies and auto-compounding.",
-    action: {
-      type: "vault",
-      link: "https://app.troves.fi/strategy/hyper_xtbtc",
-      buttonText: "Invest",
-      onClick: () => {
-        MyAnalytics.track(eventNames.OPPORTUNITIES, {
-          protocol: "trovesHyperBTCxtBTC",
-          buttonText: "Invest",
-        });
-      },
-    },
-  },
-  hyperxsBTC: {
-    tokens: [{ icon: <Icons.xsbtc className="size-[22px]" />, name: "xsBTC" }],
-    protocolIcon: <Icons.trovesLogoLight className="rounded-full" />,
-    protocolName: "Troves",
-    badges: [
-      {
-        type: "Hyper Vault",
-        color: "bg-[#E9F3F0] text-[#17876D]",
-      },
-    ],
-    description:
-      "Automated hyper vault strategy for xsBTC. Maximizes yield through advanced DeFi strategies and auto-compounding.",
-    action: {
-      type: "vault",
-      link: "https://app.troves.fi/strategy/hyper_xsbtc",
-      buttonText: "Invest",
-      onClick: () => {
-        MyAnalytics.track(eventNames.OPPORTUNITIES, {
-          protocol: "trovesHyperBTCxsBTC",
-          buttonText: "Invest",
-        });
-      },
-    },
-  },
-  hyperxLBTC: {
-    tokens: [{ icon: <Icons.xlbtc className="size-[22px]" />, name: "xLBTC" }],
-    protocolIcon: <Icons.trovesLogoLight className="rounded-full" />,
-    protocolName: "Troves",
-    badges: [
-      {
-        type: "Hyper Vault",
-        color: "bg-[#E9F3F0] text-[#17876D]",
-      },
-    ],
-    description:
-      "Automated hyper vault strategy for xLBTC. Maximizes yield through advanced DeFi strategies and auto-compounding.",
-    action: {
-      type: "vault",
-      link: "https://app.troves.fi/strategy/hyper_xlbtc",
-      buttonText: "Invest",
-      onClick: () => {
-        MyAnalytics.track(eventNames.OPPORTUNITIES, {
-          protocol: "trovesHyperBTCxLBTC",
-          buttonText: "Invest",
-        });
-      },
-    },
-  },
+  ekuboBTCxWBTC: createEkuboLiquidityConfig(
+    "ekuboBTCxWBTC",
+    { icon: <Icons.xwbtc className="size-[22px]" />, name: "xWBTC" },
+    { icon: <Icons.wbtc className="size-[22px]" />, name: "WBTC" },
+    "ekubo_cl_xwbtcwbtc",
+    "trovesEkuboBTCxWBTC",
+  ),
+  ekuboBTCxtBTC: createEkuboLiquidityConfig(
+    "ekuboBTCxtBTC",
+    { icon: <Icons.xtbtc className="size-[22px]" />, name: "xtBTC" },
+    { icon: <Icons.tbtc className="size-[22px]" />, name: "tBTC" },
+    "ekubo_cl_xtbtctbtc",
+    "trovesEkuboBTCxtBTC",
+  ),
+  ekuboBTCxLBTC: createEkuboLiquidityConfig(
+    "ekuboBTCxLBTC",
+    { icon: <Icons.xlbtc className="size-[22px]" />, name: "xLBTC" },
+    { icon: <Icons.lbtc className="size-[22px]" />, name: "LBTC" },
+    "ekubo_cl_xlbtclbtc",
+    "trovesEkuboBTCxLBTC",
+  ),
+  ekuboBTCxsBTC: createEkuboLiquidityConfig(
+    "ekuboBTCxsBTC",
+    { icon: <Icons.xsbtc className="size-[22px]" />, name: "xsBTC" },
+    { icon: <Icons.solvbtc className="size-[22px]" />, name: "solvBTC" },
+    "ekubo_cl_xsbtcsolvbtc",
+    "trovesEkuboBTCxsBTC",
+  ),
+  
+  // Hyper Vault Strategies
+  hyperxSTRK: createHyperVaultConfig(
+    { icon: <Icons.strkLogo className="size-[22px]" />, name: "xSTRK" },
+    "STRK",
+    "hyper_xstrk",
+    "trovesHyperBTCxSTRK",
+  ),
+  hyperxWBTC: createHyperVaultConfig(
+    { icon: <Icons.xwbtc className="size-[22px]" />, name: "xWBTC" },
+    "WBTC",
+    "hyper_xwbtc",
+    "trovesHyperBTCxWBTC",
+  ),
+  hyperxtBTC: createHyperVaultConfig(
+    { icon: <Icons.xtbtc className="size-[22px]" />, name: "xtBTC" },
+    "tBTC",
+    "hyper_xtbtc",
+    "trovesHyperBTCxtBTC",
+  ),
+  hyperxsBTC: createHyperVaultConfig(
+    { icon: <Icons.xsbtc className="size-[22px]" />, name: "xsBTC" },
+    "solvBTC",
+    "hyper_xsbtc",
+    "trovesHyperBTCxsBTC",
+  ),
+  hyperxLBTC: createHyperVaultConfig(
+    { icon: <Icons.xlbtc className="size-[22px]" />, name: "xLBTC" },
+    "LBTC",
+    "hyper_xlbtc",
+    "trovesHyperBTCxLBTC",
+  ),
+  
   // BTC Token Swapping on Avnu
-  avnuBTCxWBTC: {
-    tokens: [
-      { icon: <Icons.xwbtc className="size-[22px]" />, name: "xWBTC" },
-      { icon: <Icons.wbtc className="size-[22px]" />, name: "WBTC" },
-    ],
-    protocolIcon: <Icons.avnuLogo className="rounded-full border" />,
-    protocolName: "Avnu",
-    badges: [{ type: "DEX Aggregator", color: "bg-[#F3E8FF] text-[#9333EA]" }],
-    description: "Swap xWBTC for WBTC on Avnu DEX aggregator",
-    action: {
-      type: "swap",
-      link: "https://app.avnu.fi/en?mode=simple&tokenFrom=0x6a567e68c805323525fe1649adb80b03cddf92c23d2629a6779f54192dffc13&tokenTo=0x3fe2b97c1fd336e750087d68b9b867997fd64a2661ff3ca5a7c771641e8e7ac&amount=100",
-      buttonText: "Swap Tokens",
-      onClick: () => {
-        MyAnalytics.track(eventNames.OPPORTUNITIES, {
-          protocol: "avnuBTCxWBTC",
-          buttonText: "Swap Tokens",
-        });
-      },
-    },
-  },
-  avnuBTCxtBTC: {
-    tokens: [
-      { icon: <Icons.xtbtc className="size-[22px]" />, name: "xtBTC" },
-      { icon: <Icons.tbtc className="size-[22px]" />, name: "tBTC" },
-    ],
-    protocolIcon: <Icons.avnuLogo className="rounded-full border" />,
-    protocolName: "Avnu",
-    badges: [{ type: "DEX Aggregator", color: "bg-[#F3E8FF] text-[#9333EA]" }],
-    description: "Swap xtBTC for tBTC on Avnu DEX aggregator",
-    action: {
-      type: "swap",
-      link: "https://app.avnu.fi/en?mode=simple&tokenFrom=0x43a35c1425a0125ef8c171f1a75c6f31ef8648edcc8324b55ce1917db3f9b91&tokenTo=0x4daa17763b286d1e59b97c283c0b8c949994c361e426a28f743c67bdfe9a32f&amount=100",
-      buttonText: "Swap Tokens",
-      onClick: () => {
-        MyAnalytics.track(eventNames.OPPORTUNITIES, {
-          protocol: "avnuBTCxtBTC",
-          buttonText: "Swap Tokens",
-        });
-      },
-    },
-  },
-  avnuBTCxLBTC: {
-    tokens: [
-      { icon: <Icons.xlbtc className="size-[22px]" />, name: "xLBTC" },
-      { icon: <Icons.lbtc className="size-[22px]" />, name: "LBTC" },
-    ],
-    protocolIcon: <Icons.avnuLogo className="rounded-full border" />,
-    protocolName: "Avnu",
-    badges: [{ type: "DEX Aggregator", color: "bg-[#F3E8FF] text-[#9333EA]" }],
-    description: "Swap xLBTC for LBTC on Avnu DEX aggregator",
-    action: {
-      type: "swap",
-      link: "https://app.avnu.fi/en?mode=simple&tokenFrom=0x7dd3c80de9fcc5545f0cb83678826819c79619ed7992cc06ff81fc67cd2efe0&tokenTo=0x036834a40984312f7f7de8d31e3f6305b325389eaeea5b1c0664b2fb936461a4&amount=100",
-      buttonText: "Swap Tokens",
-      onClick: () => {
-        MyAnalytics.track(eventNames.OPPORTUNITIES, {
-          protocol: "avnuBTCxLBTC",
-          buttonText: "Swap Tokens",
-        });
-      },
-    },
-  },
-  avnuBTCxsBTC: {
-    tokens: [
-      { icon: <Icons.xsbtc className="size-[22px]" />, name: "xsBTC" },
-      { icon: <Icons.solvbtc className="size-[22px]" />, name: "solvBTC" },
-    ],
-    protocolIcon: <Icons.avnuLogo className="rounded-full border" />,
-    protocolName: "Avnu",
-    badges: [{ type: "DEX Aggregator", color: "bg-[#F3E8FF] text-[#9333EA]" }],
-    description: "Swap xsBTC for solvBTC on Avnu DEX aggregator",
-    action: {
-      type: "swap",
-      link: "https://app.avnu.fi/en?mode=simple&tokenFrom=0x580f3dc564a7b82f21d40d404b3842d490ae7205e6ac07b1b7af2b4a5183dc9&tokenTo=0x0593e034dda23eea82d2ba9a30960ed42cf4a01502cc2351dc9b9881f9931a68&amount=100",
-      buttonText: "Swap Tokens",
-      onClick: () => {
-        MyAnalytics.track(eventNames.OPPORTUNITIES, {
-          protocol: "avnuBTCxsBTC",
-          buttonText: "Swap Tokens",
-        });
-      },
-    },
-  },
-  // Vesu BTC Borrow Pools
-  vesuBTCxWBTC: {
-    tokens: [{ icon: <Icons.xwbtc className="size-[22px]" />, name: "xWBTC" }],
-    protocolIcon: <Icons.vesuLogo className="rounded-full" />,
-    protocolName: "Vesu",
-    badges: [{ type: "Lending Pool", color: "bg-[#E8F4FD] text-[#1E40AF]" }],
-    description: "Lend and borrow against xWBTC on Vesu",
-    action: {
-      type: "lend",
-      link: "http://vesu.xyz/earn?onlyV2Markets=true&includeIsolatedMarkets=true",
-      buttonText: "Lend & Borrow",
-      onClick: () => {
-        MyAnalytics.track(eventNames.OPPORTUNITIES, {
-          protocol: "vesuBTCxWBTC",
-          buttonText: "Lend & Borrow",
-        });
-      },
-    },
-  },
-  vesuBTCxtBTC: {
-    tokens: [{ icon: <Icons.xtbtc className="size-[22px]" />, name: "xtBTC" }],
-    protocolIcon: <Icons.vesuLogo className="rounded-full" />,
-    protocolName: "Vesu",
-    badges: [{ type: "Lending Pool", color: "bg-[#E8F4FD] text-[#1E40AF]" }],
-    description: "Lend and borrow against xtBTC on Vesu",
-    action: {
-      type: "lend",
-      link: "http://vesu.xyz/earn?onlyV2Markets=true&includeIsolatedMarkets=true",
-      buttonText: "Lend & Borrow",
-      onClick: () => {
-        MyAnalytics.track(eventNames.OPPORTUNITIES, {
-          protocol: "vesuBTCxtBTC",
-          buttonText: "Lend & Borrow",
-        });
-      },
-    },
-  },
-  vesuBTCxLBTC: {
-    tokens: [{ icon: <Icons.xlbtc className="size-[22px]" />, name: "xLBTC" }],
-    protocolIcon: <Icons.vesuLogo className="rounded-full" />,
-    protocolName: "Vesu",
-    badges: [{ type: "Lending Pool", color: "bg-[#E8F4FD] text-[#1E40AF]" }],
-    description: "Lend and borrow against xLBTC on Vesu",
-    action: {
-      type: "lend",
-      link: "http://vesu.xyz/earn?onlyV2Markets=true&includeIsolatedMarkets=true",
-      buttonText: "Lend & Borrow",
-      onClick: () => {
-        MyAnalytics.track(eventNames.OPPORTUNITIES, {
-          protocol: "vesuBTCxLBTC",
-          buttonText: "Lend & Borrow",
-        });
-      },
-    },
-  },
-  vesuBTCxsBTC: {
-    tokens: [{ icon: <Icons.xsbtc className="size-[22px]" />, name: "xsBTC" }],
-    protocolIcon: <Icons.vesuLogo className="rounded-full" />,
-    protocolName: "Vesu",
-    badges: [{ type: "Lending Pool", color: "bg-[#E8F4FD] text-[#1E40AF]" }],
-    description: "Lend and borrow against xsBTC on Vesu",
-    action: {
-      type: "lend",
-      link: "http://vesu.xyz/earn?onlyV2Markets=true&includeIsolatedMarkets=true",
-      buttonText: "Lend & Borrow",
-      onClick: () => {
-        MyAnalytics.track(eventNames.OPPORTUNITIES, {
-          protocol: "vesuBTCxsBTC",
-          buttonText: "Lend & Borrow",
-        });
-      },
-    },
-  },
+  avnuBTCxWBTC: createAvnuSwapConfig(
+    { icon: <Icons.xwbtc className="size-[22px]" />, name: "xWBTC" },
+    { icon: <Icons.wbtc className="size-[22px]" />, name: "WBTC" },
+    "0x6a567e68c805323525fe1649adb80b03cddf92c23d2629a6779f54192dffc13",
+    "0x3fe2b97c1fd336e750087d68b9b867997fd64a2661ff3ca5a7c771641e8e7ac",
+    "avnuBTCxWBTC",
+  ),
+  avnuBTCxtBTC: createAvnuSwapConfig(
+    { icon: <Icons.xtbtc className="size-[22px]" />, name: "xtBTC" },
+    { icon: <Icons.tbtc className="size-[22px]" />, name: "tBTC" },
+    "0x43a35c1425a0125ef8c171f1a75c6f31ef8648edcc8324b55ce1917db3f9b91",
+    "0x4daa17763b286d1e59b97c283c0b8c949994c361e426a28f743c67bdfe9a32f",
+    "avnuBTCxtBTC",
+  ),
+  avnuBTCxLBTC: createAvnuSwapConfig(
+    { icon: <Icons.xlbtc className="size-[22px]" />, name: "xLBTC" },
+    { icon: <Icons.lbtc className="size-[22px]" />, name: "LBTC" },
+    "0x7dd3c80de9fcc5545f0cb83678826819c79619ed7992cc06ff81fc67cd2efe0",
+    "0x036834a40984312f7f7de8d31e3f6305b325389eaeea5b1c0664b2fb936461a4",
+    "avnuBTCxLBTC",
+  ),
+  avnuBTCxsBTC: createAvnuSwapConfig(
+    { icon: <Icons.xsbtc className="size-[22px]" />, name: "xsBTC" },
+    { icon: <Icons.solvbtc className="size-[22px]" />, name: "solvBTC" },
+    "0x580f3dc564a7b82f21d40d404b3842d490ae7205e6ac07b1b7af2b4a5183dc9",
+    "0x0593e034dda23eea82d2ba9a30960ed42cf4a01502cc2351dc9b9881f9931a68",
+    "avnuBTCxsBTC",
+  ),
+  
+  // Vesu BTC Lending Pools
+  vesuBTCxWBTC: createVesuLendingConfig(
+    { icon: <Icons.xwbtc className="size-[22px]" />, name: "xWBTC" },
+    "vesuBTCxWBTC",
+  ),
+  vesuBTCxtBTC: createVesuLendingConfig(
+    { icon: <Icons.xtbtc className="size-[22px]" />, name: "xtBTC" },
+    "vesuBTCxtBTC",
+  ),
+  vesuBTCxLBTC: createVesuLendingConfig(
+    { icon: <Icons.xlbtc className="size-[22px]" />, name: "xLBTC" },
+    "vesuBTCxLBTC",
+  ),
+  vesuBTCxsBTC: createVesuLendingConfig(
+    { icon: <Icons.xsbtc className="size-[22px]" />, name: "xsBTC" },
+    "vesuBTCxsBTC",
+  ),
 };
 
 // Combine all protocol configs
@@ -636,7 +450,8 @@ const supplyProtocols: SupportedDApp[] = [
   "vesu",
   "ekubo",
   "nostraDex",
-  "opus",
+  // "opus",
+  "hyperxSTRK",
   "hyperxWBTC",
   "hyperxtBTC",
   "hyperxsBTC",
@@ -645,16 +460,16 @@ const supplyProtocols: SupportedDApp[] = [
   "ekuboBTCxtBTC",
   "ekuboBTCxLBTC",
   "ekuboBTCxsBTC",
-  "vesuBTCxWBTC",
-  "vesuBTCxtBTC",
-  "vesuBTCxLBTC",
-  "vesuBTCxsBTC",
-  "avnu",
-  "fibrous",
-  "avnuBTCxWBTC",
-  "avnuBTCxtBTC",
-  "avnuBTCxLBTC",
-  "avnuBTCxsBTC",
+  // "vesuBTCxWBTC",
+  // "vesuBTCxtBTC",
+  // "vesuBTCxLBTC",
+  // "vesuBTCxsBTC",
+  // "avnu",
+  // "fibrous",
+  // "avnuBTCxWBTC",
+  // "avnuBTCxtBTC",
+  // "avnuBTCxLBTC",
+  // "avnuBTCxsBTC",
 ];
 
 const borrowProtocols: SupportedDApp[] = [
@@ -665,7 +480,7 @@ const borrowProtocols: SupportedDApp[] = [
 type AssetFilter = "all" | "xSTRK" | "xtBTC" | "xLBTC" | "xWBTC" | "xSolvBTC";
 
 // Protocol filter options
-type ProtocolFilter = "all" | "Ekubo" | "Vesu" | "Nostra" | "RE7Labs";
+type ProtocolFilter = "all" | "Ekubo" | "Vesu" | "Nostra" | "Troves";
 
 // Filters Component
 interface FiltersProps {
@@ -782,6 +597,30 @@ const Filters: React.FC<FiltersProps> = ({
   );
 };
 
+// Helper function to get token icon by symbol
+const getTokenIcon = (symbol: string, className = "size-[22px]"): React.ReactNode => {
+  const iconMap: Record<string, React.ReactNode> = {
+    xSTRK: <Icons.endurLogo className={className} />,
+    xWBTC: <Icons.xwbtc className={className} />,
+    xtBTC: <Icons.xtbtc className={className} />,
+    xLBTC: <Icons.xlbtc className={className} />,
+    xsBTC: <Icons.xsbtc className={className} />,
+    STRK: <Icons.strkLogo className={className} />,
+    WBTC: <Icons.wbtc className={className} />,
+    tBTC: <Icons.tbtc className={className} />,
+    LBTC: <Icons.lbtc className={className} />,
+    solvBTC: <Icons.solvbtc className={className} />,
+    ETH: <Icons.eth className={className} />,
+    USDC: <Icons.usdcLogo className={className} />,
+    "USDC.e": <Icons.usdcLogo className={className} />,
+    USDT: <Icons.usdt className={className} />,
+  };
+  
+  if (iconMap[symbol]) return iconMap[symbol];
+  if (symbol.includes("BTC")) return <Icons.btcLogo className={className} />;
+  return <Icons.btcLogo className={className} />;
+};
+
 const Defi: React.FC = () => {
   const { isPinned } = useSidebar();
   const yields: any = useAtomValue(protocolYieldsAtom);
@@ -811,11 +650,12 @@ const Defi: React.FC = () => {
     setShowDisclaimer(true);
   };
 
-  // BTC yield atoms
+  // BTC yield atoms - using a map for easier access
   const [trovesHyperxWBTCYield] = useAtom(trovesHyperxWBTCYieldAtom);
   const [trovesHyperxtBTCYield] = useAtom(trovesHyperxtBTCYieldAtom);
   const [trovesHyperxLBTCYield] = useAtom(trovesHyperxLBTCYieldAtom);
   const [trovesHyperxsBTCYield] = useAtom(trovesHyperxsBTCYieldAtom);
+  const [trovesHyperxSTRKYield] = useAtom(trovesHyperxSTRKYieldAtom);
   const [trovesEkuboXWBTCYield] = useAtom(trovesEkuboBTCxWBTCYieldAtom);
   const [trovesEkuboXtBTCYield] = useAtom(trovesEkuboBTCxtBTCYieldAtom);
   const [trovesEkuboXLBTCYield] = useAtom(trovesEkuboBTCxLBTCYieldAtom);
@@ -833,62 +673,75 @@ const Defi: React.FC = () => {
   const [hyperxsBTCVaultCapacity] = useAtom(hyperxsBTCVaultCapacityAtom);
   const [hyperxSTRKVaultCapacity] = useAtom(hyperxSTRKVaultCapacityAtom);
 
+  // Mapping objects for protocol-to-atom relationships
+  const protocolYieldMap = useMemo(() => ({
+    hyperxWBTC: trovesHyperxWBTCYield,
+    hyperxtBTC: trovesHyperxtBTCYield,
+    hyperxLBTC: trovesHyperxLBTCYield,
+    hyperxsBTC: trovesHyperxsBTCYield,
+    hyperxSTRK: trovesHyperxSTRKYield,
+    ekuboBTCxWBTC: trovesEkuboXWBTCYield,
+    ekuboBTCxtBTC: trovesEkuboXtBTCYield,
+    ekuboBTCxLBTC: trovesEkuboXLBTCYield,
+    ekuboBTCxsBTC: trovesEkuboXsBTCYield,
+    vesuBTCxWBTC: vesuBTCxWBTCYield,
+    vesuBTCxtBTC: vesuBTCxtBTCYield,
+    vesuBTCxLBTC: vesuBTCxLBTCYield,
+    vesuBTCxsBTC: vesuBTCxsBTCYield,
+  }), [
+    trovesHyperxWBTCYield,
+    trovesHyperxtBTCYield,
+    trovesHyperxLBTCYield,
+    trovesHyperxsBTCYield,
+    trovesHyperxSTRKYield,
+    trovesEkuboXWBTCYield,
+    trovesEkuboXtBTCYield,
+    trovesEkuboXLBTCYield,
+    trovesEkuboXsBTCYield,
+    vesuBTCxWBTCYield,
+    vesuBTCxtBTCYield,
+    vesuBTCxLBTCYield,
+    vesuBTCxsBTCYield,
+  ]);
+
+  const protocolCapacityMap = useMemo(() => ({
+    hyperxWBTC: hyperxWBTCVaultCapacity,
+    hyperxtBTC: hyperxtBTCVaultCapacity,
+    hyperxLBTC: hyperxLBTCVaultCapacity,
+    hyperxsBTC: hyperxsBTCVaultCapacity,
+    hyperxSTRK: hyperxSTRKVaultCapacity,
+    trovesHyper: hyperxSTRKVaultCapacity,
+  }), [
+    hyperxWBTCVaultCapacity,
+    hyperxtBTCVaultCapacity,
+    hyperxLBTCVaultCapacity,
+    hyperxsBTCVaultCapacity,
+    hyperxSTRKVaultCapacity,
+  ]);
+
   // Helper function to get vault capacity for a protocol
   const getVaultCapacity = (
     protocol: SupportedDApp,
   ): { used: number; total: number | null } | undefined => {
-    if (protocol === "hyperxWBTC") {
-      const capacity = hyperxWBTCVaultCapacity?.data;
-      return capacity
-        ? { used: capacity.used, total: capacity.total }
-        : undefined;
-    }
-    if (protocol === "hyperxtBTC") {
-      const capacity = hyperxtBTCVaultCapacity?.data;
-      return capacity
-        ? { used: capacity.used, total: capacity.total }
-        : undefined;
-    }
-    if (protocol === "hyperxLBTC") {
-      const capacity = hyperxLBTCVaultCapacity?.data;
-      return capacity
-        ? { used: capacity.used, total: capacity.total }
-        : undefined;
-    }
-    if (protocol === "hyperxsBTC") {
-      const capacity = hyperxsBTCVaultCapacity?.data;
-      return capacity
-        ? { used: capacity.used, total: capacity.total }
-        : undefined;
-    }
-    if (protocol === "hyperxSTRK" || protocol === "trovesHyper") {
-      const capacity = hyperxSTRKVaultCapacity?.data;
-      return capacity
-        ? { used: capacity.used, total: capacity.total }
-        : undefined;
-    }
-    return undefined;
+    const capacityAtom = protocolCapacityMap[protocol as keyof typeof protocolCapacityMap];
+    const capacity = capacityAtom?.data;
+    return capacity ? { used: capacity.used, total: capacity.total } : undefined;
   };
 
   // Helper function to get yield for a protocol
   const getProtocolYield = (protocol: SupportedDApp): number | null => {
-    if (protocol === "hyperxWBTC") return trovesHyperxWBTCYield?.value ?? null;
-    if (protocol === "hyperxtBTC") return trovesHyperxtBTCYield?.value ?? null;
-    if (protocol === "hyperxLBTC") return trovesHyperxLBTCYield?.value ?? null;
-    if (protocol === "hyperxsBTC") return trovesHyperxsBTCYield?.value ?? null;
-    if (protocol === "ekuboBTCxWBTC")
-      return trovesEkuboXWBTCYield?.value ?? null;
-    if (protocol === "ekuboBTCxtBTC")
-      return trovesEkuboXtBTCYield?.value ?? null;
-    if (protocol === "ekuboBTCxLBTC")
-      return trovesEkuboXLBTCYield?.value ?? null;
-    if (protocol === "ekuboBTCxsBTC")
-      return trovesEkuboXsBTCYield?.value ?? null;
-    if (protocol === "vesuBTCxWBTC") return vesuBTCxWBTCYield?.value ?? null;
-    if (protocol === "vesuBTCxtBTC") return vesuBTCxtBTCYield?.value ?? null;
-    if (protocol === "vesuBTCxLBTC") return vesuBTCxLBTCYield?.value ?? null;
-    if (protocol === "vesuBTCxsBTC") return vesuBTCxsBTCYield?.value ?? null;
-    return yields[protocol]?.value ?? null;
+    const yieldAtom = protocolYieldMap[protocol as keyof typeof protocolYieldMap];
+    return yieldAtom?.value ?? yields[protocol]?.value ?? null;
+  };
+
+  // Asset filter mapping
+  const assetFilterMap: Record<AssetFilter, string[]> = {
+    all: [],
+    xSTRK: ["xSTRK"],
+    xtBTC: ["xtBTC"],
+    xLBTC: ["xLBTC"],
+    xWBTC: ["xWBTC"],
+    xSolvBTC: ["xsBTC", "solvBTC"],
   };
 
   // Helper function to check if protocol matches asset filter
@@ -898,26 +751,23 @@ const Defi: React.FC = () => {
   ): boolean => {
     if (selectedAsset === "all") return true;
     const tokenNames = config.tokens.map((t) => t.name);
-    return tokenNames.some((name) => {
-      if (selectedAsset === "xSTRK") return name === "xSTRK";
-      if (selectedAsset === "xtBTC") return name === "xtBTC";
-      if (selectedAsset === "xLBTC") return name === "xLBTC";
-      if (selectedAsset === "xWBTC") return name === "xWBTC";
-      if (selectedAsset === "xSolvBTC")
-        return name === "xsBTC" || name === "solvBTC";
-      return false;
-    });
+    const allowedNames = assetFilterMap[selectedAsset];
+    return tokenNames.some((name) => allowedNames.includes(name));
+  };
+
+  // Protocol filter mapping
+  const protocolFilterMap: Record<ProtocolFilter, (name: string) => boolean> = {
+    all: () => true,
+    Ekubo: (name) => name === "ekubo",
+    Vesu: (name) => name === "vesu",
+    Nostra: (name) => name.includes("nostra"),
+    Troves: (name) => name.includes("troves"),
   };
 
   // Helper function to check if protocol matches protocol filter
   const matchesProtocolFilter = (config: ProtocolConfig): boolean => {
-    if (selectedProtocol === "all") return true;
     const protocolName = config.protocolName.toLowerCase();
-    if (selectedProtocol === "Ekubo") return protocolName === "ekubo";
-    if (selectedProtocol === "Vesu") return protocolName === "vesu";
-    if (selectedProtocol === "Nostra") return protocolName.includes("nostra");
-    if (selectedProtocol === "RE7Labs") return protocolName.includes("re7");
-    return false;
+    return protocolFilterMap[selectedProtocol](protocolName);
   };
 
   // Create dynamic protocol configs from Vesu borrow pools
@@ -925,65 +775,11 @@ const Defi: React.FC = () => {
     const configs: Record<string, ProtocolConfig> = {};
     vesuBorrowPools.forEach((pool, index) => {
       const key = `vesuBorrow_${pool.collateralSymbol}_${pool.debtSymbol}_${index}`;
-      const collateralIcon =
-        pool.collateralSymbol === "xSTRK" ? (
-          <Icons.endurLogo className="size-[22px]" />
-        ) : pool.collateralSymbol === "xWBTC" ? (
-          <Icons.xwbtc className="size-[22px]" />
-        ) : pool.collateralSymbol === "xtBTC" ? (
-          <Icons.xtbtc className="size-[22px]" />
-        ) : pool.collateralSymbol === "xLBTC" ? (
-          <Icons.xlbtc className="size-[22px]" />
-        ) : pool.collateralSymbol === "xsBTC" ? (
-          <Icons.xsbtc className="size-[22px]" />
-        ) : pool.collateralSymbol === "WBTC" ? (
-          <Icons.wbtc className="size-[22px]" />
-        ) : pool.collateralSymbol === "tBTC" ? (
-          <Icons.tbtc className="size-[22px]" />
-        ) : pool.collateralSymbol === "LBTC" ? (
-          <Icons.lbtc className="size-[22px]" />
-        ) : pool.collateralSymbol === "solvBTC" ? (
-          <Icons.solvbtc className="size-[22px]" />
-        ) : pool.collateralSymbol === "ETH" ? (
-          <Icons.eth className="size-[22px]" />
-        ) : (
-          <Icons.btcLogo className="size-[22px]" />
-        );
-      const debtIcon =
-        pool.debtSymbol === "STRK" ? (
-          <Icons.strkLogo className="size-[22px]" />
-        ) : pool.debtSymbol === "xWBTC" ? (
-          <Icons.xwbtc className="size-[22px]" />
-        ) : pool.debtSymbol === "xtBTC" ? (
-          <Icons.xtbtc className="size-[22px]" />
-        ) : pool.debtSymbol === "xLBTC" ? (
-          <Icons.xlbtc className="size-[22px]" />
-        ) : pool.debtSymbol === "xsBTC" ? (
-          <Icons.xsbtc className="size-[22px]" />
-        ) : pool.debtSymbol === "WBTC" ? (
-          <Icons.wbtc className="size-[22px]" />
-        ) : pool.debtSymbol === "tBTC" ? (
-          <Icons.tbtc className="size-[22px]" />
-        ) : pool.debtSymbol === "LBTC" ? (
-          <Icons.lbtc className="size-[22px]" />
-        ) : pool.debtSymbol === "solvBTC" ? (
-          <Icons.solvbtc className="size-[22px]" />
-        ) : pool.debtSymbol === "ETH" ? (
-          <Icons.eth className="size-[22px]" />
-        ) : pool.debtSymbol.includes("BTC") ? (
-          <Icons.btcLogo className="size-[22px]" />
-        ) : pool.debtSymbol === "USDC" || pool.debtSymbol === "USDC.e" ? (
-          <Icons.usdcLogo className="size-[22px]" />
-        ) : pool.debtSymbol === "USDT" ? (
-          <Icons.usdt className="size-[22px]" />
-        ) : (
-          <Icons.btcLogo className="size-[22px]" />
-        );
-
+      
       configs[key] = {
         tokens: [
-          { icon: collateralIcon, name: pool.collateralSymbol },
-          { icon: debtIcon, name: pool.debtSymbol },
+          { icon: getTokenIcon(pool.collateralSymbol), name: pool.collateralSymbol },
+          { icon: getTokenIcon(pool.debtSymbol), name: pool.debtSymbol },
         ],
         protocolIcon: <Icons.vesuLogo className="rounded-full" />,
         protocolName: "Vesu",
@@ -1086,6 +882,54 @@ const Defi: React.FC = () => {
     protocolConfigsWithBorrow,
   ]);
 
+  // Protocols that don't show APY
+  const noApyProtocols = new Set([
+    "avnu",
+    "fibrous",
+    "avnuBTCxWBTC",
+    "avnuBTCxtBTC",
+    "avnuBTCxLBTC",
+    "avnuBTCxsBTC",
+  ]);
+
+  // Protocols with no capacity limit
+  const noLimitProtocols = new Set([
+    "vesu",
+    "ekuboBTCxWBTC",
+    "ekuboBTCxtBTC",
+    "ekuboBTCxLBTC",
+    "ekuboBTCxsBTC",
+    "strkfarmEkubo",
+  ]);
+
+  // Helper to get capacity for a protocol
+  const getProtocolCapacity = (
+    protocol: string,
+    config: ProtocolConfig,
+    tab: "supply" | "borrow",
+  ): { used: number; total: number | null } | undefined => {
+    if (tab === "borrow" && config.tokens.length >= 2) {
+      const pool = vesuBorrowPools.find(
+        (p) =>
+          p.collateralSymbol === config.tokens[0].name &&
+          p.debtSymbol === config.tokens[1].name,
+      );
+      if (pool && pool.debtCap > 0 && pool.debtCap >= 0.01) {
+        return { used: pool.totalDebt, total: pool.debtCap };
+      }
+      return undefined;
+    }
+
+    // Supply tab
+    const protocolKey = protocol as SupportedDApp;
+    if (protocolKey === "vesu" || protocolKey.startsWith("vesuBTC") || noLimitProtocols.has(protocolKey)) {
+      return undefined; // No limit
+    }
+    
+    // Check if it's a hyper vault that has capacity
+    return getVaultCapacity(protocolKey);
+  };
+
   // Helper function to get yield data for a protocol
   const getYieldDataForProtocol = (
     protocol: SupportedDApp,
@@ -1096,88 +940,18 @@ const Defi: React.FC = () => {
         isLoading: boolean;
       }
     | undefined => {
-    const shouldShowApy = ![
-      "avnu",
-      "fibrous",
-      "avnuBTCxWBTC",
-      "avnuBTCxtBTC",
-      "avnuBTCxLBTC",
-      "avnuBTCxsBTC",
-    ].includes(protocol);
-
-    if (protocol === "hyperxWBTC") {
+    const shouldShowApy = !noApyProtocols.has(protocol);
+    
+    // Check if protocol has a dedicated yield atom
+    const yieldAtom = protocolYieldMap[protocol as keyof typeof protocolYieldMap];
+    if (yieldAtom) {
       return {
-        value: trovesHyperxWBTCYield?.value ?? null,
-        error: trovesHyperxWBTCYield?.error ?? null,
-        isLoading: trovesHyperxWBTCYield?.isLoading ?? false,
-      };
-    } else if (protocol === "hyperxtBTC") {
-      return {
-        value: trovesHyperxtBTCYield?.value ?? null,
-        error: trovesHyperxtBTCYield?.error ?? null,
-        isLoading: trovesHyperxtBTCYield?.isLoading ?? false,
-      };
-    } else if (protocol === "hyperxLBTC") {
-      return {
-        value: trovesHyperxLBTCYield?.value ?? null,
-        error: trovesHyperxLBTCYield?.error ?? null,
-        isLoading: trovesHyperxLBTCYield?.isLoading ?? false,
-      };
-    } else if (protocol === "hyperxsBTC") {
-      return {
-        value: trovesHyperxsBTCYield?.value ?? null,
-        error: trovesHyperxsBTCYield?.error ?? null,
-        isLoading: trovesHyperxsBTCYield?.isLoading ?? false,
-      };
-    } else if (protocol === "ekuboBTCxWBTC") {
-      return {
-        value: trovesEkuboXWBTCYield?.value ?? null,
-        error: trovesEkuboXWBTCYield?.error ?? null,
-        isLoading: trovesEkuboXWBTCYield?.isLoading ?? false,
-      };
-    } else if (protocol === "ekuboBTCxtBTC") {
-      return {
-        value: trovesEkuboXtBTCYield?.value ?? null,
-        error: trovesEkuboXtBTCYield?.error ?? null,
-        isLoading: trovesEkuboXtBTCYield?.isLoading ?? false,
-      };
-    } else if (protocol === "ekuboBTCxLBTC") {
-      return {
-        value: trovesEkuboXLBTCYield?.value ?? null,
-        error: trovesEkuboXLBTCYield?.error ?? null,
-        isLoading: trovesEkuboXLBTCYield?.isLoading ?? false,
-      };
-    } else if (protocol === "ekuboBTCxsBTC") {
-      return {
-        value: trovesEkuboXsBTCYield?.value ?? null,
-        error: trovesEkuboXsBTCYield?.error ?? null,
-        isLoading: trovesEkuboXsBTCYield?.isLoading ?? false,
-      };
-    } else if (protocol === "vesuBTCxWBTC") {
-      return {
-        value: vesuBTCxWBTCYield?.value ?? null,
-        error: vesuBTCxWBTCYield?.error ?? null,
-        isLoading: vesuBTCxWBTCYield?.isLoading ?? false,
-      };
-    } else if (protocol === "vesuBTCxtBTC") {
-      return {
-        value: vesuBTCxtBTCYield?.value ?? null,
-        error: vesuBTCxtBTCYield?.error ?? null,
-        isLoading: vesuBTCxtBTCYield?.isLoading ?? false,
-      };
-    } else if (protocol === "vesuBTCxLBTC") {
-      return {
-        value: vesuBTCxLBTCYield?.value ?? null,
-        error: vesuBTCxLBTCYield?.error ?? null,
-        isLoading: vesuBTCxLBTCYield?.isLoading ?? false,
-      };
-    } else if (protocol === "vesuBTCxsBTC") {
-      return {
-        value: vesuBTCxsBTCYield?.value ?? null,
-        error: vesuBTCxsBTCYield?.error ?? null,
-        isLoading: vesuBTCxsBTCYield?.isLoading ?? false,
+        value: yieldAtom.value ?? null,
+        error: yieldAtom.error ?? null,
+        isLoading: yieldAtom.isLoading ?? false,
       };
     }
+    
     // Other protocols use the yields from protocolYieldsAtom
     return shouldShowApy ? yields[protocol] : undefined;
   };
@@ -1191,14 +965,7 @@ const Defi: React.FC = () => {
       const config = configsToUse[protocol];
       if (!config) return null;
 
-      const shouldShowApy = ![
-        "avnu",
-        "fibrous",
-        "avnuBTCxWBTC",
-        "avnuBTCxtBTC",
-        "avnuBTCxLBTC",
-        "avnuBTCxsBTC",
-      ].includes(protocol);
+      const shouldShowApy = !noApyProtocols.has(protocol);
 
       // For borrow pools, use the apy from config; for supply, use getYieldDataForProtocol
       const yieldData =
@@ -1210,11 +977,10 @@ const Defi: React.FC = () => {
             }
           : getYieldDataForProtocol(protocol as SupportedDApp);
 
-      // Find matching borrow pool data for capacity, maxLTV, and pool name
+      // Find matching borrow pool data for maxLTV and pool name
       let pool: VesuBorrowPool | undefined;
       let maxLTV: number | undefined;
-      let capacity: { used: number; total: number | null } | undefined;
-
+      
       if (activeTab === "borrow" && config.tokens.length >= 2) {
         pool = vesuBorrowPools.find(
           (p) =>
@@ -1223,48 +989,10 @@ const Defi: React.FC = () => {
         );
         if (pool) {
           maxLTV = pool.maxLTV;
-          // If debtCap is 0 or very small (effectively 0), show no limit
-          if (pool.debtCap <= 0 || pool.debtCap < 0.01) {
-            capacity = undefined;
-          } else {
-            capacity = {
-              used: pool.totalDebt,
-              total: pool.debtCap,
-            };
-          }
-        }
-      } else if (activeTab === "supply") {
-        // For earn vaults (supply tab)
-        const protocolKey = protocol as SupportedDApp;
-
-        // Vesu: no limit
-        if (protocolKey === "vesu" || protocolKey.startsWith("vesuBTC")) {
-          capacity = undefined; // No limit
-        } else if (
-          // Ekubo: no limit
-          protocolKey === "ekuboBTCxWBTC" ||
-          protocolKey === "ekuboBTCxtBTC" ||
-          protocolKey === "ekuboBTCxLBTC" ||
-          protocolKey === "ekuboBTCxsBTC" ||
-          protocolKey === "strkfarmEkubo"
-        ) {
-          capacity = undefined; // No limit
-        } else if (
-          // Troves hyper vaults: fetch from contract
-          protocolKey === "hyperxWBTC" ||
-          protocolKey === "hyperxtBTC" ||
-          protocolKey === "hyperxLBTC" ||
-          protocolKey === "hyperxsBTC" ||
-          protocolKey === "hyperxSTRK" ||
-          protocolKey === "trovesHyper" ||
-          protocolKey === "strkfarm"
-        ) {
-          const vaultCapacity = getVaultCapacity(protocolKey);
-          if (vaultCapacity) {
-            capacity = vaultCapacity;
-          }
         }
       }
+
+      const capacity = getProtocolCapacity(protocol, config, activeTab);
 
       // Update badges with pool name if available
       const updatedBadges = pool?.poolName
@@ -1316,10 +1044,14 @@ const Defi: React.FC = () => {
     "xSolvBTC",
   ];
 
-  const protocolFilters: ProtocolFilter[] = ["all", "Ekubo", "Vesu", "Nostra"];
+  const protocolFilters: ProtocolFilter[] = ["all", "Ekubo", "Vesu", "Nostra", "Troves"];
 
   return (
-    <>
+    <div
+      className={cn("mx-auto px-2 w-full max-w-[calc(100vw-1rem)] lg:max-w-4xl", {
+        "lg:pl-28": !isPinned,
+      })}
+    >
       <Dialog
         open={showDisclaimer}
         onOpenChange={(open) => {
@@ -1355,26 +1087,13 @@ const Defi: React.FC = () => {
       </Dialog>
 
       <div
-        className={cn("w-full", {
-          "lg:pl-28": !isPinned,
-        })}
+        className={cn("w-full")}
       >
-        <div className="grid grid-cols-[30px_auto] place-items-center gap-2">
-          <div className="rounded-full bg-gradient-to-b from-[#0D5F4E] to-[#11998E] p-2">
-            <Icons.blocks className="h-4 w-4" />
-          </div>
-          <div className="w-full">
-            <h1 className="font-semibold text-[#1A1F24] lg:text-lg">
-              DeFi opportunities
-            </h1>
-          </div>
-          <div className="col-span-full w-full lg:col-start-2">
-            <p className="lg:text-md text-xs text-[#5F6C72]">
-              Put your STRK and BTC LSTs to work in Starknet DeFi — earn extra
-              yield, unlock liquidity, and rack up points.
-            </p>
-          </div>
-        </div>
+        <MyHeader
+          title="DeFi opportunities"
+          description="Put your STRK and BTC LSTs to work in Starknet DeFi — earn extra yield, unlock liquidity, and rack up points."
+          icon={Icons.blocks}
+        />
 
         <div className="mt-6">
           {/* Main Tabs - Supply & Earn / Borrow */}
@@ -1388,10 +1107,11 @@ const Defi: React.FC = () => {
             {/* Header Section: Tabs and Filters */}
             <div className="w-full rounded-[14px]">
               <div className="flex flex-col gap-4 px-2 lg:flex-row lg:items-center lg:justify-between">
-                <TabsList className="flex h-auto w-full gap-0 rounded-[14px] border border-[#E5E8EB] bg-white p-1 lg:w-[350px]">
+                <TabsList className="flex h-auto w-full gap-0 rounded-[14px] border border-[#E5E8EB] bg-white p-1 lg:w-[450px]">
                   {[
                     { value: "supply", label: "Supply & Earn" },
                     { value: "borrow", label: "Borrow" },
+                    { value: "liquidity-provider", label: "Liquidity Provider" },
                   ].map((tab) => (
                     <TabsTrigger
                       key={tab.value}
@@ -1478,14 +1198,7 @@ const Defi: React.FC = () => {
                             const config = configsToUse[protocol];
                             if (!config) return null;
 
-                            const shouldShowApy = ![
-                              "avnu",
-                              "fibrous",
-                              "avnuBTCxWBTC",
-                              "avnuBTCxtBTC",
-                              "avnuBTCxLBTC",
-                              "avnuBTCxsBTC",
-                            ].includes(protocol);
+                            const shouldShowApy = !noApyProtocols.has(protocol);
 
                             const yieldData = getYieldDataForProtocol(
                               protocol as SupportedDApp,
@@ -1501,47 +1214,12 @@ const Defi: React.FC = () => {
                             const badgeType = config.badges[0]?.type || "";
 
                             // Calculate capacity for supply tab
-                            let capacity:
-                              | { used: number; total: number | null }
-                              | undefined;
-                            const protocolKey = protocol as SupportedDApp;
-
-                            // Vesu: no limit
-                            if (
-                              protocolKey === "vesu" ||
-                              protocolKey.startsWith("vesuBTC")
-                            ) {
-                              capacity = undefined; // No limit
-                            } else if (
-                              // Ekubo: no limit
-                              protocolKey === "ekuboBTCxWBTC" ||
-                              protocolKey === "ekuboBTCxtBTC" ||
-                              protocolKey === "ekuboBTCxLBTC" ||
-                              protocolKey === "ekuboBTCxsBTC" ||
-                              protocolKey === "strkfarmEkubo"
-                            ) {
-                              capacity = undefined; // No limit
-                            } else if (
-                              // Troves hyper vaults: fetch from contract
-                              protocolKey === "hyperxWBTC" ||
-                              protocolKey === "hyperxtBTC" ||
-                              protocolKey === "hyperxLBTC" ||
-                              protocolKey === "hyperxsBTC" ||
-                              protocolKey === "hyperxSTRK" ||
-                              protocolKey === "trovesHyper" ||
-                              protocolKey === "strkfarm"
-                            ) {
-                              const vaultCapacity =
-                                getVaultCapacity(protocolKey);
-                              if (vaultCapacity) {
-                                capacity = vaultCapacity;
-                              }
-                            }
+                            const capacity = getProtocolCapacity(protocol, config, "supply");
 
                             const capacityText = capacity
                               ? capacity.total === null
                                 ? null // No limit - will show "No limit" instead
-                                : `${formatNumber(capacity.used)} used of ${formatNumber(capacity.total)}`
+                                : `$${formatNumber(capacity.used)} used of $${formatNumber(capacity.total)}`
                               : null;
                             const capacityPercent =
                               capacity &&
@@ -2058,7 +1736,7 @@ const Defi: React.FC = () => {
           </ShadCNTabs>
         </div>
       </div>
-    </>
+    </div>
   );
 };
 

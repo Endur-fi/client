@@ -340,6 +340,7 @@ export const ALPHA = 0.25;
 
 export const LINKS = {
   DUNE_ANALYTICS: "https://dune.com/endurfi/xstrk-analytics",
+  BTC_DUNE_ANALYTICS: "https://dune.com/endurfi/endurs-btc-staking-stats",
   DASHBOARD_URL: "https://dashboard.endur.fi",
   ENDUR_DISCORD: "https://endur.fi/discord",
   ENDUR_TWITTER: "https://endur.fi/x",

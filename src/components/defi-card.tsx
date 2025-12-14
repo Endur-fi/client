@@ -81,8 +81,8 @@ const DefiCard: React.FC<DefiCardProps> = ({
     ? capacity.total === null
       ? null // No limit - will show "No limit" instead
       : isBorrow
-        ? `$${formatNumber(capacity.used)} used of $${formatNumber(capacity.total)}`
-        : `${formatNumber(capacity.used)} used of ${formatNumber(capacity.total)}`
+        ? `$${formatNumber(capacity.used)} us3ed of $${formatNumber(capacity.total)}`
+        : `${formatNumber(capacity.used)} us4ed of ${formatNumber(capacity.total)}`
     : null;
   const capacityPercent =
     capacity && capacity.total !== null && capacity.total > 0
