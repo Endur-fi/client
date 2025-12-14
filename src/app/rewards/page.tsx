@@ -5,7 +5,7 @@ import React from "react";
 import { AlertCircleIcon, Calendar, Clock, TrendingUp } from "lucide-react";
 
 import { useSidebar } from "@/components/ui/sidebar";
-import { isMainnet, LEADERBOARD_ANALYTICS_EVENTS } from "@/constants";
+import { LEADERBOARD_ANALYTICS_EVENTS } from "@/constants";
 import {
   GET_TOP_100_USERS_SEASON1,
   GET_USER_NET_TOTAL_POINTS_SEASON1,
