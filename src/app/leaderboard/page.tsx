@@ -2,7 +2,7 @@
 
 import { useAccount } from "@starknet-react/core";
 import React from "react";
-import { Calendar, ChevronRight, Clock, TrendingUp } from "lucide-react";
+import { Calendar, Clock, TrendingUp } from "lucide-react";
 
 import { useSidebar } from "@/components/ui/sidebar";
 import { isMainnet, LEADERBOARD_ANALYTICS_EVENTS } from "@/constants";
@@ -28,7 +28,6 @@ import { columns, type SizeColumn } from "./_components/table/columns";
 import { DataTable } from "./_components/table/data-table";
 import { ApolloClient, InMemoryCache } from "@apollo/client";
 import { Icons } from "@/components/Icons";
-import Link from "next/link";
 
 const PAGINATION_LIMIT = 100;
 

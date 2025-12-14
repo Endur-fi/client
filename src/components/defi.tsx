@@ -52,7 +52,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "./ui/dialog";
-import { Button } from "./ui/button";
 import { Progress } from "./ui/progress";
 import {
   Tooltip,
@@ -60,7 +59,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "./ui/tooltip";
-import { TableCell, TableRow } from "./ui/table";
 import { ChevronDown } from "lucide-react";
 
 export interface ProtocolConfig {
