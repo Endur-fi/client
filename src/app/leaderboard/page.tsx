@@ -2,12 +2,7 @@
 
 import { useAccount } from "@starknet-react/core";
 import React from "react";
-import {
-  Calendar,
-  ChevronRight,
-  Clock,
-  TrendingUp,
-} from "lucide-react";
+import { Calendar, ChevronRight, Clock, TrendingUp } from "lucide-react";
 
 import { useSidebar } from "@/components/ui/sidebar";
 import { isMainnet, LEADERBOARD_ANALYTICS_EVENTS } from "@/constants";
@@ -27,9 +22,8 @@ import {
 import { useWalletConnection } from "@/hooks/use-wallet-connection";
 import { Button } from "@/components/ui/button";
 
-import {
-  UserCompleteDetailsApiResponse,
-} from "./_components/check-eligibility";
+import { UserCompleteDetailsApiResponse } from "./_components/check-eligibility";
+import CheckEligibility from "./_components/check-eligibility";
 import { columns, type SizeColumn } from "./_components/table/columns";
 import { DataTable } from "./_components/table/data-table";
 import { ApolloClient, InMemoryCache } from "@apollo/client";
@@ -249,7 +243,11 @@ const useLeaderboardData = () => {
 };
 
 const LoadingSpinner = React.memo(
-  ({ message = "Loading Rewards & Leaderboard data..." }: { message?: string }) => (
+  ({
+    message = "Loading Rewards & Leaderboard data...",
+  }: {
+    message?: string;
+  }) => (
     <div className="mt-8 flex items-center justify-center">
       <div className="flex items-center gap-3">
         <div className="h-6 w-6 animate-spin rounded-full border-2 border-[#17876D] border-t-transparent" />
@@ -469,7 +467,7 @@ const Leaderboard: React.FC = () => {
           </div>
           {/* TODO: Add learn more button */}
           <p className="mt-1 text-sm text-[#021B1A] lg:text-base">
-            Track your ranking and earn rewards. 
+            Track your ranking and earn rewards.
           </p>
         </div>
       </div>
@@ -492,24 +490,29 @@ const Leaderboard: React.FC = () => {
               <div className="mt-2 h-px w-full bg-white/20"></div>
             </div>
             <p className="text-sm text-white lg:text-base">
-            In May 2025, we distributed 250,000 xSTRK in rewards to users from the {"platform’s"} first six months. The distribution was calculated based on Season 1 points as recorded at that time.
+              In May 2025, we distributed 250,000 xSTRK in rewards to users from
+              the {"platform’s"} first six months. The distribution was
+              calculated based on Season 1 points as recorded at that time.
             </p>
           </div>
           <div className="lg:flex-shrink-0 lg:self-center">
-            <Link href="/">
-              <button className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-white py-2 font-bold text-[#0D5F4E] transition-opacity hover:opacity-90 lg:w-auto lg:px-6">
-                Check Eligibility <ChevronRight />
-              </button>
-            </Link>
+            <CheckEligibility
+              userCompleteInfo={userCompleteInfo}
+              isLoading={loading.initial}
+              buttonClassName="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-white py-2 font-bold text-[#0D5F4E] transition-opacity hover:opacity-90 lg:w-auto lg:px-6"
+            />
           </div>
         </div>
 
-        <Season2Banner />
+        {/* Season2Banner hidden until API is available */}
 
         {/* Timeline & Points Allocation Boxes */}
         <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2 lg:gap-6">
           {seasons.map((season) => (
-            <div key={season.season} className="flex flex-col gap-3 rounded-[14px] border border-[#E5E8EB] bg-white p-4 shadow-sm lg:gap-4 lg:p-4">
+            <div
+              key={season.season}
+              className="flex flex-col gap-3 rounded-[14px] border border-[#E5E8EB] bg-white p-4 shadow-sm lg:gap-4 lg:p-4"
+            >
               <div className="flex items-center gap-2">
                 <div
                   className={cn("rounded-full bg-[#5B616D] p-2 shadow-sm", {
@@ -635,15 +638,11 @@ const Leaderboard: React.FC = () => {
 
           <TabsContent value="season2" className="mt-0">
             <div className="mt-6 lg:mt-8">
-              {allUsers.length > 0 ? (
-                <DataTable
-                  columns={columns}
-                  data={leaderboardData}
-                  userCompleteDetails={userCompleteInfo}
-                />
-              ) : (
-                <EmptyState />
-              )}
+              <div className="flex flex-col items-center justify-center rounded-[14px] border border-[#E5E8EB] bg-white p-8 text-center shadow-sm">
+                <p className="text-base text-[#6B7780] lg:text-lg">
+                  First weekly points allocation coming on 23rd Dec, 2025
+                </p>
+              </div>
             </div>
           </TabsContent>
 

@@ -104,6 +104,7 @@ interface EligibilityState {
 interface CheckEligibilityProps {
   userCompleteInfo: UserCompleteDetailsApiResponse | null;
   isLoading: boolean;
+  buttonClassName?: string;
 }
 
 const trackAnalytics = (event: string, data: Record<string, any>) => {
@@ -687,6 +688,7 @@ TwitterShareModal.displayName = "TwitterShareModal";
 const CheckEligibility: React.FC<CheckEligibilityProps> = ({
   userCompleteInfo,
   isLoading,
+  buttonClassName,
 }) => {
   const [state, setState] = React.useState<EligibilityState>(() => ({
     allocation: null,
@@ -1039,10 +1041,17 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
     if (isPending) {
       return { disabled: true, text: "Transaction pending..." };
     }
-    return { disabled: false, text: "Claim rewards" };
+    // Show "Claim rewards" only if user is eligible and has allocation
+    if (state.isEligible && state.allocation) {
+      return { disabled: false, text: "Claim rewards" };
+    }
+    // Default to "Check Eligibility" for initial state
+    return { disabled: false, text: "Check Eligibility" };
   }, [
     state.isCheckingClaimed,
     state.hasAlreadyClaimed,
+    state.isEligible,
+    state.allocation,
     isLoading,
     isPending,
     isWaitingForConfirmation,
@@ -1107,7 +1116,10 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
   return (
     <div>
       <Button
-        className="rounded-md bg-white/20 px-4 py-2 text-xs font-medium text-white transition-all hover:bg-white/30"
+        className={
+          buttonClassName ||
+          "rounded-md bg-white/20 px-4 py-2 text-xs font-medium text-white transition-all hover:bg-white/30"
+        }
         onClick={checkEligibility}
         disabled={buttonState.disabled}
       >

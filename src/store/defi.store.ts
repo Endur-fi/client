@@ -158,6 +158,7 @@ export interface VesuBorrowPool {
   maxLTV: number;
   debtCap: number;
   totalDebt: number;
+  totalSupplied: number;
   borrowApr: number | null;
   btcFiBorrowApr: number | null;
 }
@@ -1021,26 +1022,40 @@ const vesuPoolsQueryAtom = atomWithQuery(() => ({
 
       const borrowPools: VesuBorrowPool[] = [];
 
+      // Helper function to normalize addresses for comparison
+      // Starknet addresses are 66 chars (0x + 64 hex chars), but we'll normalize by
+      // removing 0x, padding to 64 chars, and comparing case-insensitively
+      const normalizeAddress = (addr: string): string => {
+        const hex = addr.toLowerCase().replace(/^0x/, "");
+        // Pad to 64 characters (32 bytes) with leading zeros
+        return hex.padStart(64, "0");
+      };
+
       // Iterate through all pools
       for (const pool of data.data) {
         // Find pairs where collateral is one of our LST tokens
         for (const pair of pool.pairs) {
-          const lstEntry = Object.entries(LST_ADDRESSES).find(
-            ([, address]) =>
-              address.toLowerCase() ===
-              pair.collateralAssetAddress.toLowerCase(),
+          const collateralNormalized = normalizeAddress(
+            pair.collateralAssetAddress,
           );
+          const matchingLst = Object.entries(LST_ADDRESSES).find(
+            ([, address]) => {
+              const lstNormalized = normalizeAddress(address);
+              return lstNormalized === collateralNormalized;
+            },
+          );
+
+          const lstEntry = matchingLst;
 
           if (lstEntry) {
             const [collateralSymbol] = lstEntry;
+            // Reuse already normalized addresses
+            const debtNormalized = normalizeAddress(pair.debtAssetAddress);
             const collateralAsset = pool.assets.find(
-              (a) =>
-                a.address.toLowerCase() ===
-                pair.collateralAssetAddress.toLowerCase(),
+              (a) => normalizeAddress(a.address) === collateralNormalized,
             );
             const debtAsset = pool.assets.find(
-              (a) =>
-                a.address.toLowerCase() === pair.debtAssetAddress.toLowerCase(),
+              (a) => normalizeAddress(a.address) === debtNormalized,
             );
 
             // Only include pairs where both collateral and debt assets are found
@@ -1065,6 +1080,12 @@ const vesuPoolsQueryAtom = atomWithQuery(() => ({
 
               const debtCapValue = convertVesuValue(pair.debtCap.value, 18);
               const totalDebtValue = convertVesuValue(pair.totalDebt.value, 18);
+              const totalSuppliedValue = debtStats?.totalSupplied
+                ? convertVesuValue(
+                    debtStats.totalSupplied.value,
+                    debtStats.totalSupplied.decimals,
+                  )
+                : 0;
 
               borrowPools.push({
                 poolId: pool.id,
@@ -1078,6 +1099,7 @@ const vesuPoolsQueryAtom = atomWithQuery(() => ({
                 maxLTV: maxLTVValue,
                 debtCap: debtCapValue,
                 totalDebt: totalDebtValue,
+                totalSupplied: totalSuppliedValue,
                 borrowApr,
                 btcFiBorrowApr,
               });

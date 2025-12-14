@@ -402,7 +402,7 @@ const Tabs = () => {
         </div>
 
         {/* Main Tabs - STRK and BTC */}
-        <div className="grid w-full max-w-[calc(100vw-1rem)] lg:grid-cols-[3fr_2fr] lg:gap-6 lg:max-w-4xl">
+        <div className="grid w-full max-w-[calc(100vw-1rem)] lg:max-w-4xl lg:grid-cols-[3fr_2fr] lg:gap-6">
           <div className="flex flex-col gap-3">
             <div className="flex w-full flex-col gap-4">
               <ShadCNTabs
@@ -525,51 +525,19 @@ const Tabs = () => {
                     >
                       <TabsList
                         className={cn(
-                          "flex w-full items-center justify-start rounded-none border-b bg-transparent",
+                          "flex w-full items-center justify-start rounded-none border-b bg-transparent p-0",
                         )}
                       >
-                        <TabsTrigger
-                          value="stake"
-                          className="group relative rounded-none border-none text-sm font-medium text-[#8D9C9C] focus-visible:ring-0 focus-visible:ring-offset-0 data-[state=active]:border-t-0 data-[state=active]:shadow-none lg:text-base"
-                        >
-                          Stake
-                        </TabsTrigger>
-                        <TabsTrigger
-                          value="unstake"
-                          className="group relative rounded-none border-none text-sm font-medium text-[#8D9C9C] focus-visible:ring-0 focus-visible:ring-offset-0 data-[state=active]:border-t-0 data-[state=active]:shadow-none lg:text-base"
-                        >
-                          Unstake
-                        </TabsTrigger>
-                        <TabsTrigger
-                          value="withdraw"
-                          className="group relative rounded-none border-none text-sm font-medium text-[#8D9C9C] focus-visible:ring-0 focus-visible:ring-offset-0 data-[state=active]:border-t-0 data-[state=active]:shadow-none lg:text-base"
-                        >
-                          Withdraw log
-                          <TooltipProvider delayDuration={0}>
-                            <Tooltip>
-                              <TooltipTrigger
-                                className="ml-1"
-                                tabIndex={-1}
-                                asChild
-                              >
-                                <Info className="size-3 text-[#3F6870] lg:text-[#8D9C9C]" />
-                              </TooltipTrigger>
-                              <TooltipContent
-                                side="right"
-                                className="max-w-[13rem] rounded-md border border-[#03624C] bg-white text-[#03624C]"
-                              >
-                                Learn more about withdraw logs{" "}
-                                <Link
-                                  target="_blank"
-                                  href="https://docs.endur.fi/docs/concepts/withdraw-log"
-                                  className="text-blue-600 underline"
-                                >
-                                  here
-                                </Link>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        </TabsTrigger>
+                        {subTabs.map((tab) => (
+                          <TabsTrigger
+                            value={tab.value}
+                            key={tab.value}
+                            className="group relative h-full rounded-none text-sm text-[#7D8A92] data-[state=active]:border-b-2 data-[state=active]:border-[#0D5F4E] data-[state=active]:text-[#0D5F4E] data-[state=active]:shadow-none"
+                          >
+                            {tab.label}
+                            {tab.tooltip && tab.tooltip}
+                          </TabsTrigger>
+                        ))}
                       </TabsList>
 
                       <TabsContent
@@ -602,7 +570,9 @@ const Tabs = () => {
               </ShadCNTabs>
 
               {/* <StakingRewardsInfo /> */}
-              <div className="hidden lg:block"><FAQSection /></div>
+              <div className="hidden lg:block">
+                <FAQSection />
+              </div>
             </div>
 
             <div
