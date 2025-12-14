@@ -20,7 +20,9 @@ import { assetPriceAtom } from "@/store/common.store";
 import { btcPriceAtom } from "@/store/staking.store";
 import MyNumber from "@/lib/MyNumber";
 import { GET_USER_COMPLETE_DETAILS } from "@/constants/queries";
-import apolloClient from "@/lib/apollo-client";
+import { defaultOptions } from "@/lib/apollo-client";
+import { isMainnet } from "@/constants";
+import { ApolloClient, InMemoryCache } from "@apollo/client";
 
 const PortfolioSection: React.FC = () => {
   const { address } = useAccount();
@@ -171,6 +173,19 @@ const PortfolioSection: React.FC = () => {
   const [season1Points, setSeason1Points] = React.useState<string | null>(null);
   const [season1Loading, setSeason1Loading] = React.useState(false);
 
+  // Use the same Apollo Client setup as production leaderboard
+  const leaderboardApolloClient = React.useMemo(
+    () =>
+      new ApolloClient({
+        uri: isMainnet()
+          ? "https://graphql.mainnet.endur.fi"
+          : "https://graphql.sepolia.endur.fi",
+        cache: new InMemoryCache(),
+        defaultOptions,
+      }),
+    [],
+  );
+
   React.useEffect(() => {
     if (!address) {
       setSeason1Points(null);
@@ -180,20 +195,17 @@ const PortfolioSection: React.FC = () => {
     const fetchSeason1Points = async () => {
       setSeason1Loading(true);
       try {
-        const result = await apolloClient.query({
+        const result = await leaderboardApolloClient.query({
           query: GET_USER_COMPLETE_DETAILS,
           variables: { userAddress: address },
           fetchPolicy: "cache-first",
         });
 
         const userDetails = result.data?.getUserCompleteDetails;
+
         if (userDetails?.points?.total_points) {
-          const totalPoints = userDetails.points.total_points;
-          setSeason1Points(
-            typeof totalPoints === "bigint"
-              ? totalPoints.toString()
-              : String(totalPoints),
-          );
+          const pointsString = userDetails.points.total_points.toString();
+          setSeason1Points(pointsString);
         } else {
           setSeason1Points("0");
         }
@@ -206,14 +218,10 @@ const PortfolioSection: React.FC = () => {
     };
 
     fetchSeason1Points();
-  }, [address]);
+  }, [address, leaderboardApolloClient]);
 
   // Season 2 is 0 for now
   const season2Points = "0";
-
-  // if (!address) {
-  //   return null;
-  // }
 
   return (
     <div
@@ -305,7 +313,7 @@ const PortfolioSection: React.FC = () => {
                     </div>
                     <span className="text-right text-[#6B7780]">
                       {formatNumberWithCommas(holding.underlyingBTC, 6)}{" "}
-                        {holding.asset.SYMBOL}
+                      {holding.asset.SYMBOL}
                     </span>
                   </div>
                 </div>
@@ -352,7 +360,7 @@ const PortfolioSection: React.FC = () => {
                   ? "-"
                   : season1Loading
                     ? "..."
-                    : season1Points
+                    : season1Points !== null
                       ? `${formatNumberWithCommas(season1Points)} pts`
                       : "0 pts"}
               </span>
