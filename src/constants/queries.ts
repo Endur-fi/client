@@ -1,5 +1,27 @@
 import { gql } from "@apollo/client";
 
+export const GET_TOP_100_USERS_SEASON1 = gql`
+  query GetTop100UsersSeason1 {
+    getTop100UsersSeason1 {
+      userAddress
+      totalPoints
+      weightedTotalPoints
+    }
+  }
+`;
+
+export const GET_USER_NET_TOTAL_POINTS_SEASON1 = gql`
+  query GetUserNetTotalPointsSeason1($userAddress: String!) {
+    getUserNetTotalPointsSeason1(userAddress: $userAddress) {
+      userAddress
+      totalPoints
+      weightedTotalPoints
+      rank
+    }
+  }
+`;
+
+// Keep old queries for backward compatibility if needed elsewhere
 export const GET_ALL_USERS_WITH_DETAILS = gql`
   query GetAllUsersWithDetails($options: PaginationOptionsInput) {
     getAllUsersWithDetails(options: $options) {

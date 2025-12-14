@@ -7,8 +7,8 @@ import { AlertCircleIcon, Calendar, Clock, TrendingUp } from "lucide-react";
 import { useSidebar } from "@/components/ui/sidebar";
 import { isMainnet, LEADERBOARD_ANALYTICS_EVENTS } from "@/constants";
 import {
-  GET_ALL_USERS_WITH_DETAILS,
-  GET_USER_COMPLETE_DETAILS,
+  GET_TOP_100_USERS_SEASON1,
+  GET_USER_NET_TOTAL_POINTS_SEASON1,
 } from "@/constants/queries";
 import { MyAnalytics } from "@/lib/analytics";
 import { defaultOptions } from "@/lib/apollo-client";
@@ -32,20 +32,20 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 const PAGINATION_LIMIT = 100;
 
-interface AllUsersApiResponse {
-  users: {
-    user_address: string;
-    total_points: string;
+interface Top100UsersSeason1Response {
+  getTop100UsersSeason1: {
+    userAddress: string;
+    totalPoints: string;
+    weightedTotalPoints: string;
   }[];
-  pagination: {
-    page: number;
-    limit: number;
-    total: number;
-    totalPages: number;
-  };
-  summary: {
-    total_users: number;
-    total_points_all_users: string;
+}
+
+interface UserNetTotalPointsSeason1Response {
+  getUserNetTotalPointsSeason1: {
+    userAddress: string;
+    totalPoints: string;
+    weightedTotalPoints: string;
+    rank: number | null;
   };
 }
 
@@ -78,10 +78,10 @@ interface LeaderboardCache {
 }
 
 const apolloClient = new ApolloClient({
-  uri: isMainnet()
-    ? "https://graphql.mainnet.endur.fi"
-    : "https://graphql.sepolia.endur.fi",
-  // uri: "http://localhost:4000",
+  // uri: isMainnet()
+    // ? "https://graphql.mainnet.endur.fi"
+    // : "https://graphql.sepolia.endur.fi",
+  uri: "http://localhost:4001",
   cache: new InMemoryCache(),
   defaultOptions,
 });
@@ -138,25 +138,19 @@ const useLeaderboardData = () => {
         }));
 
         const [usersResult, currentUserResult] = await Promise.allSettled([
-          apolloClient.query({
-            query: GET_ALL_USERS_WITH_DETAILS,
-            variables: {
-              options: {
-                page: 1,
-                limit: PAGINATION_LIMIT,
-              },
-            },
+          apolloClient.query<Top100UsersSeason1Response>({
+            query: GET_TOP_100_USERS_SEASON1,
             fetchPolicy: "network-only", // fetch fresh data when we bypass cache
           }),
           address
-            ? apolloClient.query({
-                query: GET_USER_COMPLETE_DETAILS,
+            ? apolloClient.query<UserNetTotalPointsSeason1Response>({
+                query: GET_USER_NET_TOTAL_POINTS_SEASON1,
                 variables: {
                   userAddress: address,
                 },
               })
             : Promise.resolve({
-                data: { getUserCompleteDetails: null },
+                data: { getUserNetTotalPointsSeason1: null },
               }),
         ]);
 
@@ -166,43 +160,79 @@ const useLeaderboardData = () => {
           );
         }
 
-        const apiResponse: AllUsersApiResponse =
-          usersResult.value.data?.getAllUsersWithDetails;
-        if (!apiResponse?.users) {
+        const apiResponse = usersResult.value.data?.getTop100UsersSeason1;
+        if (!apiResponse) {
           throw new Error("Invalid response format");
         }
 
-        const currentUserData: UserCompleteDetailsApiResponse | null =
+        const currentUserData =
           currentUserResult.status === "fulfilled"
-            ? currentUserResult.value.data?.getUserCompleteDetails
+            ? currentUserResult.value.data?.getUserNetTotalPointsSeason1
             : null;
 
-        const transformedData: SizeColumn[] = apiResponse.users.map(
+        // Use weightedTotalPoints for display (weighted points refer to previous total_points)
+        const transformedData: SizeColumn[] = apiResponse.map(
           (user, index) => ({
             rank: (index + 1).toString(),
-            address: user.user_address,
-            score: user.total_points,
+            address: user.userAddress,
+            score: user.weightedTotalPoints,
           }),
         );
 
+        // Use rank from API if available, otherwise calculate from leaderboard position
+        const userRankInLeaderboard = currentUserData
+          ? apiResponse.findIndex(
+              (u) => u.userAddress.toLowerCase() === address?.toLowerCase()
+            )
+          : -1;
+
+        const userRank =
+          currentUserData?.rank !== null && currentUserData?.rank !== undefined
+            ? currentUserData.rank
+            : userRankInLeaderboard !== -1
+              ? userRankInLeaderboard + 1
+              : currentUserData
+                ? null // User has points but not in top 100
+                : null;
+
         const currentUserInfo: CurrentUserInfo = {
-          points: currentUserData?.points.total_points.toString() || "0",
+          points: currentUserData?.weightedTotalPoints || "0",
           address: address || "",
           isLoading: false,
-          rank: currentUserData
-            ? currentUserData.rank
-            : apiResponse.summary.total_users
-              ? apiResponse.summary.total_users + 1
-              : null,
+          rank: userRank,
         };
+
+        // Map to UserCompleteDetailsApiResponse structure
+        // Note: The new API doesn't provide allocation, proof, or detailed points breakdown
+        // These fields will be undefined/null, and the CheckEligibility component should handle that
+        const userCompleteInfoMapped: UserCompleteDetailsApiResponse | null =
+          currentUserData
+            ? {
+                user_address: currentUserData.userAddress,
+                rank: userRank || 0,
+                points: {
+                  total_points: BigInt(currentUserData.weightedTotalPoints),
+                  regular_points: BigInt(0),
+                  bonus_points: BigInt(0),
+                  early_adopter_points: BigInt(0),
+                  follow_bonus_points: BigInt(0),
+                  dex_bonus_points: BigInt(0),
+                },
+                allocation: "", // Not available from new API
+                proof: "", // Not available from new API
+                tags: {
+                  early_adopter: false, // Not available from new API
+                },
+              }
+            : null;
 
         // update cache
         leaderboardCache = {
           data: transformedData,
           timestamp: Date.now(),
-          totalUsers: apiResponse.summary.total_users,
+          totalUsers: apiResponse.length,
           currentUserInfo,
-          userCompleteInfo: currentUserData,
+          userCompleteInfo: userCompleteInfoMapped,
         };
 
         setState({
@@ -210,9 +240,9 @@ const useLeaderboardData = () => {
           loading: { initial: false, refresh: false },
           error: null,
           lastFetch: Date.now(),
-          totalUsers: apiResponse.summary.total_users,
+          totalUsers: apiResponse.length,
           currentUserInfo,
-          userCompleteInfo: currentUserData,
+          userCompleteInfo: userCompleteInfoMapped,
         });
       } catch (err) {
         console.error("Error fetching users data:", err);
