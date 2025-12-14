@@ -33,6 +33,8 @@ import {
   hyperxSTRKVaultCapacityAtom,
 } from "@/store/defi.store";
 import { useAtom } from "jotai";
+import { assetPriceAtom } from "@/store/common.store";
+import { btcPriceAtom } from "@/store/staking.store";
 
 import DefiCard, {
   ProtocolAction,
@@ -68,7 +70,7 @@ import MyHeader from "./header";
 export const POINTS_CONFIG = {
   USDC_BORROWING: 3, // additional 3x of borrowed value normalised
   UNDERLYING_BORROWING: 0, // no additional points for underlying borrowing
-  STAKING: 1 // simply for staking
+  STAKING: 1, // simply for staking
 };
 export interface ProtocolConfig {
   tokens: TokenDisplay[];
@@ -78,7 +80,7 @@ export interface ProtocolConfig {
   description: string;
   apy?: number; // not %
   action?: ProtocolAction;
-  pointsMultiplier?: { min: number; max: number, description: string };
+  pointsMultiplier?: { min: number; max: number; description: string };
   externalPointsInfo?: string | null; // "+Vesu Points" for vesu linked protocols, null for rest
 }
 
@@ -111,7 +113,7 @@ const createEkuboPoolConfig = (
     min: 8,
     max: 12,
     description: `To boost DEX liquidity of ${token1.name}/${token2.name} pool, this pool receives high season 2 points under contributor category. It is important to ensure liquidity is provided within 0.5% of the true price of LST. Your entire position value in either tokens is counter for points.`,
-  }
+  },
 });
 
 // Factory functions for protocol configs
@@ -280,7 +282,7 @@ const createHyperVaultConfig = (
   pointsMultiplier: {
     min: token.name === "xSTRK" ? 1 : 1,
     max: token.name === "xSTRK" ? 3 : 5,
-    description: `A one-click vault that amplifies yield and points through real leverage. Rather than relying on bonus multipliers, the vault expands your deposited asset value by 3–5× by borrowing the underlying assets on Vesu and staking them back.`
+    description: `A one-click vault that amplifies yield and points through real leverage. Rather than relying on bonus multipliers, the vault expands your deposited asset value by 3–5× by borrowing the underlying assets on Vesu and staking them back.`,
   },
   action: {
     type: "vault",
@@ -327,20 +329,26 @@ const createVesuLendingConfigsFromPools = (
   pools: VesuBorrowPool[],
 ): Record<string, ProtocolConfig> => {
   const configs: Record<string, ProtocolConfig> = {};
-  
+
   // Group by collateral symbol to create lending configs
-  const poolsByCollateral = pools.reduce((acc, pool) => {
-    if (!acc[pool.collateralSymbol]) {
-      acc[pool.collateralSymbol] = pool;
-    }
-    return acc;
-  }, {} as Record<string, VesuBorrowPool>);
+  const poolsByCollateral = pools.reduce(
+    (acc, pool) => {
+      if (!acc[pool.collateralSymbol]) {
+        acc[pool.collateralSymbol] = pool;
+      }
+      return acc;
+    },
+    {} as Record<string, VesuBorrowPool>,
+  );
 
   Object.values(poolsByCollateral).forEach((pool) => {
     const key = `vesuLending_${pool.collateralSymbol}`;
     configs[key] = {
       tokens: [
-        { icon: getTokenIcon(pool.collateralSymbol), name: pool.collateralSymbol },
+        {
+          icon: getTokenIcon(pool.collateralSymbol),
+          name: pool.collateralSymbol,
+        },
       ],
       protocolIcon: <Icons.vesuLogo className="rounded-full" />,
       protocolName: "Vesu",
@@ -421,7 +429,7 @@ export const btcProtocolConfigs: Partial<
     "0x580f3dc564a7b82f21d40d404b3842d490ae7205e6ac07b1b7af2b4a5183dc9", // xsBTC
     "ekuboxsBTC",
   ),
-  
+
   // BTC Concentrated Liquidity Strategies
   ekuboBTCxWBTC: createTrovesEkuboLiquidityConfig(
     "ekuboBTCxWBTC",
@@ -451,7 +459,7 @@ export const btcProtocolConfigs: Partial<
     "ekubo_cl_xsbtcsolvbtc",
     "trovesEkuboBTCxsBTC",
   ),
-  
+
   // Hyper Vault Strategies
   hyperxSTRK: createHyperVaultConfig(
     { icon: <Icons.strkLogo className="size-[22px]" />, name: "xSTRK" },
@@ -483,7 +491,7 @@ export const btcProtocolConfigs: Partial<
     "hyper_xlbtc",
     "trovesHyperBTCxLBTC",
   ),
-  
+
   // BTC Token Swapping on Avnu
   avnuBTCxWBTC: createAvnuSwapConfig(
     { icon: <Icons.xwbtc className="size-[22px]" />, name: "xWBTC" },
@@ -513,7 +521,7 @@ export const btcProtocolConfigs: Partial<
     "0x0593e034dda23eea82d2ba9a30960ed42cf4a01502cc2351dc9b9881f9931a68",
     "avnuBTCxsBTC",
   ),
-  
+
   // Note: Vesu BTC Lending Pools are now dynamically generated from API
   // These are kept for backward compatibility but may be removed if not needed
   // vesuBTCxWBTC, vesuBTCxtBTC, vesuBTCxLBTC, vesuBTCxsBTC
@@ -681,26 +689,30 @@ const Filters: React.FC<FiltersProps> = ({
 };
 
 // Token icon mapping - centralized for reusability
-const TOKEN_ICON_MAP: Record<string, (className?: string) => React.ReactNode> = {
-  xSTRK: (className) => <Icons.endurLogo className={className} />,
-  xWBTC: (className) => <Icons.xwbtc className={className} />,
-  xtBTC: (className) => <Icons.xtbtc className={className} />,
-  xLBTC: (className) => <Icons.xlbtc className={className} />,
-  xsBTC: (className) => <Icons.xsbtc className={className} />,
-  STRK: (className) => <Icons.strkLogo className={className} />,
-  WBTC: (className) => <Icons.wbtc className={className} />,
-  tBTC: (className) => <Icons.tbtc className={className} />,
-  LBTC: (className) => <Icons.lbtc className={className} />,
-  solvBTC: (className) => <Icons.solvbtc className={className} />,
-  ETH: (className) => <Icons.eth className={className} />,
-  USDC: (className) => <Icons.usdcLogo className={className} />,
-  "USDC.e": (className) => <Icons.usdcLogo className={className} />,
-  USDT: (className) => <Icons.usdt className={className} />,
-  CASH: (className) => <Icons.cashLogo className={className} />,
-};
+const TOKEN_ICON_MAP: Record<string, (className?: string) => React.ReactNode> =
+  {
+    xSTRK: (className) => <Icons.endurLogo className={className} />,
+    xWBTC: (className) => <Icons.xwbtc className={className} />,
+    xtBTC: (className) => <Icons.xtbtc className={className} />,
+    xLBTC: (className) => <Icons.xlbtc className={className} />,
+    xsBTC: (className) => <Icons.xsbtc className={className} />,
+    STRK: (className) => <Icons.strkLogo className={className} />,
+    WBTC: (className) => <Icons.wbtc className={className} />,
+    tBTC: (className) => <Icons.tbtc className={className} />,
+    LBTC: (className) => <Icons.lbtc className={className} />,
+    solvBTC: (className) => <Icons.solvbtc className={className} />,
+    ETH: (className) => <Icons.eth className={className} />,
+    USDC: (className) => <Icons.usdcLogo className={className} />,
+    "USDC.e": (className) => <Icons.usdcLogo className={className} />,
+    USDT: (className) => <Icons.usdt className={className} />,
+    CASH: (className) => <Icons.cashLogo className={className} />,
+  };
 
 // Helper function to get token icon by symbol
-const getTokenIcon = (symbol: string, className = "size-[22px]"): React.ReactNode => {
+const getTokenIcon = (
+  symbol: string,
+  className = "size-[22px]",
+): React.ReactNode => {
   const iconFactory = TOKEN_ICON_MAP[symbol];
   if (iconFactory) return iconFactory(className);
   if (symbol.includes("BTC")) return <Icons.btcLogo className={className} />;
@@ -714,15 +726,10 @@ const calculateBorrowPoolData = (
   formatNumber: (value: number) => string,
 ) => {
   // For borrow pools, use the apy from config
-  const apyValue =
-    config.apy !== undefined
-      ? config.apy * 100
-      : null;
+  const apyValue = config.apy !== undefined ? config.apy * 100 : null;
   const isLoading = false;
 
-  const tokenPair = config.tokens
-    .map((t: TokenDisplay) => t.name)
-    .join("/");
+  const tokenPair = config.tokens.map((t: TokenDisplay) => t.name).join("/");
   const primaryToken = config.tokens[0];
   const secondaryToken = config.tokens[1];
   const badgeType = config.badges[0]?.type || "";
@@ -734,7 +741,7 @@ const calculateBorrowPoolData = (
       secondaryToken &&
       p.collateralSymbol === primaryToken.name &&
       p.debtSymbol === secondaryToken.name &&
-      config.badges.map((b) => b.type).includes(p.poolName)
+      config.badges.map((b) => b.type).includes(p.poolName),
   );
   // Values are already converted from wei to human-readable format in the store
   const totalDebt = pool ? pool.totalDebt : 0;
@@ -759,8 +766,7 @@ const calculateBorrowPoolData = (
   // If effectiveCap is 0 or very small (effectively 0), show no limit (no borrowing limit)
   // Check both the raw value and formatted value to avoid showing "$0 of $0"
   const formattedTotalDebt = formatNumber(totalDebt * debtPrice);
-  const formattedEffectiveCap =
-    formatNumber(effectiveCapUSD);
+  const formattedEffectiveCap = formatNumber(effectiveCapUSD);
   const hasNoLimit = effectiveCapUSD > 1000000000;
   const capacityText = hasNoLimit
     ? null
@@ -842,12 +848,12 @@ const Defi: React.FC = () => {
   const [vesuBTCxsBTCYield] = useAtom(vesuBTCxsBTCYieldAtom);
   const vesuBorrowPools = useAtomValue(vesuBorrowPoolsAtom);
   const vesuPoolsFilterFn = useAtomValue(vesuPoolsFilteredAtom);
-  
+
   // Get all Vesu pools for lending (all verified pools with LST assets)
   const vesuLendingPools = useMemo(() => {
     return vesuPoolsFilterFn({ isVerified: true, collateralIsLST: true });
   }, [vesuPoolsFilterFn]);
-  
+
   // Generate lending configs from pools
   const vesuLendingConfigs = useMemo(() => {
     const configs = createVesuLendingConfigsFromPools(vesuLendingPools);
@@ -865,64 +871,78 @@ const Defi: React.FC = () => {
   const [hyperxsBTCVaultCapacity] = useAtom(hyperxsBTCVaultCapacityAtom);
   const [hyperxSTRKVaultCapacity] = useAtom(hyperxSTRKVaultCapacityAtom);
 
-  // Mapping objects for protocol-to-atom relationships
-  const protocolYieldMap = useMemo(() => ({
-    hyperxWBTC: trovesHyperxWBTCYield,
-    hyperxtBTC: trovesHyperxtBTCYield,
-    hyperxLBTC: trovesHyperxLBTCYield,
-    hyperxsBTC: trovesHyperxsBTCYield,
-    hyperxSTRK: trovesHyperxSTRKYield,
-    ekuboBTCxWBTC: trovesEkuboXWBTCYield,
-    ekuboBTCxtBTC: trovesEkuboXtBTCYield,
-    ekuboBTCxLBTC: trovesEkuboXLBTCYield,
-    ekuboBTCxsBTC: trovesEkuboXsBTCYield,
-    vesuBTCxWBTC: vesuBTCxWBTCYield,
-    vesuBTCxtBTC: vesuBTCxtBTCYield,
-    vesuBTCxLBTC: vesuBTCxLBTCYield,
-    vesuBTCxsBTC: vesuBTCxsBTCYield,
-  }), [
-    trovesHyperxWBTCYield,
-    trovesHyperxtBTCYield,
-    trovesHyperxLBTCYield,
-    trovesHyperxsBTCYield,
-    trovesHyperxSTRKYield,
-    trovesEkuboXWBTCYield,
-    trovesEkuboXtBTCYield,
-    trovesEkuboXLBTCYield,
-    trovesEkuboXsBTCYield,
-    vesuBTCxWBTCYield,
-    vesuBTCxtBTCYield,
-    vesuBTCxLBTCYield,
-    vesuBTCxsBTCYield,
-  ]);
+  // Price atoms for USD conversion
+  const { data: strkPrice } = useAtomValue(assetPriceAtom);
+  const btcPrice = useAtomValue(btcPriceAtom);
 
-  const protocolCapacityMap = useMemo(() => ({
-    hyperxWBTC: hyperxWBTCVaultCapacity,
-    hyperxtBTC: hyperxtBTCVaultCapacity,
-    hyperxLBTC: hyperxLBTCVaultCapacity,
-    hyperxsBTC: hyperxsBTCVaultCapacity,
-    hyperxSTRK: hyperxSTRKVaultCapacity,
-    trovesHyper: hyperxSTRKVaultCapacity,
-  }), [
-    hyperxWBTCVaultCapacity,
-    hyperxtBTCVaultCapacity,
-    hyperxLBTCVaultCapacity,
-    hyperxsBTCVaultCapacity,
-    hyperxSTRKVaultCapacity,
-  ]);
+  // Mapping objects for protocol-to-atom relationships
+  const protocolYieldMap = useMemo(
+    () => ({
+      hyperxWBTC: trovesHyperxWBTCYield,
+      hyperxtBTC: trovesHyperxtBTCYield,
+      hyperxLBTC: trovesHyperxLBTCYield,
+      hyperxsBTC: trovesHyperxsBTCYield,
+      hyperxSTRK: trovesHyperxSTRKYield,
+      ekuboBTCxWBTC: trovesEkuboXWBTCYield,
+      ekuboBTCxtBTC: trovesEkuboXtBTCYield,
+      ekuboBTCxLBTC: trovesEkuboXLBTCYield,
+      ekuboBTCxsBTC: trovesEkuboXsBTCYield,
+      vesuBTCxWBTC: vesuBTCxWBTCYield,
+      vesuBTCxtBTC: vesuBTCxtBTCYield,
+      vesuBTCxLBTC: vesuBTCxLBTCYield,
+      vesuBTCxsBTC: vesuBTCxsBTCYield,
+    }),
+    [
+      trovesHyperxWBTCYield,
+      trovesHyperxtBTCYield,
+      trovesHyperxLBTCYield,
+      trovesHyperxsBTCYield,
+      trovesHyperxSTRKYield,
+      trovesEkuboXWBTCYield,
+      trovesEkuboXtBTCYield,
+      trovesEkuboXLBTCYield,
+      trovesEkuboXsBTCYield,
+      vesuBTCxWBTCYield,
+      vesuBTCxtBTCYield,
+      vesuBTCxLBTCYield,
+      vesuBTCxsBTCYield,
+    ],
+  );
+
+  const protocolCapacityMap = useMemo(
+    () => ({
+      hyperxWBTC: hyperxWBTCVaultCapacity,
+      hyperxtBTC: hyperxtBTCVaultCapacity,
+      hyperxLBTC: hyperxLBTCVaultCapacity,
+      hyperxsBTC: hyperxsBTCVaultCapacity,
+      hyperxSTRK: hyperxSTRKVaultCapacity,
+      trovesHyper: hyperxSTRKVaultCapacity,
+    }),
+    [
+      hyperxWBTCVaultCapacity,
+      hyperxtBTCVaultCapacity,
+      hyperxLBTCVaultCapacity,
+      hyperxsBTCVaultCapacity,
+      hyperxSTRKVaultCapacity,
+    ],
+  );
 
   // Helper function to get vault capacity for a protocol
   const getVaultCapacity = (
     protocol: SupportedDApp,
   ): { used: number; total: number | null } | undefined => {
-    const capacityAtom = protocolCapacityMap[protocol as keyof typeof protocolCapacityMap];
+    const capacityAtom =
+      protocolCapacityMap[protocol as keyof typeof protocolCapacityMap];
     const capacity = capacityAtom?.data;
-    return capacity ? { used: capacity.used, total: capacity.total } : undefined;
+    return capacity
+      ? { used: capacity.used, total: capacity.total }
+      : undefined;
   };
 
   // Helper function to get yield for a protocol
   const getProtocolYield = (protocol: SupportedDApp): number | null => {
-    const yieldAtom = protocolYieldMap[protocol as keyof typeof protocolYieldMap];
+    const yieldAtom =
+      protocolYieldMap[protocol as keyof typeof protocolYieldMap];
     return yieldAtom?.value ?? yields[protocol]?.value ?? null;
   };
 
@@ -973,7 +993,10 @@ const Defi: React.FC = () => {
       const isDebtUSDC = pool.debtSymbol === "USDC";
       configs[key] = {
         tokens: [
-          { icon: getTokenIcon(pool.collateralSymbol), name: pool.collateralSymbol },
+          {
+            icon: getTokenIcon(pool.collateralSymbol),
+            name: pool.collateralSymbol,
+          },
           { icon: getTokenIcon(pool.debtSymbol), name: pool.debtSymbol },
         ],
         protocolIcon: <Icons.vesuLogo className="rounded-full" />,
@@ -985,7 +1008,15 @@ const Defi: React.FC = () => {
           },
         ],
         description: `Borrow ${pool.debtSymbol} against ${pool.collateralSymbol} on Vesu`,
-        apy: pool.borrowApr && pool.supplyApy ? ((pool.borrowApr * pool.maxLTV * MAX_BORROWING_ON_LTV_ASSUMPTION / 100) - pool.supplyApy) / 100 : undefined,
+        apy:
+          pool.borrowApr && pool.supplyApy
+            ? ((pool.borrowApr *
+                pool.maxLTV *
+                MAX_BORROWING_ON_LTV_ASSUMPTION) /
+                100 -
+                pool.supplyApy) /
+              100
+            : undefined,
         externalPointsInfo: "+Vesu Points",
         action: {
           type: "borrow",
@@ -999,10 +1030,16 @@ const Defi: React.FC = () => {
           },
         },
         pointsMultiplier: {
-          min: isDebtUSDC ? POINTS_CONFIG.USDC_BORROWING : (POINTS_CONFIG.STAKING + POINTS_CONFIG.UNDERLYING_BORROWING),
-          max: isDebtUSDC ? (POINTS_CONFIG.USDC_BORROWING + POINTS_CONFIG.STAKING) : (POINTS_CONFIG.UNDERLYING_BORROWING + POINTS_CONFIG.STAKING),
-          description: isDebtUSDC ? `Earn 3x season 2 points on borrowing stablecoins value + 1x on staked assets value` : `Earn 1x season 2 points on staked assets value while borrowing underlying assets. Staking these borrowed assets will earn you additional points, simply depending on the assets you stake.`,
-        }
+          min: isDebtUSDC
+            ? POINTS_CONFIG.USDC_BORROWING
+            : POINTS_CONFIG.STAKING + POINTS_CONFIG.UNDERLYING_BORROWING,
+          max: isDebtUSDC
+            ? POINTS_CONFIG.USDC_BORROWING + POINTS_CONFIG.STAKING
+            : POINTS_CONFIG.UNDERLYING_BORROWING + POINTS_CONFIG.STAKING,
+          description: isDebtUSDC
+            ? `Earn 3x season 2 points on borrowing stablecoins value + 1x on staked assets value`
+            : `Earn 1x season 2 points on staked assets value while borrowing underlying assets. Staking these borrowed assets will earn you additional points, simply depending on the assets you stake.`,
+        },
       };
     });
     return configs;
@@ -1010,8 +1047,8 @@ const Defi: React.FC = () => {
 
   // Combine all protocol configs including dynamic Vesu borrow and lending pools
   const protocolConfigsWithBorrow = useMemo(() => {
-    return { 
-      ...protocolConfigs, 
+    return {
+      ...protocolConfigs,
       ...vesuBorrowConfigs,
       ...vesuLendingConfigs,
     } as Record<string, ProtocolConfig>;
@@ -1042,34 +1079,38 @@ const Defi: React.FC = () => {
     return Object.keys(vesuBorrowConfigs);
   }, [vesuBorrowConfigs]);
 
-    // Helper to get capacity for a protocol
-    const getProtocolCapacity = (
-      protocol: string,
-      config: ProtocolConfig,
-      tab: "supply" | "borrow",
-    ): { used: number; total: number | null } | undefined => {
-      if (tab === "borrow" && config.tokens.length >= 2) {
-        const pool = vesuBorrowPools.find(
-          (p) =>
-            p.collateralSymbol === config.tokens[0].name &&
-            p.debtSymbol === config.tokens[1].name,
-        );
-        if (pool && pool.debtCap > 0 && pool.debtCap >= 0.01) {
-          return { used: pool.totalDebt, total: pool.debtCap };
-        }
-        return undefined;
+  // Helper to get capacity for a protocol
+  const getProtocolCapacity = (
+    protocol: string,
+    config: ProtocolConfig,
+    tab: "supply" | "borrow",
+  ): { used: number; total: number | null } | undefined => {
+    if (tab === "borrow" && config.tokens.length >= 2) {
+      const pool = vesuBorrowPools.find(
+        (p) =>
+          p.collateralSymbol === config.tokens[0].name &&
+          p.debtSymbol === config.tokens[1].name,
+      );
+      if (pool && pool.debtCap > 0 && pool.debtCap >= 0.01) {
+        return { used: pool.totalDebt, total: pool.debtCap };
       }
-  
-      // Supply tab
-      const protocolKey = protocol as SupportedDApp;
-      if (protocolKey === "vesu" || protocolKey.startsWith("vesuBTC") || noLimitProtocols.has(protocolKey)) {
-        return undefined; // No limit
-      }
-      
-      // Check if it's a hyper vault that has capacity
-      return getVaultCapacity(protocolKey);
+      return undefined;
+    }
+
+    // Supply tab
+    const protocolKey = protocol as SupportedDApp;
+    if (
+      protocolKey === "vesu" ||
+      protocolKey.startsWith("vesuBTC") ||
+      noLimitProtocols.has(protocolKey)
+    ) {
+      return undefined; // No limit
+    }
+
+    // Check if it's a hyper vault that has capacity
+    return getVaultCapacity(protocolKey);
   };
-    
+
   // Get lending protocol keys (including dynamic Vesu lending)
   const lendingProtocolKeys = useMemo(() => {
     return Object.keys(vesuLendingConfigs);
@@ -1078,12 +1119,15 @@ const Defi: React.FC = () => {
   // Filter and sort protocols based on active tab and filters
   const filteredAndSortedProtocols = useMemo(() => {
     const currentProtocols =
-      activeTab === "supply" 
+      activeTab === "supply"
         ? [...supplyProtocols, ...lendingProtocolKeys]
         : borrowProtocolKeys;
     const configsToUse: Record<string, ProtocolConfig> =
       activeTab === "supply"
-        ? { ...protocolConfigs, ...vesuLendingConfigs } as Record<string, ProtocolConfig>
+        ? ({ ...protocolConfigs, ...vesuLendingConfigs } as Record<
+            string,
+            ProtocolConfig
+          >)
         : protocolConfigsWithBorrow;
 
     return currentProtocols
@@ -1117,9 +1161,19 @@ const Defi: React.FC = () => {
             ? -1 * configB.apy * 100
             : (getProtocolYield(b as SupportedDApp) ?? -Infinity);
 
-        const usedA = getProtocolCapacity(a as SupportedDApp, configA, activeTab)?.used;
-        const usedB = getProtocolCapacity(b as SupportedDApp, configB, activeTab)?.used;
-        console.log(`usedA: ${usedA}, usedB: ${usedB}, configA: ${configA.protocolName}, configB: ${configB.protocolName}`);
+        const usedA = getProtocolCapacity(
+          a as SupportedDApp,
+          configA,
+          activeTab,
+        )?.used;
+        const usedB = getProtocolCapacity(
+          b as SupportedDApp,
+          configB,
+          activeTab,
+        )?.used;
+        console.log(
+          `usedA: ${usedA}, usedB: ${usedB}, configA: ${configA.protocolName}, configB: ${configB.protocolName}`,
+        );
         if (usedA && usedB) {
           return usedB - usedA;
         }
@@ -1159,9 +1213,10 @@ const Defi: React.FC = () => {
       }
     | undefined => {
     const shouldShowApy = !noApyProtocols.has(protocol);
-    
+
     // Check if protocol has a dedicated yield atom
-    const yieldAtom = protocolYieldMap[protocol as keyof typeof protocolYieldMap];
+    const yieldAtom =
+      protocolYieldMap[protocol as keyof typeof protocolYieldMap];
     if (yieldAtom) {
       return {
         value: yieldAtom.value ?? null,
@@ -1169,7 +1224,7 @@ const Defi: React.FC = () => {
         isLoading: yieldAtom.isLoading ?? false,
       };
     }
-    
+
     // Other protocols use the yields from protocolYieldsAtom
     return shouldShowApy ? yields[protocol] : undefined;
   };
@@ -1198,7 +1253,7 @@ const Defi: React.FC = () => {
       // Find matching borrow pool data for maxLTV and pool name
       let pool: VesuBorrowPool | undefined;
       let maxLTV: number | undefined;
-      
+
       if (activeTab === "borrow" && config.tokens.length >= 2) {
         pool = vesuBorrowPools.find(
           (p) =>
@@ -1262,13 +1317,22 @@ const Defi: React.FC = () => {
     "xSolvBTC",
   ];
 
-  const protocolFilters: ProtocolFilter[] = ["all", "Ekubo", "Vesu", "Nostra", "Troves"];
+  const protocolFilters: ProtocolFilter[] = [
+    "all",
+    "Ekubo",
+    "Vesu",
+    "Nostra",
+    "Troves",
+  ];
 
   return (
     <div
-      className={cn("mx-auto px-2 w-full max-w-[calc(100vw-1rem)] lg:max-w-4xl", {
-        "lg:pl-28": !isPinned,
-      })}
+      className={cn(
+        "mx-auto w-full max-w-[calc(100vw-1rem)] px-2 lg:max-w-4xl",
+        {
+          "lg:pl-28": !isPinned,
+        },
+      )}
     >
       <Dialog
         open={showDisclaimer}
@@ -1304,9 +1368,7 @@ const Defi: React.FC = () => {
         </DialogContent>
       </Dialog>
 
-      <div
-        className={cn("w-full")}
-      >
+      <div className={cn("w-full")}>
         <MyHeader
           title="DeFi opportunities"
           description="Put your STRK and BTC LSTs to work in Starknet DeFi — earn extra yield, unlock liquidity, and rack up points."
@@ -1329,7 +1391,10 @@ const Defi: React.FC = () => {
                   {[
                     { value: "supply", label: "Earn" },
                     { value: "borrow", label: "Borrow" },
-                    { value: "contribute-liquidity", label: "Contribute liquidity" },
+                    {
+                      value: "contribute-liquidity",
+                      label: "Contribute liquidity",
+                    },
                   ].map((tab) => (
                     <TabsTrigger
                       key={tab.value}
@@ -1434,18 +1499,34 @@ const Defi: React.FC = () => {
                             const badgeType = config.badges[0]?.type || "";
 
                             // Calculate capacity for supply tab
-                            const capacity = getProtocolCapacity(protocol, config, "supply");
+                            const capacity = getProtocolCapacity(
+                              protocol,
+                              config,
+                              "supply",
+                            );
+
+                            // Capacity values from store are already in USD
+                            // Check if maxed out (used >= total)
+                            const isMaxedOut =
+                              capacity &&
+                              capacity.total !== null &&
+                              capacity.used >= capacity.total;
 
                             const capacityText = capacity
                               ? capacity.total === null
                                 ? null // No limit - will show "No limit" instead
-                                : `$${formatNumber(capacity.used)} used of $${formatNumber(capacity.total)}`
+                                : isMaxedOut
+                                  ? "Maxed out"
+                                  : `$${formatNumber(capacity.used)} used of $${formatNumber(capacity.total)}`
                               : null;
                             const capacityPercent =
                               capacity &&
                               capacity.total !== null &&
                               capacity.total > 0
-                                ? (capacity.used / capacity.total) * 100
+                                ? Math.min(
+                                    (capacity.used / capacity.total) * 100,
+                                    100,
+                                  )
                                 : 0;
 
                             return (
@@ -1551,13 +1632,21 @@ const Defi: React.FC = () => {
                                       <div className="flex flex-1 flex-col items-center justify-center">
                                         {config.pointsMultiplier ? (
                                           <MyDottedTooltip
-                                            tooltip={config.pointsMultiplier.description}
+                                            tooltip={
+                                              config.pointsMultiplier
+                                                .description
+                                            }
                                             className="text-sm text-[#1A1F24]"
                                           >
-                                            {config.pointsMultiplier.min == config.pointsMultiplier.max ? `${config.pointsMultiplier.min}x` : `${config.pointsMultiplier.min}x - ${config.pointsMultiplier.max}x`}
+                                            {config.pointsMultiplier.min ==
+                                            config.pointsMultiplier.max
+                                              ? `${config.pointsMultiplier.min}x`
+                                              : `${config.pointsMultiplier.min}x - ${config.pointsMultiplier.max}x`}
                                           </MyDottedTooltip>
                                         ) : (
-                                          <span className="text-[#6B7780]">-</span>
+                                          <span className="text-[#6B7780]">
+                                            -
+                                          </span>
                                         )}
                                       </div>
                                     </div>
@@ -1647,7 +1736,7 @@ const Defi: React.FC = () => {
                           </th>
                           <th className="w-[25%] bg-white px-6 py-2 text-center text-sm font-medium text-[#5B616D] shadow-sm">
                             <div className="flex items-center justify-center gap-1">
-                            Effective Borrow APY
+                              Effective Borrow APY
                               <TooltipProvider delayDuration={0}>
                                 <Tooltip>
                                   <TooltipTrigger asChild>
@@ -1657,10 +1746,23 @@ const Defi: React.FC = () => {
                                     side="top"
                                     className="max-w-xs rounded-md border border-[#03624C] bg-white text-xs text-[#03624C]"
                                   >
-                                    <p>Effective Borrow APY assumes borrowing at 80% of max Loan to Value (LTV) and subtracts the LST APY from the borrow APR. This is an estimate for convenience — actual yield depends on how much you borrow.</p>
-                                    <br/>
-                                    <p><b>Negative:</b> You are earning more than you are borrowing rate.</p>
-                                    <p><b>Positive:</b> You are borrowing rate is more than you are collateral APY.</p>
+                                    <p>
+                                      Effective Borrow APY assumes borrowing at
+                                      80% of max Loan to Value (LTV) and
+                                      subtracts the LST APY from the borrow APR.
+                                      This is an estimate for convenience —
+                                      actual yield depends on how much you
+                                      borrow.
+                                    </p>
+                                    <br />
+                                    <p>
+                                      <b>Negative:</b> You are earning more than
+                                      you are borrowing rate.
+                                    </p>
+                                    <p>
+                                      <b>Positive:</b> You are borrowing rate is
+                                      more than you are collateral APY.
+                                    </p>
                                   </TooltipContent>
                                 </Tooltip>
                               </TooltipProvider>
@@ -1677,266 +1779,287 @@ const Defi: React.FC = () => {
                       <tbody>
                         {filteredAndSortedProtocols.length > 0 ? (
                           filteredAndSortedProtocols
-                          .filter((protocol) => {
-                            const config = protocolConfigsWithBorrow[protocol];
-                            return !!config;
-                          })
-                          .sort((protocolA, protocolB) => {
-                            const configA = protocolConfigsWithBorrow[protocolA];
-                            const configB = protocolConfigsWithBorrow[protocolB];
-                            if (!configA || !configB) return 0;
-                            
-                            const borrowDataA = calculateBorrowPoolData(
-                              configA,
-                              vesuBorrowPools,
-                              formatNumber,
-                            );
-                            const borrowDataB = calculateBorrowPoolData(
-                              configB,
-                              vesuBorrowPools,
-                              formatNumber,
-                            );
-                            return borrowDataB.effectiveCapUSD - borrowDataA.effectiveCapUSD;
-                          })
-                          .map((protocol) => {
-                            const config = protocolConfigsWithBorrow[protocol];
-                            const {
-                              apyValue,
-                              isLoading,
-                              tokenPair,
-                              primaryToken,
-                              secondaryToken,
-                              badgeType,
-                              pool,
-                              capacityText,
-                              capacityUsed,
-                              supplyApy,
-                              borrowApr,
-                              debtPrice,
-                              debtCap,
-                              totalSupplied
-                            } = calculateBorrowPoolData(
-                              config,
-                              vesuBorrowPools,
-                              formatNumber,
-                            );
+                            .filter((protocol) => {
+                              const config =
+                                protocolConfigsWithBorrow[protocol];
+                              return !!config;
+                            })
+                            .sort((protocolA, protocolB) => {
+                              const configA =
+                                protocolConfigsWithBorrow[protocolA];
+                              const configB =
+                                protocolConfigsWithBorrow[protocolB];
+                              if (!configA || !configB) return 0;
 
-                            // Accent colors: green for supply, yellow/orange for borrow
-                            const isBorrowPool = activeTab === "borrow";
-                            const accentColor = isBorrowPool && apyValue && apyValue > 0
-                              ? {
-                                  yieldBg: "bg-[#FEF3C7]",
-                                  yieldText: "text-[#D97706]",
-                                  buttonBg: "bg-[#F59E0B]",
-                                  progressBar: "bg-[#F59E0B]",
-                                }
-                              : {
-                                  yieldBg: "bg-[#D1FAE5]",
-                                  yieldText: "text-[#059669]",
-                                  buttonBg: "bg-[#10B981]",
-                                  progressBar: "bg-[#10B981]",
-                                };
+                              const borrowDataA = calculateBorrowPoolData(
+                                configA,
+                                vesuBorrowPools,
+                                formatNumber,
+                              );
+                              const borrowDataB = calculateBorrowPoolData(
+                                configB,
+                                vesuBorrowPools,
+                                formatNumber,
+                              );
+                              return (
+                                borrowDataB.effectiveCapUSD -
+                                borrowDataA.effectiveCapUSD
+                              );
+                            })
+                            .map((protocol) => {
+                              const config =
+                                protocolConfigsWithBorrow[protocol];
+                              const {
+                                apyValue,
+                                isLoading,
+                                tokenPair,
+                                primaryToken,
+                                secondaryToken,
+                                badgeType,
+                                pool,
+                                capacityText,
+                                capacityUsed,
+                                supplyApy,
+                                borrowApr,
+                                debtPrice,
+                                debtCap,
+                                totalSupplied,
+                              } = calculateBorrowPoolData(
+                                config,
+                                vesuBorrowPools,
+                                formatNumber,
+                              );
 
-                            return (
-                              <tr key={protocol}>
-                                <td
-                                  colSpan={4}
-                                  className={cn("p-0", "rounded-2xl")}
-                                >
-                                  <Card
-                                    className={cn("bg-white", "flex flex-col")}
+                              // Accent colors: green for supply, yellow/orange for borrow
+                              const isBorrowPool = activeTab === "borrow";
+                              const accentColor =
+                                isBorrowPool && apyValue && apyValue > 0
+                                  ? {
+                                      yieldBg: "bg-[#FEF3C7]",
+                                      yieldText: "text-[#D97706]",
+                                      buttonBg: "bg-[#F59E0B]",
+                                      progressBar: "bg-[#F59E0B]",
+                                    }
+                                  : {
+                                      yieldBg: "bg-[#D1FAE5]",
+                                      yieldText: "text-[#059669]",
+                                      buttonBg: "bg-[#10B981]",
+                                      progressBar: "bg-[#10B981]",
+                                    };
+
+                              return (
+                                <tr key={protocol}>
+                                  <td
+                                    colSpan={4}
+                                    className={cn("p-0", "rounded-2xl")}
                                   >
-                                    {/* Main Row */}
-                                    <div
+                                    <Card
                                       className={cn(
-                                        "px-4 py-8",
-                                        "flex items-center gap-4",
-                                        "shadow-[0_1px_1px_-0.5px_rgba(0,0,0,0.08),_0_3px_3px_-1.5px_rgba(0,0,0,0.08),_0_2px_2px_-2px_rgba(0,0,0,0.08),_0_2px_2px_-6px_rgba(0,0,0,0.08)]",
+                                        "bg-white",
+                                        "flex flex-col",
                                       )}
                                     >
-                                      {/* Pair & Pool Column */}
-                                      <div className="flex flex-1 items-start gap-3">
-                                        <div className="flex items-center -space-x-6">
-                                          {primaryToken && (
-                                            <div className="flex h-10 w-10 items-center justify-center rounded-full">
-                                              {primaryToken.icon}
+                                      {/* Main Row */}
+                                      <div
+                                        className={cn(
+                                          "px-4 py-8",
+                                          "flex items-center gap-4",
+                                          "shadow-[0_1px_1px_-0.5px_rgba(0,0,0,0.08),_0_3px_3px_-1.5px_rgba(0,0,0,0.08),_0_2px_2px_-2px_rgba(0,0,0,0.08),_0_2px_2px_-6px_rgba(0,0,0,0.08)]",
+                                        )}
+                                      >
+                                        {/* Pair & Pool Column */}
+                                        <div className="flex flex-1 items-start gap-3">
+                                          <div className="flex items-center -space-x-6">
+                                            {primaryToken && (
+                                              <div className="flex h-10 w-10 items-center justify-center rounded-full">
+                                                {primaryToken.icon}
+                                              </div>
+                                            )}
+                                            {secondaryToken && (
+                                              <div className="flex h-10 w-10 items-center justify-center rounded-full">
+                                                {secondaryToken.icon}
+                                              </div>
+                                            )}
+                                          </div>
+                                          <div className="flex-1">
+                                            <div className="font-medium text-[#1A1F24]">
+                                              {tokenPair}
                                             </div>
+                                            <div className="mt-1.5">
+                                              <span
+                                                className={cn(
+                                                  "rounded-full px-2 py-0.5 text-xs font-medium",
+                                                  config.badges[0]?.color ||
+                                                    "bg-gray-100 text-gray-600",
+                                                )}
+                                              >
+                                                {badgeType}
+                                              </span>
+                                            </div>
+                                          </div>
+                                        </div>
+
+                                        {/* Yield Column */}
+                                        <div className="flex flex-1 flex-col items-center justify-center">
+                                          {isLoading ? (
+                                            <div className="w-fit animate-pulse rounded-lg bg-gray-200" />
+                                          ) : apyValue !== null ? (
+                                            <div className="flex flex-col gap-1">
+                                              <div
+                                                className={cn(
+                                                  "w-fit rounded-lg border px-2 py-1 text-sm font-semibold",
+                                                  accentColor.yieldBg,
+                                                  accentColor.yieldText,
+                                                  isBorrowPool && apyValue > 0
+                                                    ? "border-[#D97706]"
+                                                    : "border-[#059669]",
+                                                )}
+                                              >
+                                                {apyValue.toFixed(2)}%
+                                              </div>
+                                              <div className="text-xs text-[#6B7780]">
+                                                Supply yield:{" "}
+                                                {supplyApy.toFixed(2)}%
+                                              </div>
+                                              <div className="text-xs text-[#6B7780]">
+                                                Borrow rate:{" "}
+                                                {borrowApr.toFixed(2)}%
+                                              </div>
+                                            </div>
+                                          ) : (
+                                            <span className="text-[#6B7780]">
+                                              -
+                                            </span>
                                           )}
-                                          {secondaryToken && (
-                                            <div className="flex h-10 w-10 items-center justify-center rounded-full">
-                                              {secondaryToken.icon}
+                                        </div>
+
+                                        {/* Capacity Column */}
+                                        <div className="flex flex-1 flex-col items-center justify-center">
+                                          {capacityText ? (
+                                            <div>
+                                              <div className="mb-2 text-sm text-[#1A1F24]">
+                                                {capacityText}
+                                              </div>
+                                              <Progress
+                                                value={Math.min(
+                                                  capacityUsed,
+                                                  100,
+                                                )}
+                                                className="h-1.5 bg-[#E6F1EF]"
+                                                indicatorClassName={
+                                                  accentColor.progressBar
+                                                }
+                                              />
+                                              {pool &&
+                                                pool.maxLTV !== undefined && (
+                                                  <div className="mt-2 text-xs text-[#6B7780]">
+                                                    Max LTV -{" "}
+                                                    {pool.maxLTV.toFixed(0)}%
+                                                  </div>
+                                                )}
+                                            </div>
+                                          ) : (
+                                            <div>
+                                              <div className="text-sm text-[#1A1F24]">
+                                                Limitless
+                                              </div>
+                                              {pool &&
+                                                pool.maxLTV !== undefined && (
+                                                  <div className="mt-2 text-xs text-[#6B7780]">
+                                                    Max LTV -{" "}
+                                                    {pool.maxLTV.toFixed(0)}%
+                                                  </div>
+                                                )}
                                             </div>
                                           )}
                                         </div>
-                                        <div className="flex-1">
-                                          <div className="font-medium text-[#1A1F24]">
-                                            {tokenPair}
-                                          </div>
-                                          <div className="mt-1.5">
-                                            <span
-                                              className={cn(
-                                                "rounded-full px-2 py-0.5 text-xs font-medium",
-                                                config.badges[0]?.color ||
-                                                  "bg-gray-100 text-gray-600",
-                                              )}
+
+                                        {/* Points Multiplier Column */}
+                                        <div className="flex flex-1 flex-col items-center justify-center">
+                                          {config.pointsMultiplier ? (
+                                            <MyDottedTooltip
+                                              tooltip={
+                                                config.pointsMultiplier
+                                                  .description
+                                              }
+                                              className="text-sm text-[#1A1F24]"
                                             >
-                                              {badgeType}
+                                              {config.pointsMultiplier.min ==
+                                              config.pointsMultiplier.max
+                                                ? `${config.pointsMultiplier.min}x`
+                                                : `${config.pointsMultiplier.min}x - ${config.pointsMultiplier.max}x`}
+                                            </MyDottedTooltip>
+                                          ) : (
+                                            <span className="text-[#6B7780]">
+                                              -
+                                            </span>
+                                          )}
+                                        </div>
+                                      </div>
+
+                                      {/* Bottom Section */}
+                                      <div className="px-6 py-2">
+                                        <div className="flex items-center gap-4">
+                                          {/* Protocol */}
+                                          <div className="flex flex-1 items-center gap-2">
+                                            <span className="text-xs text-[#6B7780]">
+                                              Provider:
+                                            </span>
+                                            <div className="flex h-5 w-5 items-center justify-center">
+                                              {config.protocolIcon}
+                                            </div>
+                                            <span className="text-xs font-medium text-[#1A1F24]">
+                                              {config.protocolName}
                                             </span>
                                           </div>
-                                        </div>
-                                      </div>
 
-                                      {/* Yield Column */}
-                                      <div className="flex flex-1 flex-col items-center justify-center">
-                                        {isLoading ? (
-                                          <div className="w-fit animate-pulse rounded-lg bg-gray-200" />
-                                        ) : apyValue !== null ? (
-                                          <div className="flex flex-col gap-1">
-                                            <div
-                                              className={cn(
-                                                "w-fit rounded-lg border px-2 py-1 text-sm font-semibold",
-                                                accentColor.yieldBg,
-                                                accentColor.yieldText,
-                                                isBorrowPool && apyValue > 0
-                                                  ? "border-[#D97706]"
-                                                  : "border-[#059669]",
-                                              )}
-                                            >
-                                              {apyValue.toFixed(2)}%
-                                            </div>
-                                            <div className="text-xs text-[#6B7780]">
-                                              Supply yield: {supplyApy.toFixed(2)}%
-                                            </div>
-                                            <div className="text-xs text-[#6B7780]">
-                                              Borrow rate: {borrowApr.toFixed(2)}%
-                                            </div>
-                                          </div>
-                                        ) : (
-                                          <span className="text-[#6B7780]">
-                                            -
-                                          </span>
-                                        )}
-                                      </div>
+                                          {/* Rewards (empty) */}
+                                          <div className="flex-1"></div>
 
-                                      {/* Capacity Column */}
-                                      <div className="flex flex-1 flex-col items-center justify-center">
-                                        {capacityText ? (
-                                          <div>
-                                            <div className="mb-2 text-sm text-[#1A1F24]">
-                                              {capacityText}
-                                            </div>
-                                            <Progress
-                                              value={Math.min(
-                                                capacityUsed,
-                                                100,
-                                              )}
-                                              className="h-1.5 bg-[#E6F1EF]"
-                                              indicatorClassName={
-                                                accentColor.progressBar
-                                              }
-                                            />
-                                            {pool &&
-                                              pool.maxLTV !== undefined && (
-                                                <div className="mt-2 text-xs text-[#6B7780]">
-                                                  Max LTV -{" "}
-                                                  {pool.maxLTV.toFixed(0)}%
-                                                </div>
-                                              )}
-                                          </div>
-                                        ) : (
-                                          <div>
-                                            <div className="text-sm text-[#1A1F24]">
-                                              Limitless
-                                            </div>
-                                            {pool &&
-                                              pool.maxLTV !== undefined && (
-                                                <div className="mt-2 text-xs text-[#6B7780]">
-                                                  Max LTV -{" "}
-                                                  {pool.maxLTV.toFixed(0)}%
-                                                </div>
-                                              )}
-                                          </div>
-                                        )}
-                                      </div>
-
-                                      {/* Points Multiplier Column */}
-                                      <div className="flex flex-1 flex-col items-center justify-center">
-                                        {config.pointsMultiplier ? (
-                                          <MyDottedTooltip
-                                            tooltip={config.pointsMultiplier.description}
-                                            className="text-sm text-[#1A1F24]"
-                                          >
-                                            {config.pointsMultiplier.min == config.pointsMultiplier.max ? `${config.pointsMultiplier.min}x` : `${config.pointsMultiplier.min}x - ${config.pointsMultiplier.max}x`}
-                                          </MyDottedTooltip>
-                                        ) : (
-                                          <span className="text-[#6B7780]">-</span>
-                                        )}
-                                      </div>
-                                    </div>
-
-                                    {/* Bottom Section */}
-                                    <div className="px-6 py-2">
-                                      <div className="flex items-center gap-4">
-                                        {/* Protocol */}
-                                        <div className="flex flex-1 items-center gap-2">
-                                          <span className="text-xs text-[#6B7780]">
-                                            Provider:
-                                          </span>
-                                          <div className="flex h-5 w-5 items-center justify-center">
-                                            {config.protocolIcon}
-                                          </div>
-                                          <span className="text-xs font-medium text-[#1A1F24]">
-                                            {config.protocolName}
-                                          </span>
-                                        </div>
-
-                                        {/* Rewards (empty) */}
-                                        <div className="flex-1"></div>
-
-                                        {/* Description and Action Button */}
-                                        <div className="flex min-w-0 flex-1 items-center justify-end gap-2">
-                                          <span className="truncate text-xs text-[#1A1F24]">
-                                            {config.description}
-                                          </span>
-                                          <TooltipProvider delayDuration={0}>
-                                            <Tooltip>
-                                              <TooltipTrigger asChild>
-                                                <HelpCircle className="h-4 w-4 shrink-0 cursor-help text-[#6B7780]" />
-                                              </TooltipTrigger>
-                                              <TooltipContent
-                                                side="top"
-                                                className="max-w-xs rounded-md border border-[#03624C] bg-white text-xs text-[#03624C]"
+                                          {/* Description and Action Button */}
+                                          <div className="flex min-w-0 flex-1 items-center justify-end gap-2">
+                                            <span className="truncate text-xs text-[#1A1F24]">
+                                              {config.description}
+                                            </span>
+                                            <TooltipProvider delayDuration={0}>
+                                              <Tooltip>
+                                                <TooltipTrigger asChild>
+                                                  <HelpCircle className="h-4 w-4 shrink-0 cursor-help text-[#6B7780]" />
+                                                </TooltipTrigger>
+                                                <TooltipContent
+                                                  side="top"
+                                                  className="max-w-xs rounded-md border border-[#03624C] bg-white text-xs text-[#03624C]"
+                                                >
+                                                  {config.description}
+                                                </TooltipContent>
+                                              </Tooltip>
+                                            </TooltipProvider>
+                                            {config.action && (
+                                              <button
+                                                onClick={() => {
+                                                  if (config.action?.link) {
+                                                    handleCTAClick(
+                                                      config.action.link,
+                                                      config.action.onClick,
+                                                    );
+                                                  }
+                                                }}
+                                                className={cn(
+                                                  "w-32 rounded-full px-4 py-1.5 text-xs font-medium text-white transition-opacity hover:opacity-90",
+                                                  accentColor.buttonBg,
+                                                )}
                                               >
-                                                {config.description}
-                                              </TooltipContent>
-                                            </Tooltip>
-                                          </TooltipProvider>
-                                          {config.action && (
-                                            <button
-                                              onClick={() => {
-                                                if (config.action?.link) {
-                                                  handleCTAClick(
-                                                    config.action.link,
-                                                    config.action.onClick,
-                                                  );
-                                                }
-                                              }}
-                                              className={cn(
-                                                "w-32 rounded-full px-4 py-1.5 text-xs font-medium text-white transition-opacity hover:opacity-90",
-                                                accentColor.buttonBg,
-                                              )}
-                                            >
-                                              {config.action.buttonText}
-                                            </button>
-                                          )}
+                                                {config.action.buttonText}
+                                              </button>
+                                            )}
+                                          </div>
                                         </div>
                                       </div>
-                                    </div>
-                                  </Card>
-                                </td>
-                              </tr>
-                            );
-                          })
+                                    </Card>
+                                  </td>
+                                </tr>
+                              );
+                            })
                         ) : (
                           <tr>
                             <td
