@@ -211,6 +211,7 @@ interface UnstakeOptionCardProps {
   isLoading?: boolean;
   isRecommended?: boolean;
   isBestRate?: boolean;
+  percentDiff?: number | null;
 }
 
 const UnstakeOptionCard = ({
@@ -222,6 +223,7 @@ const UnstakeOptionCard = ({
   isLoading,
   isRecommended,
   isBestRate,
+  percentDiff,
 }: UnstakeOptionCardProps) => {
   const lstConfig = useAtomValue(lstConfigAtom)!;
 
@@ -274,9 +276,25 @@ const UnstakeOptionCard = ({
             </TooltipProvider>
           )}
         </div>
-        <p className={isBestRate ? "font-semibold text-[#17876D]" : ""}>
-          {isLoading ? "Loading..." : `1=${Number(rate).toFixed(4)}`}
-        </p>
+        <div className="flex items-center gap-2">
+          <p className={isBestRate ? "font-semibold text-[#17876D]" : ""}>
+            {isLoading ? "Loading..." : `1=${Number(rate).toFixed(4)}`}
+          </p>
+          {percentDiff !== null && percentDiff !== undefined && !isLoading && (
+            <p
+              className={`text-xs ${
+                percentDiff > 0
+                  ? "font-semibold text-[#17876D]"
+                  : percentDiff < 0
+                    ? "text-[#939494]"
+                    : ""
+              }`}
+            >
+              {percentDiff > 0 ? "+" : ""}
+              {percentDiff.toFixed(2)}%
+            </p>
+          )}
+        </div>
       </div>
 
       <div className="flex w-full items-center justify-between text-xs text-[#939494] lg:text-[13px]">
@@ -561,6 +579,31 @@ const Unstake = () => {
     return endurRate > dexRate ? "endur" : "dex";
   };
 
+  const calculatePercentDiff = (
+    rate1: number,
+    rate2: number,
+  ): number | null => {
+    if (rate1 === 0 || rate2 === 0) return null;
+    // Calculate percentage difference: ((rate1 - rate2) / rate2) * 100
+    return ((rate1 - rate2) / rate2) * 100;
+  };
+
+  const endurPercentDiff = React.useMemo(() => {
+    const endurRate = exRate.rate;
+    const dexRate = avnuQuote
+      ? Number(avnuQuote.buyAmount) / Number(avnuQuote.sellAmount)
+      : 0;
+    return calculatePercentDiff(endurRate, dexRate);
+  }, [exRate.rate, avnuQuote]);
+
+  const dexPercentDiff = React.useMemo(() => {
+    const endurRate = exRate.rate;
+    const dexRate = avnuQuote
+      ? Number(avnuQuote.buyAmount) / Number(avnuQuote.sellAmount)
+      : 0;
+    return calculatePercentDiff(dexRate, endurRate);
+  }, [exRate.rate, avnuQuote]);
+
   const onSubmit = async (values: FormValues) => {
     if (!address) {
       return toast({
@@ -748,6 +791,8 @@ const Unstake = () => {
             rate={exRate.rate}
             waitingTime={waitingTime}
             isBestRate={getBetterRate() === "endur"}
+            isRecommended={getBetterRate() === "endur"}
+            percentDiff={endurPercentDiff}
           />
 
           {isMainnet() && (
@@ -760,8 +805,9 @@ const Unstake = () => {
               rate={dexRate}
               waitingTime="Instant"
               isLoading={avnuLoading}
-              isRecommended
+              isRecommended={getBetterRate() === "dex"}
               isBestRate={getBetterRate() === "dex"}
+              percentDiff={dexPercentDiff}
             />
           )}
         </TabsList>
