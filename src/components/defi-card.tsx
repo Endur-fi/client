@@ -1,6 +1,6 @@
 import Link from "next/link";
 import React from "react";
-import { Star, HelpCircle } from "lucide-react";
+import { Star, HelpCircle, Sparkles } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -41,6 +41,7 @@ interface DefiCardProps {
     total: number | null; // null means no limit
   };
   rewardPoints?: string;
+  pointsMultiplier?: { min: number; max: number; description: string };
   onActionClick?: (link: string, onClick?: () => void) => void;
 }
 
@@ -55,6 +56,7 @@ const DefiCard: React.FC<DefiCardProps> = ({
   maxLTV,
   capacity,
   rewardPoints,
+  pointsMultiplier,
   onActionClick,
 }) => {
   // Accent colors: green for supply, yellow/orange for borrow
@@ -142,11 +144,14 @@ const DefiCard: React.FC<DefiCardProps> = ({
           <div className="flex h-6 w-6 items-center justify-center rounded">
             {protocolIcon}
           </div>
-          {/* Max LTV */}
-          {maxLTV !== undefined && (
-            <span className="text-xs text-[#6B7780]">
-              Max LTV - {maxLTV.toFixed(0)}%
-            </span>
+          {/* Points Multiplier */}
+          {pointsMultiplier && (
+            <div className="flex w-fit items-center gap-1 rounded-lg border border-[#059669] bg-[#D1FAE5] px-2 py-1 text-sm font-semibold text-[#059669]">
+              <Sparkles className="size-3.5" />
+              {pointsMultiplier.min === pointsMultiplier.max
+                ? `${pointsMultiplier.min}x`
+                : `${pointsMultiplier.min}x - ${pointsMultiplier.max}x`}
+            </div>
           )}
         </div>
       </div>
@@ -188,12 +193,24 @@ const DefiCard: React.FC<DefiCardProps> = ({
                   isBorrow ? "[&>div]:bg-[#F59E0B]" : "[&>div]:bg-[#10B981]",
                 )}
               />
+              {/* Max LTV */}
+              {maxLTV !== undefined && (
+                <div className="mt-2 text-right text-xs text-[#6B7780]">
+                  Max LTV - {maxLTV.toFixed(0)}%
+                </div>
+              )}
             </div>
           ) : (
             <div className="mb-4">
               <div className="mb-2 text-xs text-[#6B7780]">
                 <span className="font-medium text-[#1A1F24]">Limitless</span>
               </div>
+              {/* Max LTV */}
+              {maxLTV !== undefined && (
+                <div className="mt-2 text-right text-xs text-[#6B7780]">
+                  Max LTV - {maxLTV.toFixed(0)}%
+                </div>
+              )}
             </div>
           )
         ) : null}

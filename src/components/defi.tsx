@@ -1567,6 +1567,7 @@ const Defi: React.FC = () => {
             isBorrow={activeTab === "borrow"}
             maxLTV={maxLTV}
             capacity={capacity}
+            pointsMultiplier={config.pointsMultiplier}
             onActionClick={handleCTAClick}
           />
         ));
@@ -1584,6 +1585,7 @@ const Defi: React.FC = () => {
           isBorrow={activeTab === "borrow"}
           maxLTV={maxLTV}
           capacity={capacity}
+          pointsMultiplier={config.pointsMultiplier}
           onActionClick={handleCTAClick}
         />
       );
@@ -1704,7 +1706,7 @@ const Defi: React.FC = () => {
                 <TooltipProvider delayDuration={0}>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <button className="flex w-fit items-center justify-center gap-2 rounded-full border border-[#D69733] bg-[#D697331A] px-2 py-1 text-xs text-[#F59E0B] lg:self-end">
+                      <button className="hidden w-fit items-center justify-center gap-2 rounded-full border border-[#D69733] bg-[#D697331A] px-2 py-1 text-xs text-[#F59E0B] lg:flex lg:self-end">
                         <OctagonAlert className="h-4 w-4" />
                         Disclaimer
                       </button>
@@ -2630,6 +2632,7 @@ const Defi: React.FC = () => {
                                 }
                               : undefined
                           }
+                          pointsMultiplier={pool.pointsMultiplier}
                           action={pool.action}
                           onActionClick={handleCTAClick}
                         />
