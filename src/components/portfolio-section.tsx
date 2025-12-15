@@ -82,7 +82,11 @@ const PortfolioSection: React.FC = () => {
       !strkLSTBalanceData.data?.value ||
       strkLSTBalanceData.data.value === BigInt(0)
     ) {
-      return null;
+      return {
+        lstAmount: 0,
+        underlyingSTRK: 0,
+        usdValue: 0,
+      };
     }
 
     const lstAmount = Number(
@@ -260,70 +264,53 @@ const PortfolioSection: React.FC = () => {
         </div>
 
         {/* xSTRK Holdings */}
-        {strkHoldings && (
-          <div className="rounded-xl px-0 py-1 lg:px-0 lg:py-0">
-            <div className="flex w-full items-start gap-3">
-              <Icons.strkLogo className="h-10 w-10 shrink-0" />
-              <div className="flex flex-1 items-start justify-between">
-                <div className="flex flex-col">
+        <div className="rounded-xl px-0 py-1 lg:px-0 lg:py-0">
+          <div className="flex w-full items-start gap-3">
+            <Icons.strkLogo className="h-10 w-10 shrink-0" />
+            <div className="flex flex-1 items-start justify-between">
+              <div className="flex w-full flex-col gap-0.5">
+                <span className="text-left text-sm text-[#1A1F24]">xSTRK</span>
+                <div className="flex w-full items-center justify-between">
                   <span className="text-left text-sm text-[#1A1F24]">
-                    xSTRK
+                    {formatNumberWithCommas(strkHoldings.lstAmount, 2)} xSTRK
                   </span>
-                  <span className="mt-0.5 text-left text-xs text-[#6B7780]">
-                    ${formatNumberWithCommas(strkHoldings.usdValue, 2)}
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
                   <span className="text-sm font-semibold text-[#1A1F24]">
                     {formatNumberWithCommas(strkHoldings.underlyingSTRK, 2)}{" "}
                     STRK
                   </span>
                 </div>
-              </div>
-            </div>
-            <div className="mt-3 space-y-3 rounded-lg bg-[#F5F7F8] p-3 lg:ml-[52px]">
-              <div className="flex items-start justify-between gap-3 text-xs">
-                <div className="flex flex-col gap-0.5">
-                  <div className="flex items-center gap-1">
-                    <Icons.strkLogo className="h-5 w-5 shrink-0" />
-                    <span className="text-[#1A1F24]">
-                      {formatNumberWithCommas(strkHoldings.lstAmount, 2)} xSTRK
-                    </span>
-                  </div>
-                  <span className="text-[#6B7780]">
-                    ${formatNumberWithCommas(strkHoldings.usdValue, 2)}
-                  </span>
-                </div>
-                <span className="text-right text-[#6B7780]">
-                  {formatNumberWithCommas(strkHoldings.underlyingSTRK, 2)} STRK
+                <span className="text-left text-xs text-[#6B7780]">
+                  ${formatNumberWithCommas(strkHoldings.usdValue, 2)}
                 </span>
               </div>
             </div>
           </div>
-        )}
+        </div>
 
         {/* BTC Holdings */}
-        {btcHoldings.holdings.length > 0 && (
-          <div className="rounded-xl px-0 py-1 lg:px-0 lg:py-0">
-            {/* <div className="grid-col-[50px_auto_auto] grid"></div> */}
-
-            <div className="flex w-full items-start gap-3">
-              <Icons.btcLogo className="h-10 w-10 shrink-0" />
-              <div className="flex flex-1 items-start justify-between">
-                <div className="flex flex-col">
-                  <span className="text-left text-sm text-[#1A1F24]">BTC</span>
-                  <span className="mt-0.5 text-left text-xs text-[#6B7780]">
-                    ${formatNumberWithCommas(btcHoldings.totalUsd, 2)}
+        <div className="rounded-xl px-0 py-1 lg:px-0 lg:py-0">
+          <div className="flex w-full items-start gap-3">
+            <Icons.btcLogo className="h-10 w-10 shrink-0" />
+            <div className="flex flex-1 items-start justify-between">
+              <div className="flex w-full flex-col gap-0.5">
+                <span className="text-left text-sm text-[#1A1F24]">BTC</span>
+                <div className="flex w-full items-center justify-between">
+                  <span className="text-left text-sm text-[#1A1F24]">
+                    {formatNumberWithCommas(btcHoldings.totalLSTAmount, 6)}{" "}
+                    xyBTC
                   </span>
-                </div>
-                <div className="flex items-center gap-2">
                   <span className="text-sm font-semibold text-[#1A1F24]">
                     {formatNumberWithCommas(btcHoldings.totalUnderlyingBTC, 6)}{" "}
                     BTC
                   </span>
                 </div>
+                <span className="text-left text-xs text-[#6B7780]">
+                  ${formatNumberWithCommas(btcHoldings.totalUsd, 2)}
+                </span>
               </div>
             </div>
+          </div>
+          {btcHoldings.holdings.length > 0 && (
             <div className="mt-3 space-y-3 rounded-lg bg-[#F5F7F8] p-3 lg:ml-[52px]">
               {btcHoldings.holdings.map((holding) => (
                 <div
@@ -349,8 +336,8 @@ const PortfolioSection: React.FC = () => {
                 </div>
               ))}
             </div>
-          </div>
-        )}
+          )}
+        </div>
 
         {/* Info Message */}
         <div className="rounded-lg border border-[#FFC46680] bg-[#FFC4661A] p-2 text-xs text-[#D69733]">
