@@ -55,7 +55,6 @@ const MyDottedTooltip = ({
       // Calculate vertical position (check if tooltip would overflow above viewport)
       const tooltipHeight = tooltipRect.height;
       const spaceAbove = containerRect.top;
-      const spaceBelow = window.innerHeight - containerRect.bottom;
 
       let verticalPos: "top" | "bottom" = "top";
       let y = containerRect.top - tooltipHeight - 8; // 8px gap
@@ -119,9 +118,8 @@ const MyDottedTooltip = ({
 
     if (tooltipPosition.vertical === "top") {
       return `${baseClasses} border-t-4 border-t-gray-900`;
-    } else {
-      return `${baseClasses} border-b-4 border-b-gray-900`;
     }
+    return `${baseClasses} border-b-4 border-b-gray-900`;
   };
 
   return (
