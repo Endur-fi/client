@@ -141,14 +141,14 @@ interface VesuPoolsAPIResponse {
   data: VesuPoolResponse[];
 }
 
-interface APRSplit {
+export interface APRSplit {
   value: number;
   title: string;
   remarks: string;
   // natural is due to market economics
   // incentive is due to external incentives (like STRK incentives)
   // yield-bearing is due to yield-bearing assets (like xSTRK)
-  type: "natural" | "incentive" | "yield-bearing"
+  type: "natural" | "incentive" | "yield-bearing";
 }
 
 export interface VesuBorrowPool {
@@ -218,19 +218,20 @@ const vesuYieldQueryAtom = atomWithQuery(() => ({
         stats.supplyApy.value,
         stats.supplyApy.decimals,
       );
-      const defiSpringApr = stats.defiSpringSupplyApr ? convertVesuValue(
-        stats.defiSpringSupplyApr.value,
-        stats.defiSpringSupplyApr.decimals,
-      ) : 0;
+      const defiSpringApr = stats.defiSpringSupplyApr
+        ? convertVesuValue(
+            stats.defiSpringSupplyApr.value,
+            stats.defiSpringSupplyApr.decimals,
+          )
+        : 0;
       // this should also be added - but then final apy is not matching
       //   const borrowApr = convertVesuValue(
       //     stats.borrowApr.value,
       //     stats.borrowApr.decimals,
       //   );
-      const lstApr = stats.lstApr ? convertVesuValue(
-          stats.lstApr.value,
-          stats.lstApr.decimals,
-        ) : 0;
+      const lstApr = stats.lstApr
+        ? convertVesuValue(stats.lstApr.value, stats.lstApr.decimals)
+        : 0;
 
       const totalSupplied = convertVesuValue(
         stats.totalSupplied.value,
@@ -268,7 +269,9 @@ const createVesuBTCYieldQueryAtom = (
     queryFn: async (): Promise<ProtocolYield> => {
       try {
         //TODO: move the api call logic to api.ts under "defi calls" comment
-        const response = await fetch(`https://proxy.api.troves.fi/vesu/pools/${poolId}`);
+        const response = await fetch(
+          `https://proxy.api.troves.fi/vesu/pools/${poolId}`,
+        );
         const data: VesuAPIResponse = await response.json();
 
         const stats = data.data.assets?.find(
@@ -289,14 +292,15 @@ const createVesuBTCYieldQueryAtom = (
           stats.supplyApy.value,
           stats.supplyApy.decimals,
         );
-        const defiSpringApr = stats.defiSpringSupplyApr ? convertVesuValue(
-          stats.defiSpringSupplyApr.value,
-          stats.defiSpringSupplyApr.decimals,
-        ) : 0;
-        const lstApr = stats.lstApr ? convertVesuValue(
-          stats.lstApr.value,
-          stats.lstApr.decimals,
-        ) : 0;
+        const defiSpringApr = stats.defiSpringSupplyApr
+          ? convertVesuValue(
+              stats.defiSpringSupplyApr.value,
+              stats.defiSpringSupplyApr.decimals,
+            )
+          : 0;
+        const lstApr = stats.lstApr
+          ? convertVesuValue(stats.lstApr.value, stats.lstApr.decimals)
+          : 0;
 
         const totalSupplied = convertVesuValue(
           stats.totalSupplied.value,
@@ -1023,7 +1027,10 @@ export const vesuPoolsFilteredAtom = atom((get) => {
     // Iterate through all pools
     for (const pool of data.data) {
       // Filter by isVerified if specified
-      if (filter.isVerified !== undefined && pool.isVerified !== filter.isVerified) {
+      if (
+        filter.isVerified !== undefined &&
+        pool.isVerified !== filter.isVerified
+      ) {
         continue;
       }
 
@@ -1049,7 +1056,10 @@ export const vesuPoolsFilteredAtom = atom((get) => {
 
         // Filter by specific collateral symbols if specified
         if (filter.collateralSymbols && filter.collateralSymbols.length > 0) {
-          if (!matchingLst || !filter.collateralSymbols.includes(matchingLst[0])) {
+          if (
+            !matchingLst ||
+            !filter.collateralSymbols.includes(matchingLst[0])
+          ) {
             continue;
           }
         }
@@ -1143,8 +1153,14 @@ export const vesuPoolsFilteredAtom = atom((get) => {
             const maxLTVValue =
               convertVesuValue(pair.maxLTV.value, pair.maxLTV.decimals) * 100;
 
-            const debtCapValue = convertVesuValue(pair.debtCap.value, pair.debtCap.decimals);
-            const totalDebtValue = convertVesuValue(pair.totalDebt.value, pair.totalDebt.decimals);
+            const debtCapValue = convertVesuValue(
+              pair.debtCap.value,
+              pair.debtCap.decimals,
+            );
+            const totalDebtValue = convertVesuValue(
+              pair.totalDebt.value,
+              pair.totalDebt.decimals,
+            );
             const totalSuppliedValue = debtStats?.totalSupplied
               ? convertVesuValue(
                   debtStats.totalSupplied.value,
@@ -1165,7 +1181,10 @@ export const vesuPoolsFilteredAtom = atom((get) => {
               debtCap: debtCapValue,
               totalDebt: totalDebtValue,
               totalSupplied: totalSuppliedValue,
-              debtPrice: Web3Number.fromWei(debtAsset.usdPrice.value, debtAsset.usdPrice.decimals).toNumber(),
+              debtPrice: Web3Number.fromWei(
+                debtAsset.usdPrice.value,
+                debtAsset.usdPrice.decimals,
+              ).toNumber(),
               borrowApr,
               supplyApy: supplyApr + defiSpringSupplyApr + lstApr,
               supplyAprSplit,
@@ -1185,6 +1204,126 @@ export const vesuPoolsFilteredAtom = atom((get) => {
 export const vesuBorrowPoolsAtom = atom<VesuBorrowPool[]>((get) => {
   const filterFn = get(vesuPoolsFilteredAtom);
   return filterFn({ isVerified: true, collateralIsLST: true });
+});
+
+// Interface for Vesu supply pool (for Contributors tab)
+export interface VesuSupplyPool {
+  poolId: string;
+  poolName: string;
+  assetAddress: string;
+  assetSymbol: string;
+  assetName: string;
+  supplyApy: number;
+  supplyAprSplit: APRSplit[];
+  totalSupplied: number;
+  usdPrice: number;
+}
+
+// Atom to get Vesu supply pools from Re7 xSTRK and Re7 xBTC pools for underlying tokens
+// Filters: pool name is "Re7 xSTRK" or "Re7 xBTC", asset is NOT an LST (underlying tokens only)
+export const vesuContributorSupplyPoolsAtom = atom<VesuSupplyPool[]>((get) => {
+  const { data } = get(vesuPoolsRawQueryAtom);
+  if (!data) {
+    return [];
+  }
+
+  // Underlying token addresses (not LSTs)
+  const underlyingTokenAddresses: Record<string, string> = {
+    STRK: "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+    WBTC: "0x3fe2b97c1fd336e750087d68b9b867997fd64a2661ff3ca5a7c771641e8e7ac",
+    tBTC: "0x4daa17763b286d1e59b97c283c0b8c949994c361e426a28f743c67bdfe9a32f",
+    LBTC: "0x036834a40984312f7f7de8d31e3f6305b325389eaeea5b1c0664b2fb936461a4",
+    solvBTC:
+      "0x0593e034dda23eea82d2ba9a30960ed42cf4a01502cc2351dc9b9881f9931a68",
+  };
+
+  const supplyPools: VesuSupplyPool[] = [];
+
+  // Filter pools by name (Re7 xSTRK or Re7 xBTC)
+  for (const pool of data.data) {
+    if (pool.name !== "Re7 xSTRK" && pool.name !== "Re7 xBTC") {
+      continue;
+    }
+
+    if (!pool.isVerified) {
+      continue;
+    }
+
+    // Find assets that are underlying tokens (not LSTs)
+    for (const asset of pool.assets) {
+      const assetNormalized = normalizeAddress(asset.address);
+
+      // Check if this asset is an underlying token (not an LST)
+      const underlyingEntry = Object.entries(underlyingTokenAddresses).find(
+        ([, address]) => normalizeAddress(address) === assetNormalized,
+      );
+
+      if (underlyingEntry) {
+        const [assetSymbol] = underlyingEntry;
+        const stats = asset.stats;
+
+        if (stats) {
+          const supplyApy =
+            convertVesuValue(stats.supplyApy.value, stats.supplyApy.decimals) *
+            100;
+          const defiSpringSupplyApr = stats.defiSpringSupplyApr
+            ? convertVesuValue(
+                stats.defiSpringSupplyApr.value,
+                stats.defiSpringSupplyApr.decimals,
+              ) * 100
+            : 0;
+          const lstApr = stats.lstApr
+            ? convertVesuValue(stats.lstApr.value, stats.lstApr.decimals) * 100
+            : 0;
+
+          const supplyAprSplit: APRSplit[] = [
+            {
+              value: supplyApy,
+              title: "Supply APR",
+              remarks: "",
+              type: "natural",
+            },
+            {
+              value: defiSpringSupplyApr,
+              title: "Defi Spring Supply APR",
+              remarks: "",
+              type: "incentive",
+            },
+            {
+              value: lstApr,
+              title: "LST APR",
+              remarks: "",
+              type: "yield-bearing",
+            },
+          ];
+
+          const totalSupplied = convertVesuValue(
+            stats.totalSupplied.value,
+            stats.totalSupplied.decimals,
+          );
+
+          const usdPrice = Web3Number.fromWei(
+            asset.usdPrice.value,
+            asset.usdPrice.decimals,
+          ).toNumber();
+
+          supplyPools.push({
+            poolId: pool.id,
+            poolName: pool.name,
+            assetAddress: asset.address,
+            assetSymbol,
+            assetName: asset.name,
+            supplyApy: supplyApy + defiSpringSupplyApr + lstApr,
+            supplyAprSplit,
+            totalSupplied,
+            usdPrice,
+          });
+        }
+      }
+    }
+  }
+
+  return supplyPools;
 });
 
 // Vault capacity interface
@@ -1236,7 +1375,7 @@ async function fetchVaultCapacity(
     // If max_deposit is 0, it means no limit
     const maxDepositValue = Number(maxDepositMyNum.toEtherToFixedDecimals(6));
     const maxDepositUSD = maxDepositValue * underlyingPrice;
-  
+
     // alert(`used: ${usedUSD}, maxDeposit: ${maxDepositUSD}, address: ${vaultAddress}`);
 
     if (maxDepositUSD === 0) {

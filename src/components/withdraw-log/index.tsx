@@ -72,7 +72,9 @@ const WithdrawLog: React.FC = () => {
         globalPendingWithdrawStatsData?.getPendingWithdrawStats?.pendingCount,
       ),
       globalAmountAvailable: formatNumber(
-        globalAmountAvailable?.value as string,
+        Array.isArray(globalAmountAvailable?.value)
+          ? "0"
+          : (globalAmountAvailable?.value as string) || "0",
       ),
     });
 

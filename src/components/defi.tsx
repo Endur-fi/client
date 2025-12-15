@@ -2,7 +2,7 @@
 
 import { useAtomValue } from "jotai";
 import React, { useMemo, useState } from "react";
-import { HelpCircle, OctagonAlert, ShieldAlert } from "lucide-react";
+import { HelpCircle, OctagonAlert, ShieldAlert, Zap } from "lucide-react";
 
 import { useSidebar } from "@/components/ui/sidebar";
 import { MyAnalytics } from "@/lib/analytics";
@@ -31,6 +31,10 @@ import {
   hyperxLBTCVaultCapacityAtom,
   hyperxsBTCVaultCapacityAtom,
   hyperxSTRKVaultCapacityAtom,
+  vesuContributorSupplyPoolsAtom,
+  ekuboYieldAtom,
+  VaultCapacity,
+  APRSplit,
 } from "@/store/defi.store";
 import { useAtom } from "jotai";
 import { assetPriceAtom } from "@/store/common.store";
@@ -580,10 +584,12 @@ interface FiltersProps {
   selectedAsset: AssetFilter;
   selectedProtocol: ProtocolFilter;
   showMoreFilters: boolean;
-  activeTab: "supply" | "borrow";
+  activeTab: "supply" | "borrow" | "contribute-liquidity";
+  showStablesOnly?: boolean;
   onAssetChange: (asset: AssetFilter) => void;
   onProtocolChange: (protocol: ProtocolFilter) => void;
   onToggleMoreFilters: () => void;
+  onShowStablesOnlyChange?: (value: boolean) => void;
 }
 
 const Filters: React.FC<FiltersProps> = ({
@@ -593,9 +599,11 @@ const Filters: React.FC<FiltersProps> = ({
   selectedProtocol,
   showMoreFilters,
   activeTab,
+  showStablesOnly = false,
   onAssetChange,
   onProtocolChange,
   onToggleMoreFilters,
+  onShowStablesOnlyChange,
 }) => {
   // Helper function to get icon for each asset
   const getAssetIcon = (asset: AssetFilter) => {
@@ -655,6 +663,26 @@ const Filters: React.FC<FiltersProps> = ({
                   "rotate-180": showMoreFilters,
                 })}
               />
+            </button>
+          )}
+          {activeTab === "borrow" && onShowStablesOnlyChange && (
+            <button
+              onClick={() => onShowStablesOnlyChange(!showStablesOnly)}
+              className="flex items-center gap-2 rounded-lg border border-[#0000000D] bg-white px-3 py-2 text-xs font-medium text-[#5B616D] shadow-sm"
+            >
+              <div
+                className={cn(
+                  "flex h-4 w-4 items-center justify-center rounded-full border-2 transition-colors",
+                  showStablesOnly
+                    ? "border-[#17876D] bg-[#17876D]"
+                    : "border-[#6B7780] bg-transparent",
+                )}
+              >
+                {showStablesOnly && (
+                  <div className="h-2 w-2 rounded-full bg-white" />
+                )}
+              </div>
+              <span>Show stables only</span>
             </button>
           )}
         </div>
@@ -803,12 +831,15 @@ const calculateBorrowPoolData = (
 const Defi: React.FC = () => {
   const { isPinned } = useSidebar();
   const yields: any = useAtomValue(protocolYieldsAtom);
-  const [activeTab, setActiveTab] = useState<"supply" | "borrow">("borrow");
+  const [activeTab, setActiveTab] = useState<
+    "supply" | "borrow" | "contribute-liquidity"
+  >("borrow");
   const [selectedAsset, setSelectedAsset] = useState<AssetFilter>("all");
   const [selectedProtocol, setSelectedProtocol] =
     useState<ProtocolFilter>("all");
   const [showDisclaimer, setShowDisclaimer] = useState(false);
   const [showMoreFilters, setShowMoreFilters] = useState(false);
+  const [showStablesOnly, setShowStablesOnly] = useState(false);
   const [pendingProtocolLink, setPendingProtocolLink] = useState<string | null>(
     null,
   );
@@ -848,6 +879,10 @@ const Defi: React.FC = () => {
   const [vesuBTCxsBTCYield] = useAtom(vesuBTCxsBTCYieldAtom);
   const vesuBorrowPools = useAtomValue(vesuBorrowPoolsAtom);
   const vesuPoolsFilterFn = useAtomValue(vesuPoolsFilteredAtom);
+  const vesuContributorSupplyPools = useAtomValue(
+    vesuContributorSupplyPoolsAtom,
+  );
+  const ekuboYield = useAtomValue(ekuboYieldAtom);
 
   // Get all Vesu pools for lending (all verified pools with LST assets)
   const vesuLendingPools = useMemo(() => {
@@ -863,6 +898,203 @@ const Defi: React.FC = () => {
     });
     return configs;
   }, [vesuLendingPools]);
+
+  // Contributor pools data structure
+  const contributorPools = useMemo(() => {
+    const pools: Array<{
+      id: string;
+      tokens: TokenDisplay[];
+      protocolIcon: React.ReactNode;
+      protocolName: string;
+      tokenPair: string;
+      description: string;
+      badge?: ProtocolBadge;
+      yield: number | null;
+      yieldSplit?: APRSplit[];
+      capacity: VaultCapacity | null;
+      capacityText: string | null;
+      capacityPercent: number;
+      pointsMultiplier?: { min: number; max: number; description: string };
+      externalPointsInfo?: string | null;
+      action: ProtocolAction;
+      actionLink: string;
+      actionText: string;
+      actionOnClick?: () => void;
+    }> = [];
+
+    // 1. Vesu supply pools from Re7 xSTRK and Re7 xBTC
+    vesuContributorSupplyPools.forEach((pool) => {
+      const tokenIcon = getTokenIcon(pool.assetSymbol);
+      pools.push({
+        id: `vesu-supply-${pool.poolId}-${pool.assetSymbol}`,
+        tokens: [{ icon: tokenIcon, name: pool.assetSymbol }],
+        protocolIcon: <Icons.vesuLogo className="rounded-full" />,
+        protocolName: "Vesu",
+        tokenPair: pool.assetSymbol,
+        description: `Supply ${pool.assetSymbol} on ${pool.poolName} pool`,
+        badge: {
+          type: "Supply Pool",
+          color: "bg-[#E8F4FD] text-[#1E40AF]",
+        },
+        yield: pool.supplyApy,
+        yieldSplit: pool.supplyAprSplit,
+        capacity: null, // Vesu pools don't have capacity limits
+        capacityText: null,
+        capacityPercent: 0,
+        externalPointsInfo: "+Vesu Points",
+        action: {
+          type: "lend",
+          link: "http://vesu.xyz/earn?onlyV2Markets=true&includeIsolatedMarkets=true",
+          buttonText: "Supply",
+          onClick: () => {
+            MyAnalytics.track(eventNames.OPPORTUNITIES, {
+              protocol: `vesu-supply-${pool.assetSymbol}`,
+              buttonText: "Supply",
+            });
+          },
+        },
+        actionLink:
+          "http://vesu.xyz/earn?onlyV2Markets=true&includeIsolatedMarkets=true",
+        actionText: "Supply",
+        actionOnClick: () => {
+          MyAnalytics.track(eventNames.OPPORTUNITIES, {
+            protocol: `vesu-supply-${pool.assetSymbol}`,
+            buttonText: "Supply",
+          });
+        },
+      });
+    });
+
+    // 2. Troves Ekubo pools
+    const trovesEkuboPools = [
+      {
+        key: "trovesEkuboBTCxWBTC",
+        token1: {
+          icon: <Icons.xwbtc className="size-[22px]" />,
+          name: "xWBTC",
+        },
+        token2: {
+          icon: <Icons.btcLogo className="size-[22px]" />,
+          name: "WBTC",
+        },
+        yield: trovesEkuboXWBTCYield,
+        strategyPath: "ekubo_cl_xwbtcwbtc",
+      },
+      {
+        key: "trovesEkuboBTCxtBTC",
+        token1: {
+          icon: <Icons.xtbtc className="size-[22px]" />,
+          name: "xtBTC",
+        },
+        token2: {
+          icon: <Icons.btcLogo className="size-[22px]" />,
+          name: "tBTC",
+        },
+        yield: trovesEkuboXtBTCYield,
+        strategyPath: "ekubo_cl_xtbtctbtc",
+      },
+      {
+        key: "trovesEkuboBTCxLBTC",
+        token1: {
+          icon: <Icons.xlbtc className="size-[22px]" />,
+          name: "xLBTC",
+        },
+        token2: {
+          icon: <Icons.btcLogo className="size-[22px]" />,
+          name: "LBTC",
+        },
+        yield: trovesEkuboXLBTCYield,
+        strategyPath: "ekubo_cl_xlbtclbtc",
+      },
+      {
+        key: "trovesEkuboBTCxsBTC",
+        token1: {
+          icon: <Icons.xsbtc className="size-[22px]" />,
+          name: "xsBTC",
+        },
+        token2: {
+          icon: <Icons.btcLogo className="size-[22px]" />,
+          name: "solvBTC",
+        },
+        yield: trovesEkuboXsBTCYield,
+        strategyPath: "ekubo_cl_xsbtcsolvbtc",
+      },
+    ];
+
+    trovesEkuboPools.forEach((pool) => {
+      const config = createTrovesEkuboLiquidityConfig(
+        pool.key,
+        pool.token1,
+        pool.token2,
+        pool.strategyPath,
+        pool.key,
+      );
+      pools.push({
+        id: pool.key,
+        tokens: config.tokens,
+        protocolIcon: config.protocolIcon,
+        protocolName: config.protocolName,
+        tokenPair: `${pool.token1.name}/${pool.token2.name}`,
+        description: config.description,
+        badge: config.badges[0],
+        yield: pool.yield.value ?? null,
+        capacity: null,
+        capacityText: null,
+        capacityPercent: 0,
+        pointsMultiplier: config.pointsMultiplier,
+        externalPointsInfo: config.externalPointsInfo,
+        action: config.action!,
+        actionLink: config.action!.link,
+        actionText: config.action!.buttonText,
+        actionOnClick: config.action!.onClick,
+      });
+    });
+
+    // 3. Ekubo pools
+    const ekuboConfig = createEkuboPoolConfig(
+      { icon: <Icons.endurLogo className="size-[22px]" />, name: "xSTRK" },
+      { icon: <Icons.strkLogo className="size-[22px]" />, name: "STRK" },
+      "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+      "0x28d709c875c0ceac3dce7065bec5328186dc89fe254527084d1689910954b0a",
+      "ekuboSTRK",
+    );
+    pools.push({
+      id: "ekubo",
+      tokens: ekuboConfig.tokens,
+      protocolIcon: ekuboConfig.protocolIcon,
+      protocolName: ekuboConfig.protocolName,
+      tokenPair: "xSTRK/STRK",
+      description: ekuboConfig.description,
+      badge: ekuboConfig.badges[0],
+      yield: ekuboYield.value,
+      capacity: null,
+      capacityText: null,
+      capacityPercent: 0,
+      pointsMultiplier: ekuboConfig.pointsMultiplier,
+      externalPointsInfo: ekuboConfig.externalPointsInfo,
+      action: ekuboConfig.action!,
+      actionLink: ekuboConfig.action!.link,
+      actionText: ekuboConfig.action!.buttonText,
+      actionOnClick: ekuboConfig.action!.onClick,
+    });
+
+    // Debug: Log pool counts
+    console.log("Contributor pools:", {
+      vesuPools: vesuContributorSupplyPools.length,
+      trovesEkubo: trovesEkuboPools.length,
+      ekubo: 1,
+      total: pools.length,
+    });
+
+    return pools;
+  }, [
+    vesuContributorSupplyPools,
+    trovesEkuboXWBTCYield,
+    trovesEkuboXtBTCYield,
+    trovesEkuboXLBTCYield,
+    trovesEkuboXsBTCYield,
+    ekuboYield,
+  ]);
 
   // Vault capacity atoms
   const [hyperxWBTCVaultCapacity] = useAtom(hyperxWBTCVaultCapacityAtom);
@@ -1083,8 +1315,13 @@ const Defi: React.FC = () => {
   const getProtocolCapacity = (
     protocol: string,
     config: ProtocolConfig,
-    tab: "supply" | "borrow",
+    tab: "supply" | "borrow" | "contribute-liquidity",
   ): { used: number; total: number | null } | undefined => {
+    // Contributors tab - no capacity limits
+    if (tab === "contribute-liquidity") {
+      return undefined;
+    }
+
     if (tab === "borrow" && config.tokens.length >= 2) {
       const pool = vesuBorrowPools.find(
         (p) =>
@@ -1134,6 +1371,16 @@ const Defi: React.FC = () => {
       .filter((protocol) => {
         const config = configsToUse[protocol];
         if (!config) return false;
+
+        // Filter for stables only in borrow tab
+        if (activeTab === "borrow" && showStablesOnly) {
+          // Check if the debt token (second token) is USDC or USDC.e
+          const debtToken = config.tokens[1]?.name;
+          if (debtToken !== "USDC" && debtToken !== "USDC.e") {
+            return false;
+          }
+        }
+
         return (
           matchesAssetFilter(protocol as SupportedDApp, config) &&
           matchesProtocolFilter(config)
@@ -1183,6 +1430,7 @@ const Defi: React.FC = () => {
     activeTab,
     selectedAsset,
     selectedProtocol,
+    showStablesOnly,
     yields,
     trovesHyperxWBTCYield,
     trovesHyperxtBTCYield,
@@ -1380,7 +1628,9 @@ const Defi: React.FC = () => {
           <ShadCNTabs
             value={activeTab}
             onValueChange={(value) =>
-              setActiveTab(value as "supply" | "borrow")
+              setActiveTab(
+                value as "supply" | "borrow" | "contribute-liquidity",
+              )
             }
             className="w-full"
           >
@@ -1403,7 +1653,17 @@ const Defi: React.FC = () => {
                         "flex-1 rounded-[10px] border border-transparent bg-transparent px-4 py-2 text-sm font-medium text-[#6B7780] transition-all data-[state=active]:border-[#17876D] data-[state=active]:bg-[#E8F7F4] data-[state=active]:text-[#1A1F24] data-[state=active]:shadow-none lg:px-6 lg:py-2.5 lg:text-base",
                       )}
                     >
-                      {tab.label}
+                      <div className="flex flex-col items-center gap-0.5">
+                        <span>{tab.label}</span>
+                        {tab.value === "contribute-liquidity" && (
+                          <div className="flex items-center gap-1">
+                            <Zap className="h-3 w-3 text-[#D69733]" />
+                            <span className="text-xs font-medium text-[#D69733]">
+                              70% • 5.25M pts
+                            </span>
+                          </div>
+                        )}
+                      </div>
                     </TabsTrigger>
                   ))}
                 </TabsList>
@@ -1442,11 +1702,13 @@ const Defi: React.FC = () => {
                     selectedProtocol={selectedProtocol}
                     showMoreFilters={showMoreFilters}
                     activeTab={tab}
+                    showStablesOnly={showStablesOnly}
                     onAssetChange={setSelectedAsset}
                     onProtocolChange={setSelectedProtocol}
                     onToggleMoreFilters={() =>
                       setShowMoreFilters(!showMoreFilters)
                     }
+                    onShowStablesOnlyChange={setShowStablesOnly}
                   />
                 </TabsContent>
               ))}
@@ -1565,7 +1827,7 @@ const Defi: React.FC = () => {
                                           <div className="mt-1.5">
                                             <span
                                               className={cn(
-                                                "rounded-full px-2 py-0.5 text-xs font-medium",
+                                                "whitespace-nowrap rounded-full px-2 py-0.5 text-xs font-medium",
                                                 config.badges[0]?.color ||
                                                   "bg-gray-100 text-gray-600",
                                               )}
@@ -1636,12 +1898,13 @@ const Defi: React.FC = () => {
                                               config.pointsMultiplier
                                                 .description
                                             }
-                                            className="text-sm text-[#1A1F24]"
                                           >
-                                            {config.pointsMultiplier.min ==
-                                            config.pointsMultiplier.max
-                                              ? `${config.pointsMultiplier.min}x`
-                                              : `${config.pointsMultiplier.min}x - ${config.pointsMultiplier.max}x`}
+                                            <div className="w-fit rounded-lg border border-[#059669] bg-[#D1FAE5] px-2 py-1 text-sm font-semibold text-[#059669]">
+                                              {config.pointsMultiplier.min ==
+                                              config.pointsMultiplier.max
+                                                ? `${config.pointsMultiplier.min}x`
+                                                : `${config.pointsMultiplier.min}x - ${config.pointsMultiplier.max}x`}
+                                            </div>
                                           </MyDottedTooltip>
                                         ) : (
                                           <span className="text-[#6B7780]">
@@ -1974,12 +2237,13 @@ const Defi: React.FC = () => {
                                                 config.pointsMultiplier
                                                   .description
                                               }
-                                              className="text-sm text-[#1A1F24]"
                                             >
-                                              {config.pointsMultiplier.min ==
-                                              config.pointsMultiplier.max
-                                                ? `${config.pointsMultiplier.min}x`
-                                                : `${config.pointsMultiplier.min}x - ${config.pointsMultiplier.max}x`}
+                                              <div className="w-fit rounded-lg border border-[#059669] bg-[#D1FAE5] px-2 py-1 text-sm font-semibold text-[#059669]">
+                                                {config.pointsMultiplier.min ==
+                                                config.pointsMultiplier.max
+                                                  ? `${config.pointsMultiplier.min}x`
+                                                  : `${config.pointsMultiplier.min}x - ${config.pointsMultiplier.max}x`}
+                                              </div>
                                             </MyDottedTooltip>
                                           ) : (
                                             <span className="text-[#6B7780]">
@@ -2066,6 +2330,209 @@ const Defi: React.FC = () => {
                     </table>
                   </div>
                 </TabsContent>
+
+                <TabsContent value="contribute-liquidity" className="mt-0">
+                  <div className="w-full overflow-x-auto">
+                    <table className="w-full table-fixed border-separate border-spacing-y-2">
+                      <thead>
+                        <tr>
+                          <th className="w-[25%] rounded-tl-[14px] bg-white px-6 py-2 text-left text-sm font-medium text-[#5B616D] shadow-sm">
+                            Vault
+                          </th>
+                          <th className="w-[25%] bg-white px-6 py-2 text-center text-sm font-medium text-[#5B616D] shadow-sm">
+                            Yield
+                          </th>
+                          <th className="w-[25%] bg-white px-6 py-2 text-center text-sm font-medium text-[#5B616D] shadow-sm">
+                            Capacity
+                          </th>
+                          <th className="w-[25%] rounded-tr-[14px] bg-white px-6 py-2 text-center text-sm font-medium text-[#5B616D] shadow-sm">
+                            Points Multiplier
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {contributorPools.length > 0 ? (
+                          contributorPools.map((pool) => (
+                            <tr key={pool.id}>
+                              <td
+                                colSpan={4}
+                                className={cn("p-0", "rounded-2xl")}
+                              >
+                                <Card
+                                  className={cn("bg-white", "flex flex-col")}
+                                >
+                                  {/* Main Row */}
+                                  <div
+                                    className={cn(
+                                      "px-4 py-8",
+                                      "flex items-center gap-4",
+                                      "shadow-[0_1px_1px_-0.5px_rgba(0,0,0,0.08),_0_3px_3px_-1.5px_rgba(0,0,0,0.08),_0_2px_2px_-2px_rgba(0,0,0,0.08),_0_2px_2px_-6px_rgba(0,0,0,0.08)]",
+                                    )}
+                                  >
+                                    {/* Pair & Pool Column */}
+                                    <div className="flex flex-1 items-start gap-3">
+                                      <div className="flex items-center -space-x-6">
+                                        {pool.tokens.map((token, idx) => (
+                                          <div
+                                            key={idx}
+                                            className="flex h-10 w-10 items-center justify-center rounded-full"
+                                          >
+                                            {token.icon}
+                                          </div>
+                                        ))}
+                                      </div>
+                                      <div className="flex-1">
+                                        <div className="font-medium text-[#1A1F24]">
+                                          {pool.tokenPair}
+                                        </div>
+                                        <div className="mt-1.5">
+                                          {pool.badge && (
+                                            <span
+                                              className={cn(
+                                                "whitespace-nowrap rounded-full px-2 py-0.5 text-xs font-medium",
+                                                pool.badge.color ||
+                                                  "bg-gray-100 text-gray-600",
+                                              )}
+                                            >
+                                              {pool.badge.type}
+                                            </span>
+                                          )}
+                                        </div>
+                                      </div>
+                                    </div>
+
+                                    {/* Yield Column */}
+                                    <div className="flex flex-1 flex-col items-center justify-center">
+                                      {pool.yield !== null ? (
+                                        <div className="flex flex-col gap-1">
+                                          <div className="w-fit rounded-lg border border-[#059669] bg-[#D1FAE5] px-2 py-1 text-sm font-semibold text-[#059669]">
+                                            {formatNumber(pool.yield)}%
+                                          </div>
+                                        </div>
+                                      ) : (
+                                        <span className="text-[#6B7780]">
+                                          -
+                                        </span>
+                                      )}
+                                    </div>
+
+                                    {/* Capacity Column */}
+                                    <div className="flex flex-1 flex-col items-center justify-center">
+                                      {pool.capacity ? (
+                                        pool.capacityText ? (
+                                          <div>
+                                            <div className="mb-2 text-sm text-[#1A1F24]">
+                                              {pool.capacityText}
+                                            </div>
+                                            <Progress
+                                              value={Math.min(
+                                                pool.capacityPercent,
+                                                100,
+                                              )}
+                                              className="h-1.5 bg-[#E6F1EF]"
+                                              indicatorClassName="bg-[#38EF7DB2]"
+                                            />
+                                          </div>
+                                        ) : (
+                                          <div className="text-sm text-[#1A1F24]">
+                                            Limitless
+                                          </div>
+                                        )
+                                      ) : (
+                                        <div className="text-sm text-[#1A1F24]">
+                                          Limitless
+                                        </div>
+                                      )}
+                                    </div>
+
+                                    {/* Points Multiplier Column */}
+                                    <div className="flex flex-1 flex-col items-center justify-center">
+                                      {pool.pointsMultiplier ? (
+                                        <MyDottedTooltip
+                                          tooltip={
+                                            pool.pointsMultiplier.description
+                                          }
+                                        >
+                                          <div className="w-fit rounded-lg border border-[#059669] bg-[#D1FAE5] px-2 py-1 text-sm font-semibold text-[#059669]">
+                                            {pool.pointsMultiplier.min ==
+                                            pool.pointsMultiplier.max
+                                              ? `${pool.pointsMultiplier.min}x`
+                                              : `${pool.pointsMultiplier.min}x - ${pool.pointsMultiplier.max}x`}
+                                          </div>
+                                        </MyDottedTooltip>
+                                      ) : (
+                                        <span className="text-[#6B7780]">
+                                          -
+                                        </span>
+                                      )}
+                                    </div>
+                                  </div>
+
+                                  {/* Bottom Section */}
+                                  <div className="px-6 py-2">
+                                    <div className="flex items-center gap-4">
+                                      {/* Protocol */}
+                                      <div className="flex flex-1 items-center gap-2">
+                                        <span className="text-xs text-[#6B7780]">
+                                          Provider:
+                                        </span>
+                                        <div className="flex h-5 w-5 items-center justify-center">
+                                          {pool.protocolIcon}
+                                        </div>
+                                        <span className="text-xs font-medium text-[#1A1F24]">
+                                          {pool.protocolName}
+                                        </span>
+                                      </div>
+
+                                      {/* Rewards (empty) */}
+                                      <div className="flex-1"></div>
+
+                                      {/* Description and Action Button */}
+                                      <div className="flex min-w-0 flex-1 items-center justify-end gap-2">
+                                        <span className="truncate text-xs text-[#1A1F24]">
+                                          {pool.description}
+                                        </span>
+                                        <MyDottedTooltip
+                                          tooltip={pool.description}
+                                        >
+                                          <HelpCircle className="h-4 w-4 shrink-0 cursor-help text-[#6B7780]" />
+                                        </MyDottedTooltip>
+                                        {pool.action && (
+                                          <button
+                                            onClick={() => {
+                                              if (pool.action?.link) {
+                                                handleCTAClick(
+                                                  pool.action.link,
+                                                  pool.action.onClick,
+                                                );
+                                              }
+                                            }}
+                                            className="w-32 whitespace-nowrap rounded-full bg-[#10B981] px-4 py-1.5 text-xs font-medium text-white transition-opacity hover:opacity-90"
+                                          >
+                                            {pool.action.buttonText}
+                                          </button>
+                                        )}
+                                      </div>
+                                    </div>
+                                  </div>
+                                </Card>
+                              </td>
+                            </tr>
+                          ))
+                        ) : (
+                          <tr>
+                            <td
+                              colSpan={4}
+                              className="rounded-2xl bg-white px-6 py-8 text-center text-[#6B7780]"
+                            >
+                              No contributor pools available at this time
+                            </td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </TabsContent>
               </div>
 
               {/* Mobile: Cards */}
@@ -2089,6 +2556,267 @@ const Defi: React.FC = () => {
                     ) : (
                       <div className="col-span-full py-8 text-center text-[#6B7780]">
                         No borrow protocols available at this time
+                      </div>
+                    )}
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="contribute-liquidity" className="mt-0">
+                  <div className="w-full overflow-x-auto">
+                    <table className="w-full table-fixed border-separate border-spacing-y-2">
+                      <thead>
+                        <tr>
+                          <th className="w-[25%] rounded-tl-[14px] bg-white px-6 py-2 text-left text-sm font-medium text-[#5B616D] shadow-sm">
+                            Vault
+                          </th>
+                          <th className="w-[25%] bg-white px-6 py-2 text-center text-sm font-medium text-[#5B616D] shadow-sm">
+                            Yield
+                          </th>
+                          <th className="w-[25%] bg-white px-6 py-2 text-center text-sm font-medium text-[#5B616D] shadow-sm">
+                            Capacity
+                          </th>
+                          <th className="w-[25%] rounded-tr-[14px] bg-white px-6 py-2 text-center text-sm font-medium text-[#5B616D] shadow-sm">
+                            Points Multiplier
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {contributorPools.length > 0 ? (
+                          contributorPools.map((pool) => (
+                            <tr key={pool.id}>
+                              <td
+                                colSpan={4}
+                                className={cn("p-0", "rounded-2xl")}
+                              >
+                                <Card
+                                  className={cn("bg-white", "flex flex-col")}
+                                >
+                                  {/* Main Row */}
+                                  <div
+                                    className={cn(
+                                      "px-4 py-8",
+                                      "flex items-center gap-4",
+                                      "shadow-[0_1px_1px_-0.5px_rgba(0,0,0,0.08),_0_3px_3px_-1.5px_rgba(0,0,0,0.08),_0_2px_2px_-2px_rgba(0,0,0,0.08),_0_2px_2px_-6px_rgba(0,0,0,0.08)]",
+                                    )}
+                                  >
+                                    {/* Vault Column */}
+                                    <div className="flex flex-1 items-start gap-3">
+                                      <div className="flex items-center -space-x-6">
+                                        {pool.tokens.map((token, idx) => (
+                                          <div
+                                            key={idx}
+                                            className="flex h-10 w-10 items-center justify-center rounded-full"
+                                          >
+                                            {token.icon}
+                                          </div>
+                                        ))}
+                                      </div>
+                                      <div className="flex flex-1 flex-col gap-1">
+                                        <div className="flex items-center gap-2">
+                                          <span className="text-sm font-semibold text-[#1A1F24]">
+                                            {pool.tokenPair}
+                                          </span>
+                                          {pool.protocolIcon}
+                                          <span className="text-sm text-[#6B7780]">
+                                            {pool.protocolName}
+                                          </span>
+                                        </div>
+                                        <span className="text-xs text-[#6B7780]">
+                                          {pool.description}
+                                        </span>
+                                        {pool.badge && (
+                                          <span
+                                            className={cn(
+                                              "w-fit rounded-full px-2 py-0.5 text-xs font-medium",
+                                              pool.badge.color,
+                                            )}
+                                          >
+                                            {pool.badge.type}
+                                          </span>
+                                        )}
+                                      </div>
+                                    </div>
+
+                                    {/* Yield Column */}
+                                    <div className="flex w-[25%] items-center justify-center">
+                                      {pool.yield !== null ? (
+                                        <div className="flex flex-col items-center gap-0.5">
+                                          <span className="text-lg font-semibold text-[#1A1F24]">
+                                            {formatNumber(pool.yield)}%
+                                          </span>
+                                          {pool.yieldSplit &&
+                                            pool.yieldSplit.length > 0 && (
+                                              <MyDottedTooltip
+                                                tooltip={
+                                                  <div className="space-y-1">
+                                                    {pool.yieldSplit.map(
+                                                      (split, idx) => (
+                                                        <div
+                                                          key={idx}
+                                                          className="text-xs"
+                                                        >
+                                                          <span className="font-medium">
+                                                            {split.title}:
+                                                          </span>{" "}
+                                                          {formatNumber(
+                                                            split.value,
+                                                          )}
+                                                          %
+                                                          {split.remarks && (
+                                                            <span className="text-[#6B7780]">
+                                                              {" "}
+                                                              ({split.remarks})
+                                                            </span>
+                                                          )}
+                                                        </div>
+                                                      ),
+                                                    )}
+                                                  </div>
+                                                }
+                                              >
+                                                <HelpCircle className="h-4 w-4 text-[#6B7780]" />
+                                              </MyDottedTooltip>
+                                            )}
+                                        </div>
+                                      ) : (
+                                        <span className="text-sm text-[#6B7780]">
+                                          -
+                                        </span>
+                                      )}
+                                    </div>
+
+                                    {/* Capacity Column */}
+                                    <div className="flex w-[25%] flex-col items-center justify-center gap-1">
+                                      {pool.capacity ? (
+                                        <>
+                                          {pool.capacity.total === null ? (
+                                            <span className="text-sm text-[#6B7780]">
+                                              No limit
+                                            </span>
+                                          ) : pool.capacityText ===
+                                            "Maxed out" ? (
+                                            <span className="text-sm font-semibold text-[#D97706]">
+                                              Maxed out
+                                            </span>
+                                          ) : (
+                                            <>
+                                              <span className="text-sm text-[#1A1F24]">
+                                                {pool.capacityText}
+                                              </span>
+                                              <Progress
+                                                value={pool.capacityPercent}
+                                                className="h-1.5 w-24"
+                                              />
+                                            </>
+                                          )}
+                                        </>
+                                      ) : (
+                                        <span className="text-sm text-[#6B7780]">
+                                          -
+                                        </span>
+                                      )}
+                                    </div>
+
+                                    {/* Points Multiplier Column */}
+                                    <div className="flex w-[25%] items-center justify-center">
+                                      {pool.pointsMultiplier ? (
+                                        <MyDottedTooltip
+                                          tooltip={
+                                            <div className="space-y-1">
+                                              <div className="text-xs font-medium">
+                                                {
+                                                  pool.pointsMultiplier
+                                                    .description
+                                                }
+                                              </div>
+                                            </div>
+                                          }
+                                        >
+                                          <div className="w-fit rounded-lg border border-[#059669] bg-[#D1FAE5] px-2 py-1 text-sm font-semibold text-[#059669]">
+                                            {pool.pointsMultiplier.min}x -{" "}
+                                            {pool.pointsMultiplier.max}x
+                                          </div>
+                                        </MyDottedTooltip>
+                                      ) : (
+                                        <span className="text-sm text-[#6B7780]">
+                                          -
+                                        </span>
+                                      )}
+                                    </div>
+
+                                    {/* Action Button */}
+                                    <div className="flex items-center">
+                                      <button
+                                        onClick={() =>
+                                          handleCTAClick(
+                                            pool.actionLink,
+                                            pool.actionOnClick,
+                                          )
+                                        }
+                                        className={cn(
+                                          "whitespace-nowrap rounded-lg bg-[#17876D] px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-[#0F6B56]",
+                                        )}
+                                      >
+                                        {pool.actionText}
+                                      </button>
+                                    </div>
+                                  </div>
+                                </Card>
+                              </td>
+                            </tr>
+                          ))
+                        ) : (
+                          <tr>
+                            <td
+                              colSpan={4}
+                              className="rounded-2xl bg-white px-6 py-8 text-center text-[#6B7780]"
+                            >
+                              No contributor pools available at this time
+                            </td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </TabsContent>
+              </div>
+
+              {/* Mobile: Cards */}
+              <div className="lg:hidden">
+                <TabsContent value="contribute-liquidity" className="mt-0">
+                  <div className="grid grid-cols-1 gap-5">
+                    {contributorPools.length > 0 ? (
+                      contributorPools.map((pool) => (
+                        <DefiCard
+                          key={pool.id}
+                          tokens={pool.tokens}
+                          protocolIcon={pool.protocolIcon}
+                          badges={pool.badge ? [pool.badge] : []}
+                          description={pool.description}
+                          apy={
+                            pool.yield !== null
+                              ? {
+                                  value: pool.yield / 100,
+                                  error: null,
+                                  isLoading: false,
+                                }
+                              : undefined
+                          }
+                          capacity={
+                            pool.capacity
+                              ? {
+                                  used: pool.capacity.used,
+                                  total: pool.capacity.total,
+                                }
+                              : undefined
+                          }
+                          action={pool.action}
+                          onActionClick={handleCTAClick}
+                        />
+                      ))
+                    ) : (
+                      <div className="col-span-full py-8 text-center text-[#6B7780]">
+                        No contributor pools available at this time
                       </div>
                     )}
                   </div>

@@ -28,6 +28,15 @@ export function formatNumber(
   decimals?: number,
   caps = false,
 ): string {
+  // Handle null, undefined, or non-numeric types
+  if (
+    num === null ||
+    num === undefined ||
+    (typeof num !== "number" && typeof num !== "string")
+  ) {
+    return "0";
+  }
+
   const numberValue = typeof num === "string" ? parseFloat(num) : num;
 
   if (isNaN(numberValue) || !isFinite(numberValue)) return "0";
@@ -183,12 +192,13 @@ export const eventNames = {
   OPPORTUNITIES: "opportunities",
 };
 
-const priceCache = new Map<string, { price: number, timestamp: number }>();
+const priceCache = new Map<string, { price: number; timestamp: number }>();
 
 export async function getAssetPrice(isSTRK: boolean = true): Promise<number> {
   if (priceCache.has(isSTRK ? "STRK" : "BTC")) {
     const { price, timestamp } = priceCache.get(isSTRK ? "STRK" : "BTC")!;
-    if (Date.now() - timestamp < 1000 * 60 * 60) { // 1 hour (just for ui purposes, so ok)
+    if (Date.now() - timestamp < 1000 * 60 * 60) {
+      // 1 hour (just for ui purposes, so ok)
       return price;
     }
   }
