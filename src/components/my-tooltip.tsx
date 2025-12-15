@@ -124,33 +124,33 @@ const MyDottedTooltip = ({
 
   return (
     <>
-      <span
+    <span
         ref={containerRef}
-        className={`relative inline-block ${className}`}
-        onMouseEnter={() => setShowTooltip(true)}
-        onMouseLeave={() => setShowTooltip(false)}
-      >
-        <span className="cursor-help border-b border-dotted border-current">
-          {children}
-        </span>
+      className={`relative inline-block ${className}`}
+      onMouseEnter={() => setShowTooltip(true)}
+      onMouseLeave={() => setShowTooltip(false)}
+    >
+      <span className="cursor-help border-b border-dotted border-current">
+        {children}
+      </span>
       </span>
       {showTooltip &&
         typeof document !== "undefined" &&
         createPortal(
-          <div
+        <div
             ref={tooltipRef}
             className={getTooltipClasses()}
             style={getTooltipStyles()}
             onMouseEnter={() => setShowTooltip(true)}
             onMouseLeave={() => setShowTooltip(false)}
-          >
-            <div className="whitespace-normal break-words leading-relaxed">
-              {tooltip}
-            </div>
+        >
+          <div className="whitespace-normal break-words leading-relaxed">
+            {tooltip}
+          </div>
             <div className={getArrowClasses()} style={getArrowStyles()}></div>
           </div>,
           document.body,
-        )}
+      )}
     </>
   );
 };

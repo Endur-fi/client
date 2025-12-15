@@ -156,8 +156,8 @@ importers:
         specifier: 8.5.2
         version: 8.5.2
       starknetkit:
-        specifier: ^3.1.0
-        version: 3.1.2(cdfac2c4fa1ff752b7a5a50662122c84)
+        specifier: 3.4.0
+        version: 3.4.0(cdfac2c4fa1ff752b7a5a50662122c84)
       tailwind-merge:
         specifier: ^2.5.4
         version: 2.6.0
@@ -2548,6 +2548,7 @@ packages:
 
   '@walletconnect/sign-client@2.21.7':
     resolution: {integrity: sha512-9k/JEl9copR6nXRhqnmzWz2Zk1hiWysH+o6bp6Cqo8TgDUrZoMLBZMZ6qbo+2HLI54V02kKf0Vg8M81nNFOpjQ==}
+    deprecated: 'Reliability and performance improvements. See: https://github.com/WalletConnect/walletconnect-monorepo/releases'
 
   '@walletconnect/time@1.0.2':
     resolution: {integrity: sha512-uzdd9woDcJ1AaBZRhqy5rNC9laqWGErfc4dxA9a87mPdKOgWMD85mcFo9dIYIts/Jwocfwn07EC6EzclKubk/g==}
@@ -2563,6 +2564,7 @@ packages:
 
   '@walletconnect/universal-provider@2.21.7':
     resolution: {integrity: sha512-8PB+vA5VuR9PBqt5Y0xj4JC2doYNPlXLGQt3wJORVF9QC227Mm/8R1CAKpmneeLrUH02LkSRwx+wnN/pPnDiQA==}
+    deprecated: 'Reliability and performance improvements. See: https://github.com/WalletConnect/walletconnect-monorepo/releases'
 
   '@walletconnect/utils@2.21.10':
     resolution: {integrity: sha512-LC5hmP3uxVoMyw7Ibea1JQdE98FTb7jZie60qiaybmaIsg/ApEUosU5uCLTFRJwEWUip2p3sJTb0n/3pU+yR/Q==}
@@ -5708,8 +5710,8 @@ packages:
     resolution: {integrity: sha512-d/GNASyo569y2kNZX+qS8faVxANyVANeEZWhwq0B7jVGcU6gE9W/aPThz3fMT3QN/srm+2XEiGTYbKuX+w5IKg==}
     engines: {node: '>=22'}
 
-  starknetkit@3.1.2:
-    resolution: {integrity: sha512-tSzocFwtv8gBZTrz+8US7p0u3U0PzB3w8VPxcB6R/R739Gizfulm8/EIVpRGPmBr2N1K/+XT5wuChyvim6iirw==}
+  starknetkit@3.4.0:
+    resolution: {integrity: sha512-iF005POoNT2V/8Sg4rn1EP+9F2VVQGYb7g9xRGDzFBw0RGrAlddms7AZFeSTqwuh7U+nLgguF+upIQwmRwr7JQ==}
     peerDependencies:
       starknet: ^8.0.0
 
@@ -13389,7 +13391,7 @@ snapshots:
       pako: 2.1.0
       ts-mixer: 6.0.4
 
-  starknetkit@3.1.2(cdfac2c4fa1ff752b7a5a50662122c84):
+  starknetkit@3.4.0(cdfac2c4fa1ff752b7a5a50662122c84):
     dependencies:
       '@argent/x-ui': 1.109.1(8db197a2f39a6e900161b3c17458fca8)
       '@cartridge/controller': 0.10.7(@types/react@19.2.7)(react@18.3.1)(typescript@5.9.3)(zod@3.25.76)

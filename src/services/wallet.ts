@@ -1,5 +1,4 @@
 import { InjectedConnector } from "@starknet-react/core";
-import { StarknetkitConnector } from "starknetkit";
 import {
   ArgentMobileConnector,
   isInArgentMobileAppBrowser,
@@ -10,7 +9,6 @@ import {
 } from "starknetkit/braavosMobile";
 import { WebWalletConnector } from "starknetkit/webwallet";
 import { ControllerConnector } from "starknetkit/controller";
-
 import { NETWORK } from "@/constants";
 
 export class WalletConnector {
@@ -21,8 +19,7 @@ export class WalletConnector {
   }
 
   public getConnectors() {
-    const hostname =
-      typeof window !== "undefined" ? window.location.hostname : "";
+    const hostname = typeof window !== "undefined" ? window.location.href : "";
 
     // Desktop/Extension wallets
     const argentXConnector = new InjectedConnector({
@@ -44,7 +41,7 @@ export class WalletConnector {
         id: "keplr",
         name: "Keplr",
       },
-    }) as unknown as StarknetkitConnector;
+    });
 
     const fordefiConnector = new InjectedConnector({
       options: {
@@ -72,7 +69,7 @@ export class WalletConnector {
         id: "xverse",
         name: "Xverse",
       },
-    }) as unknown as StarknetkitConnector;
+    });
 
     const cartridgeConnector = new ControllerConnector();
 

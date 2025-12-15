@@ -277,9 +277,9 @@ const UnstakeOptionCard = ({
           )}
         </div>
         <div className="flex items-center gap-2">
-          <p className={isBestRate ? "font-semibold text-[#17876D]" : ""}>
-            {isLoading ? "Loading..." : `1=${Number(rate).toFixed(4)}`}
-          </p>
+        <p className={isBestRate ? "font-semibold text-[#17876D]" : ""}>
+          {isLoading ? "Loading..." : `1=${Number(rate).toFixed(4)}`}
+        </p>
           {percentDiff !== null && percentDiff !== undefined && !isLoading && (
             <p
               className={`text-xs ${
