@@ -140,7 +140,7 @@ export const withdrawLogColumn: ColumnDef<WithdrawLogColumn>[] = [
                 status === "Pending",
             })}
           >
-            {status === "Success" ? "Withdraw" : "Pending"}
+            {status === "Success" ? "Completed" : "Pending"}
           </span>
 
           {status === "Success" && (

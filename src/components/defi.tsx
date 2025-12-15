@@ -948,6 +948,11 @@ const Defi: React.FC = () => {
         capacityText: null,
         capacityPercent: 0,
         externalPointsInfo: "+Vesu Points",
+        pointsMultiplier: {
+          min: 8,
+          max: 15,
+          description: "Supply BTC and STRK to designated pools, helping bootstrap liquidity and earn higher points.",
+        },
         action: {
           type: "lend",
           link: "http://vesu.xyz/earn?onlyV2Markets=true&includeIsolatedMarkets=true",
