@@ -20,7 +20,24 @@ import { assetPriceAtom } from "@/store/common.store";
 import { btcPriceAtom } from "@/store/staking.store";
 import MyNumber from "@/lib/MyNumber";
 import { GET_USER_COMPLETE_DETAILS } from "@/constants/queries";
-import apolloClient from "@/lib/apollo-client";
+import { defaultOptions } from "@/lib/apollo-client";
+import { isMainnet } from "@/constants";
+import { ApolloClient, InMemoryCache } from "@apollo/client";
+
+const getBTCLSTIcon = (lstSymbol: string) => {
+  switch (lstSymbol) {
+    case "xWBTC":
+      return <Icons.xwbtc className="h-5 w-5 shrink-0" />;
+    case "xtBTC":
+      return <Icons.xtbtc className="h-5 w-5 shrink-0" />;
+    case "xLBTC":
+      return <Icons.xlbtc className="h-5 w-5 shrink-0" />;
+    case "xsBTC":
+      return <Icons.xsbtc className="h-5 w-5 shrink-0" />;
+    default:
+      return <div className="h-5 w-5 shrink-0" />;
+  }
+};
 
 const PortfolioSection: React.FC = () => {
   const { address } = useAccount();
@@ -171,6 +188,19 @@ const PortfolioSection: React.FC = () => {
   const [season1Points, setSeason1Points] = React.useState<string | null>(null);
   const [season1Loading, setSeason1Loading] = React.useState(false);
 
+  // Use the same Apollo Client setup as production leaderboard
+  const leaderboardApolloClient = React.useMemo(
+    () =>
+      new ApolloClient({
+        uri: isMainnet()
+          ? "https://graphql.mainnet.endur.fi"
+          : "https://graphql.sepolia.endur.fi",
+        cache: new InMemoryCache(),
+        defaultOptions,
+      }),
+    [],
+  );
+
   React.useEffect(() => {
     if (!address) {
       setSeason1Points(null);
@@ -180,20 +210,17 @@ const PortfolioSection: React.FC = () => {
     const fetchSeason1Points = async () => {
       setSeason1Loading(true);
       try {
-        const result = await apolloClient.query({
+        const result = await leaderboardApolloClient.query({
           query: GET_USER_COMPLETE_DETAILS,
           variables: { userAddress: address },
           fetchPolicy: "cache-first",
         });
 
         const userDetails = result.data?.getUserCompleteDetails;
+
         if (userDetails?.points?.total_points) {
-          const totalPoints = userDetails.points.total_points;
-          setSeason1Points(
-            typeof totalPoints === "bigint"
-              ? totalPoints.toString()
-              : String(totalPoints),
-          );
+          const pointsString = userDetails.points.total_points.toString();
+          setSeason1Points(pointsString);
         } else {
           setSeason1Points("0");
         }
@@ -206,14 +233,10 @@ const PortfolioSection: React.FC = () => {
     };
 
     fetchSeason1Points();
-  }, [address]);
+  }, [address, leaderboardApolloClient]);
 
   // Season 2 is 0 for now
   const season2Points = "0";
-
-  // if (!address) {
-  //   return null;
-  // }
 
   return (
     <div
@@ -239,22 +262,40 @@ const PortfolioSection: React.FC = () => {
 
         {/* xSTRK Holdings */}
         {strkHoldings && (
-          <div className="px-0 py-1 lg:px-0 lg:py-0">
+          <div className="rounded-xl px-0 py-1 lg:px-0 lg:py-0">
             <div className="flex w-full items-start gap-3">
               <Icons.strkLogo className="h-10 w-10 shrink-0" />
               <div className="flex flex-1 items-start justify-between">
                 <div className="flex flex-col">
-                  <span className="text-left text-sm font-semibold text-[#1A1F24]">
+                  <span className="text-left text-sm text-[#1A1F24]">
                     xSTRK
-                  </span>
-                  <span className="mt-1 text-sm text-[#1A1F24]">
-                    {formatNumberWithCommas(strkHoldings.lstAmount, 2)} xSTRK
                   </span>
                   <span className="mt-0.5 text-left text-xs text-[#6B7780]">
                     ${formatNumberWithCommas(strkHoldings.usdValue, 2)}
                   </span>
                 </div>
-                <span className="text-sm font-semibold text-[#1A1F24]">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-semibold text-[#1A1F24]">
+                    {formatNumberWithCommas(strkHoldings.underlyingSTRK, 2)}{" "}
+                    STRK
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div className="mt-3 space-y-3 rounded-lg bg-[#F5F7F8] p-3 lg:ml-[52px]">
+              <div className="flex items-start justify-between gap-3 text-xs">
+                <div className="flex flex-col gap-0.5">
+                  <div className="flex items-center gap-1">
+                    <Icons.strkLogo className="h-5 w-5 shrink-0" />
+                    <span className="text-[#1A1F24]">
+                      {formatNumberWithCommas(strkHoldings.lstAmount, 2)} xSTRK
+                    </span>
+                  </div>
+                  <span className="text-[#6B7780]">
+                    ${formatNumberWithCommas(strkHoldings.usdValue, 2)}
+                  </span>
+                </div>
+                <span className="text-right text-[#6B7780]">
                   {formatNumberWithCommas(strkHoldings.underlyingSTRK, 2)} STRK
                 </span>
               </div>
@@ -265,15 +306,13 @@ const PortfolioSection: React.FC = () => {
         {/* BTC Holdings */}
         {btcHoldings.holdings.length > 0 && (
           <div className="rounded-xl px-0 py-1 lg:px-0 lg:py-0">
+            {/* <div className="grid-col-[50px_auto_auto] grid"></div> */}
+
             <div className="flex w-full items-start gap-3">
               <Icons.btcLogo className="h-10 w-10 shrink-0" />
               <div className="flex flex-1 items-start justify-between">
                 <div className="flex flex-col">
                   <span className="text-left text-sm text-[#1A1F24]">BTC</span>
-                  {/* <span className="mt-1 text-sm text-[#1A1F24]">
-                    {formatNumberWithCommas(btcHoldings.totalUnderlyingBTC, 6)}{" "}
-                    xyBTC
-                  </span> */}
                   <span className="mt-0.5 text-left text-xs text-[#6B7780]">
                     ${formatNumberWithCommas(btcHoldings.totalUsd, 2)}
                   </span>
@@ -286,28 +325,28 @@ const PortfolioSection: React.FC = () => {
                 </div>
               </div>
             </div>
-            <div className="mt-3 space-y-2">
+            <div className="mt-3 space-y-3 rounded-lg bg-[#F5F7F8] p-3 lg:ml-[52px]">
               {btcHoldings.holdings.map((holding) => (
                 <div
                   key={holding.asset.SYMBOL}
-                  className="flex items-start gap-3 text-xs"
+                  className="flex items-start justify-between gap-3 text-xs"
                 >
-                  <div className="h-10 w-10 shrink-0" />
-                  <div className="flex flex-1 items-start justify-between">
-                    <div className="flex flex-col gap-0.5">
-                      <span className="text-[#6B7780]">
+                  <div className="flex flex-col gap-0.5">
+                    <div className="flex items-center gap-1">
+                      {getBTCLSTIcon(holding.asset.LST_SYMBOL)}
+                      <span className="text-[#1A1F24]">
                         {formatNumberWithCommas(holding.lstAmount, 6)}{" "}
                         {holding.asset.LST_SYMBOL}
                       </span>
-                      <span className="text-[#6B7780]">
-                        ${formatNumberWithCommas(holding.usdValue, 2)}
-                      </span>
                     </div>
-                    <span className="text-right text-[#6B7780]">
-                      {formatNumberWithCommas(holding.underlyingBTC, 6)}{" "}
-                        {holding.asset.SYMBOL}
+                    <span className="text-[#6B7780]">
+                      ${formatNumberWithCommas(holding.usdValue, 2)}
                     </span>
                   </div>
+                  <span className="text-right text-[#6B7780]">
+                    {formatNumberWithCommas(holding.underlyingBTC, 6)}{" "}
+                    {holding.asset.SYMBOL}
+                  </span>
                 </div>
               ))}
             </div>
@@ -352,7 +391,7 @@ const PortfolioSection: React.FC = () => {
                   ? "-"
                   : season1Loading
                     ? "..."
-                    : season1Points
+                    : season1Points !== null
                       ? `${formatNumberWithCommas(season1Points)} pts`
                       : "0 pts"}
               </span>

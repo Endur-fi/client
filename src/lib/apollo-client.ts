@@ -14,10 +14,12 @@ export const defaultOptions: DefaultOptions = {
 };
 
 const apolloClient = new ApolloClient({
-  uri: isMainnet()
-    ? "https://endur-graphql-api-v2.onrender.com"
-    : "https://graphql.sepolia.endur.fi",
-  // uri: "http://localhost:4000",
+  uri:
+    process.env.NEXT_PUBLIC_USE_MOCK_SERVER === "true"
+      ? "http://localhost:4000"
+      : isMainnet()
+        ? "https://endur-graphql-api-v2.onrender.com"
+        : "https://graphql.sepolia.endur.fi",
   cache: new InMemoryCache(),
   defaultOptions,
 });
