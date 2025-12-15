@@ -133,6 +133,7 @@ interface VesuPoolResponse {
   id: string;
   name: string;
   isVerified: boolean;
+  isDeprecated?: boolean;
   assets: Array<VesuAsset>;
   pairs: Array<VesuPair>;
 }
@@ -995,7 +996,9 @@ const vesuPoolsRawQueryAtom = atomWithQuery(() => ({
   queryKey: ["vesuPoolsRaw"],
   queryFn: async (): Promise<VesuPoolsAPIResponse> => {
     try {
-      const response = await fetch("https://proxy.api.troves.fi/vesu/pools");
+      const response = await fetch(
+        "https://proxy.api.troves.fi/vesu-staging/pools",
+      );
       const data: VesuPoolsAPIResponse = await response.json();
       return data;
     } catch (error) {
@@ -1026,6 +1029,11 @@ export const vesuPoolsFilteredAtom = atom((get) => {
 
     // Iterate through all pools
     for (const pool of data.data) {
+      // Filter out deprecated pools
+      if (pool.isDeprecated === true) {
+        continue;
+      }
+
       // Filter by isVerified if specified
       if (
         filter.isVerified !== undefined &&
@@ -1078,6 +1086,11 @@ export const vesuPoolsFilteredAtom = atom((get) => {
 
           // Only include pairs where both collateral and debt assets are found
           if (collateralAsset && debtAsset && debtAsset.symbol) {
+            // Filter out borrowing positions on USDC.e
+            if (debtAsset.symbol === "USDC.e") {
+              continue;
+            }
+
             const supplyStats = collateralAsset.stats;
             const supplyApr = supplyStats
               ? convertVesuValue(
@@ -1241,6 +1254,11 @@ export const vesuContributorSupplyPoolsAtom = atom<VesuSupplyPool[]>((get) => {
 
   // Filter pools by name (Re7 xSTRK or Re7 xBTC)
   for (const pool of data.data) {
+    // Filter out deprecated pools
+    if (pool.isDeprecated === true) {
+      continue;
+    }
+
     if (pool.name !== "Re7 xSTRK" && pool.name !== "Re7 xBTC") {
       continue;
     }

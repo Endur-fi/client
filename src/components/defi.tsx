@@ -2,7 +2,13 @@
 
 import { useAtomValue } from "jotai";
 import React, { useMemo, useState } from "react";
-import { HelpCircle, OctagonAlert, ShieldAlert, Zap } from "lucide-react";
+import {
+  HelpCircle,
+  OctagonAlert,
+  ShieldAlert,
+  Sparkles,
+  Zap,
+} from "lucide-react";
 
 import { useSidebar } from "@/components/ui/sidebar";
 import { MyAnalytics } from "@/lib/analytics";
@@ -572,7 +578,7 @@ const borrowProtocols: SupportedDApp[] = [
 ];
 
 // Asset filter options
-type AssetFilter = "all" | "xSTRK" | "xtBTC" | "xLBTC" | "xWBTC" | "xSolvBTC";
+type AssetFilter = "all" | "xSTRK" | "xtBTC" | "xLBTC" | "xWBTC" | "xsBTC";
 
 // Protocol filter options
 type ProtocolFilter = "all" | "Ekubo" | "Vesu" | "Nostra" | "Troves";
@@ -616,7 +622,7 @@ const Filters: React.FC<FiltersProps> = ({
         return <Icons.xlbtc className="h-4 w-4" />;
       case "xWBTC":
         return <Icons.xwbtc className="h-4 w-4" />;
-      case "xSolvBTC":
+      case "xsBTC":
         return <Icons.xsbtc className="h-4 w-4" />;
       default:
         return null;
@@ -933,7 +939,7 @@ const Defi: React.FC = () => {
         tokenPair: pool.assetSymbol,
         description: `Supply ${pool.assetSymbol} on ${pool.poolName} pool`,
         badge: {
-          type: "Supply Pool",
+          type: pool.poolName,
           color: "bg-[#E8F4FD] text-[#1E40AF]",
         },
         yield: pool.supplyApy,
@@ -1185,7 +1191,7 @@ const Defi: React.FC = () => {
     xtBTC: ["xtBTC"],
     xLBTC: ["xLBTC"],
     xWBTC: ["xWBTC"],
-    xSolvBTC: ["xsBTC", "solvBTC"],
+    xsBTC: ["xsBTC", "solvBTC"],
   };
 
   // Helper function to check if protocol matches asset filter
@@ -1213,6 +1219,34 @@ const Defi: React.FC = () => {
     const protocolName = config.protocolName.toLowerCase();
     return protocolFilterMap[selectedProtocol](protocolName);
   };
+
+  // Filter contributor pools based on selected filters
+  const filteredContributorPools = useMemo(() => {
+    return contributorPools.filter((pool) => {
+      // Asset filter
+      if (selectedAsset !== "all") {
+        const allowedNames = assetFilterMap[selectedAsset];
+        const tokenNames = pool.tokens.map((t) => t.name);
+        const matchesAsset = tokenNames.some((name) =>
+          allowedNames.includes(name),
+        );
+        if (!matchesAsset) return false;
+      }
+
+      // Protocol filter
+      const protocolName = pool.protocolName.toLowerCase();
+      const matchesProtocol = protocolFilterMap[selectedProtocol](protocolName);
+      if (!matchesProtocol) return false;
+
+      return true;
+    });
+  }, [
+    contributorPools,
+    selectedAsset,
+    selectedProtocol,
+    assetFilterMap,
+    protocolFilterMap,
+  ]);
 
   // assumes, we compute net borrow APY by assuming users borrows 80% of LTV of the collateral
   const MAX_BORROWING_ON_LTV_ASSUMPTION = 0.8;
@@ -1562,7 +1596,7 @@ const Defi: React.FC = () => {
     "xtBTC",
     "xLBTC",
     "xWBTC",
-    "xSolvBTC",
+    "xsBTC",
   ];
 
   const protocolFilters: ProtocolFilter[] = [
@@ -1650,7 +1684,7 @@ const Defi: React.FC = () => {
                       key={tab.value}
                       value={tab.value}
                       className={cn(
-                        "flex-1 rounded-[10px] border border-transparent bg-transparent px-4 py-2 text-sm font-medium text-[#6B7780] transition-all data-[state=active]:border-[#17876D] data-[state=active]:bg-[#E8F7F4] data-[state=active]:text-[#1A1F24] data-[state=active]:shadow-none lg:px-6 lg:py-2.5 lg:text-base",
+                        "min-h-[64px] flex-1 rounded-[10px] border border-transparent bg-transparent px-4 py-2 text-sm font-medium text-[#6B7780] transition-all data-[state=active]:border-[#17876D] data-[state=active]:bg-[#E8F7F4] data-[state=active]:text-[#1A1F24] data-[state=active]:shadow-none lg:px-6 lg:py-2.5 lg:text-base",
                       )}
                     >
                       <div className="flex flex-col items-center gap-0.5">
@@ -1689,29 +1723,31 @@ const Defi: React.FC = () => {
                 </TooltipProvider>
               </div>
 
-              {(["supply", "borrow"] as const).map((tab) => (
-                <TabsContent
-                  key={tab}
-                  value={tab}
-                  className="mt-6 rounded-lg bg-[#17876D26] p-4"
-                >
-                  <Filters
-                    assetFilters={assetFilters}
-                    protocolFilters={protocolFilters}
-                    selectedAsset={selectedAsset}
-                    selectedProtocol={selectedProtocol}
-                    showMoreFilters={showMoreFilters}
-                    activeTab={tab}
-                    showStablesOnly={showStablesOnly}
-                    onAssetChange={setSelectedAsset}
-                    onProtocolChange={setSelectedProtocol}
-                    onToggleMoreFilters={() =>
-                      setShowMoreFilters(!showMoreFilters)
-                    }
-                    onShowStablesOnlyChange={setShowStablesOnly}
-                  />
-                </TabsContent>
-              ))}
+              {(["supply", "borrow", "contribute-liquidity"] as const).map(
+                (tab) => (
+                  <TabsContent
+                    key={tab}
+                    value={tab}
+                    className="mt-6 rounded-lg bg-[#17876D26] p-4"
+                  >
+                    <Filters
+                      assetFilters={assetFilters}
+                      protocolFilters={protocolFilters}
+                      selectedAsset={selectedAsset}
+                      selectedProtocol={selectedProtocol}
+                      showMoreFilters={showMoreFilters}
+                      activeTab={tab}
+                      showStablesOnly={showStablesOnly}
+                      onAssetChange={setSelectedAsset}
+                      onProtocolChange={setSelectedProtocol}
+                      onToggleMoreFilters={() =>
+                        setShowMoreFilters(!showMoreFilters)
+                      }
+                      onShowStablesOnlyChange={setShowStablesOnly}
+                    />
+                  </TabsContent>
+                ),
+              )}
             </div>
 
             {/* Content Section - Tables (Desktop) and Cards (Mobile) */}
@@ -1899,7 +1935,8 @@ const Defi: React.FC = () => {
                                                 .description
                                             }
                                           >
-                                            <div className="w-fit rounded-lg border border-[#059669] bg-[#D1FAE5] px-2 py-1 text-sm font-semibold text-[#059669]">
+                                            <div className="flex w-fit items-center gap-1 rounded-lg border border-[#059669] bg-[#D1FAE5] px-2 py-1 text-sm font-semibold text-[#059669]">
+                                              <Sparkles className="size-3.5" />
                                               {config.pointsMultiplier.min ==
                                               config.pointsMultiplier.max
                                                 ? `${config.pointsMultiplier.min}x`
@@ -2238,7 +2275,8 @@ const Defi: React.FC = () => {
                                                   .description
                                               }
                                             >
-                                              <div className="w-fit rounded-lg border border-[#059669] bg-[#D1FAE5] px-2 py-1 text-sm font-semibold text-[#059669]">
+                                              <div className="flex w-fit items-center gap-1 rounded-lg border border-[#059669] bg-[#D1FAE5] px-2 py-1 text-sm font-semibold text-[#059669]">
+                                                <Sparkles className="size-3.5" />
                                                 {config.pointsMultiplier.min ==
                                                 config.pointsMultiplier.max
                                                   ? `${config.pointsMultiplier.min}x`
@@ -2351,8 +2389,8 @@ const Defi: React.FC = () => {
                         </tr>
                       </thead>
                       <tbody>
-                        {contributorPools.length > 0 ? (
-                          contributorPools.map((pool) => (
+                        {filteredContributorPools.length > 0 ? (
+                          filteredContributorPools.map((pool) => (
                             <tr key={pool.id}>
                               <td
                                 colSpan={4}
@@ -2453,7 +2491,8 @@ const Defi: React.FC = () => {
                                             pool.pointsMultiplier.description
                                           }
                                         >
-                                          <div className="w-fit rounded-lg border border-[#059669] bg-[#D1FAE5] px-2 py-1 text-sm font-semibold text-[#059669]">
+                                          <div className="flex w-fit items-center gap-1 rounded-lg border border-[#059669] bg-[#D1FAE5] px-2 py-1 text-sm font-semibold text-[#059669]">
+                                            <Sparkles className="size-3.5" />
                                             {pool.pointsMultiplier.min ==
                                             pool.pointsMultiplier.max
                                               ? `${pool.pointsMultiplier.min}x`
@@ -2525,7 +2564,7 @@ const Defi: React.FC = () => {
                               colSpan={4}
                               className="rounded-2xl bg-white px-6 py-8 text-center text-[#6B7780]"
                             >
-                              No contributor pools available at this time
+                              No contributor pools found matching your filters
                             </td>
                           </tr>
                         )}
@@ -2581,8 +2620,8 @@ const Defi: React.FC = () => {
                         </tr>
                       </thead>
                       <tbody>
-                        {contributorPools.length > 0 ? (
-                          contributorPools.map((pool) => (
+                        {filteredContributorPools.length > 0 ? (
+                          filteredContributorPools.map((pool) => (
                             <tr key={pool.id}>
                               <td
                                 colSpan={4}
@@ -2732,7 +2771,8 @@ const Defi: React.FC = () => {
                                             </div>
                                           }
                                         >
-                                          <div className="w-fit rounded-lg border border-[#059669] bg-[#D1FAE5] px-2 py-1 text-sm font-semibold text-[#059669]">
+                                          <div className="flex w-fit items-center gap-1 rounded-lg border border-[#059669] bg-[#D1FAE5] px-2 py-1 text-sm font-semibold text-[#059669]">
+                                            <Sparkles className="size-3.5" />
                                             {pool.pointsMultiplier.min}x -{" "}
                                             {pool.pointsMultiplier.max}x
                                           </div>
@@ -2771,7 +2811,7 @@ const Defi: React.FC = () => {
                               colSpan={4}
                               className="rounded-2xl bg-white px-6 py-8 text-center text-[#6B7780]"
                             >
-                              No contributor pools available at this time
+                              No contributor pools found matching your filters
                             </td>
                           </tr>
                         )}
@@ -2785,8 +2825,8 @@ const Defi: React.FC = () => {
               <div className="lg:hidden">
                 <TabsContent value="contribute-liquidity" className="mt-0">
                   <div className="grid grid-cols-1 gap-5">
-                    {contributorPools.length > 0 ? (
-                      contributorPools.map((pool) => (
+                    {filteredContributorPools.length > 0 ? (
+                      filteredContributorPools.map((pool) => (
                         <DefiCard
                           key={pool.id}
                           tokens={pool.tokens}

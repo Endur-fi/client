@@ -1,7 +1,7 @@
 "use client";
 
 import { useAtom, useAtomValue } from "jotai";
-import { Info } from "lucide-react";
+import { Info, Layers } from "lucide-react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import React from "react";
@@ -372,10 +372,11 @@ const Tabs = () => {
           )}
         > */}
 
-          <MyHeader
-            title="Starknet Liquid Staking"
-            description={
-              <>Convert your STRK and BTC tokens into{" "}
+        <MyHeader
+          title="Starknet Liquid Staking"
+          description={
+            <>
+              Convert your STRK and BTC tokens into{" "}
               <MyDottedTooltip tooltip="Liquid staking token (LST) of STRK issued by Endur">
                 xSTRK
               </MyDottedTooltip>{" "}
@@ -383,23 +384,26 @@ const Tabs = () => {
               <MyDottedTooltip tooltip="xyBTC refers to Endur's family of Bitcoin Liquid Staking Tokens (LSTs), where 'x' is Endur's prefix and 'y' represents different Bitcoin variants. Examples include xWBTC, xtBTC, xLBTC, and xsBTC.">
                 xyBTCs
               </MyDottedTooltip>{" "}
-              to earn staking rewards and participate in DeFi opportunities across
-              the Starknet ecosystem.</>
-            }
-            icon={Icons.strkLogo}
-            customTitleSibling={<Link
+              to earn staking rewards and participate in DeFi opportunities
+              across the Starknet ecosystem.
+            </>
+          }
+          icon={Layers}
+          customTitleSibling={
+            <Link
               href="https://docs.endur.fi/docs/security"
               target="_blank"
               className="flex w-fit items-center gap-1 rounded-full border border-[#17876D33] bg-[#17876D1A] px-3 py-1 transition-opacity hover:opacity-80 md:mt-0"
-              >
-                  <Icons.shield className="size-3.5 text-[#17876D]" />
-                  <span className="text-xs text-[#17876D]">Audited</span>
-              </Link>}
-          />
+            >
+              <Icons.shield className="size-3.5 text-[#17876D]" />
+              <span className="text-xs text-[#17876D]">Audited</span>
+            </Link>
+          }
+        />
         {/* </div> */}
 
         {/* Main Tabs - STRK and BTC */}
-        <div className="grid mt-2 w-full max-w-[calc(100vw-1rem)] lg:max-w-4xl lg:grid-cols-[3fr_2fr] lg:gap-6">
+        <div className="mt-2 grid w-full max-w-[calc(100vw-1rem)] lg:max-w-4xl lg:grid-cols-[3fr_2fr] lg:gap-6">
           <div className="flex flex-col gap-3">
             <div className="flex w-full flex-col gap-4">
               <ShadCNTabs
