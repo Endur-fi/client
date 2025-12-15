@@ -248,6 +248,38 @@ export function formatHumanFriendlyDateTime(
 
 export const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+export function formatEmail(
+  email: string | null | undefined,
+  localChars = 5,
+): string {
+  if (!email) return "";
+
+  const [localPart, domain] = email.split("@");
+
+  if (!domain) {
+    // If no @ found, just truncate the whole string if it's too long
+    if (email.length <= localChars + 3) return email;
+    return `${email.substring(0, localChars)}...`;
+  }
+
+  // Format: show first N chars of local part (if truncated), then @, then full domain
+  const formattedLocal =
+    localPart.length > localChars
+      ? `${localPart.substring(0, localChars)}...`
+      : localPart;
+
+  return `${formattedLocal}@${domain}`;
+}
+
+export function formatAddress(
+  address: string | null | undefined,
+  startChars = 6,
+  endChars = 4,
+): string {
+  if (!address) return "";
+  return shortAddress(address, startChars, endChars);
+}
+
 export const validateEmail = (email: string): boolean => {
   if (!email) {
     toast({

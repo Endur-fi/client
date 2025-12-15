@@ -10,7 +10,7 @@ import { getProvider } from "@/constants";
 import { toast } from "@/hooks/use-toast";
 import { useWalletConnection } from "@/hooks/use-wallet-connection";
 import { MyAnalytics } from "@/lib/analytics";
-import { cn, shortAddress } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import {
   lastWalletAtom,
   providerAtom,
@@ -20,6 +20,8 @@ import {
 import { Icons } from "./Icons";
 import MobileNav from "./mobile-nav";
 import { useSidebar } from "./ui/sidebar";
+import { ConnectWalletModal } from "./wallet/ConnectWalletModal";
+import { WalletSetupProgress } from "./wallet/WalletSetupProgress";
 
 const Navbar = ({ className }: { className?: string }) => {
   // init analytics
@@ -27,7 +29,21 @@ const Navbar = ({ className }: { className?: string }) => {
 
   const { address, connector } = useAccount();
   const { provider } = useProvider();
-  const { connectWallet, disconnectWallet } = useWalletConnection();
+  const {
+    isConnected,
+    displayAddress,
+    activeAddress,
+    isWalletModalOpen,
+    setIsWalletModalOpen,
+    handleConnectWallet,
+    handleConnectStarknet,
+    handleConnectPrivy,
+    handleDisconnect,
+    walletSetupStep,
+    isLoadingWallet,
+    connectionType,
+    isStarknetConnected,
+  } = useWalletConnection();
 
   const { isMobile } = useSidebar();
 
@@ -78,9 +94,11 @@ const Navbar = ({ className }: { className?: string }) => {
               "h-[34px]": isMobile,
             },
           )}
-          onClick={() => !address && connectWallet()}
+          onClick={() =>
+            !isConnected && !isLoadingWallet && handleConnectWallet()
+          }
         >
-          {!address && (
+          {!isConnected && !isLoadingWallet && (
             <p
               className={cn(
                 "relative flex w-[8rem] select-none items-center justify-center gap-1 bg-transparent text-xs md:w-[9.5rem] md:text-sm",
@@ -90,27 +108,38 @@ const Navbar = ({ className }: { className?: string }) => {
             </p>
           )}
 
-          {address && (
+          {/* Only show Privy wallet setup progress if Privy is the active connection */}
+          {isLoadingWallet &&
+            walletSetupStep !== "idle" &&
+            connectionType === "privy" && (
+              <div className="flex w-[8rem] items-center justify-center md:w-[9.5rem]">
+                <WalletSetupProgress step={walletSetupStep} />
+              </div>
+            )}
+
+          {isConnected && !isLoadingWallet && (
             <>
               {!isMobile ? (
                 <div className="flex w-[8rem] items-center justify-center gap-2 md:w-[9.5rem]">
                   <div
                     onClick={() => {
-                      navigator.clipboard.writeText(address);
-                      toast({
-                        description: "Address copied to clipboard",
-                      });
+                      if (displayAddress) {
+                        navigator.clipboard.writeText(activeAddress || "");
+                        toast({
+                          description: "Address copied to clipboard",
+                        });
+                      }
                     }}
                     className="flex h-8 items-center justify-center gap-2 rounded-md md:h-9"
                   >
                     <Icons.gradient />
                     <p className="flex items-center gap-1 text-xs md:text-sm">
-                      {address && shortAddress(address, 4, 4)}
+                      {displayAddress}
                     </p>
                   </div>
 
                   <X
-                    onClick={() => disconnectWallet()}
+                    onClick={() => handleDisconnect()}
                     className="size-4 text-[#3F6870]"
                   />
                 </div>
@@ -118,17 +147,19 @@ const Navbar = ({ className }: { className?: string }) => {
                 <div className="flex w-[8rem] items-center justify-center gap-2 md:w-[9.5rem]">
                   <div
                     onClick={() => {
-                      navigator.clipboard.writeText(address);
-                      toast({ description: "Address copied to clipboard" });
+                      if (displayAddress) {
+                        navigator.clipboard.writeText(activeAddress || "");
+                        toast({ description: "Address copied to clipboard" });
+                      }
                     }}
                     className="flex w-fit items-center justify-center gap-2 rounded-md"
                   >
                     <Icons.wallet className="size-5 text-[#3F6870]" />
-                    {shortAddress(address, 4, 4)}
+                    {displayAddress}
                   </div>
 
                   <X
-                    onClick={() => disconnectWallet()}
+                    onClick={() => handleDisconnect()}
                     className="size-3 text-[#3F6870] md:size-4"
                   />
                 </div>
@@ -137,6 +168,14 @@ const Navbar = ({ className }: { className?: string }) => {
           )}
         </button>
       </div>
+
+      {/* Connect Wallet Modal */}
+      <ConnectWalletModal
+        open={isWalletModalOpen}
+        onOpenChange={setIsWalletModalOpen}
+        onConnectStarknet={handleConnectStarknet}
+        onConnectPrivy={handleConnectPrivy}
+      />
     </div>
   );
 };

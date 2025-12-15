@@ -1,6 +1,6 @@
 /* eslint-disable no-spaced-func */
 
-import { useAccount, useSendTransaction } from "@starknet-react/core";
+import { useAccount } from "@starknet-react/core";
 import { Gift, Loader2 } from "lucide-react";
 import { Figtree } from "next/font/google";
 import Image from "next/image";
@@ -31,6 +31,7 @@ import {
 import { UPDATE_USER_POINTS } from "@/constants/mutations";
 import { GET_USER_COMPLETE_DETAILS } from "@/constants/queries";
 import { toast } from "@/hooks/use-toast";
+import { useSendTransactionUnified } from "@/hooks/use-send-transaction-unified";
 import { MyAnalytics } from "@/lib/analytics";
 import { checkSubscription, subscribeUser } from "@/lib/api";
 import apolloClient from "@/lib/apollo-client";
@@ -707,7 +708,7 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
     address,
     submittedEmail,
   );
-  const { sendAsync, isPending, isError, data } = useSendTransaction({});
+  const { sendAsync, isPending, error, data } = useSendTransactionUnified();
 
   const bonusAlreadyAwarded = React.useMemo(
     () => (userCompleteInfo?.points?.follow_bonus_points || 0) > 0,
@@ -1095,14 +1096,14 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
   ]);
 
   React.useEffect(() => {
-    if (isError && !isPending) {
+    if (error && !isPending) {
       setIsWaitingForConfirmation(false);
       toast({
         description: "Transaction failed. Please try again.",
         duration: 4000,
       });
     }
-  }, [isError, isPending, setIsWaitingForConfirmation]);
+  }, [error, isPending, setIsWaitingForConfirmation]);
 
   return (
     <div>

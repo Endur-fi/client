@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useSetAtom } from "jotai";
-import { useAccount, useBalance } from "@starknet-react/core";
 import { getLSTAssetsByCategory, getFirstBTCAsset } from "@/constants";
 import { lstConfigAtom } from "@/store/common.store"; // Adjust path if needed
+import { useWalletConnection } from "@/hooks/use-wallet-connection";
+import { useBalanceUnified } from "@/hooks/use-balance-unified";
 import { Icons } from "./Icons";
 import {
   DropdownMenu,
@@ -29,43 +30,37 @@ export const getFirstBtcAsset = (): string => {
 
 // Custom hook to get BTC token balances
 const useBtcTokenBalances = () => {
-  const { address } = useAccount();
+  const { activeAddress } = useWalletConnection();
 
   // Get balances for each BTC token individually
-  const wbtcBalance = useBalance({
-    address,
-    token: btcAssets.find((asset) => asset.SYMBOL === "WBTC")
-      ?.ASSET_ADDRESS as `0x${string}`,
+  const wbtcBalance = useBalanceUnified({
+    address: activeAddress || undefined,
+    token: btcAssets.find((asset) => asset.SYMBOL === "WBTC")?.ASSET_ADDRESS,
   });
 
-  const tbtcBalance = useBalance({
-    address,
-    token: btcAssets.find((asset) => asset.SYMBOL === "tBTC")
-      ?.ASSET_ADDRESS as `0x${string}`,
+  const tbtcBalance = useBalanceUnified({
+    address: activeAddress || undefined,
+    token: btcAssets.find((asset) => asset.SYMBOL === "tBTC")?.ASSET_ADDRESS,
   });
 
-  const lbtcBalance = useBalance({
-    address,
-    token: btcAssets.find((asset) => asset.SYMBOL === "LBTC")
-      ?.ASSET_ADDRESS as `0x${string}`,
+  const lbtcBalance = useBalanceUnified({
+    address: activeAddress || undefined,
+    token: btcAssets.find((asset) => asset.SYMBOL === "LBTC")?.ASSET_ADDRESS,
   });
 
-  const solvbtcBalance = useBalance({
-    address,
-    token: btcAssets.find((asset) => asset.SYMBOL === "solvBTC")
-      ?.ASSET_ADDRESS as `0x${string}`,
+  const solvbtcBalance = useBalanceUnified({
+    address: activeAddress || undefined,
+    token: btcAssets.find((asset) => asset.SYMBOL === "solvBTC")?.ASSET_ADDRESS,
   });
 
-  const tbtc1Balance = useBalance({
-    address,
-    token: btcAssets.find((asset) => asset.SYMBOL === "TBTC1")
-      ?.ASSET_ADDRESS as `0x${string}`,
+  const tbtc1Balance = useBalanceUnified({
+    address: activeAddress || undefined,
+    token: btcAssets.find((asset) => asset.SYMBOL === "TBTC1")?.ASSET_ADDRESS,
   });
 
-  const tbtc2Balance = useBalance({
-    address,
-    token: btcAssets.find((asset) => asset.SYMBOL === "TBTC2")
-      ?.ASSET_ADDRESS as `0x${string}`,
+  const tbtc2Balance = useBalanceUnified({
+    address: activeAddress || undefined,
+    token: btcAssets.find((asset) => asset.SYMBOL === "TBTC2")?.ASSET_ADDRESS,
   });
 
   return btcAssets.map((asset) => {
@@ -105,43 +100,37 @@ const useBtcTokenBalances = () => {
 
 // Custom hook to get xBTC token balances (for unstake mode)
 const useXBtcTokenBalances = () => {
-  const { address } = useAccount();
+  const { activeAddress } = useWalletConnection();
 
   // Get balances for each xBTC token individually
-  const xwbtcBalance = useBalance({
-    address,
-    token: btcAssets.find((asset) => asset.SYMBOL === "WBTC")
-      ?.LST_ADDRESS as `0x${string}`,
+  const xwbtcBalance = useBalanceUnified({
+    address: activeAddress || undefined,
+    token: btcAssets.find((asset) => asset.SYMBOL === "WBTC")?.LST_ADDRESS,
   });
 
-  const xtbtcBalance = useBalance({
-    address,
-    token: btcAssets.find((asset) => asset.SYMBOL === "tBTC")
-      ?.LST_ADDRESS as `0x${string}`,
+  const xtbtcBalance = useBalanceUnified({
+    address: activeAddress || undefined,
+    token: btcAssets.find((asset) => asset.SYMBOL === "tBTC")?.LST_ADDRESS,
   });
 
-  const xlbtcBalance = useBalance({
-    address,
-    token: btcAssets.find((asset) => asset.SYMBOL === "LBTC")
-      ?.LST_ADDRESS as `0x${string}`,
+  const xlbtcBalance = useBalanceUnified({
+    address: activeAddress || undefined,
+    token: btcAssets.find((asset) => asset.SYMBOL === "LBTC")?.LST_ADDRESS,
   });
 
-  const xsolvbtcBalance = useBalance({
-    address,
-    token: btcAssets.find((asset) => asset.SYMBOL === "solvBTC")
-      ?.LST_ADDRESS as `0x${string}`,
+  const xsolvbtcBalance = useBalanceUnified({
+    address: activeAddress || undefined,
+    token: btcAssets.find((asset) => asset.SYMBOL === "solvBTC")?.LST_ADDRESS,
   });
 
-  const xtbtc1Balance = useBalance({
-    address,
-    token: btcAssets.find((asset) => asset.SYMBOL === "TBTC1")
-      ?.LST_ADDRESS as `0x${string}`,
+  const xtbtc1Balance = useBalanceUnified({
+    address: activeAddress || undefined,
+    token: btcAssets.find((asset) => asset.SYMBOL === "TBTC1")?.LST_ADDRESS,
   });
 
-  const xtbtc2Balance = useBalance({
-    address,
-    token: btcAssets.find((asset) => asset.SYMBOL === "TBTC2")
-      ?.LST_ADDRESS as `0x${string}`,
+  const xtbtc2Balance = useBalanceUnified({
+    address: activeAddress || undefined,
+    token: btcAssets.find((asset) => asset.SYMBOL === "TBTC2")?.LST_ADDRESS,
   });
 
   return btcAssets.map((asset) => {

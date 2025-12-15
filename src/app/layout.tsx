@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import React from "react";
 
 import Providers from "@/components/providers";
+import { PrivyProviderWrapper } from "@/components/providers/PrivyProviderWrapper";
 import { Toaster } from "@/components/ui/toaster";
 
 import { AppSidebar } from "@/components/app-sidebar";
@@ -66,34 +67,35 @@ export default function RootLayout({
       <body className="bg-[#F1F7F6]">
         <Analytics />
 
-        <Providers>
-          <React.Suspense>
-            <div className="relative flex h-full min-h-screen w-full overflow-x-hidden">
-              {/* <Image
+        <PrivyProviderWrapper>
+          <Providers>
+            <React.Suspense>
+              <div className="relative flex h-full min-h-screen w-full overflow-x-hidden">
+                {/* <Image
                 src="/subtle_tree_bg.svg"
                 alt="subtle_tree_bg"
                 fill
                 className="-z-10 object-cover"
               /> */}
 
-              <AppSidebar />
+                <AppSidebar />
 
-              <div className="flex flex-1 flex-col justify-between overflow-hidden">
-                <MaxWidthWrapper className="flex h-full w-full flex-col items-center px-3 py-3 lg:px-7 lg:py-0">
-                  <Navbar />
-                  {children}
-                </MaxWidthWrapper>
+                <div className="flex flex-1 flex-col justify-between overflow-hidden">
+                  <MaxWidthWrapper className="flex h-full w-full flex-col items-center px-3 py-3 lg:px-7 lg:py-0">
+                    <Navbar />
+                    {children}
+                  </MaxWidthWrapper>
 
-                <div className="lg:hidden">
-                  <Footer />
+                  <div className="lg:hidden">
+                    <Footer />
+                  </div>
                 </div>
               </div>
-            </div>
-          </React.Suspense>
+            </React.Suspense>
 
-          <Toaster />
+            <Toaster />
 
-          {/* <script
+            {/* <script
             dangerouslySetInnerHTML={{
               __html: `
                   var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
@@ -108,7 +110,8 @@ export default function RootLayout({
               `,
             }}
           /> */}
-        </Providers>
+          </Providers>
+        </PrivyProviderWrapper>
       </body>
     </html>
   );

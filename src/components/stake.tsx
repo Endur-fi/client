@@ -2,11 +2,6 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  useAccount,
-  useBalance,
-  useSendTransaction,
-} from "@starknet-react/core";
 
 import { useAtomValue } from "jotai";
 import { AlertCircleIcon, ChevronDown, Info } from "lucide-react";
@@ -56,6 +51,8 @@ import {
 import { toast } from "@/hooks/use-toast";
 import { useTransactionHandler } from "@/hooks/use-transactions";
 import { useWalletConnection } from "@/hooks/use-wallet-connection";
+import { useSendTransactionUnified } from "@/hooks/use-send-transaction-unified";
+import { useBalanceUnified } from "@/hooks/use-balance-unified";
 import { MyAnalytics } from "@/lib/analytics";
 import MyNumber from "@/lib/MyNumber";
 import { cn, eventNames, formatNumberWithCommas } from "@/lib/utils";
@@ -151,23 +148,22 @@ const Stake: React.FC = () => {
 
   const searchParams = useSearchParams();
 
-  const { address } = useAccount();
-  const { connectWallet } = useWalletConnection();
+  const { connectWallet, activeAddress, isConnected } = useWalletConnection();
   const lstConfig = useAtomValue(lstConfigAtom)!;
   const [isLendingOpen, setIsLendingOpen] = React.useState(
     // !lstConfig.TROVES_VAULT_MAXED_OUT,
     true,
   );
-  const { data: balance } = useBalance({
-    address,
-    token: lstConfig.ASSET_ADDRESS as `0x${string}`,
+  const { data: balance } = useBalanceUnified({
+    address: activeAddress || undefined,
+    token: lstConfig.ASSET_ADDRESS,
   });
 
   const exchangeRate = useAtomValue(apiExchangeRateAtom);
   const apy = useAtomValue(snAPYAtom);
   const yields = useAtomValue(protocolYieldsAtom);
   const activeTab = useAtomValue(tabsAtom);
-  console.log("yields", yields);
+  // console.log("yields", yields);
 
   const referrer = searchParams.get("referrer");
 
@@ -192,12 +188,12 @@ const Stake: React.FC = () => {
     ? lstService.getLSTContract(lstConfig.LST_ADDRESS)
     : null;
 
-  const { sendAsync, data, isPending, error } = useSendTransaction({});
+  const { sendAsync, data, isPending, error } = useSendTransactionUnified();
 
   const { handleTransaction } = useTransactionHandler();
 
   const handleQuickStakePrice = (percentage: number) => {
-    if (!address) {
+    if (!activeAddress) {
       return toast({
         description: (
           <div className="flex items-center gap-2">
@@ -287,7 +283,7 @@ const Stake: React.FC = () => {
       });
     }
 
-    if (!address) {
+    if (!activeAddress) {
       return toast({
         description: (
           <div className="flex items-center gap-2">
@@ -311,7 +307,7 @@ const Stake: React.FC = () => {
 
     // track stake button click
     MyAnalytics.track(eventNames.STAKE_CLICK, {
-      address,
+      address: activeAddress,
       amount: Number(values.stakeAmount),
     });
 
@@ -332,10 +328,10 @@ const Stake: React.FC = () => {
     const call2 = referrer
       ? contract?.populate("deposit_with_referral", [
           underlyingTokenAmount,
-          address,
+          activeAddress,
           referrer,
         ])
-      : contract?.populate("deposit", [underlyingTokenAmount, address]);
+      : contract?.populate("deposit", [underlyingTokenAmount, activeAddress]);
 
     const calls: Call[] = [call1];
     if (call2) {
@@ -368,7 +364,7 @@ const Stake: React.FC = () => {
 
         const lendingCall = trovesHyperContract.populate("deposit", [
           lstAmount,
-          address,
+          activeAddress,
         ]);
         calls.push(approveCall, lendingCall);
       } else if (selectedPlatform === "vesu") {
@@ -379,7 +375,7 @@ const Stake: React.FC = () => {
 
         const lendingCall = vesuContract.populate("deposit", [
           lstAmount,
-          address,
+          activeAddress,
         ]);
         calls.push(approveCall, lendingCall);
       }
@@ -484,7 +480,7 @@ const Stake: React.FC = () => {
   React.useEffect(() => {
     handleTransaction("STAKE", {
       form,
-      address: address ?? "",
+      address: activeAddress ?? "",
       data: data ?? { transaction_hash: "" },
       error: error ?? { name: "" },
       isPending,
@@ -623,7 +619,7 @@ const Stake: React.FC = () => {
                     if (!value || value === "") return "";
 
                     // Allow typing decimal point and trailing zeros
-                    if (value.endsWith(".") || (/\.\d*0+$/).test(value)) {
+                    if (value.endsWith(".") || /\.\d*0+$/.test(value)) {
                       return value;
                     }
 
@@ -888,7 +884,7 @@ const Stake: React.FC = () => {
       </div>
 
       <div className="mt-6 px-5">
-        {!address && (
+        {!isConnected && (
           <Button
             onClick={() => connectWallet()}
             className="w-full rounded-2xl bg-[#17876D] py-6 text-sm font-semibold text-white hover:bg-[#17876D] disabled:bg-[#03624C4D] disabled:text-[#17876D] disabled:opacity-90"
@@ -897,7 +893,7 @@ const Stake: React.FC = () => {
           </Button>
         )}
 
-        {address && (
+        {isConnected && (
           <Button
             type="submit"
             disabled={

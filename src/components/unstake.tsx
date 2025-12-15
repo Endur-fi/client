@@ -2,7 +2,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useAccount, useSendTransaction } from "@starknet-react/core";
+import { useAccount } from "@starknet-react/core";
 import { useAtom, useAtomValue } from "jotai";
 import { Info } from "lucide-react";
 import React from "react";
@@ -30,6 +30,7 @@ import { getProvider, IS_PAUSED, isMainnet, REWARD_FEES } from "@/constants";
 import { toast } from "@/hooks/use-toast";
 import { useTransactionHandler } from "@/hooks/use-transactions";
 import { useWalletConnection } from "@/hooks/use-wallet-connection";
+import { useSendTransactionUnified } from "@/hooks/use-send-transaction-unified";
 import { MyAnalytics } from "@/lib/analytics";
 import MyNumber from "@/lib/MyNumber";
 import { eventNames, formatNumberWithCommas } from "@/lib/utils";
@@ -285,7 +286,7 @@ const Unstake = () => {
   const [txnDapp, setTxnDapp] = React.useState<"endur" | "dex">("endur");
 
   const { account, address } = useAccount();
-  const { connectWallet } = useWalletConnection();
+  const { connectWallet, activeAddress, isConnected } = useWalletConnection();
 
   const [avnuQuote, setAvnuQuote] = useAtom(avnuQuoteAtom);
   const [avnuLoading, setAvnuLoading] = useAtom(avnuLoadingAtom);
@@ -314,7 +315,7 @@ const Unstake = () => {
     providerOrAccount: provider,
   });
 
-  const { sendAsync, data, isPending, error } = useSendTransaction({});
+  const { sendAsync, data, isPending, error } = useSendTransactionUnified();
 
   const { handleTransaction } = useTransactionHandler();
 
@@ -403,7 +404,7 @@ const Unstake = () => {
   }, [address, form.watch("unstakeAmount")]);
 
   const handleQuickUnstakePrice = (percentage: number) => {
-    if (!address) {
+    if (!activeAddress) {
       return toast({
         description: (
           <div className="flex items-center gap-2">
@@ -459,10 +460,10 @@ const Unstake = () => {
   };
 
   const handleDexSwap = async () => {
-    if (!address || !avnuQuote) return;
+    if (!activeAddress || !avnuQuote) return;
 
     MyAnalytics.track(eventNames.UNSTAKE_CLICK, {
-      address,
+      address: activeAddress,
       amount: Number(form.getValues("unstakeAmount")),
       mode: "Instant",
     });
@@ -525,7 +526,7 @@ const Unstake = () => {
   };
 
   const onSubmit = async (values: FormValues) => {
-    if (!address) {
+    if (!activeAddress) {
       return toast({
         description: (
           <div className="flex items-center gap-2">
@@ -596,7 +597,7 @@ const Unstake = () => {
                     if (!value || value === "") return "";
 
                     // Allow typing decimal point and trailing zeros
-                    if (value.endsWith(".") || (/\.\d*0+$/).test(value)) {
+                    if (value.endsWith(".") || /\.\d*0+$/.test(value)) {
                       return value;
                     }
 
@@ -736,7 +737,7 @@ const Unstake = () => {
           </div>
 
           <div className="mt-6 px-5">
-            {!address ? (
+            {!isConnected ? (
               <StyledButton onClick={() => connectWallet()}>
                 Connect Wallet
               </StyledButton>
@@ -787,7 +788,7 @@ const Unstake = () => {
             </div> */}
           </div>
           <div className="mt-6 px-5">
-            {!address ? (
+            {!isConnected ? (
               <StyledButton onClick={() => connectWallet()}>
                 Connect Wallet
               </StyledButton>
