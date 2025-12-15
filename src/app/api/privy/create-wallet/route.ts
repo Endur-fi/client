@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { getPrivyClient } from "@/lib/privy/privyClient";
 import { prisma } from "@/lib/prisma";
 import { computeReadyAddress } from "@/lib/privy/account";
-import { payloadJSON } from "@duneanalytics/client-sdk";
 
 export async function POST(req: NextRequest) {
   try {
@@ -21,7 +20,7 @@ export async function POST(req: NextRequest) {
     // Verify the JWT token
     let verifiedClaims;
     try {
-      verifiedClaims = await privy.verifyAuthToken(userJwt);
+      verifiedClaims = await privy.utils().auth().verifyAuthToken(userJwt);
     } catch {
       return NextResponse.json(
         { error: "Invalid or expired JWT token" },
@@ -29,7 +28,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const userId = verifiedClaims.userId;
+    const userId = verifiedClaims.user_id;
 
     // Check database for existing wallet first
     const existingWallet = await prisma.privyWallet.findUnique({
@@ -57,13 +56,15 @@ export async function POST(req: NextRequest) {
     }
 
     // Create wallet using Privy Wallet API
-    const payload: any = {
-      chainType: "starknet",
-      owner: { userId },
-      authorizationKeyIds: [process.env.PRIVY_WALLET_AUTH_ID],
-    };
-
-    const wallet = await privy.walletApi.createWallet(payload);
+    const wallet = await privy.wallets().create({
+      chain_type: "starknet",
+      owner: { user_id: userId },
+      additional_signers: [
+        {
+          signer_id: process.env.PRIVY_WALLET_AUTH_ID,
+        },
+      ],
+    });
 
     const walletData = wallet as any;
 

@@ -1,12 +1,7 @@
 import { Account, hash, num } from "starknet";
 import { RawSigner } from "./rawSigner";
 import { getRpcProvider, setupPaymaster } from "./provider";
-import {
-  getUserAuthorizationKey,
-  buildAuthorizationSignature,
-} from "./authorization";
 import { getPrivyClient } from "./privyClient";
-import type { WalletApiRequestSignatureInput } from "@privy-io/server-auth";
 
 const ACCOUNT_CLASS_HASH =
   process.env.ACCOUNT_CLASS_HASH ||
@@ -51,7 +46,7 @@ export function computeReadyAddress(publicKey: string, classHash?: string) {
 export async function getStarknetWallet(walletId: string) {
   if (!walletId) throw new Error("walletId is required");
   const privy = getPrivyClient();
-  const wallet: any = await privy.walletApi.getWallet({ id: walletId });
+  const wallet: any = await privy.wallets().get(walletId);
   const chainType = wallet?.chainType || wallet?.chain_type;
   if (!wallet || !chainType || chainType !== "starknet") {
     throw new Error("Provided wallet is not a Starknet wallet");
@@ -82,74 +77,24 @@ export async function rawSign(
   messageHash: string,
   opts: { userJwt: string; userId?: string; origin?: string },
 ): Promise<string> {
-  const appId = process.env.PRIVY_APP_ID;
-  if (!appId) throw new Error("Missing PRIVY_APP_ID");
-  const appSecret = process.env.PRIVY_APP_SECRET;
-  if (!appSecret) throw new Error("Missing PRIVY_APP_SECRET");
+  const authPrivateKey = process.env.PRIVY_WALLET_AUTH_PRIVATE_KEY;
+  if (!authPrivateKey) throw new Error("Missing PRIVY_WALLET_AUTH_PRIVATE_KEY");
 
-  // Use the documented Wallet API path
-  const url = `https://api.privy.io/v1/wallets/${walletId}/raw_sign`;
-  const body = { params: { hash: messageHash } };
-
-  // Generate or fetch a user-specific authorization key
-  const authorizationKey = await getUserAuthorizationKey({
-    userJwt: opts.userJwt,
-    userId: opts.userId,
-  });
-
-  // Build signature for this request per Privy docs
-  const sigInput: WalletApiRequestSignatureInput = {
-    version: 1,
-    method: "POST",
-    url,
-    body,
-    headers: {
-      "privy-app-id": appId,
+  const privy = getPrivyClient();
+  
+  const result = await privy.wallets().rawSign(walletId, {
+    params: {
+      hash: messageHash,
     },
-  };
-  const signature = buildAuthorizationSignature({
-    input: sigInput,
-    authorizationKey,
+    authorization_context: {
+      authorization_private_keys: [authPrivateKey],
+    },
   });
 
-  const headers: Record<string, string> = {
-    "privy-app-id": appId,
-    "privy-authorization-signature": signature,
-    "Content-Type": "application/json",
-  };
-  // App authentication for Wallet API
-  headers["Authorization"] = `Basic ${Buffer.from(
-    `${appId}:${appSecret}`,
-  ).toString("base64")}`;
-
-  if (opts.origin) headers["Origin"] = opts.origin;
-
-  const resp = await fetch(url, {
-    method: "POST",
-    headers,
-    body: JSON.stringify(body),
-  });
-
-  const text = await resp.text();
-  let data: any;
-  try {
-    data = JSON.parse(text);
-  } catch {
-    throw new Error(`Invalid JSON response: ${text}`);
-  }
-
-  if (!resp.ok)
-    throw new Error(data?.error || data?.message || `HTTP ${resp.status}`);
-
-  const sig: string | undefined =
-    data?.signature ||
-    data?.result?.signature ||
-    data?.data?.signature ||
-    data?.result?.data?.signature ||
-    (typeof data === "string" ? data : undefined);
-
-  if (!sig || typeof sig !== "string")
+  const sig = result.signature || result;
+  if (!sig || typeof sig !== "string") {
     throw new Error("No signature returned from Privy");
+  }
 
   return sig.startsWith("0x") ? sig : `0x${sig}`;
 }

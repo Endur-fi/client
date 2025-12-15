@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
     // Verify the JWT token
     let verifiedClaims;
     try {
-      verifiedClaims = await privy.verifyAuthToken(userJwt);
+      verifiedClaims = await privy.utils().auth().verifyAuthToken(userJwt);
     } catch (error: any) {
       console.error("JWT verification failed:", error?.message || error);
       return NextResponse.json(
@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const userId = verifiedClaims.userId;
+    const userId = verifiedClaims.user_id;
 
     if (!userId) {
       return NextResponse.json(
@@ -76,7 +76,9 @@ export async function POST(req: NextRequest) {
     }));
 
     // Execute transaction
-    const result = await account.execute(normalizedCalls);
+    const result = await account.execute(normalizedCalls, {
+      skipValidate: false,
+    });
 
     return NextResponse.json({
       transactionHash: result.transaction_hash,

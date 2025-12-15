@@ -28,8 +28,8 @@ export async function POST(req: NextRequest) {
     let verifiedClaims;
     try {
       console.log("PRIVY: Verifying JWT token");
-      verifiedClaims = await privy.verifyAuthToken(userJwt);
-      console.log("PRIVY: JWT verified successfully, userId:", verifiedClaims.userId);
+      verifiedClaims = await privy.utils().auth().verifyAuthToken(userJwt);
+      console.log("PRIVY: JWT verified successfully, userId:", verifiedClaims.user_id);
     } catch (error: any) {
       console.log("PRIVY: JWT verification failed:", error.message);
       return NextResponse.json(
@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const userId = verifiedClaims.userId;
+    const userId = verifiedClaims.user_id;
 
     // Parse request body
     const body = await req.json();

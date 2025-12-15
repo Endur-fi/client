@@ -19,7 +19,7 @@ export async function GET(req: NextRequest) {
     // Verify the JWT token
     let verifiedClaims;
     try {
-      verifiedClaims = await privy.verifyAuthToken(userJwt);
+      verifiedClaims = await privy.utils().auth().verifyAuthToken(userJwt);
     } catch {
       return NextResponse.json(
         { error: "Invalid or expired JWT token" },
@@ -27,7 +27,7 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const userId = verifiedClaims.userId;
+    const userId = verifiedClaims.user_id;
 
     // Check database for existing wallet
     const wallet = await prisma.privyWallet.findUnique({
