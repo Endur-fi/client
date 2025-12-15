@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getPrivyClient } from "@/lib/privy/privyClient";
 import { prisma } from "@/lib/prisma";
 import { computeReadyAddress } from "@/lib/privy/account";
+import { payloadJSON } from "@duneanalytics/client-sdk";
 
 export async function POST(req: NextRequest) {
   try {
@@ -45,13 +46,25 @@ export async function POST(req: NextRequest) {
       });
     }
 
+    if (!process.env.PRIVY_WALLET_AUTH_ID!) {
+      console.error(
+        "Server Error creating wallet, Missing PRIVY_WALLET_AUTH_ID env",
+      );
+      return NextResponse.json(
+        { error: "Failed to create wallet, Missing PRIVY_WALLET_AUTH_ID env" },
+        { status: 500 },
+      );
+    }
+
     // Create wallet using Privy Wallet API
     const payload: any = {
       chainType: "starknet",
       owner: { userId },
+      authorizationKeyIds: [process.env.PRIVY_WALLET_AUTH_ID],
     };
 
     const wallet = await privy.walletApi.createWallet(payload);
+
     const walletData = wallet as any;
 
     const publicKey = walletData.public_key || walletData.publicKey || "";

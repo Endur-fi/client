@@ -66,8 +66,6 @@ export async function POST(req: NextRequest) {
     console.log("PRIVY: Wallet found - ID:", wallet.walletId, "Address:", wallet.address, "Deployed:", wallet.isDeployed);
 
     // Check if already deployed
-    // NOTE: Race conditions can still occur here if multiple requests are sent simultaneously.
-    // The "Tx already sent" error is caught in the error handler below.
     if (wallet.isDeployed) {
       console.log("PRIVY: Wallet already deployed, returning existing deployment info");
       return NextResponse.json({
@@ -93,10 +91,14 @@ export async function POST(req: NextRequest) {
     });
     console.log("PRIVY: Account deployed successfully, txHash:", transactionHash, "address:", address);
 
-    // Update database with the CORRECT computed address from deployment
-    console.log("PRIVY: Updating wallet deployment status in database");
-    await prisma.privyWallet.update({
-      where: { id: wallet.id },
+    // Atomically update database - only update if isDeployed is still false
+    // This prevents race conditions where multiple requests deploy simultaneously
+    console.log("PRIVY: Atomically updating wallet deployment status in database");
+    const updateResult = await prisma.privyWallet.updateMany({
+      where: {
+        id: wallet.id,
+        isDeployed: false, // Only update if still not deployed
+      },
       data: {
         address, // Update with the correct computed address
         isDeployed: true,
@@ -104,6 +106,24 @@ export async function POST(req: NextRequest) {
         updatedAt: new Date(),
       },
     });
+
+    // If no rows were updated, another request already deployed it
+    if (updateResult.count === 0) {
+      console.log("PRIVY: Wallet was deployed by another concurrent request, fetching latest state");
+      const updatedWallet = await prisma.privyWallet.findUnique({
+        where: { id: wallet.id },
+      });
+      
+      if (updatedWallet?.isDeployed) {
+        console.log("PRIVY: Returning deployment info from concurrent request");
+        return NextResponse.json({
+          transactionHash: updatedWallet.deploymentTxHash,
+          address: updatedWallet.address,
+          isDeployed: true,
+        });
+      }
+    }
+    
     console.log("PRIVY: Database updated successfully with address:", address);
 
     console.log("PRIVY: Deployment completed successfully - Address:", address, "TxHash:", transactionHash);

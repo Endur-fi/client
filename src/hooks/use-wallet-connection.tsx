@@ -8,7 +8,7 @@ import {
   usePrivy,
 } from "@privy-io/react-auth";
 import { useAtom } from "jotai";
-import { useEffect, useCallback, useRef } from "react";
+import { useEffect, useRef } from "react";
 
 import { useSidebar } from "@/components/ui/sidebar";
 import { NETWORK } from "@/constants";
@@ -56,190 +56,175 @@ export function useWalletConnection() {
   const setupInProgressRef = useRef(false);
   const lastUserIdRef = useRef<string | null>(null);
 
-  // Check if any wallet is connected
-  const isConnected = Boolean(user || isStarknetConnected);
+  // Check if any wallet is connected (Starknet first, then Privy)
+  const isConnected = Boolean(isStarknetConnected || user);
 
-  // Get active address (prioritize Privy wallet, then Starknet)
+  // Get active address (prioritize Starknet wallet, then Privy)
   const activeAddress =
-    privyWallet?.address || (isStarknetConnected && starknetAddress) || null;
+    (isStarknetConnected && starknetAddress) || privyWallet?.address || null;
 
   // Get display address
   const displayAddress = activeAddress ? shortAddress(activeAddress, 4, 4) : "";
 
-  // Connection type
-  const connectionType = user
-    ? "privy"
-    : isStarknetConnected
-      ? "starknet"
+  // Connection type (prioritize Starknet, then Privy)
+  const connectionType = isStarknetConnected
+    ? "starknet"
+    : user
+      ? "privy"
       : null;
 
   // Deploy wallet function (defined first)
-  const deployWallet = useCallback(
-    async (walletId: string, userJwt: string) => {
-      log("Deploying wallet...", { walletId });
-      setWalletSetupStep("deploying");
+  const deployWallet = async (walletId: string, userJwt: string) => {
+    log("Deploying wallet...", { walletId });
+    setWalletSetupStep("deploying");
 
-      try {
-        const deployRes = await fetch("/api/privy/deploy-wallet", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${userJwt}`,
-          },
-          body: JSON.stringify({ walletId }),
-        });
+    try {
+      const deployRes = await fetch("/api/privy/deploy-wallet", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${userJwt}`,
+        },
+        body: JSON.stringify({ walletId }),
+      });
 
-        if (!deployRes.ok) {
-          const errorData = await deployRes.json().catch(() => ({}));
-          throw new Error(errorData?.error || "Failed to deploy wallet");
-        }
-
-        const deployData = await deployRes.json();
-        log("Wallet deployed", { transactionHash: deployData.transactionHash });
-
-        // Update state with deployed wallet
-        setPrivyWallet((prev) =>
-          prev
-            ? {
-                ...prev,
-                isDeployed: true,
-              }
-            : null,
-        );
-
-        setWalletSetupStep("complete");
-        toast({
-          description: "Wallet created and deployed successfully!",
-        });
-      } catch (error: any) {
-        log("Error deploying wallet", error);
-        throw error;
+      if (!deployRes.ok) {
+        const errorData = await deployRes.json().catch(() => ({}));
+        throw new Error(errorData?.error || "Failed to deploy wallet");
       }
-    },
-    [setPrivyWallet, setWalletSetupStep],
-  );
+
+      const deployData = await deployRes.json();
+      log("Wallet deployed", { transactionHash: deployData.transactionHash });
+
+      // Update state with deployed wallet
+      setPrivyWallet((prev) =>
+        prev
+          ? {
+              ...prev,
+              isDeployed: true,
+            }
+          : null,
+      );
+
+      setWalletSetupStep("complete");
+      toast({
+        description: "Wallet created and deployed successfully!",
+      });
+    } catch (error: any) {
+      log("Error deploying wallet", error);
+      throw error;
+    }
+  };
 
   // Wallet setup functions
-  const createAndDeployWallet = useCallback(
-    async (userJwt: string) => {
-      log("Creating wallet...");
-      setWalletSetupStep("creating");
+  const createAndDeployWallet = async (userJwt: string) => {
+    log("Creating wallet...");
+    setWalletSetupStep("creating");
 
-      try {
-        const createRes = await fetch("/api/privy/create-wallet", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${userJwt}`,
-          },
-        });
+    try {
+      const createRes = await fetch("/api/privy/create-wallet", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${userJwt}`,
+        },
+      });
 
-        if (!createRes.ok) {
-          const errorData = await createRes.json().catch(() => ({}));
-          throw new Error(errorData?.error || "Failed to create wallet");
-        }
-
-        const createData = await createRes.json();
-        log("Wallet created", { walletId: createData.walletId });
-
-        // Update state with created wallet
-        const newWallet: PrivyWalletData = {
-          walletId: createData.walletId,
-          address: createData.address,
-          publicKey: createData.publicKey,
-          isDeployed: false,
-        };
-        setPrivyWallet(newWallet);
-
-        // Deploy wallet
-        await deployWallet(createData.walletId, userJwt);
-      } catch (error: any) {
-        log("Error creating wallet", error);
-        throw error;
+      if (!createRes.ok) {
+        const errorData = await createRes.json().catch(() => ({}));
+        throw new Error(errorData?.error || "Failed to create wallet");
       }
-    },
-    [setPrivyWallet, setWalletSetupStep, deployWallet],
-  );
+
+      const createData = await createRes.json();
+      log("Wallet created", { walletId: createData.walletId });
+
+      // Update state with created wallet
+      const newWallet: PrivyWalletData = {
+        walletId: createData.walletId,
+        address: createData.address,
+        publicKey: createData.publicKey,
+        isDeployed: false,
+      };
+      setPrivyWallet(newWallet);
+
+      // Deploy wallet
+      await deployWallet(createData.walletId, userJwt);
+    } catch (error: any) {
+      log("Error creating wallet", error);
+      throw error;
+    }
+  };
 
   // Setup wallet function
-  const setupWallet = useCallback(
-    async (userJwt: string) => {
-      if (setupInProgressRef.current) {
-        log("Wallet setup already in progress, skipping");
-        return;
+  const setupWallet = async (userJwt: string) => {
+    if (setupInProgressRef.current) {
+      log("Wallet setup already in progress, skipping");
+      return;
+    }
+
+    setupInProgressRef.current = true;
+    setIsLoadingWallet(true);
+
+    try {
+      log("Fetching wallet from database...");
+
+      // Check database for existing wallet
+      const getWalletRes = await fetch("/api/privy/get-wallet", {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${userJwt}`,
+        },
+      });
+
+      if (!getWalletRes.ok) {
+        throw new Error("Failed to fetch wallet");
       }
 
-      setupInProgressRef.current = true;
-      setIsLoadingWallet(true);
+      const { wallet } = await getWalletRes.json();
 
-      try {
-        log("Fetching wallet from database...");
-
-        // Check database for existing wallet
-        const getWalletRes = await fetch("/api/privy/get-wallet", {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${userJwt}`,
-          },
+      if (wallet) {
+        log("Wallet found in database", {
+          walletId: wallet.walletId,
+          isDeployed: wallet.isDeployed,
         });
 
-        if (!getWalletRes.ok) {
-          throw new Error("Failed to fetch wallet");
-        }
+        // Wallet exists in DB
+        const walletData: PrivyWalletData = {
+          walletId: wallet.walletId,
+          address: wallet.address,
+          publicKey: wallet.publicKey,
+          isDeployed: wallet.isDeployed,
+        };
+        setPrivyWallet(walletData);
 
-        const { wallet } = await getWalletRes.json();
-
-        if (wallet) {
-          log("Wallet found in database", {
-            walletId: wallet.walletId,
-            isDeployed: wallet.isDeployed,
-          });
-
-          // Wallet exists in DB
-          const walletData: PrivyWalletData = {
-            walletId: wallet.walletId,
-            address: wallet.address,
-            publicKey: wallet.publicKey,
-            isDeployed: wallet.isDeployed,
-          };
-          setPrivyWallet(walletData);
-
-          if (wallet.isDeployed) {
-            // Wallet is ready
-            log("Wallet is already deployed");
-            setWalletSetupStep("complete");
-          } else {
-            // Wallet exists but not deployed - deploy it
-            log("Wallet exists but not deployed, deploying...");
-            await deployWallet(wallet.walletId, userJwt);
-          }
+        if (wallet.isDeployed) {
+          // Wallet is ready
+          log("Wallet is already deployed");
+          setWalletSetupStep("complete");
         } else {
-          // No wallet exists - create and deploy
-          log("No wallet found, creating new wallet...");
-          await createAndDeployWallet(userJwt);
+          // Wallet exists but not deployed - deploy it
+          log("Wallet exists but not deployed, deploying...");
+          await deployWallet(wallet.walletId, userJwt);
         }
-      } catch (error: any) {
-        log("Error setting up wallet", error);
-        toast({
-          description:
-            error?.message || "Failed to setup wallet. Please try again.",
-          variant: "destructive",
-        });
-        setWalletSetupStep("idle");
-        setPrivyWallet(null);
-      } finally {
-        setIsLoadingWallet(false);
-        setupInProgressRef.current = false;
+      } else {
+        // No wallet exists - create and deploy
+        log("No wallet found, creating new wallet...");
+        await createAndDeployWallet(userJwt);
       }
-    },
-    [
-      setPrivyWallet,
-      setWalletSetupStep,
-      setIsLoadingWallet,
-      deployWallet,
-      createAndDeployWallet,
-    ],
-  );
+    } catch (error: any) {
+      log("Error setting up wallet", error);
+      toast({
+        description:
+          error?.message || "Failed to setup wallet. Please try again.",
+        variant: "destructive",
+      });
+      setWalletSetupStep("idle");
+      setPrivyWallet(null);
+    } finally {
+      setIsLoadingWallet(false);
+      setupInProgressRef.current = false;
+    }
+  };
 
   // Minimal useEffect - only runs when user changes
   useEffect(() => {
