@@ -4,7 +4,6 @@ import { useAccount, useSendTransaction } from "@starknet-react/core";
 import { Gift, Loader2 } from "lucide-react";
 import { Figtree } from "next/font/google";
 import Image from "next/image";
-import Link from "next/link";
 import React from "react";
 import { TwitterShareButton } from "react-share";
 import { Contract } from "starknet";

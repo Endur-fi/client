@@ -86,7 +86,7 @@ const btcPriceQueryAtom = atomWithQuery((get) => ({
   refetchInterval: 60000,
 }));
 
-const strkPriceAtom = atom((get) => {
+export const strkPriceAtom = atom((get) => {
   const { data, error } = get(strkPriceQueryAtom);
   return error || !data ? 0 : data;
 });

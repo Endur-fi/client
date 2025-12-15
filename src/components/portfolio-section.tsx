@@ -16,8 +16,7 @@ import {
 import { getLSTAssetsByCategory, getSTRKAsset } from "@/constants";
 import { cn, formatNumberWithCommas } from "@/lib/utils";
 import { lstStatsQueryAtom } from "@/store/lst.store";
-import { assetPriceAtom } from "@/store/common.store";
-import { btcPriceAtom } from "@/store/staking.store";
+import { btcPriceAtom, strkPriceAtom } from "@/store/staking.store";
 import MyNumber from "@/lib/MyNumber";
 import { GET_USER_COMPLETE_DETAILS } from "@/constants/queries";
 import { defaultOptions } from "@/lib/apollo-client";
@@ -73,7 +72,7 @@ const PortfolioSection: React.FC = () => {
   });
 
   // Get prices and stats
-  const strkPrice = useAtomValue(assetPriceAtom);
+  const strkPrice = useAtomValue(strkPriceAtom);
   const btcPrice = useAtomValue(btcPriceAtom);
   const lstStats = useAtomValue(lstStatsQueryAtom);
 
@@ -100,7 +99,7 @@ const PortfolioSection: React.FC = () => {
     );
     const exchangeRate = strkStat?.exchangeRate || 0;
     const underlyingSTRK = lstAmount * exchangeRate;
-    const usdValue = strkPrice.data ? underlyingSTRK * strkPrice.data : 0;
+    const usdValue = strkPrice ? underlyingSTRK * strkPrice : 0;
 
     return {
       lstAmount,
