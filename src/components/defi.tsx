@@ -846,6 +846,14 @@ const Defi: React.FC = () => {
   const [showDisclaimer, setShowDisclaimer] = useState(false);
   const [showMoreFilters, setShowMoreFilters] = useState(false);
   const [showStablesOnly, setShowStablesOnly] = useState(false);
+
+  // Reset filters when switching tabs
+  React.useEffect(() => {
+    setSelectedAsset("all");
+    setSelectedProtocol("all");
+    setShowMoreFilters(false);
+    setShowStablesOnly(false);
+  }, [activeTab]);
   const [pendingProtocolLink, setPendingProtocolLink] = useState<string | null>(
     null,
   );

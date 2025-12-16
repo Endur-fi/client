@@ -18,7 +18,7 @@ import { cn, formatNumberWithCommas } from "@/lib/utils";
 import { lstStatsQueryAtom } from "@/store/lst.store";
 import { btcPriceAtom, strkPriceAtom } from "@/store/staking.store";
 import MyNumber from "@/lib/MyNumber";
-import { GET_USER_COMPLETE_DETAILS } from "@/constants/queries";
+import { GET_USER_NET_TOTAL_POINTS_SEASON1 } from "@/constants/queries";
 import { defaultOptions } from "@/lib/apollo-client";
 import { isMainnet } from "@/constants";
 import { ApolloClient, InMemoryCache } from "@apollo/client";
@@ -187,16 +187,16 @@ const PortfolioSection: React.FC = () => {
     return total;
   }, [strkHoldings, btcHoldings]);
 
-  // Fetch Season 1 points from API
+  // Fetch Season 1 points from API - using same logic as rewards page
   const [season1Points, setSeason1Points] = React.useState<string | null>(null);
   const [season1Loading, setSeason1Loading] = React.useState(false);
 
-  // Use the same Apollo Client setup as production leaderboard
+  // Use the same Apollo Client setup as rewards page
   const leaderboardApolloClient = React.useMemo(
     () =>
       new ApolloClient({
         uri: isMainnet()
-          ? "https://graphql.mainnet.endur.fi"
+          ? "https://endur-points-indexers-mainnet-graphql.onrender.com"
           : "https://graphql.sepolia.endur.fi",
         cache: new InMemoryCache(),
         defaultOptions,
@@ -214,16 +214,16 @@ const PortfolioSection: React.FC = () => {
       setSeason1Loading(true);
       try {
         const result = await leaderboardApolloClient.query({
-          query: GET_USER_COMPLETE_DETAILS,
+          query: GET_USER_NET_TOTAL_POINTS_SEASON1,
           variables: { userAddress: address },
-          fetchPolicy: "cache-first",
+          fetchPolicy: "network-only",
         });
 
-        const userDetails = result.data?.getUserCompleteDetails;
+        const userData = result.data?.getUserNetTotalPointsSeason1;
 
-        if (userDetails?.points?.total_points) {
-          const pointsString = userDetails.points.total_points.toString();
-          setSeason1Points(pointsString);
+        // Use weightedTotalPoints for display (weighted points refer to previous total_points)
+        if (userData?.weightedTotalPoints) {
+          setSeason1Points(userData.weightedTotalPoints);
         } else {
           setSeason1Points("0");
         }
