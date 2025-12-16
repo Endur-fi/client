@@ -175,14 +175,14 @@ const useLeaderboardData = () => {
           (user, index) => ({
             rank: (index + 1).toString(),
             address: user.userAddress,
-            score: user.weightedTotalPoints,
+            score: user.weightedTotalPoints || "0",
           }),
         );
 
         // Use rank from API if available, otherwise calculate from leaderboard position
         const userRankInLeaderboard = currentUserData
           ? apiResponse.findIndex(
-              (u) => u.userAddress.toLowerCase() === address?.toLowerCase()
+              (u) => u.userAddress.toLowerCase() === address?.toLowerCase(),
             )
           : -1;
 
@@ -195,8 +195,13 @@ const useLeaderboardData = () => {
                 ? null // User has points but not in top 100
                 : null;
 
+        // Get points value, handling empty strings, null, or undefined
+        const userPoints = currentUserData?.weightedTotalPoints;
+        const pointsValue =
+          userPoints && userPoints.trim() !== "" ? userPoints : "0";
+
         const currentUserInfo: CurrentUserInfo = {
-          points: currentUserData?.weightedTotalPoints || "0",
+          points: pointsValue,
           address: address || "",
           isLoading: false,
           rank: userRank,
@@ -211,7 +216,27 @@ const useLeaderboardData = () => {
                 user_address: currentUserData.userAddress,
                 rank: userRank || 0,
                 points: {
-                  total_points: BigInt(currentUserData.weightedTotalPoints),
+                  // Convert weightedTotalPoints string to BigInt, handling decimal values
+                  total_points: (() => {
+                    try {
+                      const pointsStr = currentUserData.weightedTotalPoints;
+                      if (!pointsStr || pointsStr.trim() === "") {
+                        return BigInt(0);
+                      }
+                      const pointsValue = parseFloat(pointsStr);
+                      if (isNaN(pointsValue) || !isFinite(pointsValue)) {
+                        return BigInt(0);
+                      }
+                      // Round to nearest integer before converting to BigInt
+                      return BigInt(Math.round(pointsValue));
+                    } catch (error) {
+                      console.error(
+                        "Error converting points to BigInt:",
+                        error,
+                      );
+                      return BigInt(0);
+                    }
+                  })(),
                   regular_points: BigInt(0),
                   bonus_points: BigInt(0),
                   early_adopter_points: BigInt(0),
@@ -273,11 +298,7 @@ const useLeaderboardData = () => {
 };
 
 const LoadingSpinner = React.memo(
-  ({
-    message = "Loading data...",
-  }: {
-    message?: string;
-  }) => (
+  ({ message = "Loading data..." }: { message?: string }) => (
     <div className="mt-8 flex items-center justify-center">
       <div className="flex items-center gap-3">
         <div className="h-6 w-6 animate-spin rounded-full border-2 border-[#17876D] border-t-transparent" />
@@ -431,20 +452,23 @@ const Leaderboard: React.FC = () => {
   );
 
   function getHeader() {
-    return (<div className="flex items-start justify-between">
-      <div className="flex flex-1 flex-col gap-2 lg:gap-3">
-        <div className="flex items-center gap-2">
-          <Icons.rewards />
-          <h1 className="text-xl font-normal tracking-[-1%] text-[#1A1F24] lg:text-2xl">
-            Rewards & Leaderboard
-          </h1>
+    return (
+      <div className="flex items-start justify-between">
+        <div className="flex flex-1 flex-col gap-2 lg:gap-3">
+          <div className="flex items-center gap-2">
+            <Icons.rewards />
+            <h1 className="text-xl font-normal tracking-[-1%] text-[#1A1F24] lg:text-2xl">
+              Rewards & Leaderboard
+            </h1>
+          </div>
+          {/* TODO: Add learn more button */}
+          <p className="mt-1 text-sm text-[#021B1A] lg:text-base">
+            Track your points and rewards - and see where you stand on the
+            leaderboard.
+          </p>
         </div>
-        {/* TODO: Add learn more button */}
-        <p className="mt-1 text-sm text-[#021B1A] lg:text-base">
-         Track your points and rewards - and see where you stand on the leaderboard.
-        </p>
       </div>
-    </div>);
+    );
   }
 
   if (loading.initial) {
@@ -519,13 +543,15 @@ const Leaderboard: React.FC = () => {
               </h2>
               <div className="mt-2 h-px w-full bg-white/20"></div>
             </div>
-            <p className="text-sm text-white lg:text-md">
+            <p className="lg:text-md text-sm text-white">
               In May 2025, we distributed 250,000 xSTRK in rewards to users from
               the {"platform’s"} first six months. The distribution was
               calculated based on Season 1 points as recorded at that time.
             </p>
-            <p className="text-sm text-white lg:text-md">
-              <span className="font-semibold">Claim Deadline: 31st Mar, 2026</span>
+            <p className="lg:text-md text-sm text-white">
+              <span className="font-semibold">
+                Claim Deadline: 31st Mar, 2026
+              </span>
             </p>
           </div>
           <div className="lg:flex-shrink-0 lg:self-center">
@@ -633,9 +659,36 @@ const Leaderboard: React.FC = () => {
                 <div>
                   {/* TODO Add blog link */}
                   <p className="text-xs text-[#5B616D]">
-                    {season.season === 2
-                      ? <span>Allocated 280k points weekly throughout the season. 70% of the points will be allocated to contributors and 30% to the users. <span className="font-semibold text-[#17876D]"><a className="text-[#17876D] underline" href="https://blog.endur.fi/points" target="_blank">Learn more</a></span></span>
-                      : <span>Initial Points have been descaled (1000:1 ratio) to a max of 10M points. <span className="font-semibold"><a className="text-[#5B616D] underline" href="https://blog.endur.fi/points" target="_blank">Learn more</a></span></span>}
+                    {season.season === 2 ? (
+                      <span>
+                        Allocated 280k points weekly throughout the season. 70%
+                        of the points will be allocated to contributors and 30%
+                        to the users.{" "}
+                        <span className="font-semibold text-[#17876D]">
+                          <a
+                            className="text-[#17876D] underline"
+                            href="https://blog.endur.fi/points"
+                            target="_blank"
+                          >
+                            Learn more
+                          </a>
+                        </span>
+                      </span>
+                    ) : (
+                      <span>
+                        Initial Points have been descaled (1000:1 ratio) to a
+                        max of 10M points.{" "}
+                        <span className="font-semibold">
+                          <a
+                            className="text-[#5B616D] underline"
+                            href="https://blog.endur.fi/points"
+                            target="_blank"
+                          >
+                            Learn more
+                          </a>
+                        </span>
+                      </span>
+                    )}
                   </p>
                 </div>
               </div>
@@ -643,7 +696,7 @@ const Leaderboard: React.FC = () => {
           ))}
         </div>
 
-        <hr className="my-3 lg:my-7 border-[#E5E8EB]" />
+        <hr className="my-3 border-[#E5E8EB] lg:my-7" />
 
         <ShadCNTabs
           value={activeSeason}
@@ -703,7 +756,10 @@ const Leaderboard: React.FC = () => {
             Disclaimer
           </AlertTitle>
           <AlertDescription className="mt-2 flex flex-col items-start -space-y-0.5 text-[#5B616D]">
-            <p>Point criteria may evolve as Endur develops, and allocations can be adjusted if any bugs or inconsistencies are discovered.</p>
+            <p>
+              Point criteria may evolve as Endur develops, and allocations can
+              be adjusted if any bugs or inconsistencies are discovered.
+            </p>
           </AlertDescription>
         </Alert>
       </div>
