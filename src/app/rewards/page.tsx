@@ -667,7 +667,7 @@ const Leaderboard: React.FC = () => {
                         <span className="font-semibold text-[#17876D]">
                           <a
                             className="text-[#17876D] underline"
-                            href="https://blog.endur.fi/points"
+                            href="https://docs.endur.fi/docs/community/endur-season-2"
                             target="_blank"
                           >
                             Learn more
