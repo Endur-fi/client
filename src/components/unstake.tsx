@@ -285,13 +285,13 @@ const UnstakeOptionCard = ({
               className={`text-xs ${
                 percentDiff > 0
                   ? "font-semibold text-[#17876D]"
-                  : percentDiff < 0
-                    ? "text-[#939494]"
-                    : ""
+                  : percentDiff < -0.5
+                    ? "text-[red]"
+                    : "text-[#939494]"
               }`}
             >
-              {percentDiff > 0 ? "+" : ""}
-              {percentDiff.toFixed(2)}%
+              ({percentDiff > 0 ? "+" : ""}
+              {percentDiff.toFixed(2)}%)
             </p>
           )}
         </div>
@@ -411,7 +411,7 @@ const Unstake = () => {
       setAvnuLoading(true);
       try {
         const quotes = await getAvnuQuotes(
-          "1000",
+         lstConfig.LST_SYMBOL == 'xSTRK' ? "1000" : "0.001",
           "0x0",
           lstConfig.LST_ADDRESS,
           lstConfig.ASSET_ADDRESS,
@@ -576,7 +576,8 @@ const Unstake = () => {
       : 0;
 
     if (endurRate === 0 || dexRate === 0) return "none";
-    return endurRate > dexRate ? "endur" : "dex";
+    if (dexRate < (endurRate * 0.995)) return "endur";
+    return "dex";
   };
 
   const calculatePercentDiff = (
@@ -783,7 +784,7 @@ const Unstake = () => {
         className="w-full max-w-none"
         onValueChange={(value) => setTxnDapp(value as "endur" | "dex")}
       >
-        <TabsList className="flex h-full w-full flex-col items-center justify-between gap-3 bg-transparent">
+        <TabsList className="flex h-full flex-col items-center justify-between gap-3 bg-transparent">
           <UnstakeOptionCard
             isActive={txnDapp === "endur"}
             title="Use Endur"
@@ -792,7 +793,7 @@ const Unstake = () => {
             waitingTime={waitingTime}
             isBestRate={getBetterRate() === "endur"}
             isRecommended={getBetterRate() === "endur"}
-            percentDiff={endurPercentDiff}
+            percentDiff={null}
           />
 
           {isMainnet() && (

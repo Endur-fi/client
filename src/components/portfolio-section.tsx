@@ -269,7 +269,6 @@ const PortfolioSection: React.FC = () => {
             <Icons.strkLogo className="h-10 w-10 shrink-0" />
             <div className="flex flex-1 items-start justify-between">
               <div className="flex w-full flex-col gap-0.5">
-                <span className="text-left text-sm text-[#1A1F24]">xSTRK</span>
                 <div className="flex w-full items-center justify-between">
                   <span className="text-left text-sm text-[#1A1F24]">
                     {formatNumberWithCommas(strkHoldings.lstAmount, 2)} xSTRK
@@ -293,7 +292,7 @@ const PortfolioSection: React.FC = () => {
             <Icons.btcLogo className="h-10 w-10 shrink-0" />
             <div className="flex flex-1 items-start justify-between">
               <div className="flex w-full flex-col gap-0.5">
-                <span className="text-left text-sm text-[#1A1F24]">BTC</span>
+                {/* <span className="text-left text-sm text-[#1A1F24]">BTC</span> */}
                 <div className="flex w-full items-center justify-between">
                   <span className="text-left text-sm text-[#1A1F24]">
                     {formatNumberWithCommas(btcHoldings.totalLSTAmount, 6)}{" "}
@@ -311,7 +310,7 @@ const PortfolioSection: React.FC = () => {
             </div>
           </div>
           {btcHoldings.holdings.length > 0 && (
-            <div className="mt-3 space-y-3 rounded-lg bg-[#F5F7F8] p-3 lg:ml-[52px]">
+            <div className="mt-3 space-y-3 rounded-lg bg-[#F5F7F8] p-3 lg:ml-[20px]">
               {btcHoldings.holdings.map((holding) => (
                 <div
                   key={holding.asset.SYMBOL}
@@ -325,7 +324,7 @@ const PortfolioSection: React.FC = () => {
                         {holding.asset.LST_SYMBOL}
                       </span>
                     </div>
-                    <span className="text-[#6B7780]">
+                    <span className="text-[#6B7780] ml-[22px]">
                       ${formatNumberWithCommas(holding.usdValue, 2)}
                     </span>
                   </div>
@@ -343,7 +342,7 @@ const PortfolioSection: React.FC = () => {
         <div className="rounded-lg border border-[#FFC46680] bg-[#FFC4661A] p-2 text-xs text-[#D69733]">
           <p className="mb-1">
             Only wallet-held LSTs are shown. LSTs deployed in third-party dApps
-            {"won't"} appear here.
+            {" won't"} appear here.
           </p>
           {/* TODO: Add link to portfolio page */}
           {/* <Link
@@ -367,7 +366,7 @@ const PortfolioSection: React.FC = () => {
                       <Info className="h-3 w-3 text-[#6B7780]" />
                     </TooltipTrigger>
                     <TooltipContent className="max-w-xs rounded-md border border-[#03624C] bg-white text-[#03624C]">
-                      Points earned during Season 1
+                      Points earned during Season 1 [Nov 27th 2024 - Dec 15th 2025]
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
@@ -391,7 +390,7 @@ const PortfolioSection: React.FC = () => {
                       <Info className="h-3 w-3 text-[#6B7780]" />
                     </TooltipTrigger>
                     <TooltipContent className="max-w-xs rounded-md border border-[#03624C] bg-white text-[#03624C]">
-                      Points earned during Season 2
+                      Points earned during Season 2 [Dec 16th 2025 - June 15th 2026]
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>

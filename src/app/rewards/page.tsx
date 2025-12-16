@@ -661,7 +661,7 @@ const Leaderboard: React.FC = () => {
                   <p className="text-xs text-[#5B616D]">
                     {season.season === 2 ? (
                       <span>
-                        Allocated 280k points weekly throughout the season. 70%
+                        Allocated 288k points weekly throughout the season. 70%
                         of the points will be allocated to contributors and 30%
                         to the users.{" "}
                         <span className="font-semibold text-[#17876D]">
@@ -676,8 +676,7 @@ const Leaderboard: React.FC = () => {
                       </span>
                     ) : (
                       <span>
-                        Initial Points have been descaled (1000:1 ratio) to a
-                        max of 10M points.{" "}
+                        Points based on STRK and BTC LSTs held in wallet or supported DeFi platforms. Overall points have been scaled down to 10M points.{" "}
                         <span className="font-semibold">
                           <a
                             className="text-[#5B616D] underline"
@@ -726,7 +725,7 @@ const Leaderboard: React.FC = () => {
           </TabsList>
 
           <TabsContent value="season2" className="mt-0">
-            <div className="mt-2 lg:mt-4">
+            <div className="mt-2 lg:mt-4 mb-6">
               <div className="flex flex-col items-center justify-center rounded-[14px] border border-[#E5E8EB] bg-white p-8 text-center shadow-sm">
                 <p className="text-base text-[#6B7780] lg:text-lg">
                   First weekly points allocation coming on 23rd Dec, 2025

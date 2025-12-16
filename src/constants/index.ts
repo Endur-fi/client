@@ -112,7 +112,7 @@ const LST_ASSETS: Record<string, LSTAssetConfig> = {
     CATEGORY: "BTC",
     DISPLAY_NAME: "Threshold Bitcoin",
     DESCRIPTION: "Threshold Bitcoin on Starknet",
-    TROVES_VAULT_MAXED_OUT: true,
+    TROVES_VAULT_MAXED_OUT: false,
     NETWORKS: {
       SN_MAIN: {
         LST_ADDRESS:

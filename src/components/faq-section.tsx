@@ -122,6 +122,10 @@ const FAQSection: React.FC<{ className?: string }> = ({ className }) => {
           </AccordionItem>
         ))}
       </Accordion>
+
+      <div className="mt-4 text-xs text-[#6B7780]">
+        Learn more about Endur <Link href="https://docs.endur.fi/docs" target="_blank" className="underline">here.</Link>
+      </div>
     </div>
   );
 };

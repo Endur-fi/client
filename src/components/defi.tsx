@@ -1987,10 +1987,9 @@ const Defi: React.FC = () => {
                                         </div>
 
                                         {/* Rewards (empty) */}
-                                        <div className="flex-1"></div>
+                                        {/* <div className="flex-1"></div> */}
 
-                                        {/* Description and Action Button */}
-                                        <div className="flex min-w-0 flex-1 items-center justify-end gap-2">
+                                        <div className="flex min-w-0 flex-2 items-center justify-end gap-2 mx-auto w-[50%]">
                                           <span className="truncate text-xs text-[#1A1F24]">
                                             {config.description}
                                           </span>
@@ -1999,6 +1998,18 @@ const Defi: React.FC = () => {
                                           >
                                             <HelpCircle className="h-4 w-4 shrink-0 cursor-help text-[#6B7780]" />
                                           </MyDottedTooltip>
+                                        </div>
+
+                                        {/* Description and Action Button */}
+                                        <div className="flex min-w-0 flex-1 items-center justify-end gap-2">
+                                          {/* <span className="truncate text-xs text-[#1A1F24]">
+                                            34{config.description}
+                                          </span>
+                                          <MyDottedTooltip
+                                            tooltip={config.description}
+                                          >
+                                            <HelpCircle className="h-4 w-4 shrink-0 cursor-help text-[#6B7780]" />
+                                          </MyDottedTooltip> */}
                                           {config.action && (
                                             <button
                                               onClick={() => {
@@ -2353,10 +2364,9 @@ const Defi: React.FC = () => {
                                           </div>
 
                                           {/* Rewards (empty) */}
-                                          <div className="flex-1"></div>
+                                          {/* <div className="flex-1"></div> */}
 
-                                          {/* Description and Action Button */}
-                                          <div className="flex min-w-0 flex-1 items-center justify-end gap-2">
+                                          <div className="flex min-w-0 flex-2 items-center justify-end gap-2 mx-auto w-[50%]">
                                             <span className="truncate text-xs text-[#1A1F24]">
                                               {config.description}
                                             </span>
@@ -2373,6 +2383,26 @@ const Defi: React.FC = () => {
                                                 </TooltipContent>
                                               </Tooltip>
                                             </TooltipProvider>
+                                          </div>
+
+                                          {/* Description and Action Button */}
+                                          <div className="flex min-w-0 flex-1 items-center justify-end gap-2">
+                                            {/* <span className="truncate text-xs text-[#1A1F24]">
+                                              44{config.description}
+                                            </span>
+                                            <TooltipProvider delayDuration={0}>
+                                              <Tooltip>
+                                                <TooltipTrigger asChild>
+                                                  <HelpCircle className="h-4 w-4 shrink-0 cursor-help text-[#6B7780]" />
+                                                </TooltipTrigger>
+                                                <TooltipContent
+                                                  side="top"
+                                                  className="max-w-xs rounded-md border border-[#03624C] bg-white text-xs text-[#03624C]"
+                                                >
+                                                  456{config.description}
+                                                </TooltipContent>
+                                              </Tooltip>
+                                            </TooltipProvider> */}
                                             {config.action && (
                                               <button
                                                 onClick={() => {

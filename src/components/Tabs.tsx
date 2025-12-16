@@ -347,7 +347,7 @@ const Tabs = () => {
   ];
 
   return (
-    <div className="relative">
+    <div className="relative mb-10">
       <div className={cn("z-30 flex h-full flex-col items-center gap-4")}>
         {IS_PAUSED && (
           <div className="-top-[3.25rem] mt-2 w-fit text-balance rounded-lg border border-amber-600 bg-amber-200 px-5 py-2 text-center text-sm text-yellow-700 lg:absolute lg:mt-0">
