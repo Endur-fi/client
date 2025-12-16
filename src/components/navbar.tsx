@@ -27,7 +27,7 @@ const Navbar = ({ className }: { className?: string }) => {
   // init analytics
   MyAnalytics.init();
 
-  const { address, connector } = useAccount();
+  const { connector } = useAccount();
   const { provider } = useProvider();
   const {
     isConnected,
@@ -42,7 +42,6 @@ const Navbar = ({ className }: { className?: string }) => {
     walletSetupStep,
     isLoadingWallet,
     connectionType,
-    isStarknetConnected,
   } = useWalletConnection();
 
   const { isMobile } = useSidebar();
@@ -53,10 +52,10 @@ const Navbar = ({ className }: { className?: string }) => {
 
   // set tracking person
   React.useEffect(() => {
-    if (address) {
-      MyAnalytics.setPerson(address);
+    if (activeAddress) {
+      MyAnalytics.setPerson(activeAddress);
     }
-  }, [address]);
+  }, [activeAddress]);
 
   React.useEffect(() => {
     if (connector) {
@@ -66,9 +65,9 @@ const Navbar = ({ className }: { className?: string }) => {
   }, [connector]);
 
   React.useEffect(() => {
-    setAddress(address);
+    setAddress(activeAddress || undefined);
     setProvider(getProvider());
-  }, [address, provider]);
+  }, [activeAddress, provider, setAddress, setProvider]);
 
   return (
     <div

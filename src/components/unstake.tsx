@@ -3,6 +3,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useAccount } from "@starknet-react/core";
+import { usePrivy } from "@privy-io/react-auth";
 import { useAtom, useAtomValue } from "jotai";
 import { Info } from "lucide-react";
 import React from "react";
@@ -285,8 +286,15 @@ const UnstakeOptionCard = ({
 const Unstake = () => {
   const [txnDapp, setTxnDapp] = React.useState<"endur" | "dex">("endur");
 
-  const { account, address } = useAccount();
-  const { connectWallet, activeAddress, isConnected } = useWalletConnection();
+  const { account } = useAccount();
+  const {
+    connectWallet,
+    activeAddress,
+    isConnected,
+    connectionType,
+    privyWallet,
+  } = useWalletConnection();
+  const { getAccessToken } = usePrivy();
 
   const [avnuQuote, setAvnuQuote] = useAtom(avnuQuoteAtom);
   const [avnuLoading, setAvnuLoading] = useAtom(avnuLoadingAtom);
@@ -345,7 +353,7 @@ const Unstake = () => {
   React.useEffect(() => {
     handleTransaction("UNSTAKE", {
       form,
-      address: address ?? "",
+      address: activeAddress ?? "",
       data: data ?? { transaction_hash: "" },
       error: error ?? { name: "" },
       isPending,
@@ -385,7 +393,7 @@ const Unstake = () => {
       try {
         const quotes = await getAvnuQuotes(
           form.getValues("unstakeAmount"),
-          address || "0x0",
+          activeAddress || "0x0",
           lstConfig.LST_ADDRESS,
           lstConfig.ASSET_ADDRESS,
           lstConfig.DECIMALS,
@@ -401,7 +409,7 @@ const Unstake = () => {
     };
 
     fetchQuote();
-  }, [address, form.watch("unstakeAmount")]);
+  }, [activeAddress, form.watch("unstakeAmount")]);
 
   const handleQuickUnstakePrice = (percentage: number) => {
     if (!activeAddress) {
@@ -430,7 +438,7 @@ const Unstake = () => {
 
     // exact balance will be used for unstake amount only when percentage is 100
     // for other percentages, we are still rounding up to 8/2 decimals precision
-    if (Number(currentLSTBalance.value.toEtherToFixedDecimals(8)) == 0) {
+    if (Number(currentLSTBalance.value.toEtherToFixedDecimals(8)) === 0) {
       return;
     }
     if (percentage === 100) {
@@ -470,10 +478,9 @@ const Unstake = () => {
 
     setAvnuLoading(true);
     try {
-      await executeAvnuSwap(
-        account as AccountInterface,
-        avnuQuote,
-        () => {
+      // Starknet wallets: use local account with Avnu SDK
+      if (connectionType === "starknet" && account) {
+        await executeAvnuSwap(account as AccountInterface, avnuQuote, () => {
           toast({
             itemID: "unstake",
             variant: "complete",
@@ -492,24 +499,99 @@ const Unstake = () => {
             ),
           });
           form.reset();
-        },
-        (error) => {
+        });
+        return;
+      }
+
+      // Privy wallets: execute swap via backend using Privy-backed account
+      if (connectionType === "privy" && privyWallet?.walletId) {
+        const userJwt = await getAccessToken();
+        if (!userJwt) {
           toast({
-            itemID: "unstake",
             description: (
-              <div className="flex gap-2 text-red-500">
-                <Info className="mt-0.5 size-5 flex-shrink-0" />
-                <div className="max-h-32 flex-1 space-y-1 overflow-y-auto">
-                  <div className="font-semibold">{error.name}</div>
-                  <div className="text-sm">{error.message}</div>
-                </div>
+              <div className="flex items-center gap-2">
+                <Info className="size-5" />
+                Failed to get authentication token. Please re-login.
               </div>
             ),
           });
-        },
-      );
-    } catch (error) {
+          return;
+        }
+
+        // JSON.stringify cannot handle BigInt values – sanitize the quote
+        const safeQuote = JSON.parse(
+          JSON.stringify(avnuQuote, (_key, value) =>
+            typeof value === "bigint" ? value.toString() : value,
+          ),
+        );
+
+        const res = await fetch("/api/privy/execute-avnu-swap", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${userJwt}`,
+          },
+          body: JSON.stringify({
+            walletId: privyWallet.walletId,
+            quote: safeQuote,
+          }),
+        });
+
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          const message =
+            data?.error || "Failed to execute Avnu swap with Privy wallet";
+          throw new Error(message);
+        }
+
+        toast({
+          itemID: "unstake",
+          variant: "complete",
+          duration: 3000,
+          description: (
+            <div className="flex items-center gap-2 border-none">
+              <Icons.toastSuccess />
+              <div className="flex flex-col items-start gap-2 text-sm font-medium text-[#3F6870]">
+                <span className="text-[18px] font-semibold text-[#075A5A]">
+                  Success 🎉
+                </span>
+                Unstaked {form.getValues("unstakeAmount")} {lstConfig.SYMBOL}{" "}
+                via Avnu (Privy)
+              </div>
+            </div>
+          ),
+        });
+        form.reset();
+        return;
+      }
+
+      // Fallback if no supported account type
+      toast({
+        description: (
+          <div className="flex items-center gap-2">
+            <Info className="size-5" />
+            Unsupported wallet type for DEX swap. Please reconnect.
+          </div>
+        ),
+      });
+    } catch (error: any) {
       console.error("AVNU DEX Swap error", error);
+      toast({
+        itemID: "unstake",
+        description: (
+          <div className="flex gap-2 text-red-500">
+            <Info className="mt-0.5 size-5 flex-shrink-0" />
+            <div className="max-h-32 flex-1 space-y-1 overflow-y-auto">
+              <div className="font-semibold">
+                {error?.name || "Swap failed"}
+              </div>
+              <div className="text-sm">
+                {error?.message || "Something went wrong while swapping."}
+              </div>
+            </div>
+          </div>
+        ),
+      });
     } finally {
       setAvnuLoading(false);
     }
@@ -555,15 +637,15 @@ const Unstake = () => {
 
     // Track unstake button click
     MyAnalytics.track(eventNames.UNSTAKE_CLICK, {
-      address,
+      address: activeAddress,
       amount: Number(values.unstakeAmount),
       mode: "ViaEndur",
     });
 
     const call1 = contract.populate("redeem", [
       MyNumber.fromEther(values.unstakeAmount, lstConfig.DECIMALS),
-      address,
-      address,
+      activeAddress,
+      activeAddress,
     ]);
 
     sendAsync([call1]);
@@ -597,7 +679,10 @@ const Unstake = () => {
                     if (!value || value === "") return "";
 
                     // Allow typing decimal point and trailing zeros
-                    if (value.endsWith(".") || /\.\d*0+$/.test(value)) {
+                    if (
+                      value.endsWith(".") ||
+                      (/\.\d*0+$/).test(value)
+                    ) {
                       return value;
                     }
 
