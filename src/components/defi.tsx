@@ -259,14 +259,15 @@ export const strkProtocolConfigs: Partial<
     description:
       "Deposit your xSTRK on Opus to borrow CASH and earn more rewards",
     externalPointsInfo: null,
+    apy: 0.06, // 6% hardcoded for borrow
     action: {
-      type: "lend",
+      type: "borrow",
       link: "https://app.opus.money/",
-      buttonText: "Leverage Assets",
+      buttonText: "Borrow",
       onClick: () => {
         MyAnalytics.track(eventNames.OPPORTUNITIES, {
           protocol: "opus",
-          buttonText: "Leverage Assets",
+          buttonText: "Borrow",
         });
       },
     },
@@ -581,7 +582,7 @@ const borrowProtocols: SupportedDApp[] = [
 type AssetFilter = "all" | "xSTRK" | "xtBTC" | "xLBTC" | "xWBTC" | "xsBTC";
 
 // Protocol filter options
-type ProtocolFilter = "all" | "Ekubo" | "Vesu" | "Nostra" | "Troves";
+type ProtocolFilter = "all" | "Ekubo" | "Vesu" | "Nostra" | "Troves" | "Opus";
 
 // Filters Component
 interface FiltersProps {
@@ -959,7 +960,8 @@ const Defi: React.FC = () => {
         pointsMultiplier: {
           min: 8,
           max: 15,
-          description: "Supply BTC and STRK to designated pools, helping bootstrap liquidity and earn higher points.",
+          description:
+            "Supply BTC and STRK to designated pools, helping bootstrap liquidity and earn higher points.",
         },
         action: {
           type: "lend",
@@ -1225,6 +1227,7 @@ const Defi: React.FC = () => {
     Vesu: (name) => name === "vesu",
     Nostra: (name) => name.includes("nostra"),
     Troves: (name) => name.includes("troves"),
+    Opus: (name) => name === "opus",
   };
 
   // Helper function to check if protocol matches protocol filter
@@ -1353,9 +1356,9 @@ const Defi: React.FC = () => {
     "strkfarmEkubo",
   ]);
 
-  // Get borrow protocol keys
+  // Get borrow protocol keys (includes Vesu borrow pools and Opus)
   const borrowProtocolKeys = useMemo(() => {
-    return Object.keys(vesuBorrowConfigs);
+    return [...Object.keys(vesuBorrowConfigs), "opus"];
   }, [vesuBorrowConfigs]);
 
   // Helper to get capacity for a protocol
@@ -1620,6 +1623,7 @@ const Defi: React.FC = () => {
     "Vesu",
     "Nostra",
     "Troves",
+    "Opus",
   ];
 
   return (
@@ -2212,26 +2216,52 @@ const Defi: React.FC = () => {
                                             <div className="w-fit animate-pulse rounded-lg bg-gray-200" />
                                           ) : apyValue !== null ? (
                                             <div className="flex flex-col gap-1">
-                                              <div
-                                                className={cn(
-                                                  "w-fit rounded-lg border px-2 py-1 text-sm font-semibold",
-                                                  accentColor.yieldBg,
-                                                  accentColor.yieldText,
-                                                  isBorrowPool && apyValue > 0
-                                                    ? "border-[#D97706]"
-                                                    : "border-[#059669]",
-                                                )}
-                                              >
-                                                {apyValue.toFixed(2)}%
-                                              </div>
-                                              <div className="text-xs text-[#6B7780]">
-                                                Supply yield:{" "}
-                                                {supplyApy.toFixed(2)}%
-                                              </div>
-                                              <div className="text-xs text-[#6B7780]">
-                                                Borrow rate:{" "}
-                                                {borrowApr.toFixed(2)}%
-                                              </div>
+                                              {isBorrowPool ? (
+                                                <MyDottedTooltip
+                                                  tooltip={
+                                                    apyValue < 0
+                                                      ? "Negative APR: You earn to borrow"
+                                                      : "Positive APR: Borrowing cost dominates LST yield."
+                                                  }
+                                                >
+                                                  <div
+                                                    className={cn(
+                                                      "w-fit rounded-lg border px-2 py-1 text-sm font-semibold",
+                                                      accentColor.yieldBg,
+                                                      accentColor.yieldText,
+                                                      isBorrowPool &&
+                                                        apyValue > 0
+                                                        ? "border-[#D97706]"
+                                                        : "border-[#059669]",
+                                                    )}
+                                                  >
+                                                    {apyValue.toFixed(2)}%
+                                                  </div>
+                                                </MyDottedTooltip>
+                                              ) : (
+                                                <div
+                                                  className={cn(
+                                                    "w-fit rounded-lg border px-2 py-1 text-sm font-semibold",
+                                                    accentColor.yieldBg,
+                                                    accentColor.yieldText,
+                                                    "border-[#059669]",
+                                                  )}
+                                                >
+                                                  {apyValue.toFixed(2)}%
+                                                </div>
+                                              )}
+                                              {pool && (
+                                                <>
+                                                  <div className="text-xs text-[#6B7780]">
+                                                    Supply yield:{" "}
+                                                    {supplyApy.toFixed(2)}%
+                                                  </div>
+                                                  <div className="text-xs text-[#6B7780]">
+                                                    Borrow rate:{" "}
+                                                    {borrowApr.toFixed(2)}%
+                                                  </div>
+                                                </>
+                                              )}
                                             </div>
                                           ) : (
                                             <span className="text-[#6B7780]">

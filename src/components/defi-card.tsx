@@ -59,18 +59,20 @@ const DefiCard: React.FC<DefiCardProps> = ({
   pointsMultiplier,
   onActionClick,
 }) => {
-  // Accent colors: green for supply, yellow/orange for borrow
-  const accentColor = isBorrow
-    ? {
-        yieldBg: "bg-[#FEF3C7]",
-        yieldText: "text-[#D97706]",
-        buttonBg: "bg-[#D69733]",
-      }
-    : {
-        yieldBg: "bg-[#D1FAE5]",
-        yieldText: "text-[#059669]",
-        buttonBg: "bg-[#10B981]",
-      };
+  // Accent colors: green for supply, yellow/orange for borrow (only if positive APY)
+  const apyValue = apy?.value ?? null;
+  const accentColor =
+    isBorrow && apyValue !== null && apyValue > 0
+      ? {
+          yieldBg: "bg-[#FEF3C7]",
+          yieldText: "text-[#D97706]",
+          buttonBg: "bg-[#D69733]",
+        }
+      : {
+          yieldBg: "bg-[#D1FAE5]",
+          yieldText: "text-[#059669]",
+          buttonBg: "bg-[#10B981]",
+        };
 
   const yieldLabel = isBorrow ? "Borrow rate" : "Supply yield";
   const yieldValue = apy?.isLoading
