@@ -803,9 +803,13 @@ const calculateBorrowPoolData = (
   const formattedTotalDebt = formatNumber(totalDebt * debtPrice);
   const formattedEffectiveCap = formatNumber(effectiveCapUSD);
   const hasNoLimit = effectiveCapUSD > 1000000000;
-  const capacityText = hasNoLimit
-    ? null
-    : `$${formattedTotalDebt} of $${formattedEffectiveCap} used`;
+  // If no pool data exists, return null to show "-" instead of "$0 of $0"
+  const capacityText =
+    !pool || effectiveCapUSD === 0
+      ? null
+      : hasNoLimit
+        ? null
+        : `$${formattedTotalDebt} of $${formattedEffectiveCap} used`;
   const capacityUsed =
     pool && effectiveCapUSD > 0
       ? ((pool.totalDebt * debtPrice) / effectiveCapUSD) * 100
@@ -1774,9 +1778,9 @@ const Defi: React.FC = () => {
               {/* Desktop: Tables */}
               <div className="hidden lg:block">
                 <TabsContent value="supply" className="mt-0">
-                  <div className="w-full overflow-x-auto">
+                  <div className="max-h-[calc(100vh-320px)] w-full overflow-y-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                     <table className="w-full table-fixed border-separate border-spacing-y-2">
-                      <thead>
+                      <thead className="sticky top-0 z-50">
                         <tr>
                           <th className="w-[25%] rounded-tl-[14px] bg-white px-6 py-2 text-left text-sm font-medium text-[#5B616D] shadow-sm">
                             Vault
@@ -2038,9 +2042,9 @@ const Defi: React.FC = () => {
                 </TabsContent>
 
                 <TabsContent value="borrow" className="mt-0">
-                  <div className="w-full overflow-x-auto">
-                    <table className="w-full table-fixed border-separate border-spacing-y-2">
-                      <thead>
+                  <div className="max-h-[calc(100vh-320px)] w-full overflow-y-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                    <table className="w-full table-fixed border-separate border-spacing-y-2 rounded-[14px]">
+                      <thead className="sticky top-0 z-50">
                         <tr>
                           <th className="w-[25%] rounded-tl-[14px] bg-white px-6 py-2 text-left text-sm font-medium text-[#5B616D] shadow-sm">
                             Pair & Pool
@@ -2295,19 +2299,22 @@ const Defi: React.FC = () => {
                                                   </div>
                                                 )}
                                             </div>
-                                          ) : (
+                                          ) : pool ? (
                                             <div>
                                               <div className="text-sm text-[#1A1F24]">
                                                 Limitless
                                               </div>
-                                              {pool &&
-                                                pool.maxLTV !== undefined && (
-                                                  <div className="mt-2 text-xs text-[#6B7780]">
-                                                    Max LTV -{" "}
-                                                    {pool.maxLTV.toFixed(0)}%
-                                                  </div>
-                                                )}
+                                              {pool.maxLTV !== undefined && (
+                                                <div className="mt-2 text-xs text-[#6B7780]">
+                                                  Max LTV -{" "}
+                                                  {pool.maxLTV.toFixed(0)}%
+                                                </div>
+                                              )}
                                             </div>
+                                          ) : (
+                                            <span className="text-[#6B7780]">
+                                              -
+                                            </span>
                                           )}
                                         </div>
 
@@ -2415,9 +2422,9 @@ const Defi: React.FC = () => {
                 </TabsContent>
 
                 <TabsContent value="contribute-liquidity" className="mt-0">
-                  <div className="w-full overflow-x-auto">
+                  <div className="max-h-[calc(100vh-320px)] w-full overflow-y-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                     <table className="w-full table-fixed border-separate border-spacing-y-2">
-                      <thead>
+                      <thead className="sticky top-0 z-50">
                         <tr>
                           <th className="w-[25%] rounded-tl-[14px] bg-white px-6 py-2 text-left text-sm font-medium text-[#5B616D] shadow-sm">
                             Vault
