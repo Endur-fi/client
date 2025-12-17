@@ -1728,7 +1728,7 @@ const Defi: React.FC = () => {
             {/* Sticky Tabs Header */}
             <div
               className={cn(
-                "sticky top-0 z-50 flex w-full flex-col gap-2 rounded-bl-[14px] rounded-br-[14px] bg-[#E8F7F4] pt-3 transition-all duration-200 lg:flex-row lg:items-center lg:justify-between",
+                "sticky top-0 z-40 flex w-full flex-col gap-2 rounded-bl-[14px] rounded-br-[14px] bg-[#E8F7F4] pt-3 transition-all duration-200 lg:z-50 lg:flex-row lg:items-center lg:justify-between",
                 isScrolling && "shadow-md",
               )}
             >
