@@ -13,9 +13,9 @@ import Navbar from "@/components/navbar";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Endur.fi | Starknet Liquid Staking (xSTRK) | Earn STRK Rewards",
+  title: "Endur.fi | Starknet Liquid Staking (xSTRK & xyBTCs) | Earn STRK & BTC Rewards",
   description:
-    "Stake STRK with Endur and receive xSTRK - the liquid staking token on Starknet. Earn rewards while accessing DeFi with instant liquidity, higher rewards and faster unstaking",
+    "Stake STRK & BTC with Endur and receive xSTRK & xyBTCs - the liquid staking tokens on Starknet. Earn rewards while accessing DeFi with instant liquidity, higher rewards and faster unstaking",
   keywords: [
     "liquid staking starknet",
     "liquid staking",
@@ -23,13 +23,21 @@ export const metadata: Metadata = {
     "starknet LST",
     "STRK staking",
     "Endur xSTRK",
+    "Endur xyBTC",
+    "Endur xWBTC",
+    "Endur xtBTC",
+    "Endur xLBTC",
+    "Endur xsBTC",
+    "Wrapped Bitcoin staking",
+    "Lombard staking",
+    "SolvBTC staking",
     "starknet liquid staking solution",
   ],
   robots: "index,follow",
   openGraph: {
-    title: "Starknet Liquid Staking (xSTRK) | Earn STRK Rewards | Endur.fi",
+    title: "Starknet Liquid Staking (xSTRK & xyBTCs) | Endur.fi",
     description:
-      "Stake STRK with Endur and receive xSTRK - the liquid staking token on Starknet. Earn rewards while accessing DeFi with instant liquidity, higher rewards and faster unstaking",
+      "Stake STRK & BTC with Endur and receive xSTRK & xyBTCs - the liquid staking tokens on Starknet. Earn rewards while accessing DeFi with instant liquidity, higher rewards and faster unstaking",
     images: [
       {
         url: "https://app.endur.fi/og.png",
@@ -42,9 +50,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Starknet Liquid Staking (xSTRK) | Earn STRK Rewards | Endur.fi",
+    title: "Starknet Liquid Staking (xSTRK & xyBTCs) | Endur.fi",
     description:
-      "Stake STRK with Endur and receive xSTRK - the liquid staking token on Starknet. Earn rewards while accessing DeFi with instant liquidity, higher rewards and faster unstaking",
+      "Stake STRK & BTC with Endur and receive xSTRK & xyBTCs - the liquid staking tokens on Starknet. Earn rewards while accessing DeFi with instant liquidity, higher rewards and faster unstaking",
     site: "@endurfi",
     creator: "@endurfi",
     images: [

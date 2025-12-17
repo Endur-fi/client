@@ -4,9 +4,9 @@ import { type Metadata } from "next";
 
 export const metadata: Metadata = {
   title:
-    "Leaderboard | Endur.fi | Starknet Liquid Staking (xSTRK) | Earn STRK Rewards",
+    "Rewards and Points Leaderboard | Endur.fi",
   description:
-    "Leaderboard of Endur.fi - the Starknet liquid staking solution. Stake STRK with Endur and receive xSTRK - the liquid staking token on Starknet. Earn rewards while accessing DeFi with instant liquidity, higher rewards and faster unstaking",
+    "Leaderboard of Endur.fi - the Starknet liquid staking solution. Stake STRK & BTC with Endur and receive xSTRK & xyBTCs - the liquid staking tokens on Starknet. Earn rewards while accessing DeFi with instant liquidity, higher rewards and faster unstaking",
   keywords: [
     "liquid staking starknet",
     "liquid staking",
@@ -14,14 +14,22 @@ export const metadata: Metadata = {
     "starknet LST",
     "STRK staking",
     "Endur xSTRK",
+    "Endur xyBTC",
+    "Endur xWBTC",
+    "Endur xtBTC",
+    "Endur xLBTC",
+    "Endur xsBTC",
+    "Wrapped Bitcoin staking",
+    "Lombard staking",
+    "SolvBTC staking",
     "starknet liquid staking solution",
   ],
   robots: "index,follow",
   openGraph: {
     title:
-      "Leaderboard | Endur.fi | Starknet Liquid Staking (xSTRK) | Earn STRK Rewards",
+      "Rewards and Points Leaderboard | Endur.fi",
     description:
-      "Leaderboard of Endur.fi - the Starknet liquid staking solution. Stake STRK with Endur and receive xSTRK - the liquid staking token on Starknet. Earn rewards while accessing DeFi with instant liquidity, higher rewards and faster unstaking",
+      "Leaderboard of Endur.fi - the Starknet liquid staking solution. Stake STRK & BTC with Endur and receive xSTRK & xyBTCs - the liquid staking tokens on Starknet. Earn rewards while accessing DeFi with instant liquidity, higher rewards and faster unstaking",
     images: [
       {
         url: "",
@@ -35,9 +43,9 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title:
-      "Leaderboard | Endur.fi | Starknet Liquid Staking (xSTRK) | Earn STRK Rewards",
+      "Rewards and Points Leaderboard | Endur.fi",
     description:
-      "Leaderboard of Endur.fi - the Starknet liquid staking solution. Stake STRK with Endur and receive xSTRK - the liquid staking token on Starknet. Earn rewards while accessing DeFi with instant liquidity, higher rewards and faster unstaking",
+      "Leaderboard of Endur.fi - the Starknet liquid staking solution. Stake STRK & BTC with Endur and receive xSTRK & xyBTCs - the liquid staking tokens on Starknet. Earn rewards while accessing DeFi with instant liquidity, higher rewards and faster unstaking",
     site: "@endurfi",
     creator: "@endurfi",
     images: [
