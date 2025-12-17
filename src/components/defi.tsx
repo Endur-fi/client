@@ -855,7 +855,7 @@ const Defi: React.FC = () => {
 
   // Track scroll state for shadow visibility
   React.useEffect(() => {
-    let scrollTimer: NodeJS.Timeout;
+    let scrollTimer: ReturnType<typeof setTimeout>;
     let lastScrollTop = 0;
 
     const handleScroll = () => {

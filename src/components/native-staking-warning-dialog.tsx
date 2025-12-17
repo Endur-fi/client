@@ -39,15 +39,15 @@ export const NativeStakingWarningDialog: React.FC<
                 <AlertTriangle className="h-6 w-6 text-[#D69733]" />
               </div>
               <DialogTitle className="text-md text-left leading-6 text-[#0a0a0a] lg:text-xl">
-                You're switching to Native Staking
+                You&apos;re switching to Native Staking
               </DialogTitle>
             </div>
           </div>
         </DialogHeader>
         <DialogDescription className="space-y-2 pt-4 text-left text-[10px] text-[#717182] lg:text-sm">
           <p>
-            You're about to leave the liquid staking interface and move to
-            Starknet's native staking dashboard.
+            You&apos;re about to leave the liquid staking interface and move to
+            Starknet&apos;s native staking dashboard.
           </p>
           <p>
             While this dashboard is also{" "}
