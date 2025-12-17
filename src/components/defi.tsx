@@ -851,6 +851,40 @@ const Defi: React.FC = () => {
   const [showDisclaimer, setShowDisclaimer] = useState(false);
   const [showMoreFilters, setShowMoreFilters] = useState(false);
   const [showStablesOnly, setShowStablesOnly] = useState(false);
+  const [isScrolling, setIsScrolling] = useState(false);
+
+  // Track scroll state for shadow visibility
+  React.useEffect(() => {
+    let scrollTimer: NodeJS.Timeout;
+    let lastScrollTop = 0;
+
+    const handleScroll = () => {
+      const currentScrollTop =
+        window.pageYOffset || document.documentElement.scrollTop;
+
+      // Show shadow when scrolling
+      if (currentScrollTop > 0 && currentScrollTop !== lastScrollTop) {
+        setIsScrolling(true);
+      }
+
+      // Clear any existing timer
+      clearTimeout(scrollTimer);
+
+      // Hide shadow after scrolling stops
+      scrollTimer = setTimeout(() => {
+        setIsScrolling(false);
+      }, 150);
+
+      lastScrollTop = currentScrollTop;
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      clearTimeout(scrollTimer);
+    };
+  }, []);
 
   // Reset filters when switching tabs
   React.useEffect(() => {
@@ -1691,61 +1725,67 @@ const Defi: React.FC = () => {
             }
             className="w-full"
           >
-            {/* Header Section: Tabs and Filters */}
-            <div className="w-full rounded-[14px]">
-              <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-                <TabsList className="flex h-auto w-full gap-0 rounded-[14px] border border-[#E5E8EB] bg-white p-1 lg:w-[450px]">
-                  {[
-                    { value: "supply", label: "Earn" },
-                    { value: "borrow", label: "Borrow" },
-                    {
-                      value: "contribute-liquidity",
-                      label: "Contribute liquidity",
-                    },
-                  ].map((tab) => (
-                    <TabsTrigger
-                      key={tab.value}
-                      value={tab.value}
-                      className={cn(
-                        "min-h-[64px] flex-1 rounded-[10px] border border-transparent bg-transparent px-4 py-2 text-sm font-medium text-[#6B7780] transition-all data-[state=active]:border-[#17876D] data-[state=active]:bg-[#E8F7F4] data-[state=active]:text-[#1A1F24] data-[state=active]:shadow-none lg:px-6 lg:py-2.5 lg:text-base",
+            {/* Sticky Tabs Header */}
+            <div
+              className={cn(
+                "sticky top-0 z-50 flex w-full flex-col gap-2 rounded-bl-[14px] rounded-br-[14px] bg-[#E8F7F4] pt-3 transition-all duration-200 lg:flex-row lg:items-center lg:justify-between",
+                isScrolling && "shadow-md",
+              )}
+            >
+              <TabsList className="flex h-auto w-full gap-0 rounded-[14px] border border-[#E5E8EB] bg-white p-1 lg:w-[450px]">
+                {[
+                  { value: "supply", label: "Earn" },
+                  { value: "borrow", label: "Borrow" },
+                  {
+                    value: "contribute-liquidity",
+                    label: "Contribute liquidity",
+                  },
+                ].map((tab) => (
+                  <TabsTrigger
+                    key={tab.value}
+                    value={tab.value}
+                    className={cn(
+                      "min-h-[64px] flex-1 rounded-[10px] border border-transparent bg-transparent px-4 py-2 text-sm font-medium text-[#6B7780] transition-all data-[state=active]:border-[#17876D] data-[state=active]:bg-[#E8F7F4] data-[state=active]:text-[#1A1F24] data-[state=active]:shadow-none lg:px-6 lg:py-2.5 lg:text-base",
+                    )}
+                  >
+                    <div className="flex flex-col items-center gap-0.5">
+                      <span>{tab.label}</span>
+                      {tab.value === "contribute-liquidity" && (
+                        <div className="flex items-center gap-1">
+                          <Zap className="h-3 w-3 text-[#D69733]" />
+                          <span className="text-xs font-medium text-[#D69733]">
+                            70% • 5.25M pts
+                          </span>
+                        </div>
                       )}
-                    >
-                      <div className="flex flex-col items-center gap-0.5">
-                        <span>{tab.label}</span>
-                        {tab.value === "contribute-liquidity" && (
-                          <div className="flex items-center gap-1">
-                            <Zap className="h-3 w-3 text-[#D69733]" />
-                            <span className="text-xs font-medium text-[#D69733]">
-                              70% • 5.25M pts
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                    </TabsTrigger>
-                  ))}
-                </TabsList>
-                <TooltipProvider delayDuration={0}>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <button className="hidden w-fit items-center justify-center gap-2 rounded-full border border-[#D69733] bg-[#D697331A] px-2 py-1 text-xs text-[#F59E0B] lg:flex lg:self-end">
-                        <OctagonAlert className="h-4 w-4" />
-                        Disclaimer
-                      </button>
-                    </TooltipTrigger>
-                    <TooltipContent
-                      side="bottom"
-                      className="max-w-xs rounded-md border border-[#D69733] bg-white text-xs text-[#717182]"
-                    >
-                      The protocols listed here are third-party services not
-                      affiliated with or endorsed by Endur. This list is
-                      provided for informational convenience only. Always do
-                      your own research and understand the risks before using
-                      any DeFi protocol.
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
+                    </div>
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+              <TooltipProvider delayDuration={0}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button className="hidden w-fit items-center justify-center gap-2 rounded-full border border-[#D69733] bg-[#D697331A] px-2 py-1 text-xs text-[#F59E0B] lg:flex lg:self-end">
+                      <OctagonAlert className="h-4 w-4" />
+                      Disclaimer
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent
+                    side="bottom"
+                    className="max-w-xs rounded-md border border-[#D69733] bg-white text-xs text-[#717182]"
+                  >
+                    The protocols listed here are third-party services not
+                    affiliated with or endorsed by Endur. This list is provided
+                    for informational convenience only. Always do your own
+                    research and understand the risks before using any DeFi
+                    protocol.
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
 
+            {/* Filters Section */}
+            <div className="w-full rounded-[14px]">
               {(["supply", "borrow", "contribute-liquidity"] as const).map(
                 (tab) => (
                   <TabsContent
@@ -1778,9 +1818,9 @@ const Defi: React.FC = () => {
               {/* Desktop: Tables */}
               <div className="hidden lg:block">
                 <TabsContent value="supply" className="mt-0">
-                  <div className="max-h-[calc(100vh-320px)] w-full overflow-y-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                    <table className="w-full table-fixed border-separate border-spacing-y-2">
-                      <thead className="sticky top-0 z-50">
+                  <div className="w-full">
+                    <table className="w-full table-fixed border-separate border-spacing-y-2 rounded-[14px]">
+                      <thead className="">
                         <tr>
                           <th className="w-[25%] rounded-tl-[14px] bg-white px-6 py-2 text-left text-sm font-medium text-[#5B616D] shadow-sm">
                             Vault
@@ -1993,7 +2033,7 @@ const Defi: React.FC = () => {
                                         {/* Rewards (empty) */}
                                         {/* <div className="flex-1"></div> */}
 
-                                        <div className="flex min-w-0 flex-2 items-center justify-end gap-2 mx-auto w-[50%]">
+                                        <div className="flex-2 mx-auto flex w-[50%] min-w-0 items-center justify-end gap-2">
                                           <span className="truncate text-xs text-[#1A1F24]">
                                             {config.description}
                                           </span>
@@ -2053,9 +2093,9 @@ const Defi: React.FC = () => {
                 </TabsContent>
 
                 <TabsContent value="borrow" className="mt-0">
-                  <div className="max-h-[calc(100vh-320px)] w-full overflow-y-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                  <div className="w-full">
                     <table className="w-full table-fixed border-separate border-spacing-y-2 rounded-[14px]">
-                      <thead className="sticky top-0 z-50">
+                      <thead className="">
                         <tr>
                           <th className="w-[25%] rounded-tl-[14px] bg-white px-6 py-2 text-left text-sm font-medium text-[#5B616D] shadow-sm">
                             Pair & Pool
@@ -2373,7 +2413,7 @@ const Defi: React.FC = () => {
                                           {/* Rewards (empty) */}
                                           {/* <div className="flex-1"></div> */}
 
-                                          <div className="flex min-w-0 flex-2 items-center justify-end gap-2 mx-auto w-[50%]">
+                                          <div className="flex-2 mx-auto flex w-[50%] min-w-0 items-center justify-end gap-2">
                                             <span className="truncate text-xs text-[#1A1F24]">
                                               {config.description}
                                             </span>
@@ -2452,9 +2492,9 @@ const Defi: React.FC = () => {
                 </TabsContent>
 
                 <TabsContent value="contribute-liquidity" className="mt-0">
-                  <div className="max-h-[calc(100vh-320px)] w-full overflow-y-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                    <table className="w-full table-fixed border-separate border-spacing-y-2">
-                      <thead className="sticky top-0 z-50">
+                  <div className="w-full">
+                    <table className="w-full table-fixed border-separate border-spacing-y-2 rounded-[14px]">
+                      <thead className="">
                         <tr>
                           <th className="w-[25%] rounded-tl-[14px] bg-white px-6 py-2 text-left text-sm font-medium text-[#5B616D] shadow-sm">
                             Vault
