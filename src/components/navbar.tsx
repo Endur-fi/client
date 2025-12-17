@@ -57,7 +57,7 @@ const Navbar = ({ className }: { className?: string }) => {
   return (
     <div
       className={cn(
-        "sticky top-0 flex h-20 w-full items-center justify-end",
+        "flex h-20 w-full items-center justify-end",
         {
           "justify-between": isMobile,
         },

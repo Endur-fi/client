@@ -13,6 +13,7 @@ import { FlameIcon } from "./ui/flame";
 import { GaugeIcon } from "./ui/gauge";
 import { HandCoinsIcon } from "./ui/hand-coins";
 import { SidebarMenuButton, SidebarMenuItem, useSidebar } from "./ui/sidebar";
+import { NativeStakingWarningDialog } from "./native-staking-warning-dialog";
 
 const SidebarMenuItems = () => {
   const [triggerLSTIconAnimation, setTriggerLSTIconAnimation] =
@@ -26,6 +27,8 @@ const SidebarMenuItems = () => {
   const [triggerPortfolioIconAnimation, setTriggerPortfolioIconAnimation] =
     React.useState(false);
   const [triggerLeaderboardIconAnimation, setTriggerLeaderboardIconAnimation] =
+    React.useState(false);
+  const [showNativeStakingDialog, setShowNativeStakingDialog] =
     React.useState(false);
 
   const { open } = useSidebar();
@@ -146,12 +149,10 @@ const SidebarMenuItems = () => {
               pathname === "/rewards",
           })}
           onMouseEnter={() =>
-            pathname !== "/rewards" &&
-            setTriggerLeaderboardIconAnimation(true)
+            pathname !== "/rewards" && setTriggerLeaderboardIconAnimation(true)
           }
           onMouseLeave={() =>
-            pathname !== "/rewards" &&
-            setTriggerLeaderboardIconAnimation(false)
+            pathname !== "/rewards" && setTriggerLeaderboardIconAnimation(false)
           }
         >
           <Link
@@ -221,19 +222,26 @@ const SidebarMenuItems = () => {
           onMouseEnter={() => setTriggerDashboardIconAnimation(true)}
           onMouseLeave={() => setTriggerDashboardIconAnimation(false)}
         >
-          <Link
-            href={LINKS.DASHBOARD_URL}
-            target="_blank"
-            className="flex cursor-pointer flex-row items-center gap-2 text-nowrap rounded-[12px] text-base font-semibold text-[#03624C] transition-all"
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              setShowNativeStakingDialog(true);
+            }}
+            className="flex w-full cursor-pointer flex-row items-center gap-2 text-nowrap rounded-[12px] text-left text-base font-semibold text-[#03624C] transition-all"
           >
             <GaugeIcon
               triggerAnimation={triggerDashboardIconAnimation}
               className="-ml-0.5 size-5"
             />
             {open && "Native Staking"}
-          </Link>
+          </button>
         </SidebarMenuButton>
       </SidebarMenuItem>
+
+      <NativeStakingWarningDialog
+        open={showNativeStakingDialog}
+        onOpenChange={setShowNativeStakingDialog}
+      />
     </React.Fragment>
   );
 };

@@ -9,10 +9,11 @@ import { isMainnet, LEADERBOARD_ANALYTICS_EVENTS } from "@/constants";
 import {
   GET_TOP_100_USERS_SEASON1,
   GET_USER_NET_TOTAL_POINTS_SEASON1,
+  GET_USER_COMPLETE_DETAILS,
 } from "@/constants/queries";
 import { MyAnalytics } from "@/lib/analytics";
 import { defaultOptions } from "@/lib/apollo-client";
-import { cn, formatNumber } from "@/lib/utils";
+import { cn, formatNumber, standariseAddress } from "@/lib/utils";
 import {
   Tabs as ShadCNTabs,
   TabsContent,
@@ -49,6 +50,27 @@ interface UserNetTotalPointsSeason1Response {
   };
 }
 
+// Response type from old API - GraphQL returns numbers as strings
+interface OldApiUserCompleteDetailsResponse {
+  getUserCompleteDetails: {
+    user_address: string;
+    rank: number;
+    points: {
+      total_points: string | number;
+      regular_points: string | number;
+      bonus_points: string | number;
+      early_adopter_points: string | number;
+      follow_bonus_points: string | number;
+      dex_bonus_points: string | number;
+    };
+    allocation: string;
+    proof: string;
+    tags: {
+      early_adopter: boolean;
+    };
+  } | null;
+}
+
 interface CurrentUserInfo {
   address: string;
   points: string;
@@ -82,6 +104,15 @@ const apolloClient = new ApolloClient({
     ? "https://endur-points-indexers-mainnet-graphql.onrender.com"
     : "https://graphql.sepolia.endur.fi",
   // uri: "http://localhost:4001",
+  cache: new InMemoryCache(),
+  defaultOptions,
+});
+
+// Old API client for Season 1 allocation and proof data
+const apolloClientOldApi = new ApolloClient({
+  uri: isMainnet()
+    ? "https://graphql.mainnet.endur.fi"
+    : "https://graphql.sepolia.endur.fi",
   cache: new InMemoryCache(),
   defaultOptions,
 });
@@ -137,22 +168,73 @@ const useLeaderboardData = () => {
           error: null,
         }));
 
-        const [usersResult, currentUserResult] = await Promise.allSettled([
-          apolloClient.query<Top100UsersSeason1Response>({
-            query: GET_TOP_100_USERS_SEASON1,
-            fetchPolicy: "network-only", // fetch fresh data when we bypass cache
-          }),
-          address
-            ? apolloClient.query<UserNetTotalPointsSeason1Response>({
-                query: GET_USER_NET_TOTAL_POINTS_SEASON1,
-                variables: {
-                  userAddress: address,
-                },
-              })
-            : Promise.resolve({
-                data: { getUserNetTotalPointsSeason1: null },
-              }),
-        ]);
+        const [usersResult, currentUserResult, oldApiUserResult] =
+          await Promise.allSettled([
+            apolloClient.query<Top100UsersSeason1Response>({
+              query: GET_TOP_100_USERS_SEASON1,
+              fetchPolicy: "network-only", // fetch fresh data when we bypass cache
+            }),
+            address
+              ? apolloClient.query<UserNetTotalPointsSeason1Response>({
+                  query: GET_USER_NET_TOTAL_POINTS_SEASON1,
+                  variables: {
+                    userAddress: address,
+                  },
+                })
+              : Promise.resolve({
+                  data: { getUserNetTotalPointsSeason1: null },
+                }),
+            // Fetch from old API for allocation and proof data
+            // Try multiple address formats since old API might store addresses differently
+            address
+              ? (async () => {
+                  const addressVariants = [
+                    address, // Original address (with leading zeros if any)
+                    standariseAddress(address), // Standardized (no leading zeros)
+                    address.toLowerCase(), // Lowercase original
+                    standariseAddress(address).toLowerCase(), // Lowercase standardized
+                  ].filter((addr, index, self) => self.indexOf(addr) === index); // Remove duplicates
+
+                  for (const addr of addressVariants) {
+                    try {
+                      const result =
+                        await apolloClientOldApi.query<OldApiUserCompleteDetailsResponse>(
+                          {
+                            query: GET_USER_COMPLETE_DETAILS,
+                            variables: {
+                              userAddress: addr,
+                            },
+                            errorPolicy: "all",
+                          },
+                        );
+
+                      // Check for GraphQL errors
+                      if (result.errors && result.errors.length > 0) {
+                        console.warn(
+                          `Old API GraphQL errors for address ${addr}:`,
+                          result.errors,
+                        );
+                      }
+
+                      // Check if we got data
+                      if (result?.data?.getUserCompleteDetails) {
+                        return result;
+                      }
+                    } catch (err) {
+                      console.error(
+                        `Old API query failed for address ${addr}:`,
+                        err,
+                      );
+                      continue;
+                    }
+                  }
+
+                  return { data: { getUserCompleteDetails: null } };
+                })()
+              : Promise.resolve({
+                  data: { getUserCompleteDetails: null },
+                }),
+          ]);
 
         if (usersResult.status === "rejected") {
           throw new Error(
@@ -169,6 +251,23 @@ const useLeaderboardData = () => {
           currentUserResult.status === "fulfilled"
             ? currentUserResult.value.data?.getUserNetTotalPointsSeason1
             : null;
+
+        // Get allocation and proof from old API
+        if (oldApiUserResult.status === "rejected") {
+          console.error(
+            "Error fetching from old API:",
+            oldApiUserResult.reason,
+          );
+        }
+        const oldApiUserData =
+          oldApiUserResult.status === "fulfilled"
+            ? oldApiUserResult.value.data?.getUserCompleteDetails
+            : null;
+
+        // Log errors if old API call failed
+        if (oldApiUserResult.status === "rejected") {
+          console.error("Old API error details:", oldApiUserResult.reason);
+        }
 
         // Use weightedTotalPoints for display (weighted points refer to previous total_points)
         const transformedData: SizeColumn[] = apiResponse.map(
@@ -208,45 +307,76 @@ const useLeaderboardData = () => {
         };
 
         // Map to UserCompleteDetailsApiResponse structure
-        // Note: The new API doesn't provide allocation, proof, or detailed points breakdown
-        // These fields will be undefined/null, and the CheckEligibility component should handle that
+        // Merge data from new API (points) with old API (allocation, proof, detailed points)
         const userCompleteInfoMapped: UserCompleteDetailsApiResponse | null =
-          currentUserData
+          currentUserData || oldApiUserData
             ? {
-                user_address: currentUserData.userAddress,
-                rank: userRank || 0,
-                points: {
-                  // Convert weightedTotalPoints string to BigInt, handling decimal values
-                  total_points: (() => {
-                    try {
-                      const pointsStr = currentUserData.weightedTotalPoints;
-                      if (!pointsStr || pointsStr.trim() === "") {
-                        return BigInt(0);
-                      }
-                      const pointsValue = parseFloat(pointsStr);
-                      if (isNaN(pointsValue) || !isFinite(pointsValue)) {
-                        return BigInt(0);
-                      }
-                      // Round to nearest integer before converting to BigInt
-                      return BigInt(Math.round(pointsValue));
-                    } catch (error) {
-                      console.error(
-                        "Error converting points to BigInt:",
-                        error,
-                      );
-                      return BigInt(0);
+                user_address:
+                  currentUserData?.userAddress ||
+                  oldApiUserData?.user_address ||
+                  address ||
+                  "",
+                rank: userRank || oldApiUserData?.rank || 0,
+                points: oldApiUserData?.points
+                  ? {
+                      // Use detailed points from old API if available
+                      // GraphQL returns large numbers as strings, so we need to convert them
+                      total_points: BigInt(
+                        String(oldApiUserData.points.total_points || "0"),
+                      ),
+                      regular_points: BigInt(
+                        String(oldApiUserData.points.regular_points || "0"),
+                      ),
+                      bonus_points: BigInt(
+                        String(oldApiUserData.points.bonus_points || "0"),
+                      ),
+                      early_adopter_points: BigInt(
+                        String(
+                          oldApiUserData.points.early_adopter_points || "0",
+                        ),
+                      ),
+                      follow_bonus_points: BigInt(
+                        String(
+                          oldApiUserData.points.follow_bonus_points || "0",
+                        ),
+                      ),
+                      dex_bonus_points: BigInt(
+                        String(oldApiUserData.points.dex_bonus_points || "0"),
+                      ),
                     }
-                  })(),
-                  regular_points: BigInt(0),
-                  bonus_points: BigInt(0),
-                  early_adopter_points: BigInt(0),
-                  follow_bonus_points: BigInt(0),
-                  dex_bonus_points: BigInt(0),
-                },
-                allocation: "", // Not available from new API
-                proof: "", // Not available from new API
+                  : {
+                      // Fallback to new API points if old API data not available
+                      total_points: (() => {
+                        try {
+                          const pointsStr =
+                            currentUserData?.weightedTotalPoints;
+                          if (!pointsStr || pointsStr.trim() === "") {
+                            return BigInt(0);
+                          }
+                          const pointsValue = parseFloat(pointsStr);
+                          if (isNaN(pointsValue) || !isFinite(pointsValue)) {
+                            return BigInt(0);
+                          }
+                          return BigInt(Math.round(pointsValue));
+                        } catch (error) {
+                          console.error(
+                            "Error converting points to BigInt:",
+                            error,
+                          );
+                          return BigInt(0);
+                        }
+                      })(),
+                      regular_points: BigInt(0),
+                      bonus_points: BigInt(0),
+                      early_adopter_points: BigInt(0),
+                      follow_bonus_points: BigInt(0),
+                      dex_bonus_points: BigInt(0),
+                    },
+                // Use allocation and proof from old API (these are critical for eligibility check)
+                allocation: oldApiUserData?.allocation || "",
+                proof: oldApiUserData?.proof || "",
                 tags: {
-                  early_adopter: false, // Not available from new API
+                  early_adopter: oldApiUserData?.tags?.early_adopter || false,
                 },
               }
             : null;
@@ -676,7 +806,9 @@ const Leaderboard: React.FC = () => {
                       </span>
                     ) : (
                       <span>
-                        Points based on STRK and BTC LSTs held in wallet or supported DeFi platforms. Overall points have been scaled down to 10M points.{" "}
+                        Points based on STRK and BTC LSTs held in wallet or
+                        supported DeFi platforms. Overall points have been
+                        scaled down to 10M points.{" "}
                         <span className="font-semibold">
                           <a
                             className="text-[#5B616D] underline"
@@ -725,7 +857,7 @@ const Leaderboard: React.FC = () => {
           </TabsList>
 
           <TabsContent value="season2" className="mt-0">
-            <div className="mt-2 lg:mt-4 mb-6">
+            <div className="mb-6 mt-2 lg:mt-4">
               <div className="flex flex-col items-center justify-center rounded-[14px] border border-[#E5E8EB] bg-white p-8 text-center shadow-sm">
                 <p className="text-base text-[#6B7780] lg:text-lg">
                   First weekly points allocation coming on 23rd Dec, 2025

@@ -15,6 +15,7 @@ import { GaugeIcon } from "./ui/gauge";
 import { MenuIcon } from "./ui/menu";
 import { HandCoinsIcon } from "./ui/hand-coins";
 import { ChartColumnDecreasingIcon } from "./ui/chart-column-decreasing";
+import { NativeStakingWarningDialog } from "./native-staking-warning-dialog";
 
 type NavLinkProps = {
   href: string;
@@ -24,7 +25,13 @@ type NavLinkProps = {
   target?: string;
 };
 
-const NavLink = ({ href, icon, children, isActive = false, target }: NavLinkProps) => {
+const NavLink = ({
+  href,
+  icon,
+  children,
+  isActive = false,
+  target,
+}: NavLinkProps) => {
   return (
     <Link
       href={href}
@@ -45,6 +52,8 @@ const NavLink = ({ href, icon, children, isActive = false, target }: NavLinkProp
 
 const MobileNav = () => {
   const [open, setOpen] = React.useState(false);
+  const [showNativeStakingDialog, setShowNativeStakingDialog] =
+    React.useState(false);
   const menuRef = React.useRef<HTMLDivElement>(null);
   const iconRef = React.useRef<HTMLDivElement | null>(null);
 
@@ -116,14 +125,12 @@ const MobileNav = () => {
 
               <NavLink
                 href="/defi"
-                icon={<HandCoinsIcon
-                  className="-ml-0.5 size-5"
-                />}
+                icon={<HandCoinsIcon className="-ml-0.5 size-5" />}
                 isActive={pathname === "/defi"}
               >
                 DeFi Opportunities
               </NavLink>
-              
+
               <NavLink
                 href="/rewards"
                 icon={<ChartSplineIcon className="size-5" />}
@@ -152,17 +159,28 @@ const MobileNav = () => {
 
               <hr className="!my-1 w-full border-[#b9d8d0]" />
 
-              <NavLink
-                href={LINKS.DASHBOARD_URL}
-                icon={<GaugeIcon className="-ml-0.5 size-5" />}
-                target="_blank"
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  setShowNativeStakingDialog(true);
+                  setOpen(false);
+                }}
+                className={cn(
+                  "flex w-full cursor-pointer flex-row items-center gap-2 text-nowrap rounded-md p-2 px-3 text-sm font-semibold text-[#03624C] transition-all hover:bg-[#17876D] hover:text-white",
+                )}
               >
+                <GaugeIcon className="-ml-0.5 size-5" />
                 Native Staking
-              </NavLink>
+              </button>
             </motion.div>
           </AnimatePresence>
         )}
       </motion.div>
+
+      <NativeStakingWarningDialog
+        open={showNativeStakingDialog}
+        onOpenChange={setShowNativeStakingDialog}
+      />
     </div>
   );
 };
