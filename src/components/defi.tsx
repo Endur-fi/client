@@ -2580,7 +2580,7 @@ const Defi: React.FC = () => {
                                       {pool.yield !== null ? (
                                         <div className="flex flex-col gap-1">
                                           <div className="w-fit rounded-lg border border-[#059669] bg-[#D1FAE5] px-2 py-1 text-sm font-semibold text-[#059669]">
-                                            {formatNumber(pool.yield)}%
+                                            {pool.yield.toFixed(2)}%
                                           </div>
                                         </div>
                                       ) : (
