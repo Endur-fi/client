@@ -1725,92 +1725,185 @@ const Defi: React.FC = () => {
             }
             className="w-full"
           >
-            {/* Sticky Tabs Header */}
+            {/* Sticky Header Section - Tabs + Table Headers */}
             <div
               className={cn(
-                "sticky top-0 z-40 flex w-full flex-col gap-2 rounded-bl-[14px] rounded-br-[14px] bg-[#E8F7F4] pt-3 transition-all duration-200 lg:z-50 lg:flex-row lg:items-center lg:justify-between",
+                "sticky top-0 z-40 bg-[#E8F7F4] transition-all duration-200 lg:z-50",
                 isScrolling && "shadow-md",
               )}
             >
-              <TabsList className="flex h-auto w-full gap-0 rounded-[14px] border border-[#E5E8EB] bg-white p-1 lg:w-[450px]">
-                {[
-                  { value: "supply", label: "Earn" },
-                  { value: "borrow", label: "Borrow" },
-                  {
-                    value: "contribute-liquidity",
-                    label: "Contribute liquidity",
-                  },
-                ].map((tab) => (
-                  <TabsTrigger
-                    key={tab.value}
-                    value={tab.value}
-                    className={cn(
-                      "min-h-[64px] flex-1 rounded-[10px] border border-transparent bg-transparent px-4 py-2 text-sm font-medium text-[#6B7780] transition-all data-[state=active]:border-[#17876D] data-[state=active]:bg-[#E8F7F4] data-[state=active]:text-[#1A1F24] data-[state=active]:shadow-none lg:px-6 lg:py-2.5 lg:text-base",
-                    )}
-                  >
-                    <div className="flex flex-col items-center gap-0.5">
-                      <span>{tab.label}</span>
-                      {tab.value === "contribute-liquidity" && (
-                        <div className="flex items-center gap-1">
-                          <Zap className="h-3 w-3 text-[#D69733]" />
-                          <span className="text-xs font-medium text-[#D69733]">
-                            70% • 5.25M pts
-                          </span>
-                        </div>
+              {/* Tabs Header */}
+              <div className="flex w-full flex-col gap-2 rounded-bl-[14px] rounded-br-[14px] bg-[#E8F7F4] pt-3 lg:flex-row lg:items-center lg:justify-between">
+                <TabsList className="flex h-auto w-full gap-0 rounded-[14px] border border-[#E5E8EB] bg-white p-1 lg:w-[450px]">
+                  {[
+                    { value: "supply", label: "Earn" },
+                    { value: "borrow", label: "Borrow" },
+                    {
+                      value: "contribute-liquidity",
+                      label: "Contribute liquidity",
+                    },
+                  ].map((tab) => (
+                    <TabsTrigger
+                      key={tab.value}
+                      value={tab.value}
+                      className={cn(
+                        "min-h-[64px] flex-1 rounded-[10px] border border-transparent bg-transparent px-4 py-2 text-sm font-medium text-[#6B7780] transition-all data-[state=active]:border-[#17876D] data-[state=active]:bg-[#E8F7F4] data-[state=active]:text-[#1A1F24] data-[state=active]:shadow-none lg:px-6 lg:py-2.5 lg:text-base",
                       )}
-                    </div>
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-              <TooltipProvider delayDuration={0}>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <button className="hidden w-fit items-center justify-center gap-2 rounded-full border border-[#D69733] bg-[#D697331A] px-2 py-1 text-xs text-[#F59E0B] lg:flex lg:self-end">
-                      <OctagonAlert className="h-4 w-4" />
-                      Disclaimer
-                    </button>
-                  </TooltipTrigger>
-                  <TooltipContent
-                    side="bottom"
-                    className="max-w-xs rounded-md border border-[#D69733] bg-white text-xs text-[#717182]"
-                  >
-                    The protocols listed here are third-party services not
-                    affiliated with or endorsed by Endur. This list is provided
-                    for informational convenience only. Always do your own
-                    research and understand the risks before using any DeFi
-                    protocol.
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            </div>
+                    >
+                      <div className="flex flex-col items-center gap-0.5">
+                        <span>{tab.label}</span>
+                        {tab.value === "contribute-liquidity" && (
+                          <div className="flex items-center gap-1">
+                            <Zap className="h-3 w-3 text-[#D69733]" />
+                            <span className="text-xs font-medium text-[#D69733]">
+                              70% • 5.25M pts
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
+                <TooltipProvider delayDuration={0}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button className="hidden w-fit items-center justify-center gap-2 rounded-full border border-[#D69733] bg-[#D697331A] px-2 py-1 text-xs text-[#F59E0B] lg:flex lg:self-end">
+                        <OctagonAlert className="h-4 w-4" />
+                        Disclaimer
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent
+                      side="bottom"
+                      className="max-w-xs rounded-md border border-[#D69733] bg-white text-xs text-[#717182]"
+                    >
+                      The protocols listed here are third-party services not
+                      affiliated with or endorsed by Endur. This list is
+                      provided for informational convenience only. Always do
+                      your own research and understand the risks before using
+                      any DeFi protocol.
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
 
-            {/* Filters Section */}
-            <div className="w-full rounded-[14px]">
-              {(["supply", "borrow", "contribute-liquidity"] as const).map(
-                (tab) => (
-                  <TabsContent
-                    key={tab}
-                    value={tab}
-                    className="mt-6 rounded-lg bg-[#17876D26] p-4"
-                  >
-                    <Filters
-                      assetFilters={assetFilters}
-                      protocolFilters={protocolFilters}
-                      selectedAsset={selectedAsset}
-                      selectedProtocol={selectedProtocol}
-                      showMoreFilters={showMoreFilters}
-                      activeTab={tab}
-                      showStablesOnly={showStablesOnly}
-                      onAssetChange={setSelectedAsset}
-                      onProtocolChange={setSelectedProtocol}
-                      onToggleMoreFilters={() =>
-                        setShowMoreFilters(!showMoreFilters)
-                      }
-                      onShowStablesOnlyChange={setShowStablesOnly}
-                    />
-                  </TabsContent>
-                ),
-              )}
+              {/* Filters Section */}
+              <div className="w-full rounded-[14px]">
+                {(["supply", "borrow", "contribute-liquidity"] as const).map(
+                  (tab) => (
+                    <TabsContent
+                      key={tab}
+                      value={tab}
+                      className="mt-6 rounded-lg bg-[#17876D26] p-4"
+                    >
+                      <Filters
+                        assetFilters={assetFilters}
+                        protocolFilters={protocolFilters}
+                        selectedAsset={selectedAsset}
+                        selectedProtocol={selectedProtocol}
+                        showMoreFilters={showMoreFilters}
+                        activeTab={tab}
+                        showStablesOnly={showStablesOnly}
+                        onAssetChange={setSelectedAsset}
+                        onProtocolChange={setSelectedProtocol}
+                        onToggleMoreFilters={() =>
+                          setShowMoreFilters(!showMoreFilters)
+                        }
+                        onShowStablesOnlyChange={setShowStablesOnly}
+                      />
+                    </TabsContent>
+                  ),
+                )}
+              </div>
+
+              {/* Borrow: header row pinned as part of the sticky header section */}
+              <div className="hidden lg:block">
+                <TabsContent value="borrow" className="mt-2">
+                  <div className="grid grid-cols-4">
+                    <div className="rounded-tl-[14px] bg-white px-6 py-2 text-left text-sm font-medium text-[#5B616D] shadow-sm">
+                      Pair &amp; Pool
+                    </div>
+                    <div className="bg-white px-6 py-2 text-center text-sm font-medium text-[#5B616D] shadow-sm">
+                      <div className="flex items-center justify-center gap-1">
+                        Effective Borrow APY
+                        <TooltipProvider delayDuration={0}>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <HelpCircle className="h-4 w-4 shrink-0 cursor-help text-[#6B7780]" />
+                            </TooltipTrigger>
+                            <TooltipContent
+                              side="top"
+                              className="max-w-xs rounded-md border border-[#03624C] bg-white text-xs text-[#03624C]"
+                            >
+                              <p>
+                                Effective Borrow APY assumes borrowing at 80% of
+                                max Loan to Value (LTV) and subtracts the LST
+                                APY from the borrow APR. This is an estimate for
+                                convenience — actual yield depends on how much
+                                you borrow.
+                              </p>
+                              <br />
+                              <p>
+                                <b>Negative:</b> You are earning more than you
+                                are borrowing rate.
+                              </p>
+                              <p>
+                                <b>Positive:</b> You are borrowing rate is more
+                                than you are collateral APY.
+                              </p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </div>
+                    </div>
+                    <div className="bg-white px-6 py-2 text-center text-sm font-medium text-[#5B616D] shadow-sm">
+                      Capacity
+                    </div>
+                    <div className="rounded-tr-[14px] bg-white px-6 py-2 text-center text-sm font-medium text-[#5B616D] shadow-sm">
+                      Points Multiplier
+                    </div>
+                  </div>
+                </TabsContent>
+              </div>
+
+              {/* Supply: header row pinned as part of the sticky header section */}
+              <div className="hidden lg:block">
+                <TabsContent value="supply" className="mt-2">
+                  <div className="grid grid-cols-4">
+                    <div className="rounded-tl-[14px] bg-white px-6 py-2 text-left text-sm font-medium text-[#5B616D] shadow-sm">
+                      Vault
+                    </div>
+                    <div className="bg-white px-6 py-2 text-center text-sm font-medium text-[#5B616D] shadow-sm">
+                      Yield
+                    </div>
+                    <div className="bg-white px-6 py-2 text-center text-sm font-medium text-[#5B616D] shadow-sm">
+                      Capacity
+                    </div>
+                    <div className="rounded-tr-[14px] bg-white px-6 py-2 text-center text-sm font-medium text-[#5B616D] shadow-sm">
+                      Points Multiplier
+                    </div>
+                  </div>
+                </TabsContent>
+              </div>
+
+              {/* Contribute liquidity: header row pinned as part of the sticky header section */}
+              <div className="hidden lg:block">
+                <TabsContent value="contribute-liquidity" className="mt-2">
+                  <div className="grid grid-cols-4">
+                    <div className="rounded-tl-[14px] bg-white px-6 py-2 text-left text-sm font-medium text-[#5B616D] shadow-sm">
+                      Vault
+                    </div>
+                    <div className="bg-white px-6 py-2 text-center text-sm font-medium text-[#5B616D] shadow-sm">
+                      Yield
+                    </div>
+                    <div className="bg-white px-6 py-2 text-center text-sm font-medium text-[#5B616D] shadow-sm">
+                      Capacity
+                    </div>
+                    <div className="rounded-tr-[14px] bg-white px-6 py-2 text-center text-sm font-medium text-[#5B616D] shadow-sm">
+                      Points Multiplier
+                    </div>
+                  </div>
+                </TabsContent>
+              </div>
             </div>
 
             {/* Content Section - Tables (Desktop) and Cards (Mobile) */}
@@ -1820,22 +1913,6 @@ const Defi: React.FC = () => {
                 <TabsContent value="supply" className="mt-0">
                   <div className="w-full">
                     <table className="w-full table-fixed border-separate border-spacing-y-2 rounded-[14px]">
-                      <thead className="">
-                        <tr>
-                          <th className="w-[25%] rounded-tl-[14px] bg-white px-6 py-2 text-left text-sm font-medium text-[#5B616D] shadow-sm">
-                            Vault
-                          </th>
-                          <th className="w-[25%] bg-white px-6 py-2 text-center text-sm font-medium text-[#5B616D] shadow-sm">
-                            Yield
-                          </th>
-                          <th className="w-[25%] bg-white px-6 py-2 text-center text-sm font-medium text-[#5B616D] shadow-sm">
-                            Capacity
-                          </th>
-                          <th className="w-[25%] rounded-tr-[14px] bg-white px-6 py-2 text-center text-sm font-medium text-[#5B616D] shadow-sm">
-                            Points Multiplier
-                          </th>
-                        </tr>
-                      </thead>
                       <tbody>
                         {filteredAndSortedProtocols.length > 0 ? (
                           filteredAndSortedProtocols.map((protocol) => {
@@ -2095,53 +2172,6 @@ const Defi: React.FC = () => {
                 <TabsContent value="borrow" className="mt-0">
                   <div className="w-full">
                     <table className="w-full table-fixed border-separate border-spacing-y-2 rounded-[14px]">
-                      <thead className="">
-                        <tr>
-                          <th className="w-[25%] rounded-tl-[14px] bg-white px-6 py-2 text-left text-sm font-medium text-[#5B616D] shadow-sm">
-                            Pair & Pool
-                          </th>
-                          <th className="w-[25%] bg-white px-6 py-2 text-center text-sm font-medium text-[#5B616D] shadow-sm">
-                            <div className="flex items-center justify-center gap-1">
-                              Effective Borrow APY
-                              <TooltipProvider delayDuration={0}>
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <HelpCircle className="h-4 w-4 shrink-0 cursor-help text-[#6B7780]" />
-                                  </TooltipTrigger>
-                                  <TooltipContent
-                                    side="top"
-                                    className="max-w-xs rounded-md border border-[#03624C] bg-white text-xs text-[#03624C]"
-                                  >
-                                    <p>
-                                      Effective Borrow APY assumes borrowing at
-                                      80% of max Loan to Value (LTV) and
-                                      subtracts the LST APY from the borrow APR.
-                                      This is an estimate for convenience —
-                                      actual yield depends on how much you
-                                      borrow.
-                                    </p>
-                                    <br />
-                                    <p>
-                                      <b>Negative:</b> You are earning more than
-                                      you are borrowing rate.
-                                    </p>
-                                    <p>
-                                      <b>Positive:</b> You are borrowing rate is
-                                      more than you are collateral APY.
-                                    </p>
-                                  </TooltipContent>
-                                </Tooltip>
-                              </TooltipProvider>
-                            </div>
-                          </th>
-                          <th className="w-[25%] bg-white px-6 py-2 text-center text-sm font-medium text-[#5B616D] shadow-sm">
-                            Capacity
-                          </th>
-                          <th className="w-[25%] rounded-tr-[14px] bg-white px-6 py-2 text-center text-sm font-medium text-[#5B616D] shadow-sm">
-                            Points Multiplier
-                          </th>
-                        </tr>
-                      </thead>
                       <tbody>
                         {filteredAndSortedProtocols.length > 0 ? (
                           filteredAndSortedProtocols
@@ -2494,22 +2524,6 @@ const Defi: React.FC = () => {
                 <TabsContent value="contribute-liquidity" className="mt-0">
                   <div className="w-full">
                     <table className="w-full table-fixed border-separate border-spacing-y-2 rounded-[14px]">
-                      <thead className="">
-                        <tr>
-                          <th className="w-[25%] rounded-tl-[14px] bg-white px-6 py-2 text-left text-sm font-medium text-[#5B616D] shadow-sm">
-                            Vault
-                          </th>
-                          <th className="w-[25%] bg-white px-6 py-2 text-center text-sm font-medium text-[#5B616D] shadow-sm">
-                            Yield
-                          </th>
-                          <th className="w-[25%] bg-white px-6 py-2 text-center text-sm font-medium text-[#5B616D] shadow-sm">
-                            Capacity
-                          </th>
-                          <th className="w-[25%] rounded-tr-[14px] bg-white px-6 py-2 text-center text-sm font-medium text-[#5B616D] shadow-sm">
-                            Points Multiplier
-                          </th>
-                        </tr>
-                      </thead>
                       <tbody>
                         {filteredContributorPools.length > 0 ? (
                           filteredContributorPools.map((pool) => (
