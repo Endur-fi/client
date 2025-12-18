@@ -2691,7 +2691,7 @@ const Defi: React.FC = () => {
                           apy={
                             pool.yield !== null
                               ? {
-                                  value: pool.yield / 100,
+                                  value: pool.yield,
                                   error: null,
                                   isLoading: false,
                                 }
