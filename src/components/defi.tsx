@@ -803,9 +803,13 @@ const calculateBorrowPoolData = (
   const formattedTotalDebt = formatNumber(totalDebt * debtPrice);
   const formattedEffectiveCap = formatNumber(effectiveCapUSD);
   const hasNoLimit = effectiveCapUSD > 1000000000;
-  const capacityText = hasNoLimit
-    ? null
-    : `$${formattedTotalDebt} of $${formattedEffectiveCap} used`;
+  // If no pool data exists, return null to show "-" instead of "$0 of $0"
+  const capacityText =
+    !pool || effectiveCapUSD === 0
+      ? null
+      : hasNoLimit
+        ? null
+        : `$${formattedTotalDebt} of $${formattedEffectiveCap} used`;
   const capacityUsed =
     pool && effectiveCapUSD > 0
       ? ((pool.totalDebt * debtPrice) / effectiveCapUSD) * 100
@@ -847,6 +851,40 @@ const Defi: React.FC = () => {
   const [showDisclaimer, setShowDisclaimer] = useState(false);
   const [showMoreFilters, setShowMoreFilters] = useState(false);
   const [showStablesOnly, setShowStablesOnly] = useState(false);
+  const [isScrolling, setIsScrolling] = useState(false);
+
+  // Track scroll state for shadow visibility
+  React.useEffect(() => {
+    let scrollTimer: ReturnType<typeof setTimeout>;
+    let lastScrollTop = 0;
+
+    const handleScroll = () => {
+      const currentScrollTop =
+        window.pageYOffset || document.documentElement.scrollTop;
+
+      // Show shadow when scrolling
+      if (currentScrollTop > 0 && currentScrollTop !== lastScrollTop) {
+        setIsScrolling(true);
+      }
+
+      // Clear any existing timer
+      clearTimeout(scrollTimer);
+
+      // Hide shadow after scrolling stops
+      scrollTimer = setTimeout(() => {
+        setIsScrolling(false);
+      }, 150);
+
+      lastScrollTop = currentScrollTop;
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      clearTimeout(scrollTimer);
+    };
+  }, []);
 
   // Reset filters when switching tabs
   React.useEffect(() => {
@@ -1687,9 +1725,15 @@ const Defi: React.FC = () => {
             }
             className="w-full"
           >
-            {/* Header Section: Tabs and Filters */}
-            <div className="w-full rounded-[14px]">
-              <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            {/* Sticky Header Section - Tabs + Table Headers */}
+            <div
+              className={cn(
+                "sticky top-0 z-40 bg-[#E8F7F4] transition-all duration-200 lg:z-50",
+                isScrolling && "shadow-md",
+              )}
+            >
+              {/* Tabs Header */}
+              <div className="flex w-full flex-col gap-2 rounded-bl-[14px] rounded-br-[14px] bg-[#E8F7F4] pt-3 lg:flex-row lg:items-center lg:justify-between">
                 <TabsList className="flex h-auto w-full gap-0 rounded-[14px] border border-[#E5E8EB] bg-white p-1 lg:w-[450px]">
                   {[
                     { value: "supply", label: "Earn" },
@@ -1742,31 +1786,124 @@ const Defi: React.FC = () => {
                 </TooltipProvider>
               </div>
 
-              {(["supply", "borrow", "contribute-liquidity"] as const).map(
-                (tab) => (
-                  <TabsContent
-                    key={tab}
-                    value={tab}
-                    className="mt-6 rounded-lg bg-[#17876D26] p-4"
-                  >
-                    <Filters
-                      assetFilters={assetFilters}
-                      protocolFilters={protocolFilters}
-                      selectedAsset={selectedAsset}
-                      selectedProtocol={selectedProtocol}
-                      showMoreFilters={showMoreFilters}
-                      activeTab={tab}
-                      showStablesOnly={showStablesOnly}
-                      onAssetChange={setSelectedAsset}
-                      onProtocolChange={setSelectedProtocol}
-                      onToggleMoreFilters={() =>
-                        setShowMoreFilters(!showMoreFilters)
-                      }
-                      onShowStablesOnlyChange={setShowStablesOnly}
-                    />
-                  </TabsContent>
-                ),
-              )}
+              {/* Filters Section */}
+              <div className="w-full rounded-[14px]">
+                {(["supply", "borrow", "contribute-liquidity"] as const).map(
+                  (tab) => (
+                    <TabsContent
+                      key={tab}
+                      value={tab}
+                      className="mt-6 rounded-lg bg-[#17876D26] p-4"
+                    >
+                      <Filters
+                        assetFilters={assetFilters}
+                        protocolFilters={protocolFilters}
+                        selectedAsset={selectedAsset}
+                        selectedProtocol={selectedProtocol}
+                        showMoreFilters={showMoreFilters}
+                        activeTab={tab}
+                        showStablesOnly={showStablesOnly}
+                        onAssetChange={setSelectedAsset}
+                        onProtocolChange={setSelectedProtocol}
+                        onToggleMoreFilters={() =>
+                          setShowMoreFilters(!showMoreFilters)
+                        }
+                        onShowStablesOnlyChange={setShowStablesOnly}
+                      />
+                    </TabsContent>
+                  ),
+                )}
+              </div>
+
+              {/* Borrow: header row pinned as part of the sticky header section */}
+              <div className="hidden lg:block">
+                <TabsContent value="borrow" className="mt-2">
+                  <div className="grid grid-cols-4">
+                    <div className="rounded-tl-[14px] bg-white px-6 py-2 text-left text-sm font-medium text-[#5B616D] shadow-sm">
+                      Pair &amp; Pool
+                    </div>
+                    <div className="bg-white px-6 py-2 text-center text-sm font-medium text-[#5B616D] shadow-sm">
+                      <div className="flex items-center justify-center gap-1">
+                        Effective Borrow APY
+                        <TooltipProvider delayDuration={0}>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <HelpCircle className="h-4 w-4 shrink-0 cursor-help text-[#6B7780]" />
+                            </TooltipTrigger>
+                            <TooltipContent
+                              side="top"
+                              className="max-w-xs rounded-md border border-[#03624C] bg-white text-xs text-[#03624C]"
+                            >
+                              <p>
+                                Effective Borrow APY assumes borrowing at 80% of
+                                max Loan to Value (LTV) and subtracts the LST
+                                APY from the borrow APR. This is an estimate for
+                                convenience — actual yield depends on how much
+                                you borrow.
+                              </p>
+                              <br />
+                              <p>
+                                <b>Negative:</b> You are earning more than you
+                                are borrowing rate.
+                              </p>
+                              <p>
+                                <b>Positive:</b> You are borrowing rate is more
+                                than you are collateral APY.
+                              </p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </div>
+                    </div>
+                    <div className="bg-white px-6 py-2 text-center text-sm font-medium text-[#5B616D] shadow-sm">
+                      Capacity
+                    </div>
+                    <div className="rounded-tr-[14px] bg-white px-6 py-2 text-center text-sm font-medium text-[#5B616D] shadow-sm">
+                      Points Multiplier
+                    </div>
+                  </div>
+                </TabsContent>
+              </div>
+
+              {/* Supply: header row pinned as part of the sticky header section */}
+              <div className="hidden lg:block">
+                <TabsContent value="supply" className="mt-2">
+                  <div className="grid grid-cols-4">
+                    <div className="rounded-tl-[14px] bg-white px-6 py-2 text-left text-sm font-medium text-[#5B616D] shadow-sm">
+                      Vault
+                    </div>
+                    <div className="bg-white px-6 py-2 text-center text-sm font-medium text-[#5B616D] shadow-sm">
+                      Yield
+                    </div>
+                    <div className="bg-white px-6 py-2 text-center text-sm font-medium text-[#5B616D] shadow-sm">
+                      Capacity
+                    </div>
+                    <div className="rounded-tr-[14px] bg-white px-6 py-2 text-center text-sm font-medium text-[#5B616D] shadow-sm">
+                      Points Multiplier
+                    </div>
+                  </div>
+                </TabsContent>
+              </div>
+
+              {/* Contribute liquidity: header row pinned as part of the sticky header section */}
+              <div className="hidden lg:block">
+                <TabsContent value="contribute-liquidity" className="mt-2">
+                  <div className="grid grid-cols-4">
+                    <div className="rounded-tl-[14px] bg-white px-6 py-2 text-left text-sm font-medium text-[#5B616D] shadow-sm">
+                      Vault
+                    </div>
+                    <div className="bg-white px-6 py-2 text-center text-sm font-medium text-[#5B616D] shadow-sm">
+                      Yield
+                    </div>
+                    <div className="bg-white px-6 py-2 text-center text-sm font-medium text-[#5B616D] shadow-sm">
+                      Capacity
+                    </div>
+                    <div className="rounded-tr-[14px] bg-white px-6 py-2 text-center text-sm font-medium text-[#5B616D] shadow-sm">
+                      Points Multiplier
+                    </div>
+                  </div>
+                </TabsContent>
+              </div>
             </div>
 
             {/* Content Section - Tables (Desktop) and Cards (Mobile) */}
@@ -1774,24 +1911,8 @@ const Defi: React.FC = () => {
               {/* Desktop: Tables */}
               <div className="hidden lg:block">
                 <TabsContent value="supply" className="mt-0">
-                  <div className="w-full overflow-x-auto">
-                    <table className="w-full table-fixed border-separate border-spacing-y-2">
-                      <thead>
-                        <tr>
-                          <th className="w-[25%] rounded-tl-[14px] bg-white px-6 py-2 text-left text-sm font-medium text-[#5B616D] shadow-sm">
-                            Vault
-                          </th>
-                          <th className="w-[25%] bg-white px-6 py-2 text-center text-sm font-medium text-[#5B616D] shadow-sm">
-                            Yield
-                          </th>
-                          <th className="w-[25%] bg-white px-6 py-2 text-center text-sm font-medium text-[#5B616D] shadow-sm">
-                            Capacity
-                          </th>
-                          <th className="w-[25%] rounded-tr-[14px] bg-white px-6 py-2 text-center text-sm font-medium text-[#5B616D] shadow-sm">
-                            Points Multiplier
-                          </th>
-                        </tr>
-                      </thead>
+                  <div className="w-full">
+                    <table className="w-full table-fixed border-separate border-spacing-y-2 rounded-[14px]">
                       <tbody>
                         {filteredAndSortedProtocols.length > 0 ? (
                           filteredAndSortedProtocols.map((protocol) => {
@@ -1989,7 +2110,7 @@ const Defi: React.FC = () => {
                                         {/* Rewards (empty) */}
                                         {/* <div className="flex-1"></div> */}
 
-                                        <div className="flex min-w-0 flex-2 items-center justify-end gap-2 mx-auto w-[50%]">
+                                        <div className="flex-2 mx-auto flex w-[50%] min-w-0 items-center justify-end gap-2">
                                           <span className="truncate text-xs text-[#1A1F24]">
                                             {config.description}
                                           </span>
@@ -2049,55 +2170,8 @@ const Defi: React.FC = () => {
                 </TabsContent>
 
                 <TabsContent value="borrow" className="mt-0">
-                  <div className="w-full overflow-x-auto">
-                    <table className="w-full table-fixed border-separate border-spacing-y-2">
-                      <thead>
-                        <tr>
-                          <th className="w-[25%] rounded-tl-[14px] bg-white px-6 py-2 text-left text-sm font-medium text-[#5B616D] shadow-sm">
-                            Pair & Pool
-                          </th>
-                          <th className="w-[25%] bg-white px-6 py-2 text-center text-sm font-medium text-[#5B616D] shadow-sm">
-                            <div className="flex items-center justify-center gap-1">
-                              Effective Borrow APY
-                              <TooltipProvider delayDuration={0}>
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <HelpCircle className="h-4 w-4 shrink-0 cursor-help text-[#6B7780]" />
-                                  </TooltipTrigger>
-                                  <TooltipContent
-                                    side="top"
-                                    className="max-w-xs rounded-md border border-[#03624C] bg-white text-xs text-[#03624C]"
-                                  >
-                                    <p>
-                                      Effective Borrow APY assumes borrowing at
-                                      80% of max Loan to Value (LTV) and
-                                      subtracts the LST APY from the borrow APR.
-                                      This is an estimate for convenience —
-                                      actual yield depends on how much you
-                                      borrow.
-                                    </p>
-                                    <br />
-                                    <p>
-                                      <b>Negative:</b> You are earning more than
-                                      you are borrowing rate.
-                                    </p>
-                                    <p>
-                                      <b>Positive:</b> You are borrowing rate is
-                                      more than you are collateral APY.
-                                    </p>
-                                  </TooltipContent>
-                                </Tooltip>
-                              </TooltipProvider>
-                            </div>
-                          </th>
-                          <th className="w-[25%] bg-white px-6 py-2 text-center text-sm font-medium text-[#5B616D] shadow-sm">
-                            Capacity
-                          </th>
-                          <th className="w-[25%] rounded-tr-[14px] bg-white px-6 py-2 text-center text-sm font-medium text-[#5B616D] shadow-sm">
-                            Points Multiplier
-                          </th>
-                        </tr>
-                      </thead>
+                  <div className="w-full">
+                    <table className="w-full table-fixed border-separate border-spacing-y-2 rounded-[14px]">
                       <tbody>
                         {filteredAndSortedProtocols.length > 0 ? (
                           filteredAndSortedProtocols
@@ -2306,19 +2380,22 @@ const Defi: React.FC = () => {
                                                   </div>
                                                 )}
                                             </div>
-                                          ) : (
+                                          ) : pool ? (
                                             <div>
                                               <div className="text-sm text-[#1A1F24]">
                                                 Limitless
                                               </div>
-                                              {pool &&
-                                                pool.maxLTV !== undefined && (
-                                                  <div className="mt-2 text-xs text-[#6B7780]">
-                                                    Max LTV -{" "}
-                                                    {pool.maxLTV.toFixed(0)}%
-                                                  </div>
-                                                )}
+                                              {pool.maxLTV !== undefined && (
+                                                <div className="mt-2 text-xs text-[#6B7780]">
+                                                  Max LTV -{" "}
+                                                  {pool.maxLTV.toFixed(0)}%
+                                                </div>
+                                              )}
                                             </div>
+                                          ) : (
+                                            <span className="text-[#6B7780]">
+                                              -
+                                            </span>
                                           )}
                                         </div>
 
@@ -2366,7 +2443,7 @@ const Defi: React.FC = () => {
                                           {/* Rewards (empty) */}
                                           {/* <div className="flex-1"></div> */}
 
-                                          <div className="flex min-w-0 flex-2 items-center justify-end gap-2 mx-auto w-[50%]">
+                                          <div className="flex-2 mx-auto flex w-[50%] min-w-0 items-center justify-end gap-2">
                                             <span className="truncate text-xs text-[#1A1F24]">
                                               {config.description}
                                             </span>
@@ -2445,24 +2522,8 @@ const Defi: React.FC = () => {
                 </TabsContent>
 
                 <TabsContent value="contribute-liquidity" className="mt-0">
-                  <div className="w-full overflow-x-auto">
-                    <table className="w-full table-fixed border-separate border-spacing-y-2">
-                      <thead>
-                        <tr>
-                          <th className="w-[25%] rounded-tl-[14px] bg-white px-6 py-2 text-left text-sm font-medium text-[#5B616D] shadow-sm">
-                            Vault
-                          </th>
-                          <th className="w-[25%] bg-white px-6 py-2 text-center text-sm font-medium text-[#5B616D] shadow-sm">
-                            Yield
-                          </th>
-                          <th className="w-[25%] bg-white px-6 py-2 text-center text-sm font-medium text-[#5B616D] shadow-sm">
-                            Capacity
-                          </th>
-                          <th className="w-[25%] rounded-tr-[14px] bg-white px-6 py-2 text-center text-sm font-medium text-[#5B616D] shadow-sm">
-                            Points Multiplier
-                          </th>
-                        </tr>
-                      </thead>
+                  <div className="w-full">
+                    <table className="w-full table-fixed border-separate border-spacing-y-2 rounded-[14px]">
                       <tbody>
                         {filteredContributorPools.length > 0 ? (
                           filteredContributorPools.map((pool) => (
@@ -2519,7 +2580,7 @@ const Defi: React.FC = () => {
                                       {pool.yield !== null ? (
                                         <div className="flex flex-col gap-1">
                                           <div className="w-fit rounded-lg border border-[#059669] bg-[#D1FAE5] px-2 py-1 text-sm font-semibold text-[#059669]">
-                                            {formatNumber(pool.yield)}%
+                                            {pool.yield.toFixed(2)}%
                                           </div>
                                         </div>
                                       ) : (

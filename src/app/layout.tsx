@@ -76,7 +76,7 @@ export default function RootLayout({
 
         <Providers>
           <React.Suspense>
-            <div className="relative flex h-full min-h-screen w-full overflow-x-hidden">
+            <div className="relative flex h-full min-h-screen w-full">
               {/* <Image
                 src="/subtle_tree_bg.svg"
                 alt="subtle_tree_bg"
@@ -86,7 +86,7 @@ export default function RootLayout({
 
               <AppSidebar />
 
-              <div className="flex flex-1 flex-col justify-between overflow-hidden">
+              <div className="flex flex-1 flex-col justify-between">
                 <MaxWidthWrapper className="flex h-full w-full flex-col items-center px-3 py-3 lg:px-7 lg:py-0">
                   <Navbar />
                   {children}

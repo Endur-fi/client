@@ -215,6 +215,12 @@ const DefiCard: React.FC<DefiCardProps> = ({
               )}
             </div>
           )
+        ) : isBorrow ? (
+          <div className="mb-4">
+            <div className="mb-2 text-xs text-[#6B7780]">
+              <span className="font-medium text-[#1A1F24]">-</span>
+            </div>
+          </div>
         ) : null}
       </div>
 
