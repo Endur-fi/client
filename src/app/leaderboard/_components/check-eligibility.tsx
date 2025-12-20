@@ -1,6 +1,7 @@
 /* eslint-disable no-spaced-func */
 
 import { useAccount } from "@starknet-react/core";
+import { usePrivy } from "@privy-io/react-auth";
 import { Gift, Loader2 } from "lucide-react";
 import { Figtree } from "next/font/google";
 import Image from "next/image";
@@ -8,6 +9,7 @@ import Link from "next/link";
 import React from "react";
 import { TwitterShareButton } from "react-share";
 import { Contract } from "starknet";
+import { useSendTransaction, type PrivyConfig } from "@easyleap/sdk";
 
 import merkleAbi from "@/abi/merkle.abi.json";
 import { Icons } from "@/components/Icons";
@@ -31,7 +33,7 @@ import {
 import { UPDATE_USER_POINTS } from "@/constants/mutations";
 import { GET_USER_COMPLETE_DETAILS } from "@/constants/queries";
 import { toast } from "@/hooks/use-toast";
-import { useSendTransactionUnified } from "@/hooks/use-send-transaction-unified";
+import { useWalletConnection } from "@/hooks/use-wallet-connection";
 import { MyAnalytics } from "@/lib/analytics";
 import { checkSubscription, subscribeUser } from "@/lib/api";
 import apolloClient from "@/lib/apollo-client";
@@ -708,7 +710,45 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
     address,
     submittedEmail,
   );
-  const { sendAsync, isPending, error, data } = useSendTransactionUnified();
+  
+  // Wallet connection setup for Privy
+  const {
+    connectionType,
+    privyWallet,
+  } = useWalletConnection();
+  const { getAccessToken } = usePrivy();
+  const [privyJwt, setPrivyJwt] = React.useState<string>("");
+
+  // Fetch JWT token when Privy wallet is connected
+  React.useEffect(() => {
+    const fetchJwt = async () => {
+      if (connectionType === "privy") {
+        const jwt = await getAccessToken();
+        if (jwt) {
+          setPrivyJwt(jwt);
+        }
+      }
+    };
+    fetchJwt();
+  }, [connectionType]);
+
+  // Build privyConfig from wallet connection state
+  const privyConfig: PrivyConfig | undefined = React.useMemo(() => {
+    if (connectionType === "privy" && privyWallet?.walletId && privyJwt) {
+      return {
+        walletId: privyWallet.walletId,
+        jwt: privyJwt,
+        isConnected: true,
+        apiEndpoint: "/api/privy/execute-transaction",
+      };
+    }
+    return undefined;
+  }, [connectionType, privyWallet?.walletId, privyJwt]);
+
+  const { sendAsync, data, isPending, error } = useSendTransaction({
+    calls: [],
+    privyConfig,
+  });
 
   const bonusAlreadyAwarded = React.useMemo(
     () => (userCompleteInfo?.points?.follow_bonus_points || 0) > 0,
@@ -930,7 +970,7 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
       ...prev,
       activeModal: state.isEligible ? "claim" : "notEligible",
     }));
-  }, [state.isEligible]);
+  }, [state.isEligible, address]);
 
   const handleClaim = React.useCallback(async () => {
     if (!address) return;
@@ -965,7 +1005,9 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
         proofs,
       ]);
 
-      const claimRes = await sendAsync([claimCall]);
+      // SDK sendAsync expects (tokensIn, tokensOut, destinationDapp, calls)
+      // For leaderboard claim (no bridge mode), pass empty arrays for tokens
+      const claimRes = await sendAsync([], [], { name: "Claim Rewards", logo: "" }, [claimCall]);
 
       console.log("claim response:", claimRes);
     } catch (error) {

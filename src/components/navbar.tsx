@@ -67,7 +67,7 @@ const Navbar = ({ className }: { className?: string }) => {
   React.useEffect(() => {
     setAddress(activeAddress || undefined);
     setProvider(getProvider());
-  }, [activeAddress, provider, setAddress, setProvider]);
+  }, [activeAddress, provider]);
 
   return (
     <div

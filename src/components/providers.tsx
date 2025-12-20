@@ -4,8 +4,8 @@ import { mainnet, sepolia } from "@starknet-react/chains";
 import {
   Connector,
   jsonRpcProvider,
-  StarknetConfig,
 } from "@starknet-react/core";
+import { EasyleapProvider } from "@easyleap/sdk";
 import { Figtree } from "next/font/google";
 import React from "react";
 import { BlockTag, constants, RpcProviderOptions } from "starknet";
@@ -46,15 +46,17 @@ const Providers: React.FC<ProvidersProps> = ({ children }) => {
   const walletConnector = new WalletConnector(isMobile);
 
   return (
-    <StarknetConfig
-      chains={chains}
-      provider={provider}
-      connectors={walletConnector.getConnectors() as Connector[]}
+    <EasyleapProvider
+      starknetConfig={{
+        chains,
+        provider,
+        connectors: walletConnector.getConnectors() as Connector[],
+      }}
     >
       <SidebarProvider className={cn(font.className, "w-full")}>
         {children}
       </SidebarProvider>
-    </StarknetConfig>
+    </EasyleapProvider>
   );
 };
 

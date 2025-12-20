@@ -122,22 +122,65 @@ export async function isTxAccepted(txHash: string) {
     }
 
     console.debug("isTxAccepted", txInfo);
-    if (!txInfo.finality_status || txInfo.finality_status === "RECEIVED") {
-      // do nothing
+    
+    // Handle transitional/awaiting statuses - continue waiting
+    if (
+      !txInfo.finality_status ||
+      txInfo.finality_status === "RECEIVED" ||
+      txInfo.finality_status === "PRE_CONFIRMED" ||
+      txInfo.finality_status === "CANDIDATE"
+    ) {
+      // Transaction is still being processed, continue waiting
       await new Promise((resolve) => setTimeout(resolve, 2000));
       continue;
     }
+    
+    // Handle ACCEPTED_ON_L2 status
     if (txInfo.finality_status === "ACCEPTED_ON_L2") {
       if (txInfo.execution_status === TransactionExecutionStatus.SUCCEEDED) {
         keepChecking = false;
         return true;
       }
-      throw new Error("Transaction reverted");
-    } else if (txInfo.finality_status === "REJECTED") {
-      throw new Error("Transaction rejected");
-    } else {
-      throw new Error("Transaction status unknown");
+      if (txInfo.execution_status === TransactionExecutionStatus.REVERTED) {
+        throw new Error("Transaction reverted");
+      }
+      // If execution_status is not set yet, continue waiting
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      continue;
     }
+    
+    // Handle ACCEPTED_ON_L1 status (higher finality than L2)
+    if (txInfo.finality_status === "ACCEPTED_ON_L1") {
+      if (txInfo.execution_status === TransactionExecutionStatus.SUCCEEDED) {
+        keepChecking = false;
+        return true;
+      }
+      if (txInfo.execution_status === TransactionExecutionStatus.REVERTED) {
+        throw new Error("Transaction reverted");
+      }
+      // If execution_status is not set yet, continue waiting
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      continue;
+    }
+    
+    // Handle REJECTED status
+    if (txInfo.finality_status === "REJECTED") {
+      throw new Error("Transaction rejected");
+    }
+    
+    // Log unexpected status for debugging
+    console.error(
+      `[isTxAccepted] Unexpected finality_status: ${txInfo.finality_status}`,
+      {
+        txHash,
+        finality_status: txInfo.finality_status,
+        execution_status: txInfo.execution_status,
+        fullTxInfo: txInfo,
+      },
+    );
+    throw new Error(
+      `Transaction status unknown: ${txInfo.finality_status || "undefined"}`,
+    );
   }
 }
 

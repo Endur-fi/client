@@ -63,7 +63,40 @@ export async function POST(req: NextRequest) {
       origin: req.headers.get("origin") || undefined,
     });
 
-    const result: any = await executeSwap(account, quote);
+    // Ensure the quote's takerAddress matches the actual account address
+    const quoteTakerAddress = (quote as any).takerAddress;
+    if (quoteTakerAddress && quoteTakerAddress.toLowerCase() !== address.toLowerCase()) {
+      console.log(
+        `[Avnu Swap] Updating quote takerAddress from ${quoteTakerAddress} to ${address}`,
+      );
+    }
+    const updatedQuote = {
+      ...quote,
+      takerAddress: address,
+    };
+
+    let result: any;
+    try {
+      result = await executeSwap(account, updatedQuote);
+    } catch (swapError: any) {
+      // Provide better error message for insufficient balance
+      if (
+        swapError?.message?.includes("exceed balance") ||
+        swapError?.baseError?.data?.includes("exceed balance") ||
+        swapError?.baseError?.code === 55
+      ) {
+        // Extract balance from error message if available
+        const balanceMatch = swapError?.baseError?.data?.match(/balance \(([^)]+)\)/);
+        const balanceStr = balanceMatch
+          ? `${(BigInt(balanceMatch[1]) / BigInt("1000000000000000000")).toString()} STRK`
+          : "insufficient";
+        
+        throw new Error(
+          `Insufficient balance to pay transaction fees. Your account has ${balanceStr} STRK, which is not enough to cover the transaction fees. Please ensure you have enough STRK tokens to cover the transaction fees.`,
+        );
+      }
+      throw swapError;
+    }
 
     // Avoid returning BigInt-heavy raw result to keep JSON serialization safe
     return NextResponse.json({

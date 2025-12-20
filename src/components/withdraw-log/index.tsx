@@ -1,4 +1,3 @@
-import { useAccount } from "@starknet-react/core";
 import { useAtomValue } from "jotai";
 import { Loader } from "lucide-react";
 import React from "react";
@@ -41,8 +40,7 @@ const WithdrawLog: React.FC = () => {
   const globalAmountAvailable = useAtomValue(globalAmountAvailableAtom);
   const activeTab = useAtomValue(tabsAtom);
 
-  const { address } = useAccount();
-  const { connectWallet } = useWalletConnection();
+  const { activeAddress, connectWallet } = useWalletConnection();
 
   const _yourPendingWithdrawalsAmount = React.useMemo(
     () =>
@@ -55,7 +53,7 @@ const WithdrawLog: React.FC = () => {
   );
 
   React.useEffect(() => {
-    if (!address || !withdrawalLogs?.value) return;
+    if (!activeAddress || !withdrawalLogs?.value) return;
 
     const withdrawalData = withdrawalLogs.value;
     const globalPendingWithdrawStatsData = globalPendingWithdrawStats?.value;
@@ -142,14 +140,14 @@ const WithdrawLog: React.FC = () => {
 
     setWithdrawals(formattedWithdrawals);
   }, [
-    address,
+    activeAddress,
     activeTab,
     globalAmountAvailable.value,
     globalPendingWithdrawStats?.value,
     withdrawalLogs.value,
   ]);
 
-  if (!address) {
+  if (!activeAddress) {
     return (
       <div className="relative h-full w-full">
         <Card className="mx-auto w-full max-w-md border-0 bg-transparent shadow-none">

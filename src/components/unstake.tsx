@@ -4,6 +4,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useAccount } from "@starknet-react/core";
 import { usePrivy } from "@privy-io/react-auth";
+import { useSendTransaction, type PrivyConfig } from "@easyleap/sdk";
 import { useAtom, useAtomValue } from "jotai";
 import { Info } from "lucide-react";
 import React from "react";
@@ -31,7 +32,6 @@ import { getProvider, IS_PAUSED, isMainnet, REWARD_FEES } from "@/constants";
 import { toast } from "@/hooks/use-toast";
 import { useTransactionHandler } from "@/hooks/use-transactions";
 import { useWalletConnection } from "@/hooks/use-wallet-connection";
-import { useSendTransactionUnified } from "@/hooks/use-send-transaction-unified";
 import { MyAnalytics } from "@/lib/analytics";
 import MyNumber from "@/lib/MyNumber";
 import { eventNames, formatNumberWithCommas } from "@/lib/utils";
@@ -295,6 +295,7 @@ const Unstake = () => {
     privyWallet,
   } = useWalletConnection();
   const { getAccessToken } = usePrivy();
+  const [privyJwt, setPrivyJwt] = React.useState<string>("");
 
   const [avnuQuote, setAvnuQuote] = useAtom(avnuQuoteAtom);
   const [avnuLoading, setAvnuLoading] = useAtom(avnuLoadingAtom);
@@ -323,7 +324,36 @@ const Unstake = () => {
     providerOrAccount: provider,
   });
 
-  const { sendAsync, data, isPending, error } = useSendTransactionUnified();
+  // Fetch JWT token when Privy wallet is connected
+  React.useEffect(() => {
+    const fetchJwt = async () => {
+      if (connectionType === "privy") {
+        const jwt = await getAccessToken();
+        if (jwt) {
+          setPrivyJwt(jwt);
+        }
+      }
+    };
+    fetchJwt();
+  }, [connectionType]);
+
+  // Build privyConfig from wallet connection state
+  const privyConfig: PrivyConfig | undefined = React.useMemo(() => {
+    if (connectionType === "privy" && privyWallet?.walletId && privyJwt) {
+      return {
+        walletId: privyWallet.walletId,
+        jwt: privyJwt,
+        isConnected: true,
+        apiEndpoint: "/api/privy/execute-transaction",
+      };
+    }
+    return undefined;
+  }, [connectionType, privyWallet?.walletId, privyJwt]);
+
+  const { sendAsync, data, isPending, error } = useSendTransaction({
+    calls: [],
+    privyConfig,
+  });
 
   const { handleTransaction } = useTransactionHandler();
 
@@ -354,11 +384,11 @@ const Unstake = () => {
     handleTransaction("UNSTAKE", {
       form,
       address: activeAddress ?? "",
-      data: data ?? { transaction_hash: "" },
+      data: data ? { transaction_hash: data } : { transaction_hash: "" },
       error: error ?? { name: "" },
       isPending,
     });
-  }, [data?.transaction_hash, form, isPending]);
+  }, [data, form, isPending]);
 
   React.useEffect(() => {
     const initializeAvnuQuote = async () => {
@@ -648,7 +678,9 @@ const Unstake = () => {
       activeAddress,
     ]);
 
-    sendAsync([call1]);
+    // SDK sendAsync expects (tokensIn, tokensOut, destinationDapp, calls)
+    // For endur-client (no bridge mode), pass empty arrays for tokens
+    sendAsync([], [], { name: "Unstake", logo: "" }, [call1]);
   };
 
   return (
@@ -679,10 +711,7 @@ const Unstake = () => {
                     if (!value || value === "") return "";
 
                     // Allow typing decimal point and trailing zeros
-                    if (
-                      value.endsWith(".") ||
-                      (/\.\d*0+$/).test(value)
-                    ) {
+                    if (value.endsWith(".") || /\.\d*0+$/.test(value)) {
                       return value;
                     }
 

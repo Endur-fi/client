@@ -2,7 +2,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-
+import { usePrivy } from "@privy-io/react-auth";
 import { useAtomValue } from "jotai";
 import { AlertCircleIcon, ChevronDown, Info } from "lucide-react";
 import { Figtree } from "next/font/google";
@@ -51,8 +51,8 @@ import {
 import { toast } from "@/hooks/use-toast";
 import { useTransactionHandler } from "@/hooks/use-transactions";
 import { useWalletConnection } from "@/hooks/use-wallet-connection";
-import { useSendTransactionUnified } from "@/hooks/use-send-transaction-unified";
-import { useBalanceUnified } from "@/hooks/use-balance-unified";
+import { useBalance } from "@starknet-react/core";
+import { useSendTransaction, type PrivyConfig } from "@easyleap/sdk";
 import { MyAnalytics } from "@/lib/analytics";
 import MyNumber from "@/lib/MyNumber";
 import { cn, eventNames, formatNumberWithCommas } from "@/lib/utils";
@@ -148,15 +148,23 @@ const Stake: React.FC = () => {
 
   const searchParams = useSearchParams();
 
-  const { connectWallet, activeAddress, isConnected } = useWalletConnection();
+  const {
+    connectWallet,
+    activeAddress,
+    isConnected,
+    connectionType,
+    privyWallet,
+  } = useWalletConnection();
+  const { getAccessToken } = usePrivy();
+  const [privyJwt, setPrivyJwt] = React.useState<string>("");
   const lstConfig = useAtomValue(lstConfigAtom)!;
   const [isLendingOpen, setIsLendingOpen] = React.useState(
     // !lstConfig.TROVES_VAULT_MAXED_OUT,
     true,
   );
-  const { data: balance } = useBalanceUnified({
-    address: activeAddress || undefined,
-    token: lstConfig.ASSET_ADDRESS,
+  const { data: balance } = useBalance({
+    address: activeAddress as `0x${string}` | undefined,
+    token: lstConfig.ASSET_ADDRESS as `0x${string}` | undefined,
   });
 
   const exchangeRate = useAtomValue(apiExchangeRateAtom);
@@ -188,7 +196,36 @@ const Stake: React.FC = () => {
     ? lstService.getLSTContract(lstConfig.LST_ADDRESS)
     : null;
 
-  const { sendAsync, data, isPending, error } = useSendTransactionUnified();
+  // Fetch JWT token when Privy wallet is connected
+  React.useEffect(() => {
+    const fetchJwt = async () => {
+      if (connectionType === "privy") {
+        const jwt = await getAccessToken();
+        if (jwt) {
+          setPrivyJwt(jwt);
+        }
+      }
+    };
+    fetchJwt();
+  }, [connectionType]);
+
+  // Build privyConfig from wallet connection state
+  const privyConfig: PrivyConfig | undefined = React.useMemo(() => {
+    if (connectionType === "privy" && privyWallet?.walletId && privyJwt) {
+      return {
+        walletId: privyWallet.walletId,
+        jwt: privyJwt,
+        isConnected: true,
+        apiEndpoint: "/api/privy/execute-transaction",
+      };
+    }
+    return undefined;
+  }, [connectionType, privyWallet?.walletId, privyJwt]);
+
+  const { sendAsync, data, isPending, error } = useSendTransaction({
+    calls: [],
+    privyConfig,
+  });
 
   const { handleTransaction } = useTransactionHandler();
 
@@ -381,7 +418,9 @@ const Stake: React.FC = () => {
       }
     }
 
-    await sendAsync(calls);
+    // SDK sendAsync expects (tokensIn, tokensOut, destinationDapp, calls)
+    // For endur-client (no bridge mode), pass empty arrays for tokens
+    await sendAsync([], [], { name: "Stake", logo: "" }, calls);
   };
 
   const getPlatformYield = (platform: Platform) => {
@@ -481,12 +520,12 @@ const Stake: React.FC = () => {
     handleTransaction("STAKE", {
       form,
       address: activeAddress ?? "",
-      data: data ?? { transaction_hash: "" },
+      data: data ? { transaction_hash: data } : { transaction_hash: "" },
       error: error ?? { name: "" },
       isPending,
       setShowShareModal,
     });
-  }, [data?.transaction_hash, form, isPending]);
+  }, [data, form, isPending]);
 
   return (
     <div className="relative h-full w-full">
@@ -619,7 +658,7 @@ const Stake: React.FC = () => {
                     if (!value || value === "") return "";
 
                     // Allow typing decimal point and trailing zeros
-                    if (value.endsWith(".") || /\.\d*0+$/.test(value)) {
+                    if (value.endsWith(".") || (/\.\d*0+$/).test(value)) {
                       return value;
                     }
 
