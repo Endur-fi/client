@@ -149,11 +149,11 @@ const Stake: React.FC = () => {
   const searchParams = useSearchParams();
 
   const {
-    connectWallet,
     activeAddress,
     isConnected,
     connectionType,
     privyWallet,
+    handleConnectWallet,
   } = useWalletConnection();
   const { getAccessToken } = usePrivy();
   const [privyJwt, setPrivyJwt] = React.useState<string>("");
@@ -925,7 +925,7 @@ const Stake: React.FC = () => {
       <div className="mt-6 px-5">
         {!isConnected && (
           <Button
-            onClick={() => connectWallet()}
+            onClick={() => handleConnectWallet()}
             className="w-full rounded-2xl bg-[#17876D] py-6 text-sm font-semibold text-white hover:bg-[#17876D] disabled:bg-[#03624C4D] disabled:text-[#17876D] disabled:opacity-90"
           >
             Connect Wallet

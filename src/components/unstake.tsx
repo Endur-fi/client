@@ -288,11 +288,11 @@ const Unstake = () => {
 
   const { account } = useAccount();
   const {
-    connectWallet,
     activeAddress,
     isConnected,
     connectionType,
     privyWallet,
+    handleConnectWallet,
   } = useWalletConnection();
   const { getAccessToken } = usePrivy();
   const [privyJwt, setPrivyJwt] = React.useState<string>("");
@@ -852,7 +852,7 @@ const Unstake = () => {
 
           <div className="mt-6 px-5">
             {!isConnected ? (
-              <StyledButton onClick={() => connectWallet()}>
+              <StyledButton onClick={() => handleConnectWallet()}>
                 Connect Wallet
               </StyledButton>
             ) : (
@@ -903,7 +903,7 @@ const Unstake = () => {
           </div>
           <div className="mt-6 px-5">
             {!isConnected ? (
-              <StyledButton onClick={() => connectWallet()}>
+              <StyledButton onClick={() => handleConnectWallet()}>
                 Connect Wallet
               </StyledButton>
             ) : (
