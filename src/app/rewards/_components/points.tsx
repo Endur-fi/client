@@ -11,7 +11,7 @@ import { GET_USER_POINTS_BREAKDOWN } from "@/constants/queries";
 import { isMainnet } from "@/constants";
 import { ApolloClient, InMemoryCache } from "@apollo/client";
 import { defaultOptions } from "@/lib/apollo-client";
-import React from "react";
+import React, { useState, useEffect } from "react";
 
 const apolloClient = new ApolloClient({
   uri: isMainnet()
@@ -53,6 +53,84 @@ function getDurationString(start: Date, end: Date): string {
     return `${weeks} week${weeks > 1 ? "s" : ""} duration`;
   }
   return `${diffInDays} day${diffInDays > 1 ? "s" : ""} duration`;
+}
+
+/**
+ * Calculates the next Tuesday at 10:00 UTC
+ * @returns Date object representing the next Tuesday at 10:00 UTC
+ */
+function getNextDropTime(): Date {
+  const now = new Date();
+  
+  // Get current day of week in UTC (0 = Sunday, 1 = Monday, ..., 6 = Saturday)
+  const currentDay = now.getUTCDay();
+  // Tuesday is day 2
+  const targetDay = 2;
+  
+  // Calculate days until next Tuesday
+  let daysUntilTuesday = (targetDay - currentDay + 7) % 7;
+  
+  // If it's Tuesday and before 10:00 UTC, use today; otherwise use next Tuesday
+  if (daysUntilTuesday === 0) {
+    const currentHour = now.getUTCHours();
+    if (currentHour >= 10) {
+      daysUntilTuesday = 7; // Next Tuesday
+    }
+  }
+  
+  // Create the next drop date
+  const nextDrop = new Date(now);
+  nextDrop.setUTCDate(now.getUTCDate() + daysUntilTuesday);
+  nextDrop.setUTCHours(10, 0, 0, 0);
+  
+  return nextDrop;
+}
+
+/**
+ * Formats the time difference as "X Days, Y Hours"
+ * @param targetDate The target date to count down to
+ * @returns Formatted string like "6 Days, 5 Hours"
+ */
+function formatTimeUntilDrop(targetDate: Date): string {
+  const now = new Date();
+  const diffInMs = targetDate.getTime() - now.getTime();
+  
+  if (diffInMs <= 0) {
+    return "0 Days, 0 Hours";
+  }
+  
+  const diffInSeconds = Math.floor(diffInMs / 1000);
+  const days = Math.floor(diffInSeconds / 86400);
+  const hours = Math.floor((diffInSeconds % 86400) / 3600);
+  
+  return `${days} Day${days !== 1 ? "s" : ""}, ${hours} Hour${hours !== 1 ? "s" : ""}`;
+}
+
+/**
+ * Hook to get the time until next drop, updating every minute
+ */
+function useNextDropCountdown(): string {
+  const [countdown, setCountdown] = useState<string>(() => {
+    const nextDrop = getNextDropTime();
+    return formatTimeUntilDrop(nextDrop);
+  });
+
+  useEffect(() => {
+    const updateCountdown = () => {
+      const nextDrop = getNextDropTime();
+      setCountdown(formatTimeUntilDrop(nextDrop));
+    };
+
+    // Update immediately
+    updateCountdown();
+
+    // Update every minute
+    const interval = setInterval(updateCountdown, 60000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  return countdown;
 }
 
 const SeasonInfoCards = ({ season }: { season: (typeof seasons)[0] }) => {
@@ -335,6 +413,7 @@ const Season2Points = ({
   const weeklyEarnedFormatted = weeklyEarned 
     ? `+${formatNumber(parseFloat(weeklyEarned) || 0, 1)} Pts`
     : "+0 Pts";
+  const nextDropCountdown = useNextDropCountdown();
 
   return (
     <div className="flex flex-col gap-4 rounded-[14px] border border-[#E5E8EB] bg-white px-4 py-3">
@@ -374,7 +453,7 @@ const Season2Points = ({
           valueClass="text-[16px] text-[#17876D]"
         />
         <StatsItem label="Epoch Completed" value="1/25" />
-        <StatsItem label="Next Drop" value="6 Days, 5 Hours" />
+        <StatsItem label="Next Drop" value={nextDropCountdown} />
       </div>
       {/* points breakdown */}
       <div className="flex flex-1 flex-row flex-wrap gap-4">
