@@ -6,6 +6,21 @@ import { cn, formatNumber, formatNumberWithCommas } from "@/lib/utils";
 import { Calendar, Clock, Flame, TrendingUp, Trophy } from "lucide-react";
 import { useAccount } from "@starknet-react/core";
 import { useWalletConnection } from "@/hooks/use-wallet-connection";
+import { useQuery } from "@apollo/client";
+import { GET_USER_POINTS_BREAKDOWN } from "@/constants/queries";
+import { isMainnet } from "@/constants";
+import { ApolloClient, InMemoryCache } from "@apollo/client";
+import { defaultOptions } from "@/lib/apollo-client";
+import React from "react";
+
+const apolloClient = new ApolloClient({
+  uri: isMainnet()
+    ? "https://endur-points-indexers-mainnet-graphql.onrender.com"
+    : "https://graphql.sepolia.endur.fi",
+	// uri: "http://localhost:4001",
+  cache: new InMemoryCache(),
+  defaultOptions,
+});
 
 const seasons = [
   {
@@ -302,6 +317,8 @@ const PointsBreakdownCard = ({
 const Season2Points = ({
   pointsBreakdown,
   userSeason2Points,
+  weeklyEarned,
+  isLoading,
 }: {
   pointsBreakdown: {
     title: string;
@@ -312,7 +329,13 @@ const Season2Points = ({
     rank: number|null;
     points: string;
   };
+  weeklyEarned?: string;
+  isLoading?: boolean;
 }) => {
+  const weeklyEarnedFormatted = weeklyEarned 
+    ? `+${formatNumber(parseFloat(weeklyEarned) || 0, 1)} Pts`
+    : "+0 Pts";
+
   return (
     <div className="flex flex-col gap-4 rounded-[14px] border border-[#E5E8EB] bg-white px-4 py-3">
       {/* header */}
@@ -342,12 +365,12 @@ const Season2Points = ({
       <div className="flex flex-1 flex-row flex-wrap gap-2 gap-y-4 rounded-[10px] bg-[#F7FBFA] p-3.5">
         <StatsItem
           label="Your Rank"
-          value={`#${userSeason2Points.rank}`}
+          value={userSeason2Points.rank ? `#${userSeason2Points.rank}` : "-"}
           valueClass="text-[20px] leading-[24px]"
         />
         <StatsItem
           label="Weekly Earned"
-          value="+845.6 Pts"
+          value={isLoading ? "..." : weeklyEarnedFormatted}
           valueClass="text-[16px] text-[#17876D]"
         />
         <StatsItem label="Epoch Completed" value="1/25" />
@@ -355,82 +378,114 @@ const Season2Points = ({
       </div>
       {/* points breakdown */}
       <div className="flex flex-1 flex-row flex-wrap gap-4">
-        {pointsBreakdown.map((item) => (
-          <PointsBreakdownCard
-            key={item.title}
-            title={item.title}
-            subtitle={item.subtitle}
-            items={item.items}
-          />
-        ))}
+        {isLoading ? (
+          <div className="w-full flex items-center justify-center py-8">
+            <div className="flex items-center gap-3">
+              <div className="h-6 w-6 animate-spin rounded-full border-2 border-[#17876D] border-t-transparent" />
+              <p className="text-[#021B1A]">Loading points data...</p>
+            </div>
+          </div>
+        ) : pointsBreakdown.length > 0 ? (
+          pointsBreakdown.map((item) => (
+            <PointsBreakdownCard
+              key={item.title}
+              title={item.title}
+              subtitle={item.subtitle}
+              items={item.items}
+            />
+          ))
+        ) : (
+          <div className="w-full text-center text-sm text-[#5B616D] py-4">
+            No points breakdown available
+          </div>
+        )}
       </div>
     </div>
   );
 };
 
+interface UserPointsBreakdownResponse {
+  getUserPointsBreakdown: {
+    weeklyEarned: string;
+    breakdown: {
+      userBreakdown: {
+        title: string;
+        multiplier: number;
+        weeklyEarned: string;
+        overall: string;
+      }[];
+      contributorBreakdown: {
+        title: string;
+        multiplier: number;
+        weeklyEarned: string;
+        overall: string;
+      }[];
+    };
+  } | null;
+}
+
 const Points = ({ userSeason1Points, userSeason2Points }: { userSeason1Points: { rank: number|null, points: string }, userSeason2Points: { rank: number|null, points: string } }) => {
   const { address } = useAccount();
   const { connectWallet } = useWalletConnection();
+  
+  const { data: breakdownData, loading: breakdownLoading } = useQuery<UserPointsBreakdownResponse>(
+    GET_USER_POINTS_BREAKDOWN,
+    {
+      client: apolloClient,
+      variables: { userAddress: address || "" },
+      skip: !address,
+      fetchPolicy: "network-only",
+    }
+  );
+
+  // Transform API response to component format
   const pointsBreakdown: {
     title: string;
     subtitle: string;
     items: pointsBreakdownItem[];
-  }[] = [
-    {
-      title: "Contributor",
-      subtitle: "Liquidity Provider",
-      items: [
-        {
-          multiplier: "8",
-          type: "Supply On Vesu",
-          weekly: "280",
-          total: "4000",
-        },
-        {
-          multiplier: "5",
-          type: "LP on Ekubo",
-          weekly: "105",
-          total: "3000",
-        },
-        {
-          multiplier: "8",
-          type: "LP on Troves Ekubo",
-          weekly: "280",
-          total: "4000",
-        },
-      ],
-    },
-    {
-      title: "User",
-      subtitle: "LST Power User",
-      items: [
-        {
-          multiplier: "1",
-          type: "Staked STRK",
-          weekly: "100",
-          total: "1000",
-        },
-        {
-          multiplier: "1",
-          type: "Staked BTC",
-          weekly: "100",
-          total: "1000",
-        },
-        {
-          multiplier: "1",
-          type: "Staked ETH",
-          weekly: "100",
-          total: "1000",
-        },
-        {
-          multiplier: "3",
-          type: "Staked SOL",
-          weekly: "100",
-          total: "1000",
-        },
-      ],
-    },
-  ];
+  }[] = React.useMemo(() => {
+    if (!breakdownData?.getUserPointsBreakdown) {
+      return [];
+    }
+
+    const { userBreakdown, contributorBreakdown } = breakdownData.getUserPointsBreakdown.breakdown;
+
+    const transformed: {
+      title: string;
+      subtitle: string;
+      items: pointsBreakdownItem[];
+    }[] = [];
+
+    // Add contributor breakdown if there are items
+    if (contributorBreakdown && contributorBreakdown.length > 0) {
+      transformed.push({
+        title: "Contributor",
+        subtitle: "Liquidity Provider",
+        items: contributorBreakdown.map((item) => ({
+          multiplier: item.multiplier.toFixed(0),
+          type: item.title,
+          weekly: formatNumber(parseFloat(item.weeklyEarned) || 0, 0),
+          total: formatNumber(parseFloat(item.overall) || 0, 0),
+        })),
+      });
+    }
+
+    // Add user breakdown if there are items
+    if (userBreakdown && userBreakdown.length > 0) {
+      transformed.push({
+        title: "User",
+        subtitle: "LST Power User",
+        items: userBreakdown.map((item) => ({
+          multiplier: item.multiplier.toFixed(0),
+          type: item.title,
+          weekly: formatNumber(parseFloat(item.weeklyEarned) || 0, 0),
+          total: formatNumber(parseFloat(item.overall) || 0, 0),
+        })),
+      });
+    }
+
+    return transformed;
+  }, [breakdownData]);
 
   return (
     <div className="flex flex-col gap-6">
@@ -501,7 +556,12 @@ const Points = ({ userSeason1Points, userSeason2Points }: { userSeason1Points: {
             </div>
           </div>
           {/* season 2 points */}
-          <Season2Points pointsBreakdown={pointsBreakdown} userSeason2Points={userSeason2Points} />
+          <Season2Points 
+            pointsBreakdown={pointsBreakdown} 
+            userSeason2Points={userSeason2Points}
+            weeklyEarned={breakdownData?.getUserPointsBreakdown?.weeklyEarned}
+            isLoading={breakdownLoading}
+          />
         </div>
       )}
     </div>

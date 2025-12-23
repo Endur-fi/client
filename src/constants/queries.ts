@@ -91,3 +91,25 @@ export const CHECK_EMAIL_EXISTS = gql`
     hasEmailSaved(userAddress: $userAddress)
   }
 `;
+
+export const GET_USER_POINTS_BREAKDOWN = gql`
+  query GetUserPointsBreakdown($userAddress: String!) {
+    getUserPointsBreakdown(userAddress: $userAddress) {
+      weeklyEarned
+      breakdown {
+        userBreakdown {
+          title
+          multiplier
+          weeklyEarned
+          overall
+        }
+        contributorBreakdown {
+          title
+          multiplier
+          weeklyEarned
+          overall
+        }
+      }
+    }
+  }
+`;
