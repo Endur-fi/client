@@ -27,7 +27,7 @@ const Leaderboard: React.FC<LeaderboardProps> = ({
 	season2LeaderboardData,
 }) => {
   const [activeSeason, setActiveSeason] = React.useState<"season1" | "season2">(
-    "season1",
+    "season2",
   );
 
   const EmptyState = React.memo(() => (

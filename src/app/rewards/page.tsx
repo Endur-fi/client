@@ -797,6 +797,8 @@ const RewardsPage: React.FC = () => {
 						userCompleteInfo={userCompleteInfo}
 						isLoading={loading.initial}
 					/>
+          <hr className="border-[#b3d1c9] my-6" />
+					<p className="text-sm text-center text-[#021B1A]">Any more future rewards shall come here</p>
         </TabsContent>
 			</ShadCNTabs>
     </div>
