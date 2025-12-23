@@ -334,14 +334,16 @@ const PointsBreakdownItem = ({
         {type}
       </span>
     </div>
-    <div className="flex flex-col">
-      <span className="text-[12px] font-medium text-[#868898]">Weekly</span>
-      <span className="text-[14px] text-[#021B1A]">+{weekly}</span>
-    </div>
-    <div className="flex flex-col">
-      <span className="text-[12px] font-medium text-[#868898]">Total</span>
-      <span className="text-[16px] font-medium text-[#17876D]">{total}</span>
-    </div>
+		<div className="flex flex-row gap-3 items-start" >
+			<div className="flex flex-col">
+				<span className="text-[12px] font-medium text-[#868898]">Weekly</span>
+				<span className="text-[14px] text-[#021B1A] leading-[20px]">+{weekly}</span>
+			</div>
+			<div className="flex flex-col">
+				<span className="text-[12px] font-medium text-[#868898]">Total</span>
+				<span className="text-[16px] font-medium text-[#17876D] leading-[20px]">{total}</span>
+			</div>
+		</div>
   </div>
 );
 
@@ -543,8 +545,8 @@ const Points = ({ userSeason1Points, userSeason2Points }: { userSeason1Points: {
         items: contributorBreakdown.map((item) => ({
           multiplier: item.multiplier.toFixed(0),
           type: item.title,
-          weekly: formatNumber(parseFloat(item.weeklyEarned) || 0, 0),
-          total: formatNumber(parseFloat(item.overall) || 0, 0),
+          weekly: formatNumber(parseFloat(item.weeklyEarned) || 0, 2),
+          total: formatNumber(parseFloat(item.overall) || 0, 2),
         })),
       });
     }
@@ -557,8 +559,8 @@ const Points = ({ userSeason1Points, userSeason2Points }: { userSeason1Points: {
         items: userBreakdown.map((item) => ({
           multiplier: item.multiplier.toFixed(0),
           type: item.title,
-          weekly: formatNumber(parseFloat(item.weeklyEarned) || 0, 0),
-          total: formatNumber(parseFloat(item.overall) || 0, 0),
+          weekly: formatNumber(parseFloat(item.weeklyEarned) || 0, 2),
+          total: formatNumber(parseFloat(item.overall) || 0, 2),
         })),
       });
     }

@@ -18,7 +18,7 @@ import { cn, formatNumberWithCommas } from "@/lib/utils";
 import { lstStatsQueryAtom } from "@/store/lst.store";
 import { btcPriceAtom, strkPriceAtom } from "@/store/staking.store";
 import MyNumber from "@/lib/MyNumber";
-import { GET_USER_NET_TOTAL_POINTS_SEASON1 } from "@/constants/queries";
+import { GET_USER_NET_TOTAL_POINTS_SEASON1, GET_USER_NET_TOTAL_POINTS_SEASON2 } from "@/constants/queries";
 import { defaultOptions } from "@/lib/apollo-client";
 import { isMainnet } from "@/constants";
 import { ApolloClient, InMemoryCache } from "@apollo/client";
@@ -191,6 +191,9 @@ const PortfolioSection: React.FC = () => {
   const [season1Points, setSeason1Points] = React.useState<string | null>(null);
   const [season1Loading, setSeason1Loading] = React.useState(false);
 
+	const [season2Points, setSeason2Points] = React.useState<string | null>(null);
+	const [season2Loading, setSeason2Loading] = React.useState(false);
+
   // Use the same Apollo Client setup as rewards page
   const leaderboardApolloClient = React.useMemo(
     () =>
@@ -239,7 +242,39 @@ const PortfolioSection: React.FC = () => {
   }, [address, leaderboardApolloClient]);
 
   // Season 2 is 0 for now
-  const season2Points = "0";
+  React.useEffect(() => {
+    if (!address) {
+      setSeason2Points(null);
+      return;
+    }
+
+		const fetchSeason2Points = async () => {
+      setSeason2Loading(true);
+      try {
+        const result = await leaderboardApolloClient.query({
+          query: GET_USER_NET_TOTAL_POINTS_SEASON2,
+          variables: { userAddress: address, overall: true },
+          fetchPolicy: "network-only",
+        });
+
+        const userData = result.data?.getUserNetTotalPointsSeason2;
+
+        // Use weightedTotalPoints for display (weighted points refer to previous total_points)
+        if (userData?.weightedTotalPoints) {
+          setSeason2Points(userData.weightedTotalPoints);
+        } else {
+          setSeason2Points("0");
+        }
+      } catch (error) {
+        console.error("Error fetching Season 2 points:", error);
+        setSeason2Points("0");
+      } finally {
+        setSeason2Loading(false);
+      }
+    };
+
+		fetchSeason2Points();
+  }, [address, leaderboardApolloClient]);
 
   return (
     <div
@@ -398,7 +433,11 @@ const PortfolioSection: React.FC = () => {
               <span className="text-sm text-[#1A1F24]">
                 {!address
                   ? "-"
-                  : `${formatNumberWithCommas(season2Points)} pts`}
+                  : season2Loading
+                    ? "..."
+                    : season2Points !== null
+                      ? `${formatNumberWithCommas(season2Points)} pts`
+                      : "0 pts"}
               </span>
             </div>
           </div>
