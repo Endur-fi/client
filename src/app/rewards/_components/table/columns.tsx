@@ -107,7 +107,7 @@ export const columns: ColumnDef<SizeColumn>[] = [
 
       return (
         <div className="ml-auto w-fit pr-4 text-xs text-[#17876D] md:pr-12 md:text-sm lg:text-base">
-          {formatNumber(score)}
+          {formatNumber(score, 2)}
         </div>
       );
     },

@@ -21,6 +21,27 @@ export const GET_USER_NET_TOTAL_POINTS_SEASON1 = gql`
   }
 `;
 
+export const GET_TOP_100_USERS_SEASON2 = gql`
+  query GetTop100UsersSeason2($overall: Boolean) {
+    getTop100UsersSeason2(overall: $overall) {
+      userAddress
+      totalPoints
+      weightedTotalPoints
+    }
+  }
+`;
+
+export const GET_USER_NET_TOTAL_POINTS_SEASON2 = gql`
+  query GetUserNetTotalPointsSeason2($userAddress: String!, $overall: Boolean) {
+    getUserNetTotalPointsSeason2(userAddress: $userAddress, overall: $overall) {
+      userAddress
+      totalPoints
+      weightedTotalPoints
+      rank
+    }
+  }
+`;
+
 // Keep old queries for backward compatibility if needed elsewhere
 export const GET_ALL_USERS_WITH_DETAILS = gql`
   query GetAllUsersWithDetails($options: PaginationOptionsInput) {
