@@ -2,18 +2,20 @@
 
 import { useAccount } from "@starknet-react/core";
 import React from "react";
-import { AlertCircleIcon, Calendar, Clock, TrendingUp } from "lucide-react";
+import { Gift, Trophy } from "lucide-react";
 
 import { useSidebar } from "@/components/ui/sidebar";
 import { isMainnet, LEADERBOARD_ANALYTICS_EVENTS } from "@/constants";
 import {
   GET_TOP_100_USERS_SEASON1,
   GET_USER_NET_TOTAL_POINTS_SEASON1,
+  GET_TOP_100_USERS_SEASON2,
+  GET_USER_NET_TOTAL_POINTS_SEASON2,
   GET_USER_COMPLETE_DETAILS,
 } from "@/constants/queries";
 import { MyAnalytics } from "@/lib/analytics";
 import { defaultOptions } from "@/lib/apollo-client";
-import { cn, formatNumber, standariseAddress } from "@/lib/utils";
+import { cn, standariseAddress } from "@/lib/utils";
 import {
   Tabs as ShadCNTabs,
   TabsContent,
@@ -24,12 +26,12 @@ import { useWalletConnection } from "@/hooks/use-wallet-connection";
 import { Button } from "@/components/ui/button";
 
 import { UserCompleteDetailsApiResponse } from "./_components/check-eligibility";
-import CheckEligibility from "./_components/check-eligibility";
-import { columns, type SizeColumn } from "./_components/table/columns";
-import { DataTable } from "./_components/table/data-table";
+import { type SizeColumn } from "./_components/table/columns";
 import { ApolloClient, InMemoryCache } from "@apollo/client";
 import { Icons } from "@/components/Icons";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import Rewards from "./_components/rewards";
+import Points from "./_components/points";
+import Leaderboard from "./_components/leaderboard";
 
 const PAGINATION_LIMIT = 100;
 
@@ -43,6 +45,23 @@ interface Top100UsersSeason1Response {
 
 interface UserNetTotalPointsSeason1Response {
   getUserNetTotalPointsSeason1: {
+    userAddress: string;
+    totalPoints: string;
+    weightedTotalPoints: string;
+    rank: number | null;
+  };
+}
+
+interface Top100UsersSeason2Response {
+  getTop100UsersSeason2: {
+    userAddress: string;
+    totalPoints: string;
+    weightedTotalPoints: string;
+  }[];
+}
+
+interface UserNetTotalPointsSeason2Response {
+  getUserNetTotalPointsSeason2: {
     userAddress: string;
     totalPoints: string;
     weightedTotalPoints: string;
@@ -89,6 +108,8 @@ interface LeaderboardState {
   totalUsers: number | null;
   currentUserInfo: CurrentUserInfo;
   userCompleteInfo: UserCompleteDetailsApiResponse | null;
+	season2Top100Users: SizeColumn[];
+	season2CurreUserInfo: CurrentUserInfo;
 }
 
 interface LeaderboardCache {
@@ -97,6 +118,8 @@ interface LeaderboardCache {
   totalUsers: number | null;
   currentUserInfo: CurrentUserInfo;
   userCompleteInfo: UserCompleteDetailsApiResponse | null;
+	season2Top100Users: SizeColumn[];
+	season2CurreUserInfo: CurrentUserInfo;
 }
 
 const apolloClient = new ApolloClient({
@@ -129,6 +152,8 @@ const useLeaderboardData = () => {
     totalUsers: null,
     currentUserInfo: { points: "0", rank: null, address: "", isLoading: false },
     userCompleteInfo: null,
+		season2Top100Users: [],
+		season2CurreUserInfo: { points: "0", rank: null, address: "", isLoading: false },
   });
 
   const { address } = useAccount();
@@ -151,6 +176,8 @@ const useLeaderboardData = () => {
             totalUsers: leaderboardCache.totalUsers,
             currentUserInfo: leaderboardCache.currentUserInfo,
             userCompleteInfo: leaderboardCache.userCompleteInfo,
+						season2Top100Users: leaderboardCache.season2Top100Users,
+						season2CurreUserInfo: leaderboardCache.season2CurreUserInfo,
           });
           return;
         }
@@ -168,12 +195,40 @@ const useLeaderboardData = () => {
           error: null,
         }));
 
-        const [usersResult, currentUserResult, oldApiUserResult] =
+        const [usersResult, season2Top100UsersResult, season2CurrentUserResult, currentUserResult, oldApiUserResult] =
           await Promise.allSettled([
             apolloClient.query<Top100UsersSeason1Response>({
               query: GET_TOP_100_USERS_SEASON1,
               fetchPolicy: "network-only", // fetch fresh data when we bypass cache
             }),
+
+						apolloClient.query<Top100UsersSeason2Response>({
+							query: GET_TOP_100_USERS_SEASON2,
+							variables: {
+								overall: true,
+							},
+							fetchPolicy: "network-only", // fetch fresh data when we bypass cache
+						}),
+
+						address
+              ? apolloClient.query<UserNetTotalPointsSeason2Response>({
+                  query: GET_USER_NET_TOTAL_POINTS_SEASON2,
+                  variables: {
+                    userAddress: address,
+                    overall: true,
+                  },
+                })
+              : Promise.resolve<{ data: UserNetTotalPointsSeason2Response }>({
+                  data: { 
+                    getUserNetTotalPointsSeason2: {
+                      userAddress: "",
+                      totalPoints: "0",
+                      weightedTotalPoints: "0",
+                      rank: null,
+                    },
+                  },
+                }),
+
             address
               ? apolloClient.query<UserNetTotalPointsSeason1Response>({
                   query: GET_USER_NET_TOTAL_POINTS_SEASON1,
@@ -305,6 +360,49 @@ const useLeaderboardData = () => {
           isLoading: false,
           rank: userRank,
         };
+        
+				// --------
+				if (season2Top100UsersResult.status === "rejected") {
+          throw new Error(
+            season2Top100UsersResult.reason?.message || "Failed to fetch users",
+          );
+        }
+
+        const season2Top100ApiResponse = season2Top100UsersResult.value.data?.getTop100UsersSeason2;
+        if (!season2Top100ApiResponse) {
+          throw new Error("Invalid response format");
+        }
+
+        const season2CurrentUserData =
+          season2CurrentUserResult.status === "fulfilled"
+            ? season2CurrentUserResult.value.data?.getUserNetTotalPointsSeason2
+            : null;
+
+        // Use weightedTotalPoints for display (weighted points refer to previous total_points)
+        const season2TransformedData: SizeColumn[] = season2Top100ApiResponse.map(
+          (user: { userAddress: string; totalPoints: string; weightedTotalPoints: string }, index: number) => ({
+            rank: (index + 1).toString(),
+            address: user.userAddress,
+            score: user.weightedTotalPoints || "0",
+          }),
+        );
+
+        const season2UserRank =
+          season2CurrentUserData?.rank !== null && season2CurrentUserData?.rank !== undefined
+            ? season2CurrentUserData.rank
+            : null;
+
+        // Get points value, handling empty strings, null, or undefined
+        const season2UserPoints = season2CurrentUserData?.weightedTotalPoints;
+        const season2PointsValue =
+          season2UserPoints && season2UserPoints.trim() !== "" ? season2UserPoints : "0";
+
+        const season2CurrentUserInfo: CurrentUserInfo = {
+          points: season2PointsValue,
+          address: address || "",
+          isLoading: false,
+          rank: season2UserRank,
+        };
 
         // Map to UserCompleteDetailsApiResponse structure
         // Merge data from new API (points) with old API (allocation, proof, detailed points)
@@ -388,6 +486,8 @@ const useLeaderboardData = () => {
           totalUsers: apiResponse.length,
           currentUserInfo,
           userCompleteInfo: userCompleteInfoMapped,
+					season2Top100Users: season2TransformedData,
+					season2CurreUserInfo: season2CurrentUserInfo,
         };
 
         setState({
@@ -398,6 +498,8 @@ const useLeaderboardData = () => {
           totalUsers: apiResponse.length,
           currentUserInfo,
           userCompleteInfo: userCompleteInfoMapped,
+					season2Top100Users: season2TransformedData,
+					season2CurreUserInfo: season2CurrentUserInfo,
         });
       } catch (err) {
         console.error("Error fetching users data:", err);
@@ -514,20 +616,14 @@ const BtcStakingInfoBanner = React.memo(() => (
 ));
 BtcStakingInfoBanner.displayName = "BtcStakingInfoBanner";
 
-const EmptyState = React.memo(() => (
-  <div className="py-8 text-center">
-    <p className="text-[#021B1A]">No leaderboard data available</p>
-  </div>
-));
-EmptyState.displayName = "EmptyState";
-
-const Leaderboard: React.FC = () => {
+const RewardsPage: React.FC = () => {
   const { isPinned } = useSidebar();
   const { address } = useAccount();
   const { connectWallet: _connectWallet } = useWalletConnection();
   const [activeSeason, setActiveSeason] = React.useState<"season1" | "season2">(
     "season1",
   );
+	const [activeTab, setActiveTab] = React.useState<"your-points" | "leaderboard" | "rewards">("your-points");
 
   const {
     data: allUsers,
@@ -536,6 +632,8 @@ const Leaderboard: React.FC = () => {
     fetchUsersData,
     currentUserInfo,
     userCompleteInfo,
+		season2Top100Users,
+		season2CurreUserInfo
   } = useLeaderboardData();
 
   React.useEffect(() => {
@@ -567,15 +665,38 @@ const Leaderboard: React.FC = () => {
 
     const currentUserData: SizeColumn = {
       address,
-      rank: currentUserInfo.rank?.toString() || "N/A",
+      rank: currentUserInfo.rank?.toString() || "-",
       score: currentUserInfo.points,
     };
     return [currentUserData, ...allUsers];
   }, [address, allUsers, currentUserInfo.points, currentUserInfo]);
 
+	const season2LeaderboardData = React.useMemo(() => {
+		if (!address || season2Top100Users.length === 0) return season2Top100Users;
+
+    const existingUserIndex = season2Top100Users.findIndex(
+      (user) => user.address.toLowerCase() === address,
+    );
+
+    if (existingUserIndex !== -1) {
+      const userData = season2Top100Users[existingUserIndex];
+      const filteredUsers = season2Top100Users.filter(
+        (_, index) => index !== existingUserIndex,
+      );
+      return [userData, ...filteredUsers];
+    }
+
+    const currentUserData: SizeColumn = {
+      address,
+      rank: season2CurreUserInfo.rank?.toString() || "-",
+      score: season2CurreUserInfo.points,
+    };
+    return [currentUserData, ...season2Top100Users];
+	}, [address, season2Top100Users, season2CurreUserInfo]);
+
   const containerClasses = React.useMemo(
     () =>
-      cn("lg:mt-10 w-full max-w-[calc(100vw-1rem)] px-2 lg:max-w-4xl", {
+      cn("lg:mt-10 w-full max-w-[calc(100vw-1rem)] px-2 lg:max-w-4xl flex flex-col gap-6", {
         "lg:pl-28": !isPinned,
       }),
     [isPinned],
@@ -619,283 +740,67 @@ const Leaderboard: React.FC = () => {
     );
   }
 
-  function getDurationString(start: Date, end: Date): string {
-    const diffInMs = end.getTime() - start.getTime();
-    const diffInDays = Math.ceil(diffInMs / (1000 * 60 * 60 * 24));
-    if (diffInDays >= 365) {
-      const years = Math.floor(diffInDays / 365);
-      return `${years} year${years > 1 ? "s" : ""} duration`;
-    } else if (diffInDays >= 30) {
-      const months = Math.floor(diffInDays / 30);
-      return `${months} month${months > 1 ? "s" : ""} duration`;
-    } else if (diffInDays >= 7) {
-      const weeks = Math.floor(diffInDays / 7);
-      return `${weeks} week${weeks > 1 ? "s" : ""} duration`;
-    }
-    return `${diffInDays} day${diffInDays > 1 ? "s" : ""} duration`;
-  }
-
-  const seasons = [
-    {
-      season: 2,
-      isActive: true,
-      startDate: new Date("2025-12-16:00:00Z"),
-      endDate: new Date("2026-06-15T00:00:00Z"),
-      points: 7500000,
-    },
-    {
-      season: 1,
-      isActive: false,
-      startDate: new Date("2024-11-27T00:00:00Z"),
-      endDate: new Date("2025-12-15T00:00:00Z"),
-      points: 10000000,
-    },
-  ];
-
   return (
     <div className={containerClasses}>
       {getHeader()}
+      {/* points/leaderboard/rewards tabs */}
+      <ShadCNTabs
+        value={activeTab}
+        onValueChange={(value) =>
+          setActiveTab(value as "your-points" | "leaderboard" | "rewards")
+        }
+        defaultValue="your-points"
+      >
+				<TabsList className="h-auto w-full gap-0 rounded-[14px] border border-[#E5E8EB] bg-white p-1 lg:w-fit">
+					<TabsTrigger
+						value="your-points"
+						className={cn(
+							"flex-1 flex-row gap-1 sm:gap-1.5 rounded-[10px] border border-transparent bg-transparent px-2 sm:px-4 py-2 text-sm font-medium text-[#6B7780] transition-all data-[state=active]:border-[#17876D] data-[state=active]:bg-[#E8F7F4] data-[state=active]:text-[#1A1F24] data-[state=active]:shadow-none lg:px-6 lg:py-2.5 lg:text-base",
+						)}
+					>
+						<Trophy size={20} color={activeTab === "your-points" ? '#000' : '#5B616D'} />
+						Your Points
+					</TabsTrigger>
+					<TabsTrigger
+						value="leaderboard"
+						className={cn(
+							"flex-1 flex-row gap-1 sm:gap-1.5 rounded-[10px] border border-transparent bg-transparent px-2 sm:px-4 py-2 text-sm font-medium text-[#6B7780] transition-all data-[state=active]:border-[#17876D] data-[state=active]:bg-[#E8F7F4] data-[state=active]:text-[#1A1F24] data-[state=active]:shadow-none lg:px-6 lg:py-2.5 lg:text-base",
+						)}
+					>
+						<Icons.badge size={20} stroke={activeTab === "leaderboard" ? '#000' : '#5B616D'} />
+						Leaderboard
+					</TabsTrigger>
+					<TabsTrigger
+						value="rewards"
+						className={cn(
+							"flex-1 flex-row gap-1 sm:gap-1.5 rounded-[10px] border border-transparent bg-transparent px-2 sm:px-4 py-2 text-sm font-medium text-[#6B7780] transition-all data-[state=active]:border-[#17876D] data-[state=active]:bg-[#E8F7F4] data-[state=active]:text-[#1A1F24] data-[state=active]:shadow-none lg:px-6 lg:py-2.5 lg:text-base",
+						)}
+					>
+						<Gift size={20} color={activeTab === "rewards" ? '#000' : '#5B616D'} />
+						Rewards
+					</TabsTrigger>
+				</TabsList>
 
-      <div className="pt-3 lg:pt-6">
-        <div className="flex flex-col gap-3 rounded-[14px] bg-gradient-to-b from-[#0D5F4E] to-[#11998E] p-2 lg:flex-row lg:items-center lg:gap-6 lg:p-4">
-          <div className="flex gap-2 lg:flex-shrink-0 lg:gap-3">
-            <div className="rounded-lg bg-[#FFFFFF33] p-3 shadow-lg lg:p-4">
-              <Icons.gift />
-            </div>
-            <h2 className="font-bold text-white lg:hidden lg:text-xl">
-              250,000 xSTRK Rewards Distributed
-            </h2>
-          </div>
-          <div className="flex-1 space-y-2 lg:block">
-            <div className="hidden lg:block">
-              <h2 className="font-bold text-white lg:text-xl">
-                250,000 xSTRK Rewards Distributed
-              </h2>
-              <div className="mt-2 h-px w-full bg-white/20"></div>
-            </div>
-            <p className="lg:text-md text-sm text-white">
-              In May 2025, we distributed 250,000 xSTRK in rewards to users from
-              the {"platform’s"} first six months. The distribution was
-              calculated based on Season 1 points as recorded at that time.
-            </p>
-            <p className="lg:text-md text-sm text-white">
-              <span className="font-semibold">
-                Claim Deadline: 31st Mar, 2026
-              </span>
-            </p>
-          </div>
-          <div className="lg:flex-shrink-0 lg:self-center">
-            <CheckEligibility
-              userCompleteInfo={userCompleteInfo}
-              isLoading={loading.initial}
-              buttonClassName="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-white py-2 font-bold text-[#0D5F4E] transition-opacity hover:opacity-90 lg:w-auto lg:px-6"
-            />
-          </div>
-        </div>
-
-        {/* Season2Banner hidden until API is available */}
-
-        {/* Timeline & Points Allocation Boxes */}
-        <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2 lg:gap-6">
-          {seasons.map((season) => (
-            <div
-              key={season.season}
-              className="flex flex-col gap-3 rounded-[14px] border border-[#E5E8EB] bg-white p-4 shadow-sm lg:gap-4 lg:p-4"
-            >
-              <div className="flex items-center gap-2">
-                <div
-                  className={cn("rounded-full bg-[#5B616D] p-2 shadow-sm", {
-                    "bg-gradient-to-b from-[#0D5F4E] to-[#11998E]":
-                      season.isActive,
-                  })}
-                >
-                  <Icons.trophy />
-                </div>
-
-                <h3 className="flex items-center gap-2 text-sm font-semibold text-[#1A1F24]">
-                  Season {season.season}
-                </h3>
-
-                <span
-                  className={cn(
-                    "flex items-center gap-1 rounded-md bg-[#5B616D] px-2 py-0.5 text-xs font-medium text-white",
-                    { "bg-[#0C4E3F]": season.isActive },
-                  )}
-                >
-                  {season.isActive && <Icons.dot />}
-
-                  {season.isActive ? "ACTIVE" : "ENDED"}
-                </span>
-              </div>
-
-              <div className="space-y-2 rounded-lg bg-[#F7FBFA] px-2 py-4">
-                <div className="flex items-center gap-2">
-                  <Calendar
-                    className={cn("h-4 w-4 text-[#5B616D]", {
-                      "text-[#17876D]": season.isActive,
-                    })}
-                  />
-                  <span className={cn("text-sm font-bold text-[#021B1A]")}>
-                    Timeline
-                  </span>
-                </div>
-                <div>
-                  <p className="text-xs text-[#5B616D]">
-                    {season.startDate.toDateString()} -{" "}
-                    {season.endDate.toDateString()}
-                  </p>
-                  <div className="flex items-center gap-2">
-                    <Clock className="h-3 w-3 text-[#5B616D]" />
-                    <p className="text-xs text-[#5B616D]">
-                      {getDurationString(season.startDate, season.endDate)}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div
-                className={cn(
-                  "rounded-lg border border-[#E5E8EB] bg-[#F7F9FA] px-2 py-3",
-                  {
-                    "bg-gradient-to-b from-[#E8F7F4] to-[#F7FBFA]":
-                      season.isActive,
-                    "border-[#D4E8E3]": season.isActive,
-                  },
-                )}
-              >
-                <div className="inline-flex items-center gap-2">
-                  <TrendingUp
-                    className={cn("h-4 w-4 text-[#5B616D]", {
-                      "text-[#17876D]": season.isActive,
-                    })}
-                  />
-                  <p
-                    className={cn("font-semibold", {
-                      "text-[#1A1F24]": season.isActive,
-                    })}
-                  >
-                    Points Pool
-                  </p>
-                </div>
-                <div>
-                  <p
-                    className={cn("text-lg font-bold text-[#5B616D]", {
-                      "text-[#17876D]": season.isActive,
-                    })}
-                  >
-                    {formatNumber(season.points)} Points
-                  </p>
-                </div>
-                <div>
-                  {/* TODO Add blog link */}
-                  <p className="text-xs text-[#5B616D]">
-                    {season.season === 2 ? (
-                      <span>
-                        Allocated 288k points weekly throughout the season. 70%
-                        of the points will be allocated to contributors and 30%
-                        to the users.{" "}
-                        <span className="font-semibold text-[#17876D]">
-                          <a
-                            className="text-[#17876D] underline"
-                            href="https://docs.endur.fi/docs/community/endur-season-2"
-                            target="_blank"
-                          >
-                            Learn more
-                          </a>
-                        </span>
-                      </span>
-                    ) : (
-                      <span>
-                        Points based on STRK and BTC LSTs held in wallet or
-                        supported DeFi platforms. Overall points have been
-                        scaled down to 10M points.{" "}
-                        <span className="font-semibold">
-                          <a
-                            className="text-[#5B616D] underline"
-                            href="https://blog.endur.fi/points"
-                            target="_blank"
-                          >
-                            Learn more
-                          </a>
-                        </span>
-                      </span>
-                    )}
-                  </p>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <hr className="my-3 border-[#E5E8EB] lg:my-7" />
-
-        <ShadCNTabs
-          value={activeSeason}
-          onValueChange={(value) =>
-            setActiveSeason(value as "season1" | "season2")
-          }
-          defaultValue="season1"
-        >
-          <div className="mb-2">Your Points and Leaderboard:</div>
-          <TabsList className="h-auto w-full gap-0 rounded-[14px] border border-[#E5E8EB] bg-white p-1 lg:w-fit">
-            <TabsTrigger
-              value="season2"
-              className={cn(
-                "flex-1 rounded-[10px] border border-transparent bg-transparent px-4 py-2 text-sm font-medium text-[#6B7780] transition-all data-[state=active]:border-[#17876D] data-[state=active]:bg-[#E8F7F4] data-[state=active]:text-[#1A1F24] data-[state=active]:shadow-none lg:px-6 lg:py-2.5 lg:text-base",
-              )}
-            >
-              Season 2
-            </TabsTrigger>
-            <TabsTrigger
-              value="season1"
-              className={cn(
-                "flex-1 rounded-[10px] border border-transparent bg-transparent px-4 py-2 text-sm font-medium text-[#6B7780] transition-all data-[state=active]:border-[#17876D] data-[state=active]:bg-[#E8F7F4] data-[state=active]:text-[#1A1F24] data-[state=active]:shadow-none lg:px-6 lg:py-2.5 lg:text-base",
-              )}
-            >
-              Season 1
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="season2" className="mt-0">
-            <div className="mb-6 mt-2 lg:mt-4">
-              <div className="flex flex-col items-center justify-center rounded-[14px] border border-[#E5E8EB] bg-white p-8 text-center shadow-sm">
-                <p className="text-base text-[#6B7780] lg:text-lg">
-                  First weekly points allocation coming on 23rd Dec, 2025
-                </p>
-              </div>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="season1" className="mt-0">
-            <div className="mt-2 lg:mt-4">
-              {allUsers.length > 0 ? (
-                <DataTable
-                  columns={columns}
-                  data={leaderboardData}
-                  userCompleteDetails={userCompleteInfo}
-                />
-              ) : (
-                <EmptyState />
-              )}
-            </div>
-          </TabsContent>
-        </ShadCNTabs>
-
-        <Alert className="!mb-20 border border-[#03624C] bg-[#E5EFED] p-4 text-[#03624C]">
-          <AlertCircleIcon className="size-4 !text-[#03624C]" />
-          <AlertTitle className="text-base font-semibold leading-[1]">
-            Disclaimer
-          </AlertTitle>
-          <AlertDescription className="mt-2 flex flex-col items-start -space-y-0.5 text-[#5B616D]">
-            <p>
-              Point criteria may evolve as Endur develops, and allocations can
-              be adjusted if any bugs or inconsistencies are discovered.
-            </p>
-          </AlertDescription>
-        </Alert>
-      </div>
+				<TabsContent value="your-points" className="mt-0 py-6">
+					<Points userSeason1Points={{points: currentUserInfo.points, rank: currentUserInfo.rank}} userSeason2Points={{points: season2CurreUserInfo.points, rank: season2CurreUserInfo.rank}} />
+        </TabsContent>
+				<TabsContent value="leaderboard" className="mt-0 py-6">
+					<Leaderboard
+						allUsers={allUsers}
+						leaderboardData={leaderboardData}
+						userCompleteInfo={userCompleteInfo}
+						season2LeaderboardData={season2LeaderboardData}
+					/>
+        </TabsContent>
+				<TabsContent value="rewards" className="mt-0 py-6">
+					<Rewards
+						userCompleteInfo={userCompleteInfo}
+						isLoading={loading.initial}
+					/>
+        </TabsContent>
+			</ShadCNTabs>
     </div>
   );
 };
 
-export default Leaderboard;
+export default RewardsPage;
