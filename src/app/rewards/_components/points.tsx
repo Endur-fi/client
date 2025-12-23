@@ -515,9 +515,9 @@ const Points = ({ userSeason1Points, userSeason2Points }: { userSeason1Points: {
             </div>
           </div>
 
-          <Button className="flex-shrink-0 bg-[#17876D] text-[#F1F7F6]">
+          <a href="https://docs.endur.fi/docs/community/endur-season-2" target="_blank"><Button className="flex-shrink-0 bg-[#17876D] text-[#F1F7F6]">
             View Details
-          </Button>
+          </Button></a>
         </div>
         {/* Timeline & Points Allocation Boxes */}
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:gap-6">

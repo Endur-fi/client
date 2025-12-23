@@ -1,4 +1,5 @@
 import { Icons } from "@/components/Icons";
+import React from "react";
 import CheckEligibility, {
   UserCompleteDetailsApiResponse,
 } from "./check-eligibility";
@@ -41,6 +42,7 @@ const Rewards: React.FC<RewardsProps> = ({ userCompleteInfo, isLoading }) => (
         buttonClassName="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-white py-2 font-bold text-[#0D5F4E] transition-opacity hover:opacity-90 lg:w-auto lg:px-6"
       />
     </div>
+
   </div>
 );
 

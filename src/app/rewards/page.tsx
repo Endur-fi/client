@@ -26,12 +26,9 @@ import { useWalletConnection } from "@/hooks/use-wallet-connection";
 import { Button } from "@/components/ui/button";
 
 import { UserCompleteDetailsApiResponse } from "./_components/check-eligibility";
-import CheckEligibility from "./_components/check-eligibility";
-import { columns, type SizeColumn } from "./_components/table/columns";
-import { DataTable } from "./_components/table/data-table";
+import { type SizeColumn } from "./_components/table/columns";
 import { ApolloClient, InMemoryCache } from "@apollo/client";
 import { Icons } from "@/components/Icons";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import Rewards from "./_components/rewards";
 import Points from "./_components/points";
 import Leaderboard from "./_components/leaderboard";
@@ -800,6 +797,8 @@ const RewardsPage: React.FC = () => {
 						userCompleteInfo={userCompleteInfo}
 						isLoading={loading.initial}
 					/>
+          <hr className="border-[#b3d1c9] my-6" />
+					<p className="text-sm text-center text-[#021B1A]">Any more future rewards shall come here</p>
         </TabsContent>
 			</ShadCNTabs>
     </div>
