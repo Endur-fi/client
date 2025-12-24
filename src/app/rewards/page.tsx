@@ -14,7 +14,7 @@ import {
   GET_USER_COMPLETE_DETAILS,
 } from "@/constants/queries";
 import { MyAnalytics } from "@/lib/analytics";
-import { defaultOptions } from "@/lib/apollo-client";
+import { defaultOptions, pointsApolloClient } from "@/lib/apollo-client";
 import { cn, standariseAddress } from "@/lib/utils";
 import {
   Tabs as ShadCNTabs,
@@ -122,15 +122,6 @@ interface LeaderboardCache {
 	season2CurreUserInfo: CurrentUserInfo;
 }
 
-const apolloClient = new ApolloClient({
-  uri: isMainnet()
-    ? "https://endur-points-indexers-mainnet-graphql.onrender.com"
-    : "https://graphql.sepolia.endur.fi",
-  // uri: "http://localhost:4001",
-  cache: new InMemoryCache(),
-  defaultOptions,
-});
-
 // Old API client for Season 1 allocation and proof data
 const apolloClientOldApi = new ApolloClient({
   uri: isMainnet()
@@ -197,12 +188,12 @@ const useLeaderboardData = () => {
 
         const [usersResult, season2Top100UsersResult, season2CurrentUserResult, currentUserResult, oldApiUserResult] =
           await Promise.allSettled([
-            apolloClient.query<Top100UsersSeason1Response>({
+            pointsApolloClient.query<Top100UsersSeason1Response>({
               query: GET_TOP_100_USERS_SEASON1,
               fetchPolicy: "network-only", // fetch fresh data when we bypass cache
             }),
 
-						apolloClient.query<Top100UsersSeason2Response>({
+						pointsApolloClient.query<Top100UsersSeason2Response>({
 							query: GET_TOP_100_USERS_SEASON2,
 							variables: {
 								overall: true,
@@ -211,7 +202,7 @@ const useLeaderboardData = () => {
 						}),
 
 						address
-              ? apolloClient.query<UserNetTotalPointsSeason2Response>({
+              ? pointsApolloClient.query<UserNetTotalPointsSeason2Response>({
                   query: GET_USER_NET_TOTAL_POINTS_SEASON2,
                   variables: {
                     userAddress: address,
@@ -230,7 +221,7 @@ const useLeaderboardData = () => {
                 }),
 
             address
-              ? apolloClient.query<UserNetTotalPointsSeason1Response>({
+              ? pointsApolloClient.query<UserNetTotalPointsSeason1Response>({
                   query: GET_USER_NET_TOTAL_POINTS_SEASON1,
                   variables: {
                     userAddress: address,

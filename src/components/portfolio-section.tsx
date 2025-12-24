@@ -19,9 +19,7 @@ import { lstStatsQueryAtom } from "@/store/lst.store";
 import { btcPriceAtom, strkPriceAtom } from "@/store/staking.store";
 import MyNumber from "@/lib/MyNumber";
 import { GET_USER_NET_TOTAL_POINTS_SEASON1, GET_USER_NET_TOTAL_POINTS_SEASON2 } from "@/constants/queries";
-import { defaultOptions } from "@/lib/apollo-client";
-import { isMainnet } from "@/constants";
-import { ApolloClient, InMemoryCache } from "@apollo/client";
+import { pointsApolloClient } from "@/lib/apollo-client";
 
 const getBTCLSTIcon = (lstSymbol: string) => {
   switch (lstSymbol) {
@@ -194,19 +192,6 @@ const PortfolioSection: React.FC = () => {
 	const [season2Points, setSeason2Points] = React.useState<string | null>(null);
 	const [season2Loading, setSeason2Loading] = React.useState(false);
 
-  // Use the same Apollo Client setup as rewards page
-  const leaderboardApolloClient = React.useMemo(
-    () =>
-      new ApolloClient({
-        uri: isMainnet()
-          ? "https://endur-points-indexers-mainnet-graphql.onrender.com"
-          : "https://graphql.sepolia.endur.fi",
-        cache: new InMemoryCache(),
-        defaultOptions,
-      }),
-    [],
-  );
-
   React.useEffect(() => {
     if (!address) {
       setSeason1Points(null);
@@ -216,7 +201,7 @@ const PortfolioSection: React.FC = () => {
     const fetchSeason1Points = async () => {
       setSeason1Loading(true);
       try {
-        const result = await leaderboardApolloClient.query({
+        const result = await pointsApolloClient.query({
           query: GET_USER_NET_TOTAL_POINTS_SEASON1,
           variables: { userAddress: address },
           fetchPolicy: "network-only",
@@ -239,7 +224,7 @@ const PortfolioSection: React.FC = () => {
     };
 
     fetchSeason1Points();
-  }, [address, leaderboardApolloClient]);
+  }, [address, pointsApolloClient]);
 
   // Season 2 is 0 for now
   React.useEffect(() => {
@@ -251,7 +236,7 @@ const PortfolioSection: React.FC = () => {
 		const fetchSeason2Points = async () => {
       setSeason2Loading(true);
       try {
-        const result = await leaderboardApolloClient.query({
+        const result = await pointsApolloClient.query({
           query: GET_USER_NET_TOTAL_POINTS_SEASON2,
           variables: { userAddress: address, overall: true },
           fetchPolicy: "network-only",
@@ -274,7 +259,7 @@ const PortfolioSection: React.FC = () => {
     };
 
 		fetchSeason2Points();
-  }, [address, leaderboardApolloClient]);
+  }, [address, pointsApolloClient]);
 
   return (
     <div

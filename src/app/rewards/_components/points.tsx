@@ -8,19 +8,8 @@ import { useAccount } from "@starknet-react/core";
 import { useWalletConnection } from "@/hooks/use-wallet-connection";
 import { useQuery } from "@apollo/client";
 import { GET_USER_POINTS_BREAKDOWN } from "@/constants/queries";
-import { isMainnet } from "@/constants";
-import { ApolloClient, InMemoryCache } from "@apollo/client";
-import { defaultOptions } from "@/lib/apollo-client";
+import { pointsApolloClient } from "@/lib/apollo-client";
 import React, { useState, useEffect } from "react";
-
-const apolloClient = new ApolloClient({
-  uri: isMainnet()
-    ? "https://endur-points-indexers-mainnet-graphql.onrender.com"
-    : "https://graphql.sepolia.endur.fi",
-	// uri: "http://localhost:4001",
-  cache: new InMemoryCache(),
-  defaultOptions,
-});
 
 const seasons = [
   {
@@ -56,21 +45,39 @@ function getDurationString(start: Date, end: Date): string {
 }
 
 /**
- * Calculates the next Tuesday at 10:00 UTC
+ * Calculates the next Tuesday at 10:00 UTC based on lastPointsMultiplierEndTimestamp
+ * @param lastPointsMultiplierEndTimestamp Unix timestamp (seconds) of the last points multiplier end timestamp
  * @returns Date object representing the next Tuesday at 10:00 UTC
  */
-function getNextDropTime(): Date {
+function getNextDropTime(lastPointsMultiplierEndTimestamp: number | null | undefined): Date {
   const now = new Date();
   
-  // Get current day of week in UTC (0 = Sunday, 1 = Monday, ..., 6 = Saturday)
-  const currentDay = now.getUTCDay();
-  // Tuesday is day 2
-  const targetDay = 2;
+  // If we have a lastPointsMultiplierEndTimestamp, use it as the reference point
+  if (lastPointsMultiplierEndTimestamp) {
+		let referenceDate = new Date(lastPointsMultiplierEndTimestamp * 1000);
+    
+    // Check if lastPointsMultiplierEndTimestamp is today (Tuesday)
+    const today = new Date(now);
+    today.setUTCHours(0, 0, 0, 0);
+    const referenceDay = new Date(referenceDate);
+    referenceDay.setUTCHours(0, 0, 0, 0);
+    
+    // If lastPointsMultiplierEndTimestamp is today (Tuesday), skip today and use next Tuesday
+    if (referenceDay.getTime() === today.getTime() && referenceDate.getUTCDay() === 2) {
+      // It's today (Tuesday), so next drop is next Tuesday at 10 UTC
+      const nextDrop = new Date(referenceDate);
+      nextDrop.setUTCDate(referenceDate.getUTCDate() + 7);
+      nextDrop.setUTCHours(10, 0, 0, 0);
+      return nextDrop;
+    }
+  }
   
-  // Calculate days until next Tuesday
+  // Fallback to current time logic if no timestamp provided
+  const currentDay = now.getUTCDay();
+  const targetDay = 2; // Tuesday
+  
   let daysUntilTuesday = (targetDay - currentDay + 7) % 7;
   
-  // If it's Tuesday and before 10:00 UTC, use today; otherwise use next Tuesday
   if (daysUntilTuesday === 0) {
     const currentHour = now.getUTCHours();
     if (currentHour >= 10) {
@@ -78,7 +85,6 @@ function getNextDropTime(): Date {
     }
   }
   
-  // Create the next drop date
   const nextDrop = new Date(now);
   nextDrop.setUTCDate(now.getUTCDate() + daysUntilTuesday);
   nextDrop.setUTCHours(10, 0, 0, 0);
@@ -108,16 +114,17 @@ function formatTimeUntilDrop(targetDate: Date): string {
 
 /**
  * Hook to get the time until next drop, updating every minute
+ * @param lastPointsMultiplierEndTimestamp Unix timestamp (seconds) of the last points multiplier end timestamp
  */
-function useNextDropCountdown(): string {
+function useNextDropCountdown(lastPointsMultiplierEndTimestamp: number | null | undefined): string {
   const [countdown, setCountdown] = useState<string>(() => {
-    const nextDrop = getNextDropTime();
+    const nextDrop = getNextDropTime(lastPointsMultiplierEndTimestamp);
     return formatTimeUntilDrop(nextDrop);
   });
 
   useEffect(() => {
     const updateCountdown = () => {
-      const nextDrop = getNextDropTime();
+      const nextDrop = getNextDropTime(lastPointsMultiplierEndTimestamp);
       setCountdown(formatTimeUntilDrop(nextDrop));
     };
 
@@ -128,7 +135,7 @@ function useNextDropCountdown(): string {
     const interval = setInterval(updateCountdown, 60000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [lastPointsMultiplierEndTimestamp]);
 
   return countdown;
 }
@@ -398,6 +405,8 @@ const Season2Points = ({
   pointsBreakdown,
   userSeason2Points,
   weeklyEarned,
+  epochsCompleted,
+  lastPointsMultiplierEndTimestamp,
   isLoading,
 }: {
   pointsBreakdown: {
@@ -410,12 +419,15 @@ const Season2Points = ({
     points: string;
   };
   weeklyEarned?: string;
+  epochsCompleted?: number;
+  lastPointsMultiplierEndTimestamp?: number;
   isLoading?: boolean;
 }) => {
   const weeklyEarnedFormatted = weeklyEarned 
-    ? `+${formatNumber(parseFloat(weeklyEarned) || 0, 1)} Pts`
+    ? `+${formatNumber(parseFloat(weeklyEarned) || 0, 2)} Pts`
     : "+0 Pts";
-  const nextDropCountdown = useNextDropCountdown();
+  const nextDropCountdown = useNextDropCountdown(lastPointsMultiplierEndTimestamp);
+  const epochsCompletedFormatted = epochsCompleted !== undefined ? `${epochsCompleted}/26` : "1/26";
 
   return (
     <div className="flex flex-col gap-4 rounded-[14px] border border-[#E5E8EB] bg-white px-4 py-3">
@@ -454,7 +466,10 @@ const Season2Points = ({
           value={isLoading ? "..." : weeklyEarnedFormatted}
           valueClass="text-[16px] text-[#17876D]"
         />
-        <StatsItem label="Epoch Completed" value="1/25" />
+        <StatsItem 
+          label="Epoch Completed" 
+          value={isLoading ? "..." : epochsCompletedFormatted} 
+        />
         <StatsItem label="Next Drop" value={nextDropCountdown} />
       </div>
       {/* points breakdown */}
@@ -488,6 +503,8 @@ const Season2Points = ({
 interface UserPointsBreakdownResponse {
   getUserPointsBreakdown: {
     weeklyEarned: string;
+    epochsCompleted: number;
+    lastPointsMultiplierEndTimestamp: number;
     breakdown: {
       userBreakdown: {
         title: string;
@@ -512,7 +529,7 @@ const Points = ({ userSeason1Points, userSeason2Points }: { userSeason1Points: {
   const { data: breakdownData, loading: breakdownLoading } = useQuery<UserPointsBreakdownResponse>(
     GET_USER_POINTS_BREAKDOWN,
     {
-      client: apolloClient,
+      client: pointsApolloClient,
       variables: { userAddress: address || "" },
       skip: !address,
       fetchPolicy: "network-only",
@@ -610,7 +627,7 @@ const Points = ({ userSeason1Points, userSeason2Points }: { userSeason1Points: {
       {/* your points */}
       {!address ? (
         <Button className="w-full bg-['transparent'] text-[#17876D] border border-[#17876D] hover:bg-[#17876D] hover:text-[#F1F7F6] py-6" onClick={() => connectWallet()}>
-          View Your Points
+          Connect Wallet to View Your Points
         </Button>
       ) : (
         <div className="flex flex-col gap-4">
@@ -641,6 +658,8 @@ const Points = ({ userSeason1Points, userSeason2Points }: { userSeason1Points: {
             pointsBreakdown={pointsBreakdown} 
             userSeason2Points={userSeason2Points}
             weeklyEarned={breakdownData?.getUserPointsBreakdown?.weeklyEarned}
+            epochsCompleted={breakdownData?.getUserPointsBreakdown?.epochsCompleted}
+            lastPointsMultiplierEndTimestamp={breakdownData?.getUserPointsBreakdown?.lastPointsMultiplierEndTimestamp}
             isLoading={breakdownLoading}
           />
         </div>
