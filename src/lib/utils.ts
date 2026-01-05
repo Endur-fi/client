@@ -197,7 +197,7 @@ const priceCache = new Map<string, { price: number; timestamp: number }>();
 export async function getAssetPrice(isSTRK: boolean = true): Promise<number> {
   if (priceCache.has(isSTRK ? "STRK" : "BTC")) {
     const { price, timestamp } = priceCache.get(isSTRK ? "STRK" : "BTC")!;
-    if (Date.now() - timestamp < 1000 * 60 * 60) {
+    if (Date.now() - timestamp < 1000 * 60 * 60 * 24) {
       // 1 hour (just for ui purposes, so ok)
       return price;
     }
