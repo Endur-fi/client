@@ -54,7 +54,7 @@ function getNextDropTime(lastPointsMultiplierEndTimestamp: number | null | undef
   
   // If we have a lastPointsMultiplierEndTimestamp, use it as the reference point
   if (lastPointsMultiplierEndTimestamp) {
-		let referenceDate = new Date(lastPointsMultiplierEndTimestamp * 1000);
+		const referenceDate = new Date(lastPointsMultiplierEndTimestamp * 1000);
     
     // Check if lastPointsMultiplierEndTimestamp is today (Tuesday)
     const today = new Date(now);
