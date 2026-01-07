@@ -1003,7 +1003,7 @@ const Defi: React.FC = () => {
         },
         action: {
           type: "lend",
-          link: "http://vesu.xyz/earn?onlyV2Markets=true&includeIsolatedMarkets=true",
+          link: `http://vesu.xyz/earn/${pool.poolId}/${pool.assetAddress}`,
           buttonText: "Supply",
           onClick: () => {
             MyAnalytics.track(eventNames.OPPORTUNITIES, {
@@ -1012,8 +1012,7 @@ const Defi: React.FC = () => {
             });
           },
         },
-        actionLink:
-          "http://vesu.xyz/earn?onlyV2Markets=true&includeIsolatedMarkets=true",
+        actionLink: `http://vesu.xyz/earn/${pool.poolId}/${pool.assetAddress}`,
         actionText: "Supply",
         actionOnClick: () => {
           MyAnalytics.track(eventNames.OPPORTUNITIES, {

@@ -96,6 +96,8 @@ export const GET_USER_POINTS_BREAKDOWN = gql`
   query GetUserPointsBreakdown($userAddress: String!) {
     getUserPointsBreakdown(userAddress: $userAddress) {
       weeklyEarned
+      epochsCompleted
+      lastPointsMultiplierEndTimestamp
       breakdown {
         userBreakdown {
           title
