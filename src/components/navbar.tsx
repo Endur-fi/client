@@ -20,6 +20,7 @@ import {
 import { Icons } from "./Icons";
 import MobileNav from "./mobile-nav";
 import { useSidebar } from "./ui/sidebar";
+import { VipNavbarChip } from "./vip-card";
 
 const Navbar = ({ className }: { className?: string }) => {
   // init analytics
@@ -70,6 +71,8 @@ const Navbar = ({ className }: { className?: string }) => {
         {/* {!isMobile && NETWORK === constants.NetworkName.SN_MAIN && (
           <MigrateNostra />
         )} */}
+
+				<VipNavbarChip />
 
         <button
           className={cn(
