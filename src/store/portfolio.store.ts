@@ -5,24 +5,6 @@ import { userAddressAtom } from "./common.store";
 
 export const chartFilter = atom("7d");
 
-interface VIPStatusResponse {
-  success: boolean;
-  data: {
-    isVIP: boolean;
-    totalValueUSD: number;
-    breakdown: {
-      nativeSTRK: number;
-      nativeBTC: number;
-      lstSTRK: number;
-      lstBTC: number;
-    };
-    contacts: {
-      phone: string | null;
-      telegram: string | null;
-    };
-  };
-}
-
 interface VIPStatus {
   isVIP: boolean;
   totalValueUSD: number;
@@ -33,9 +15,14 @@ interface VIPStatus {
     lstBTC: number;
   };
   contacts: {
-    phone: string | null;
+    call: string | null;
     telegram: string | null;
   };
+}
+
+interface VIPStatusResponse {
+  success: boolean;
+  data: VIPStatus;
 }
 
 const isVIPQueryAtom = atomWithQuery((get) => {
@@ -81,7 +68,7 @@ export const isVIPAtom = atom((get) => {
         lstBTC: 0,
       },
       contacts: {
-        phone: null,
+        call: null,
         telegram: null,
       },
       isLoading: false,

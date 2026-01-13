@@ -128,11 +128,11 @@ const VipCard = () => {
             </p>
           </div>
           <div className="flex w-full flex-col gap-3">
-            {vipStatus.contacts.phone && (
+            {vipStatus.contacts.call && (
               <Button
                 className="h-auto w-full gap-2 rounded-[10px] bg-[#03624C] py-[16px] text-[16px] font-bold leading-[19.5px] tracking-[-0.13px] text-white transition-opacity hover:opacity-90 lg:w-auto lg:px-6"
                 onClick={() => {
-                  window.location.href = `tel:${vipStatus.contacts.phone}`;
+									window.open(vipStatus.contacts.call || "", "_blank");
                 }}
               >
                 <Phone className="size-[16px] text-white" strokeWidth={2.5} />

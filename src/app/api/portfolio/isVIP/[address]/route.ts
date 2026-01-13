@@ -162,8 +162,8 @@ export async function GET(
     const isVIP = totalValueUSD >= VIP_THRESHOLD_USD;
 
 		const contacts = {
-			phone: isVIP ? '+919876543210' : null,
-			telegram: isVIP ? 'https://t.me/endurfi' : null,
+			call: isVIP ? 'https://cal.com/akira-unwrap-labs/elite-access-calendar' : null,
+			telegram: isVIP ? 'https://t.me/akirabuilds' : null,
 		}
 
     return NextResponse.json({
