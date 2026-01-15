@@ -61,7 +61,7 @@
     "react-snowfall": "^2.2.0",
     "recharts": "^2.15.1",
     "starknet": "8.5.2",
-    "starknetkit": "3.4.0",
+    "starknetkit": "3.3.0",
     "tailwind-merge": "^2.5.4",
     "tailwindcss-animate": "^1.0.7",
     "zod": "^3.23.8"

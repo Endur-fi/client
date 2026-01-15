@@ -8,7 +8,7 @@ import {
   isInBraavosMobileAppBrowser,
 } from "starknetkit/braavosMobile";
 import { WebWalletConnector } from "starknetkit/webwallet";
-import { ControllerConnector } from "starknetkit/controller";
+// import { ControllerConnector } from "starknetkit/controller";
 import { NETWORK } from "@/constants";
 
 export class WalletConnector {
@@ -71,7 +71,7 @@ export class WalletConnector {
       },
     });
 
-    const cartridgeConnector = new ControllerConnector();
+    // const cartridgeConnector = new ControllerConnector();
 
     // Mobile connectors
     const argentMobileConnector = ArgentMobileConnector.init({
@@ -121,7 +121,7 @@ export class WalletConnector {
       keplrConnector,
       xverseConnector,
       metamaskConnector,
-      cartridgeConnector,
+      // cartridgeConnector,
       fordefiConnector,
       okx,
       webWalletConnector,
