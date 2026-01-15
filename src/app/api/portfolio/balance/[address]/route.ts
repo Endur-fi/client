@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getPortfolioBalance, getNativeTokenBalances, getAllLstTokenBalances } from "@/lib/portfolio";
+import { getNativeTokenBalances, getAllLstTokenBalances } from "@/lib/portfolio";
 
 export async function GET(
   request: NextRequest,

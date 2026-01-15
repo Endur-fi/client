@@ -164,7 +164,7 @@ export async function GET(
 		const contacts = {
 			call: isVIP ? 'https://cal.com/akira-unwrap-labs/elite-access-calendar' : null,
 			telegram: isVIP ? 'https://t.me/akirabuilds' : null,
-		}
+		};
 
     return NextResponse.json({
       success: true,

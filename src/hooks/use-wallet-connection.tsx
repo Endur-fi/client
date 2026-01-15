@@ -1,9 +1,6 @@
 import { useConnect, useDisconnect } from "@starknet-react/core";
-import { connect, disconnect } from "starknetkit";
-
-import { useSidebar } from "@/components/ui/sidebar";
+import { connect, disconnect, StarknetkitConnector } from "starknetkit";
 import { NETWORK } from "@/constants";
-import { WalletConnector } from "@/services/wallet";
 
 export function useWalletConnection() {
   const { connectAsync, connectors } = useConnect();
@@ -29,7 +26,7 @@ export function useWalletConnection() {
           url: hostname,
         },
         dappName: "Endur.fi",
-        connectors: connectors,
+        connectors: connectors as StarknetkitConnector[],
       });
 
       if (result?.connector) {

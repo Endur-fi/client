@@ -1,5 +1,5 @@
 import { gql } from "@apollo/client";
-import { CallData, Contract, RpcProvider, CairoCustomEnum } from "starknet";
+import { Contract, RpcProvider, CairoCustomEnum } from "starknet";
 import { pointsApolloClient } from "@/lib/apollo-client";
 import { getProvider } from "@/constants";
 import erc4626Abi from "@/abi/erc4626.abi.json";
@@ -107,8 +107,8 @@ async function getPortfolioBalanceUncached(
       }
     `,
     variables: {
-      userAddress: userAddress,
-      lstToken: lstToken,
+      userAddress,
+      lstToken,
     },
     errorPolicy: 'all',
   });
