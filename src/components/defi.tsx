@@ -2,6 +2,7 @@
 
 import { useAtomValue } from "jotai";
 import React, { useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   HelpCircle,
   OctagonAlert,
@@ -591,7 +592,7 @@ interface FiltersProps {
   selectedAsset: AssetFilter;
   selectedProtocol: ProtocolFilter;
   showMoreFilters: boolean;
-  activeTab: "supply" | "borrow" | "contribute-liquidity";
+  activeTab: "earn" | "borrow" | "contribute-liquidity";
   showStablesOnly?: boolean;
   onAssetChange: (asset: AssetFilter) => void;
   onProtocolChange: (protocol: ProtocolFilter) => void;
@@ -659,7 +660,7 @@ const Filters: React.FC<FiltersProps> = ({
               );
             })}
           </div>
-          {activeTab === "supply" && (
+          {activeTab === "earn" && (
             <button
               onClick={onToggleMoreFilters}
               className="flex items-center gap-1 rounded-lg border border-[#0000000D] bg-[#F2F2F4CC] px-3 py-2 text-xs font-medium text-[#6B7780] shadow-sm"
@@ -841,10 +842,22 @@ const calculateBorrowPoolData = (
 
 const Defi: React.FC = () => {
   const { isPinned } = useSidebar();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const yields: any = useAtomValue(protocolYieldsAtom);
+  
+  // Get initial tab from URL query parameter, default to "borrow"
+  const tabParam = searchParams.get("tab");
+  const getInitialTab = (): "earn" | "borrow" | "contribute-liquidity" => {
+    if (tabParam === "earn") return "earn";
+    if (tabParam === "borrow") return "borrow";
+    if (tabParam === "contribute-liquidity") return "contribute-liquidity";
+    return "borrow"; // default
+  };
+  
   const [activeTab, setActiveTab] = useState<
-    "supply" | "borrow" | "contribute-liquidity"
-  >("borrow");
+    "earn" | "borrow" | "contribute-liquidity"
+  >(getInitialTab());
   const [selectedAsset, setSelectedAsset] = useState<AssetFilter>("all");
   const [selectedProtocol, setSelectedProtocol] =
     useState<ProtocolFilter>("all");
@@ -885,6 +898,29 @@ const Defi: React.FC = () => {
       clearTimeout(scrollTimer);
     };
   }, []);
+
+  // Update URL when tab changes (only if URL doesn't already match)
+  React.useEffect(() => {
+    const tabParam = searchParams.get("tab");
+    if (tabParam !== activeTab) {
+      const params = new URLSearchParams(searchParams.toString());
+      params.set("tab", activeTab);
+      router.replace(`/defi?${params.toString()}`, { scroll: false });
+    }
+  }, [activeTab, router, searchParams]);
+
+  // Sync tab state with URL parameter changes (only when URL changes externally)
+  React.useEffect(() => {
+    const tabParam = searchParams.get("tab");
+    const validTabs: Array<"earn" | "borrow" | "contribute-liquidity"> = ["earn", "borrow", "contribute-liquidity"];
+    
+    if (validTabs.includes(tabParam as any)) {
+      setActiveTab(tabParam as "earn" | "borrow" | "contribute-liquidity");
+    } else if (!tabParam) {
+      // If no tab param, default to "borrow" but only update URL if needed
+      setActiveTab("borrow");
+    }
+  }, [searchParams]); // Only depend on searchParams to avoid loops
 
   // Reset filters when switching tabs
   React.useEffect(() => {
@@ -1402,7 +1438,7 @@ const Defi: React.FC = () => {
   const getProtocolCapacity = (
     protocol: string,
     config: ProtocolConfig,
-    tab: "supply" | "borrow" | "contribute-liquidity",
+    tab: "earn" | "borrow" | "contribute-liquidity",
   ): { used: number; total: number | null } | undefined => {
     // Contributors tab - no capacity limits
     if (tab === "contribute-liquidity") {
@@ -1421,7 +1457,7 @@ const Defi: React.FC = () => {
       return undefined;
     }
 
-    // Supply tab
+    // Earn tab
     const protocolKey = protocol as SupportedDApp;
     if (
       protocolKey === "vesu" ||
@@ -1443,11 +1479,11 @@ const Defi: React.FC = () => {
   // Filter and sort protocols based on active tab and filters
   const filteredAndSortedProtocols = useMemo(() => {
     const currentProtocols =
-      activeTab === "supply"
+      activeTab === "earn"
         ? [...supplyProtocols, ...lendingProtocolKeys]
         : borrowProtocolKeys;
     const configsToUse: Record<string, ProtocolConfig> =
-      activeTab === "supply"
+      activeTab === "earn"
         ? ({ ...protocolConfigs, ...vesuLendingConfigs } as Record<
             string,
             ProtocolConfig
@@ -1567,7 +1603,7 @@ const Defi: React.FC = () => {
   const renderProtocols = (protocols: string[]) => {
     return protocols.map((protocol) => {
       const configsToUse: Record<string, ProtocolConfig> =
-        activeTab === "supply"
+        activeTab === "earn"
           ? (protocolConfigs as Record<string, ProtocolConfig>)
           : protocolConfigsWithBorrow;
       const config = configsToUse[protocol];
@@ -1719,7 +1755,7 @@ const Defi: React.FC = () => {
             value={activeTab}
             onValueChange={(value) =>
               setActiveTab(
-                value as "supply" | "borrow" | "contribute-liquidity",
+                value as "earn" | "borrow" | "contribute-liquidity",
               )
             }
             className="w-full"
@@ -1735,7 +1771,7 @@ const Defi: React.FC = () => {
               <div className="flex w-full flex-col gap-2 rounded-bl-[14px] rounded-br-[14px] bg-[#E8F7F4] pt-3 lg:flex-row lg:items-center lg:justify-between">
                 <TabsList className="flex h-auto w-full gap-0 rounded-[14px] border border-[#E5E8EB] bg-white p-1 lg:w-[450px]">
                   {[
-                    { value: "supply", label: "Earn" },
+                    { value: "earn", label: "Earn" },
                     { value: "borrow", label: "Borrow" },
                     {
                       value: "contribute-liquidity",
@@ -1787,7 +1823,7 @@ const Defi: React.FC = () => {
 
               {/* Filters Section */}
               <div className="w-full rounded-[14px]">
-                {(["supply", "borrow", "contribute-liquidity"] as const).map(
+                {(["earn", "borrow", "contribute-liquidity"] as const).map(
                   (tab) => (
                     <TabsContent
                       key={tab}
@@ -1864,9 +1900,9 @@ const Defi: React.FC = () => {
                 </TabsContent>
               </div>
 
-              {/* Supply: header row pinned as part of the sticky header section */}
+              {/* Earn: header row pinned as part of the sticky header section */}
               <div className="hidden lg:block">
-                <TabsContent value="supply" className="mt-2">
+                <TabsContent value="earn" className="mt-2">
                   <div className="grid grid-cols-4">
                     <div className="rounded-tl-[14px] bg-white px-6 py-2 text-left text-sm font-medium text-[#5B616D] shadow-sm">
                       Vault
@@ -1909,7 +1945,7 @@ const Defi: React.FC = () => {
             <div className="mt-2 w-full">
               {/* Desktop: Tables */}
               <div className="hidden lg:block">
-                <TabsContent value="supply" className="mt-0">
+                <TabsContent value="earn" className="mt-0">
                   <div className="w-full">
                     <table className="w-full table-fixed border-separate border-spacing-y-2 rounded-[14px]">
                       <tbody>
@@ -1935,11 +1971,11 @@ const Defi: React.FC = () => {
                             const secondaryToken = config.tokens[1];
                             const badgeType = config.badges[0]?.type || "";
 
-                            // Calculate capacity for supply tab
+                            // Calculate capacity for earn tab
                             const capacity = getProtocolCapacity(
                               protocol,
                               config,
-                              "supply",
+                              "earn",
                             );
 
                             // Capacity values from store are already in USD
@@ -2711,7 +2747,7 @@ const Defi: React.FC = () => {
 
               {/* Mobile: Cards */}
               <div className="lg:hidden">
-                <TabsContent value="supply" className="mt-0">
+                <TabsContent value="earn" className="mt-0">
                   <div className="grid grid-cols-1 gap-5">
                     {filteredAndSortedProtocols.length > 0 ? (
                       renderProtocols(filteredAndSortedProtocols)

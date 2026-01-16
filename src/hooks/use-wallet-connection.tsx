@@ -1,14 +1,10 @@
 import { useConnect, useDisconnect } from "@starknet-react/core";
-import { connect, disconnect } from "starknetkit";
-
-import { useSidebar } from "@/components/ui/sidebar";
+import { connect, disconnect, StarknetkitConnector } from "starknetkit";
 import { NETWORK } from "@/constants";
-import { WalletConnector } from "@/services/wallet";
 
 export function useWalletConnection() {
-  const { connectAsync } = useConnect();
+  const { connectAsync, connectors } = useConnect();
   const { disconnectAsync } = useDisconnect();
-  const { isMobile } = useSidebar();
 
   const connectWallet = async (modalMode: "canAsk" | "neverAsk" = "canAsk") => {
     try {
@@ -19,7 +15,6 @@ export function useWalletConnection() {
       }
 
       const hostname = window.location.hostname;
-      const walletConnector = new WalletConnector(isMobile);
 
       const result = await connect({
         modalMode,
@@ -31,7 +26,7 @@ export function useWalletConnection() {
           url: hostname,
         },
         dappName: "Endur.fi",
-        connectors: walletConnector.getConnectors(),
+        connectors: connectors as StarknetkitConnector[],
       });
 
       if (result?.connector) {

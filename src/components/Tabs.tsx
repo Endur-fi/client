@@ -45,6 +45,7 @@ import { lstConfigAtom } from "@/store/common.store";
 import { MyDottedTooltip } from "./my-tooltip";
 import { useSearchParams } from "next/navigation";
 import MyHeader from "./header";
+import VipCard from "./vip-card";
 
 const Tabs = () => {
   const router = useRouter();
@@ -580,6 +581,7 @@ const Tabs = () => {
               className={cn("flex w-full max-w-full flex-col gap-4 lg:hidden")}
             >
               <SeasonPointsCard />
+							<VipCard />
               <StakingRewardsInfo />
               <PortfolioSection />
               <FAQSection />
@@ -599,6 +601,7 @@ const Tabs = () => {
             </div>
 
             <SeasonPointsCard />
+						<VipCard />
             <PortfolioSection />
             <StakingRewardsInfo />
             {/* <FAQSection /> */}

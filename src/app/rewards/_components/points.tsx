@@ -109,7 +109,11 @@ function formatTimeUntilDrop(targetDate: Date): string {
   const days = Math.floor(diffInSeconds / 86400);
   const hours = Math.floor((diffInSeconds % 86400) / 3600);
   
-  return `${days} Day${days !== 1 ? "s" : ""}, ${hours} Hour${hours !== 1 ? "s" : ""}`;
+	if (days > 0) {
+		return `${days} Day${days !== 1 ? "s" : ""}, ${hours} Hour${hours !== 1 ? "s" : ""}`;
+	}
+	const minutes = Math.floor((diffInSeconds % 3600) / 60);
+	return `${hours} Hour${hours !== 1 ? "s" : ""}, ${minutes} Minute${minutes !== 1 ? "s" : ""}`;
 }
 
 /**
