@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useAtomValue } from "jotai";
 import { cn } from "@/lib/utils";
 import { Icons } from "./Icons";
@@ -9,7 +9,6 @@ import {
   Crown,
   MessageCircle,
   Phone,
-  Sparkles,
   LucideProps,
 } from "lucide-react";
 import { Button } from "./ui/button";
@@ -124,7 +123,7 @@ const VipModal = ({ isModalOpen, setIsModalOpen, vipStatus }: { isModalOpen: boo
           </div>
         </DialogContent>
       </Dialog>
-)
+);
 
 const VipCard = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
