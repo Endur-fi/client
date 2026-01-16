@@ -366,42 +366,47 @@ async function calculateLSTRate(
   }
 }
 
-/**
- * Get USD conversion rates for tokens (cached version)
- * Cache TTL: 3 minutes
- */
-export const getUSDConversionRates = cacheManager.createCachedFunction(
-  'usdConversionRates',
-  getUSDConversionRatesUncached,
-  3 * 60 * 1000 // 3 minutes
-);
+// /**
+//  * Get USD conversion rates for tokens (cached version)
+//  * Cache TTL: 3 minutes
+//  */
+// export const getUSDConversionRates = cacheManager.createCachedFunction(
+//   'usdConversionRates',
+//   getUSDConversionRatesUncached,
+//   3 * 60 * 1000 // 3 minutes
+// );
 
-/**
- * Fetches portfolio balance data for a given address and LST token (cached)
- * Cache TTL: 3 minutes
- */
-export const getPortfolioBalance = cacheManager.createCachedFunction(
-  'portfolioBalance',
-  getPortfolioBalanceUncached,
-  3 * 60 * 1000 // 3 minutes
-);
+// /**
+//  * Fetches portfolio balance data for a given address and LST token (cached)
+//  * Cache TTL: 3 minutes
+//  */
+// export const getPortfolioBalance = cacheManager.createCachedFunction(
+//   'portfolioBalance',
+//   getPortfolioBalanceUncached,
+//   3 * 60 * 1000 // 3 minutes
+// );
 
-/**
- * Fetches portfolio balance data for all LST tokens (cached)
- * Cache TTL: 3 minutes
- */
-export const getAllLstTokenBalances = cacheManager.createCachedFunction(
-  'allLstTokenBalances',
-  getAllLstTokenBalancesUncached,
-  3 * 60 * 1000 // 3 minutes
-);
+// /**
+//  * Fetches portfolio balance data for all LST tokens (cached)
+//  * Cache TTL: 3 minutes
+//  */
+// export const getAllLstTokenBalances = cacheManager.createCachedFunction(
+//   'allLstTokenBalances',
+//   getAllLstTokenBalancesUncached,
+//   3 * 60 * 1000 // 3 minutes
+// );
 
-/**
- * Fetches native token balances (cached)
- * Cache TTL: 3 minutes
- */
-export const getNativeTokenBalances = cacheManager.createCachedFunction(
-  'nativeTokenBalances',
-  getNativeTokenBalancesUncached,
-  3 * 60 * 1000 // 3 minutes
-);
+// /**
+//  * Fetches native token balances (cached)
+//  * Cache TTL: 3 minutes
+//  */
+// export const getNativeTokenBalances = cacheManager.createCachedFunction(
+//   'nativeTokenBalances',
+//   getNativeTokenBalancesUncached,
+//   3 * 60 * 1000 // 3 minutes
+// );
+
+export const getUSDConversionRates = getUSDConversionRatesUncached;
+export const getPortfolioBalance = getPortfolioBalanceUncached;
+export const getAllLstTokenBalances = getAllLstTokenBalancesUncached;
+export const getNativeTokenBalances = getNativeTokenBalancesUncached;
