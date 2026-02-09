@@ -1345,11 +1345,11 @@ const Defi: React.FC = () => {
   // Create dynamic protocol configs from Vesu borrow pools using generic atom
   const vesuBorrowConfigs = useMemo(() => {
     const configs: Record<string, ProtocolConfig> = {};
+		const vesuUrl = process.env.NEXT_PUBLIC_VESU_URL || "http://vesu.xyz/pro";
+		const vesuBorrowEndpoint = `${vesuUrl}/borrow`;
     vesuBorrowPools.forEach((pool, index) => {
       const key = `vesuBorrow_${pool.collateralSymbol}_${pool.debtSymbol}_${index}`;
       const isDebtUSDC = pool.debtSymbol === "USDC";
-			const vesuUrl = process.env.NEXT_PUBLIC_VESU_URL || "http://vesu.xyz/pro";
-			const vesuBorrowEndpoint = `${vesuUrl}/borrow`;
       configs[key] = {
         tokens: [
           {
