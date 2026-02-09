@@ -1,0 +1,27 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model PrivyWallet {
+  id               String   @id @default(uuid())
+  privyUserId      String   @unique
+  walletId         String   @unique
+  address          String
+  publicKey        String
+  isDeployed       Boolean  @default(false)
+  deploymentTxHash String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([privyUserId])
+  @@index([walletId])
+  @@map("privy_wallets")
+}
