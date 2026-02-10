@@ -171,7 +171,7 @@ export async function getAssetPrice(isSTRK: boolean = true): Promise<number> {
     nodeUrl:
       process.env.NEXT_PUBLIC_CHAIN_ID === "SN_MAIN"
         ? process.env.NEXT_PUBLIC_RPC_URL
-        : "https://api.zan.top/public/starknet-mainnet/rpc/v0_8",
+        : process.env.NEXT_PUBLIC_RPC_URL_MAINNET
   });
 
   if (!provider) return 0;
