@@ -22,9 +22,16 @@ const XTBTC_TOKEN_ADDRESS = "0x43a35c1425a0125ef8c171f1a75c6f31ef8648edcc8324b55
 // Pragma Oracle address
 const PRAGMA_ORACLE_ADDRESS = "0x02a85BD616F912537c50A49a4076db02c00b29b2cdc8a197Ce92ed1837fa875B";
 
+export interface PoolBreakdown {
+  poolId: string;
+  balance: string;
+  balanceInXstrk: string;
+}
+
 export interface PortfolioBalance {
   balance: string;
   balanceInXstrk: string;
+  breakdown?: PoolBreakdown[];
 }
 
 export interface NativeTokenBalances {
@@ -42,6 +49,7 @@ export interface PortfolioData {
   ekubo: PortfolioBalance;
   vesuCollateral: PortfolioBalance;
   vesuVtoken: PortfolioBalance;
+  vesuDebt: PortfolioBalance;
   trovesSensei: PortfolioBalance;
   trovesHyper: PortfolioBalance;
   trovesEkubo: PortfolioBalance;
@@ -77,10 +85,29 @@ async function getPortfolioBalanceUncached(
           vesuCollateral {
             balance
             balanceInXstrk
+						breakdown {
+              poolId
+              balance
+              balanceInXstrk
+            }
           }
           vesuVtoken {
             balance
             balanceInXstrk
+						breakdown {
+              poolId
+              balance
+              balanceInXstrk
+            }
+          }
+          vesuDebt {
+            balance
+            balanceInXstrk
+            breakdown {
+              poolId
+              balance
+              balanceInXstrk
+            }
           }
           trovesSensei {
             balance
@@ -141,6 +168,7 @@ async function getAllLstTokenBalancesUncached(
         ekubo: { balance: '0', balanceInXstrk: '0' },
         vesuCollateral: { balance: '0', balanceInXstrk: '0' },
         vesuVtoken: { balance: '0', balanceInXstrk: '0' },
+        vesuDebt: { balance: '0', balanceInXstrk: '0' },
         trovesSensei: { balance: '0', balanceInXstrk: '0' },
         trovesHyper: { balance: '0', balanceInXstrk: '0' },
         trovesEkubo: { balance: '0', balanceInXstrk: '0' },
