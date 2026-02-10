@@ -171,7 +171,7 @@ export async function getAssetPrice(isSTRK: boolean = true): Promise<number> {
     nodeUrl:
       process.env.NEXT_PUBLIC_CHAIN_ID === "SN_MAIN"
         ? process.env.NEXT_PUBLIC_RPC_URL
-        : process.env.NEXT_PUBLIC_RPC_URL_MAINNET
+        : process.env.NEXT_PUBLIC_RPC_URL_MAINNET,
   });
 
   if (!provider) return 0;
