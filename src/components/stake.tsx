@@ -6,7 +6,7 @@ import {
   useAccount,
   useBalance,
   useSendTransaction,
-} from "@starknet-react/core";
+} from "@easyleap/sdk";
 
 import { useAtomValue } from "jotai";
 import { AlertCircleIcon, ChevronDown, Info } from "lucide-react";
@@ -150,7 +150,7 @@ const Stake: React.FC = () => {
 
   const searchParams = useSearchParams();
 
-  const { address } = useAccount();
+  const { addressDestination: address } = useAccount();
   const { connectWallet } = useWalletConnection();
   const lstConfig = useAtomValue(lstConfigAtom)!;
   const [isLendingOpen, setIsLendingOpen] = React.useState(
@@ -158,8 +158,7 @@ const Stake: React.FC = () => {
     true,
   );
   const { data: balance } = useBalance({
-    address,
-    token: lstConfig.ASSET_ADDRESS as `0x${string}`,
+    l2TokenAddress: lstConfig.ASSET_ADDRESS as `0x${string}`,
   });
   const { data: assetPrice } = useAtomValue(assetPriceAtom);
 
@@ -192,7 +191,28 @@ const Stake: React.FC = () => {
     ? lstService.getLSTContract(lstConfig.LST_ADDRESS)
     : null;
 
-  const { sendAsync, data, isPending, error } = useSendTransaction({});
+  // Prepare bridge config for Easyleap SDK
+  const stakeAmountValue = form.watch("stakeAmount");
+  const stakeAmountBigInt = React.useMemo(() => {
+    try {
+      if (!stakeAmountValue || isNaN(Number(stakeAmountValue))) {
+        return BigInt(0);
+      }
+      const amount = MyNumber.fromEther(stakeAmountValue, lstConfig.DECIMALS);
+      return BigInt(amount.toString());
+    } catch {
+      return BigInt(0);
+    }
+  }, [stakeAmountValue, lstConfig.DECIMALS]);
+
+  const { sendAsync, data, isPending, error } = useSendTransaction({
+    bridgeConfig: {
+      l2_token_address: lstConfig.ASSET_ADDRESS as `0x${string}`,
+      userInputAmount: stakeAmountBigInt,
+      postFeeAmount: stakeAmountBigInt, // No fees for direct staking
+    },
+    calls: [],
+  });
 
   const { handleTransaction } = useTransactionHandler();
 
@@ -408,7 +428,29 @@ const Stake: React.FC = () => {
       }
     }
 
-    await sendAsync(calls);
+    // Prepare token transfer data for Easyleap SDK
+    const tokensIn = [
+      {
+        name: lstConfig.SYMBOL,
+        amount: values.stakeAmount,
+        logo: "", // Add appropriate logo if needed
+      },
+    ];
+
+    const tokensOut = [
+      {
+        name: lstConfig.LST_SYMBOL,
+        amount: getCalculatedLSTAmount(),
+        logo: "", // Add appropriate logo if needed
+      },
+    ];
+
+    const destinationDapp = {
+      name: "Endur",
+      logo: "", // Add appropriate logo if needed
+    };
+
+    await sendAsync(tokensIn, tokensOut, destinationDapp, calls);
   };
 
   const getPlatformYield = (platform: Platform) => {
@@ -508,12 +550,12 @@ const Stake: React.FC = () => {
     handleTransaction("STAKE", {
       form,
       address: address ?? "",
-      data: data ?? { transaction_hash: "" },
+      data: data ? { transaction_hash: data } : { transaction_hash: "" },
       error: error ?? { name: "" },
       isPending,
       setShowShareModal,
     });
-  }, [data?.transaction_hash, form, isPending]);
+  }, [data, form, isPending]);
 
   return (
     <div className="relative flex h-full w-full flex-col gap-6">

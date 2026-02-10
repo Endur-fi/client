@@ -1,8 +1,8 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 
-import { useAccount, useProvider } from "@starknet-react/core";
-import { ConnectButton } from "@easyleap/sdk";
+import { useAccount as useAccountStarknet, useProvider } from "@starknet-react/core";
+import { ConnectButton, useAccount } from "@easyleap/sdk";
 import { useAtom, useSetAtom } from "jotai";
 import React from "react";
 
@@ -23,7 +23,10 @@ const Navbar = ({ className }: { className?: string }) => {
   // init analytics
   MyAnalytics.init();
 
-  const { address, connector } = useAccount();
+  // Use Easyleap SDK for address (prioritizes Privy when available)
+  const { addressDestination } = useAccount();
+  // Keep standard Starknet hook for connector info
+  const { connector } = useAccountStarknet();
   const { provider } = useProvider();
 
   const { isMobile } = useSidebar();
@@ -34,10 +37,10 @@ const Navbar = ({ className }: { className?: string }) => {
 
   // set tracking person
   React.useEffect(() => {
-    if (address) {
-      MyAnalytics.setPerson(address);
+    if (addressDestination) {
+      MyAnalytics.setPerson(addressDestination);
     }
-  }, [address]);
+  }, [addressDestination]);
 
   React.useEffect(() => {
     if (connector) {
@@ -47,9 +50,9 @@ const Navbar = ({ className }: { className?: string }) => {
   }, [connector]);
 
   React.useEffect(() => {
-    setAddress(address);
+    setAddress(addressDestination);
     setProvider(getProvider());
-  }, [address, provider]);
+  }, [addressDestination, provider]);
 
   return (
     <div

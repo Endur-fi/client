@@ -2,7 +2,8 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useAccount, useSendTransaction } from "@starknet-react/core";
+import { useAccount, useSendTransaction } from "@easyleap/sdk";
+import { useAccount as useAccountStarknet } from "@starknet-react/core";
 import { useAtom, useAtomValue } from "jotai";
 import { Info } from "lucide-react";
 import React from "react";
@@ -315,7 +316,10 @@ const UnstakeOptionCard = ({
 const Unstake = () => {
   const [txnDapp, setTxnDapp] = React.useState<"endur" | "dex">("dex");
 
-  const { account, address } = useAccount();
+  // Use Easyleap SDK for address (works with both Privy and standard wallets)
+  const { addressDestination: address } = useAccount();
+  // Keep standard Starknet hook for account (needed for Avnu swap)
+  const { account } = useAccountStarknet();
   const { connectWallet } = useWalletConnection();
 
   const [avnuQuote, setAvnuQuote] = useAtom(avnuQuoteAtom);
@@ -346,7 +350,28 @@ const Unstake = () => {
     providerOrAccount: provider,
   });
 
-  const { sendAsync, data, isPending, error } = useSendTransaction({});
+  // Prepare bridge config for Easyleap SDK
+  const unstakeAmountValue = form.watch("unstakeAmount");
+  const unstakeAmountBigInt = React.useMemo(() => {
+    try {
+      if (!unstakeAmountValue || isNaN(Number(unstakeAmountValue))) {
+        return BigInt(0);
+      }
+      const amount = MyNumber.fromEther(unstakeAmountValue, lstConfig.DECIMALS);
+      return BigInt(amount.toString());
+    } catch {
+      return BigInt(0);
+    }
+  }, [unstakeAmountValue, lstConfig.DECIMALS]);
+
+  const { sendAsync, data, isPending, error } = useSendTransaction({
+    bridgeConfig: {
+      l2_token_address: lstConfig.LST_ADDRESS as `0x${string}`,
+      userInputAmount: unstakeAmountBigInt,
+      postFeeAmount: unstakeAmountBigInt, // No fees for unstaking
+    },
+    calls: [],
+  });
 
   const { handleTransaction } = useTransactionHandler();
 
@@ -400,11 +425,11 @@ const Unstake = () => {
     handleTransaction("UNSTAKE", {
       form,
       address: address ?? "",
-      data: data ?? { transaction_hash: "" },
+      data: data ? { transaction_hash: data } : { transaction_hash: "" },
       error: error ?? { name: "" },
       isPending,
     });
-  }, [data?.transaction_hash, form, isPending]);
+  }, [data, form, isPending]);
 
   React.useEffect(() => {
     const initializeAvnuQuote = async () => {
@@ -646,7 +671,29 @@ const Unstake = () => {
       address,
     ]);
 
-    sendAsync([call1]);
+    // Prepare token transfer data for Easyleap SDK
+    const tokensIn = [
+      {
+        name: lstConfig.LST_SYMBOL,
+        amount: values.unstakeAmount,
+        logo: "",
+      },
+    ];
+
+    const tokensOut = [
+      {
+        name: lstConfig.SYMBOL,
+        amount: youWillGet,
+        logo: "",
+      },
+    ];
+
+    const destinationDapp = {
+      name: "Endur",
+      logo: "",
+    };
+
+    await sendAsync(tokensIn, tokensOut, destinationDapp, [call1]);
   };
 
   return (
