@@ -6,7 +6,7 @@ import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import React from "react";
 
-import { cn } from "@/lib/utils";
+import { cn, getInternalUrl } from "@/lib/utils";
 
 import { LINKS } from "@/constants";
 import { ChartSplineIcon } from "./ui/chart-spline";
@@ -65,7 +65,7 @@ const MobileNav = () => {
   // Calculate Liquid Staking href based on current pathname and referrer
   const getLiquidStakingHref = () => {
     const basePath = pathname === "/btc" ? "/btc" : "/strk";
-    return referrer ? `${basePath}?referrer=${referrer}` : basePath;
+    return getInternalUrl(basePath, referrer);
   };
 
   React.useEffect(() => {
@@ -124,7 +124,7 @@ const MobileNav = () => {
               </div>
 
               <NavLink
-                href="/defi"
+                href={getInternalUrl("/defi", referrer)}
                 icon={<HandCoinsIcon className="-ml-0.5 size-5" />}
                 isActive={pathname === "/defi"}
               >
@@ -132,7 +132,7 @@ const MobileNav = () => {
               </NavLink>
 
               <NavLink
-                href="/rewards"
+                href={getInternalUrl("/rewards", referrer)}
                 icon={<ChartSplineIcon className="size-5" />}
                 isActive={pathname === "/rewards"}
               >

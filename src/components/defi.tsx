@@ -1014,6 +1014,8 @@ const Defi: React.FC = () => {
     // 1. Vesu supply pools from Re7 xSTRK and Re7 xBTC
     vesuContributorSupplyPools.forEach((pool) => {
       const tokenIcon = getTokenIcon(pool.assetSymbol);
+			const vesuUrl = process.env.NEXT_PUBLIC_VESU_URL || "http://vesu.xyz/pro";
+			const vesuEarnEndpoint = `${vesuUrl}/earn`;
       pools.push({
         id: `vesu-supply-${pool.poolId}-${pool.assetSymbol}`,
         tokens: [{ icon: tokenIcon, name: pool.assetSymbol }],
@@ -1039,7 +1041,7 @@ const Defi: React.FC = () => {
         },
         action: {
           type: "lend",
-          link: `http://vesu.xyz/earn/${pool.poolId}/${pool.assetAddress}`,
+          link: `${vesuEarnEndpoint}/${pool.poolId}/${pool.assetAddress}`,
           buttonText: "Supply",
           onClick: () => {
             MyAnalytics.track(eventNames.OPPORTUNITIES, {
@@ -1048,7 +1050,7 @@ const Defi: React.FC = () => {
             });
           },
         },
-        actionLink: `http://vesu.xyz/earn/${pool.poolId}/${pool.assetAddress}`,
+        actionLink: `${vesuEarnEndpoint}/${pool.poolId}/${pool.assetAddress}`,
         actionText: "Supply",
         actionOnClick: () => {
           MyAnalytics.track(eventNames.OPPORTUNITIES, {
@@ -1343,6 +1345,8 @@ const Defi: React.FC = () => {
   // Create dynamic protocol configs from Vesu borrow pools using generic atom
   const vesuBorrowConfigs = useMemo(() => {
     const configs: Record<string, ProtocolConfig> = {};
+		const vesuUrl = process.env.NEXT_PUBLIC_VESU_URL || "http://vesu.xyz/pro";
+		const vesuBorrowEndpoint = `${vesuUrl}/borrow`;
     vesuBorrowPools.forEach((pool, index) => {
       const key = `vesuBorrow_${pool.collateralSymbol}_${pool.debtSymbol}_${index}`;
       const isDebtUSDC = pool.debtSymbol === "USDC";
@@ -1375,7 +1379,7 @@ const Defi: React.FC = () => {
         externalPointsInfo: "+Vesu Points",
         action: {
           type: "borrow",
-          link: `https://vesu.xyz/borrow/${pool.poolId}/${pool.collateralAddress}/${pool.debtAddress}`,
+          link: `${vesuBorrowEndpoint}/${pool.poolId}/${pool.collateralAddress}/${pool.debtAddress}`,
           buttonText: "Borrow",
           onClick: () => {
             MyAnalytics.track(eventNames.OPPORTUNITIES, {

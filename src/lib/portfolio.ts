@@ -22,9 +22,16 @@ const XTBTC_TOKEN_ADDRESS = "0x43a35c1425a0125ef8c171f1a75c6f31ef8648edcc8324b55
 // Pragma Oracle address
 const PRAGMA_ORACLE_ADDRESS = "0x02a85BD616F912537c50A49a4076db02c00b29b2cdc8a197Ce92ed1837fa875B";
 
+export interface PoolBreakdown {
+  poolId: string;
+  balance: string;
+  balanceInXstrk: string;
+}
+
 export interface PortfolioBalance {
   balance: string;
   balanceInXstrk: string;
+  breakdown?: PoolBreakdown[];
 }
 
 export interface NativeTokenBalances {
@@ -42,6 +49,7 @@ export interface PortfolioData {
   ekubo: PortfolioBalance;
   vesuCollateral: PortfolioBalance;
   vesuVtoken: PortfolioBalance;
+  vesuDebt: PortfolioBalance;
   trovesSensei: PortfolioBalance;
   trovesHyper: PortfolioBalance;
   trovesEkubo: PortfolioBalance;
@@ -77,10 +85,29 @@ async function getPortfolioBalanceUncached(
           vesuCollateral {
             balance
             balanceInXstrk
+						breakdown {
+              poolId
+              balance
+              balanceInXstrk
+            }
           }
           vesuVtoken {
             balance
             balanceInXstrk
+						breakdown {
+              poolId
+              balance
+              balanceInXstrk
+            }
+          }
+          vesuDebt {
+            balance
+            balanceInXstrk
+            breakdown {
+              poolId
+              balance
+              balanceInXstrk
+            }
           }
           trovesSensei {
             balance
@@ -141,6 +168,7 @@ async function getAllLstTokenBalancesUncached(
         ekubo: { balance: '0', balanceInXstrk: '0' },
         vesuCollateral: { balance: '0', balanceInXstrk: '0' },
         vesuVtoken: { balance: '0', balanceInXstrk: '0' },
+        vesuDebt: { balance: '0', balanceInXstrk: '0' },
         trovesSensei: { balance: '0', balanceInXstrk: '0' },
         trovesHyper: { balance: '0', balanceInXstrk: '0' },
         trovesEkubo: { balance: '0', balanceInXstrk: '0' },
@@ -409,3 +437,288 @@ export const getUSDConversionRates = getUSDConversionRatesUncached;
 export const getPortfolioBalance = getPortfolioBalanceUncached;
 export const getAllLstTokenBalances = getAllLstTokenBalancesUncached;
 export const getNativeTokenBalances = getNativeTokenBalancesUncached;
+
+// Types for points response
+export interface RawAndXstrk {
+  raw: string;
+  inXstrk: string;
+}
+
+export interface VesuPoolBreakdown {
+  collateralPointsV1: RawAndXstrk;
+  collateralPointsV2: RawAndXstrk;
+  transferPoints: RawAndXstrk;
+}
+
+export interface ProtocolPoints {
+  totalPoints: {
+    raw: string;
+    inXstrk: string;
+  };
+  pointsBreakdown?: {
+    collateralPointsV1?: RawAndXstrk & { pools?: Record<string, RawAndXstrk> };
+    collateralPointsV2?: RawAndXstrk & { pools?: Record<string, RawAndXstrk> };
+    transferPoints?: RawAndXstrk & { pools?: Record<string, RawAndXstrk> };
+    senseiTotalPoints?: { raw: string; inXstrk: string };
+    hyperTotalPoints?: { raw: string; inXstrk: string };
+    ekuboTotalPoints?: { raw: string; inXstrk: string };
+    positionPoints?: { raw: string; inXstrk: string };
+  };
+}
+
+export interface VesuPoints extends RawAndXstrk {
+  breakdown: {
+    collateralV1: RawAndXstrk & { pools?: Record<string, RawAndXstrk> };
+    collateralV2: RawAndXstrk & { pools?: Record<string, RawAndXstrk> };
+    transfer: RawAndXstrk & { pools?: Record<string, RawAndXstrk> };
+  };
+}
+
+export interface TrovesPoints extends RawAndXstrk {
+  breakdown: {
+    sensei: RawAndXstrk;
+    hyper: RawAndXstrk;
+    ekubo: RawAndXstrk;
+  };
+}
+
+export interface AllProtocolPointsResponse {
+  blockNumber: number;
+  timestamp: number;
+  endur: ProtocolPoints;
+  ekubo: ProtocolPoints;
+  vesu: ProtocolPoints;
+  troves: ProtocolPoints;
+  nostra: ProtocolPoints;
+  opus: ProtocolPoints;
+}
+
+export interface AllLstPointsResponse {
+  blockNumber: number;
+  timestamp: number;
+  XSTRK: {
+    endur: RawAndXstrk;
+    ekubo: RawAndXstrk;
+    vesu: VesuPoints;
+    troves: TrovesPoints;
+    nostra: RawAndXstrk;
+    opus: RawAndXstrk;
+  };
+  XWBTC: {
+    endur: RawAndXstrk;
+    ekubo: RawAndXstrk;
+    vesu: VesuPoints;
+    troves: TrovesPoints;
+    nostra: RawAndXstrk;
+    opus: RawAndXstrk;
+  };
+  XLBTC: {
+    endur: RawAndXstrk;
+    ekubo: RawAndXstrk;
+    vesu: VesuPoints;
+    troves: TrovesPoints;
+    nostra: RawAndXstrk;
+    opus: RawAndXstrk;
+  };
+  XSBTC: {
+    endur: RawAndXstrk;
+    ekubo: RawAndXstrk;
+    vesu: VesuPoints;
+    troves: TrovesPoints;
+    nostra: RawAndXstrk;
+    opus: RawAndXstrk;
+  };
+  XTBTC: {
+    endur: RawAndXstrk;
+    ekubo: RawAndXstrk;
+    vesu: VesuPoints;
+    troves: TrovesPoints;
+    nostra: RawAndXstrk;
+    opus: RawAndXstrk;
+  };
+}
+
+/**
+ * Get points for all LST tokens at a given block number
+ * @param blockNumber - Block number to get points for, or "latest" for the latest snapshot
+ * @returns Points for all LST tokens organized by token
+ */
+export async function getAllLstPoints(
+  blockNumber: number | 'latest'
+): Promise<AllLstPointsResponse> {
+  const lstTokens = ['XSTRK', 'XWBTC', 'XLBTC', 'XSBTC', 'XTBTC'];
+
+  // Convert "latest" to null for GraphQL query
+  const graphqlBlockNumber = blockNumber === 'latest' ? null : blockNumber;
+
+  // Fetch points for all LST tokens in parallel
+  const pointsPromises = lstTokens.map(async (lstToken) => {
+    const { data, error } = await pointsApolloClient.query<{
+      getPoints: AllProtocolPointsResponse;
+    }>({
+      query: gql`
+        query GetPoints($blockNumber: Int, $lstToken: String!) {
+          getPoints(blockNumber: $blockNumber, lstToken: $lstToken) {
+            blockNumber
+            timestamp
+            endur {
+              totalPoints {
+                raw
+                inXstrk
+              }
+            }
+            ekubo {
+              totalPoints {
+                raw
+                inXstrk
+              }
+            }
+            vesu {
+              totalPoints {
+                raw
+                inXstrk
+              }
+              pointsBreakdown {
+                collateralPointsV1 {
+                  raw
+                  inXstrk
+                  pools
+                }
+                collateralPointsV2 {
+                  raw
+                  inXstrk
+                  pools
+                }
+                transferPoints {
+                  raw
+                  inXstrk
+                  pools
+                }
+              }
+            }
+            troves {
+              totalPoints {
+                raw
+                inXstrk
+              }
+              pointsBreakdown {
+                senseiTotalPoints {
+                  raw
+                  inXstrk
+                }
+                hyperTotalPoints {
+                  raw
+                  inXstrk
+                }
+                ekuboTotalPoints {
+                  raw
+                  inXstrk
+                }
+              }
+            }
+            nostra {
+              totalPoints {
+                raw
+                inXstrk
+              }
+            }
+            opus {
+              totalPoints {
+                raw
+                inXstrk
+              }
+            }
+          }
+        }
+      `,
+      variables: {
+        blockNumber: graphqlBlockNumber,
+        lstToken,
+      },
+      fetchPolicy: 'network-only',
+    });
+
+    if (error) {
+      throw new Error(`Failed to fetch points for ${lstToken}: ${error.message}`);
+    }
+
+    if (!data?.getPoints) {
+      throw new Error(`No data returned for ${lstToken}`);
+    }
+
+    return {
+      lstToken,
+      points: data.getPoints,
+    };
+  });
+
+  const results = await Promise.all(pointsPromises);
+
+  // Use the first result's blockNumber and timestamp (they should all be the same)
+  const { blockNumber: resultBlockNumber, timestamp } = results[0].points;
+
+  // Organize results by LST token in the requested output shape
+  const byToken: Record<
+    string,
+    {
+      endur: RawAndXstrk;
+      ekubo: RawAndXstrk;
+      vesu: VesuPoints;
+      troves: TrovesPoints;
+      nostra: RawAndXstrk;
+      opus: RawAndXstrk;
+    }
+  > = {};
+
+  results.forEach(({ lstToken, points }) => {
+    // Build vesu with breakdown
+    const vesuBreakdown = points.vesu.pointsBreakdown;
+    const vesuPoints: VesuPoints = {
+      ...points.vesu.totalPoints,
+      breakdown: {
+        collateralV1:
+          (vesuBreakdown?.collateralPointsV1 as RawAndXstrk & {
+            pools?: Record<string, RawAndXstrk>;
+          }) || { raw: '0', inXstrk: '0' },
+        collateralV2:
+          (vesuBreakdown?.collateralPointsV2 as RawAndXstrk & {
+            pools?: Record<string, RawAndXstrk>;
+          }) || { raw: '0', inXstrk: '0' },
+        transfer:
+          (vesuBreakdown?.transferPoints as RawAndXstrk & {
+            pools?: Record<string, RawAndXstrk>;
+          }) || { raw: '0', inXstrk: '0' },
+      },
+    };
+
+    // Build troves with breakdown
+    const trovesBreakdown = points.troves.pointsBreakdown;
+    const trovesPoints: TrovesPoints = {
+      ...points.troves.totalPoints,
+      breakdown: {
+        sensei: trovesBreakdown?.senseiTotalPoints || { raw: '0', inXstrk: '0' },
+        hyper: trovesBreakdown?.hyperTotalPoints || { raw: '0', inXstrk: '0' },
+        ekubo: trovesBreakdown?.ekuboTotalPoints || { raw: '0', inXstrk: '0' },
+      },
+    };
+
+    byToken[lstToken] = {
+      endur: points.endur.totalPoints,
+      ekubo: points.ekubo.totalPoints,
+      vesu: vesuPoints,
+      troves: trovesPoints,
+      nostra: points.nostra.totalPoints,
+      opus: points.opus.totalPoints,
+    };
+  });
+
+  return {
+    blockNumber: resultBlockNumber,
+    timestamp,
+    XSTRK: byToken.XSTRK,
+    XWBTC: byToken.XWBTC,
+    XLBTC: byToken.XLBTC,
+    XSBTC: byToken.XSBTC,
+    XTBTC: byToken.XTBTC,
+  };
+}

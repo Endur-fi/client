@@ -15,7 +15,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { IS_PAUSED, getLSTAssetsByCategory, getSTRKAsset } from "@/constants";
-import { cn, formatNumberWithCommas } from "@/lib/utils";
+import { cn, formatNumberWithCommas, getInternalUrl } from "@/lib/utils";
 import {
   isMerryChristmasAtom,
   tabsAtom,
@@ -199,12 +199,14 @@ const Tabs = () => {
 
     setActiveTab(tab);
 
+    const referrer = searchParams.get("referrer");
+
     if (tab === "btc") {
-      router.push(referrer ? `/btc?referrer=${referrer}` : "/btc", {
+      router.push(getInternalUrl("/btc", referrer), {
         scroll: false,
       });
     } else if (tab === "strk") {
-      router.push(referrer ? `/strk?referrer=${referrer}` : "/strk", {
+      router.push(getInternalUrl("/strk", referrer), {
         scroll: false,
       });
     }

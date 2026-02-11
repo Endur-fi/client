@@ -158,6 +158,21 @@ export function getReferralUrl(referralCode: string) {
   return `${window.location.origin}/r/${referralCode}`;
 }
 
+/**
+ * Creates an internal URL with referrer query parameter if referrer is provided.
+ * Used for preserving referrer across internal navigation.
+ * @param path - The internal path (e.g., "/defi", "/rewards", "/strk")
+ * @param referrer - The referrer value from search params (can be null)
+ * @returns The path with referrer query param if referrer exists, otherwise just the path
+ */
+export function getInternalUrl(path: string, referrer: string | null): string {
+  if (!referrer) {
+    return path;
+  }
+  const separator = path.includes("?") ? "&" : "?";
+  return `${path}${separator}referrer=${referrer}`;
+}
+
 export function convertFutureTimestamp(unixTimestamp: number): string {
   const currentTime = Date.now();
   const futureTime = (unixTimestamp + 24 * 60 * 60) * 1000; // Add 24 hours (86400 seconds) and convert to milliseconds
