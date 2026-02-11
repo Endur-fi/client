@@ -1,6 +1,6 @@
 import { type BlockIdentifier, Contract, type RpcProvider } from "starknet";
 
-import ERC_4626_ABI from "@/abi/erc4626.abi.json";
+import LST_ABI from "@/abi/lst.abi.json";
 import NOSTRA_STRK_ABI from "@/abi/nostra.strk.abi.json";
 import {
   getProvider,
@@ -27,7 +27,7 @@ class LSTService {
       throw new Error("LST address is required");
     }
     return new Contract({
-      abi: ERC_4626_ABI,
+      abi: LST_ABI,
       address: lstAddress,
       providerOrAccount: this.provider,
     });

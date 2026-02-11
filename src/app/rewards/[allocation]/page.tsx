@@ -1,18 +1,21 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import React from "react";
+import { getInternalUrl } from "@/lib/utils";
 
 function Allocation() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const referrer = searchParams.get("referrer");
 
   React.useEffect(() => {
     const timer = setTimeout(() => {
-      router.replace("/rewards");
+      router.replace(getInternalUrl("/rewards", referrer));
     }, 4000);
 
     return () => clearTimeout(timer);
-  }, [router]);
+  }, [router, referrer]);
 
   return <div>Redirecting to leaderboard...</div>;
 }

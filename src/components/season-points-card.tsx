@@ -2,14 +2,18 @@
 
 import React from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { Icons } from "./Icons";
-import { cn } from "@/lib/utils";
+import { cn, getInternalUrl } from "@/lib/utils";
 
 interface SeasonPointsCardProps {
   className?: string;
 }
 
 const SeasonPointsCard: React.FC<SeasonPointsCardProps> = ({ className }) => {
+  const searchParams = useSearchParams();
+  const referrer = searchParams.get("referrer");
+
   return (
     <div
       className={cn(
@@ -30,7 +34,7 @@ const SeasonPointsCard: React.FC<SeasonPointsCardProps> = ({ className }) => {
       </div>
       <div className="mt-3 flex w-full justify-center">
         <Link
-          href="/rewards"
+          href={getInternalUrl("/rewards", referrer)}
           className="w-full rounded-md bg-[#FFFFFF33] px-4 py-2 text-center text-xs font-medium text-white transition-all hover:bg-[#6BA89A]"
         >
           Learn More

@@ -352,13 +352,28 @@ const Stake: React.FC = () => {
       underlyingTokenAmount,
     ]);
 
-    const call2 = referrer
-      ? contract?.populate("deposit_with_referral", [
+    const getDepositCall = (referrer: string | null) => {
+      if (!referrer) {
+        return contract?.populate("deposit", [underlyingTokenAmount, address]);
+      }
+
+      if (referrer.length > 10) {
+        // validator address
+        return contract?.populate("deposit_to_validator", [
           underlyingTokenAmount,
           address,
           referrer,
-        ])
-      : contract?.populate("deposit", [underlyingTokenAmount, address]);
+        ]);
+      }
+
+      return contract?.populate("deposit_with_referral", [
+        underlyingTokenAmount,
+        address,
+        referrer,
+      ]);
+    };
+
+    const call2 = getDepositCall(referrer);
 
     const calls: Call[] = [call1];
     if (call2) {

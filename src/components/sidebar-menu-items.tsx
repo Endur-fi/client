@@ -5,7 +5,7 @@ import { usePathname, useSearchParams } from "next/navigation";
 import React from "react";
 
 import { LINKS } from "@/constants";
-import { cn } from "@/lib/utils";
+import { cn, getInternalUrl } from "@/lib/utils";
 
 import { ChartColumnDecreasingIcon } from "./ui/chart-column-decreasing";
 import { ChartSplineIcon } from "./ui/chart-spline";
@@ -62,12 +62,8 @@ const SidebarMenuItems = () => {
           <Link
             href={
               pathname === "/btc"
-                ? referrer
-                  ? `/btc?referrer=${referrer}`
-                  : "/btc"
-                : referrer
-                  ? `/strk?referrer=${referrer}`
-                  : "/strk"
+                ? getInternalUrl("/btc", referrer)
+                : getInternalUrl("/strk", referrer)
             }
             className="flex cursor-pointer flex-row items-center gap-2 text-nowrap rounded-[12px] text-base font-semibold text-[#03624C] transition-all"
           >
@@ -96,7 +92,7 @@ const SidebarMenuItems = () => {
           }
         >
           <Link
-            href={referrer ? `/defi?referrer=${referrer}` : "/defi"}
+            href={getInternalUrl("/defi", referrer)}
             className={cn(
               "group/defi flex cursor-pointer flex-row items-center gap-2 text-nowrap text-base font-semibold text-[#03624C] transition-all",
               pathname === "/defi" ? "rounded-[6px]" : "rounded-[12px]",
@@ -156,7 +152,7 @@ const SidebarMenuItems = () => {
           }
         >
           <Link
-            href="/rewards"
+            href={getInternalUrl("/rewards", referrer)}
             className="flex cursor-pointer flex-row items-center gap-2 text-nowrap rounded-[12px] text-base font-semibold text-[#03624C] transition-all"
           >
             <ChartSplineIcon
