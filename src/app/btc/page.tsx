@@ -4,14 +4,13 @@ import { Metadata } from "next";
 import Tabs from "@/components/Tabs";
 
 export const metadata: Metadata = {
-  title: "Starknet BTC liquid staking | Endur.fi",
+  title: "Stake Bitcoin & Earn BTC Yield - Endur App",
   description:
-    "Stake BTC on Endur and get liquid tokens like xWBTC, xtBTC, xLBTC, xsBTC, etc. — earn rewards, enjoy instant liquidity, and faster unstaking in DeFi.",
+    "Stake Bitcoin through Endur’s liquid staking app and earn BTC yield while keeping liquidity. Access BTC LSTs on Starknet in one click.",
   openGraph: {
-    title:
-      "Starknet Liquid BTC Staking (xWBTC, xLBTC, xsBTC, xtBTC) | Endur.fi",
+    title: "Stake Bitcoin & Earn BTC Yield - Endur App",
     description:
-      "Stake BTC on Endur and get liquid tokens like xWBTC, xtBTC, xLBTC, xsBTC, etc. — earn rewards, enjoy instant liquidity, and faster unstaking.",
+      "Stake Bitcoin through Endur’s liquid staking app and earn BTC yield while keeping liquidity. Access BTC LSTs on Starknet in one click.",
     images: [
       {
         url: "https://app.endur.fi/og.png",

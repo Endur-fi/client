@@ -14,9 +14,9 @@ import Navbar from "@/components/navbar";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Endur.fi | Starknet Liquid Staking (xSTRK & xyBTCs) | Earn STRK & BTC Rewards",
+  title: "Bitcoin Liquid Staking | Bitcoin Staking on Starknet | Endur",
   description:
-    "Stake STRK & BTC with Endur and receive xSTRK & xyBTCs - the liquid staking tokens on Starknet. Earn rewards while accessing DeFi with instant liquidity, higher rewards and faster unstaking",
+    "Earn BTC yield with Bitcoin liquid staking on Starknet. Stake Bitcoin, stay liquid, and access BTC LSTs through Endur’s secure staking protocol.",
   keywords: [
     "liquid staking starknet",
     "liquid staking",
@@ -36,9 +36,9 @@ export const metadata: Metadata = {
   ],
   robots: "index,follow",
   openGraph: {
-    title: "Starknet Liquid Staking (xSTRK & xyBTCs) | Endur.fi",
+    title: "Bitcoin Liquid Staking | Bitcoin Staking on Starknet | Endur",
     description:
-      "Stake STRK & BTC with Endur and receive xSTRK & xyBTCs - the liquid staking tokens on Starknet. Earn rewards while accessing DeFi with instant liquidity, higher rewards and faster unstaking",
+      "Earn BTC yield with Bitcoin liquid staking on Starknet. Stake Bitcoin, stay liquid, and access BTC LSTs through Endur’s secure staking protocol.",
     images: [
       {
         url: "https://app.endur.fi/og.png",
