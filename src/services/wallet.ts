@@ -118,7 +118,8 @@ export class WalletConnector {
       return [
         argentMobileConnector,
         braavosMobileConnector,
-        webWalletConnector
+        cartridgeConnector,
+        webWalletConnector,
       ];
     }
 
