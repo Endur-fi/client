@@ -8,8 +8,18 @@ import {
   isInBraavosMobileAppBrowser,
 } from "starknetkit/braavosMobile";
 import { WebWalletConnector } from "starknetkit/webwallet";
-// import { ControllerConnector } from "starknetkit/controller";
+import { ControllerConnector } from "starknetkit/controller";
+import { constants } from "starknet";
 import { NETWORK } from "@/constants";
+
+// Cartridge Controller connector created at module level (outside React) so it
+// is not recreated on every render, which would cause connection issues per Cartridge/StarknetKit docs.
+const cartridgeConnector = new ControllerConnector({
+  defaultChainId:
+    NETWORK === constants.NetworkName.SN_MAIN
+      ? constants.StarknetChainId.SN_MAIN
+      : constants.StarknetChainId.SN_SEPOLIA,
+});
 
 export class WalletConnector {
   private isMobile: boolean;
@@ -71,8 +81,6 @@ export class WalletConnector {
       },
     });
 
-    // const cartridgeConnector = new ControllerConnector();
-
     // Mobile connectors
     const argentMobileConnector = ArgentMobileConnector.init({
       options: {
@@ -110,7 +118,7 @@ export class WalletConnector {
       return [
         argentMobileConnector,
         braavosMobileConnector,
-        webWalletConnector,
+        webWalletConnector
       ];
     }
 
@@ -118,10 +126,10 @@ export class WalletConnector {
     return [
       argentXConnector,
       braavosConnector,
+      cartridgeConnector,
       keplrConnector,
       xverseConnector,
       metamaskConnector,
-      // cartridgeConnector,
       fordefiConnector,
       okx,
       webWalletConnector,
