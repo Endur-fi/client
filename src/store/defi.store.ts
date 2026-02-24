@@ -997,7 +997,7 @@ const vesuPoolsRawQueryAtom = atomWithQuery(() => ({
   queryFn: async (): Promise<VesuPoolsAPIResponse> => {
     try {
       const response = await fetch(
-        "https://proxy.api.troves.fi/vesu-staging/pools",
+        "https://proxy.api.troves.fi/vesu/pools",
       );
       const data: VesuPoolsAPIResponse = await response.json();
       return data;
