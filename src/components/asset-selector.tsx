@@ -278,7 +278,7 @@ const AssetSelector: React.FC<AssetSelectorProps> = ({
     setIsOpen(false);
   };
 
-  const selectedAssetData = btcAssets.find(
+  const _selectedAssetData = btcAssets.find(
     (asset: any) => asset.SYMBOL === selectedAsset,
   );
   const SelectedIcon = ASSET_ICONS[selectedAsset];

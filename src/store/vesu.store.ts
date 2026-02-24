@@ -177,7 +177,7 @@ export const uservXSTRKBalanceAtom: DAppHoldingsAtom = atomFamily(
   (blockNumber?: number) =>
     atom((get) => {
       const { data, error } = get(uservXSTRKBalanceQueryAtom(blockNumber));
-      const { data: data2, error: error2 } = get(
+      const { data: data2, error: _error2 } = get(
         userVesuxSTRKCollateralAtom(blockNumber),
       );
 

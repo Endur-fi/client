@@ -51,13 +51,13 @@ const Tabs = () => {
   const router = useRouter();
   const pathname = usePathname();
 
-  const [lstConfig, setLSTConfig] = useAtom(lstConfigAtom);
+  const [_lstConfig, setLSTConfig] = useAtom(lstConfigAtom);
   const searchParams = useSearchParams();
 
   const [activeTab, setActiveTab] = useAtom(tabsAtom);
   const [activeSubTab, setActiveSubTab] = useAtom(activeSubTabAtom);
   const [waitlistEmail, setWaitlistEmail] = React.useState("");
-  const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [_isSubmitting, setIsSubmitting] = React.useState(false);
   const apy = useAtomValue(snAPYAtom);
   const strkTVL = useAtomValue(strkTVLAtom);
   const btcTVL = useAtomValue(btcTVLAtom);
@@ -79,13 +79,13 @@ const Tabs = () => {
     return `$${value.toFixed(2)}`;
   };
 
-  const isMerry = useAtomValue(isMerryChristmasAtom);
+  const _isMerry = useAtomValue(isMerryChristmasAtom);
   const { address } = useAccount();
 
-  const { isPinned } = useSidebar();
-  const { connectWallet } = useWalletConnection();
+  const { isPinned: _isPinned } = useSidebar();
+  const { connectWallet: _connectWallet } = useWalletConnection();
 
-  const referrer = searchParams.get("referrer");
+  const _referrer = searchParams.get("referrer");
   const tabParam = searchParams.get("tab");
 
   React.useEffect(() => {
@@ -167,7 +167,7 @@ const Tabs = () => {
     }
   }, [activeTab, pathname, setLSTConfig]);
 
-  function getMessage() {
+  function _getMessage() {
     if (activeSubTab === "unstake") {
       return (
         <p>
@@ -218,7 +218,7 @@ const Tabs = () => {
     setActiveSubTab(subTab);
   };
 
-  const handleWaitlistSubmit = async (e: React.FormEvent) => {
+  const _handleWaitlistSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!address) {

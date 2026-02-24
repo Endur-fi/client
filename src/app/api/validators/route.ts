@@ -40,7 +40,7 @@ export async function GET(_req: Request) {
 
   // ! update this hardcoded logic too
   return NextResponse.json(
-    process.env.NEXT_PUBLIC_CHAIN_ID == "SN_SEPOLIA"
+    process.env.NEXT_PUBLIC_CHAIN_ID === "SN_SEPOLIA"
       ? validators
       : validators.slice(0, 1),
   );

@@ -53,6 +53,7 @@ const ChartSplineIcon: React.FC<CustomIconProps> = ({
     } else {
       handleHoverEnd();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [triggerAnimation]);
 
   return (
