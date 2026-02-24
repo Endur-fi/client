@@ -33,7 +33,7 @@ import Rewards from "./_components/rewards";
 import Points from "./_components/points";
 import Leaderboard from "./_components/leaderboard";
 
-const PAGINATION_LIMIT = 100;
+const _PAGINATION_LIMIT = 100;
 
 interface Top100UsersSeason1Response {
   getTop100UsersSeason1: {
@@ -611,9 +611,9 @@ const RewardsPage: React.FC = () => {
   const { isPinned } = useSidebar();
   const { address } = useAccount();
   const { connectWallet: _connectWallet } = useWalletConnection();
-  const [activeSeason, setActiveSeason] = React.useState<"season1" | "season2">(
-    "season1",
-  );
+  const [_activeSeason, _setActiveSeason] = React.useState<
+    "season1" | "season2"
+  >("season1");
 	const [activeTab, setActiveTab] = React.useState<"your-points" | "leaderboard" | "rewards">("your-points");
 
   const {
@@ -660,7 +660,7 @@ const RewardsPage: React.FC = () => {
       score: currentUserInfo.points,
     };
     return [currentUserData, ...allUsers];
-  }, [address, allUsers, currentUserInfo.points, currentUserInfo]);
+  }, [address, allUsers, currentUserInfo]);
 
 	const season2LeaderboardData = React.useMemo(() => {
 		if (!address || season2Top100Users.length === 0) return season2Top100Users;

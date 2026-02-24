@@ -148,6 +148,7 @@ export function Chart({
     }, 10);
 
     return () => clearInterval(interval); // Cleanup on unmount
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- offset is intentionally excluded to avoid re-running animation
   }, []);
 
   return (
@@ -309,7 +310,7 @@ export function Chart({
           </AreaChart>
           {/* </AreaChart> */}
         </ChartContainer>
-        {(!address || filteredData.length == 0) && (
+        {(!address || filteredData.length === 0) && (
           <div className="absolute inset-0 flex items-center justify-center bg-white/80 backdrop-blur-sm">
             {!address && (
               <div className="gap-2 p-[10px] text-center">
@@ -320,7 +321,7 @@ export function Chart({
                 </p>
               </div>
             )}
-            {address && filteredData.length == 0 && !error && (
+            {address && filteredData.length === 0 && !error && (
               <div className="my-5 flex w-full items-center justify-center gap-2 p-[10px] text-center">
                 Computing your wallet xSTRK holding history{" "}
                 <Loader className="size-4 animate-spin text-black" />

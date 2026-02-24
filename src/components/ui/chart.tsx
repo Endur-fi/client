@@ -4,7 +4,7 @@ import * as React from "react";
 import * as RechartsPrimitive from "recharts";
 
 import { chartConfig } from "@/app/portfolio/_components/defi-holding";
-import { cn, formatNumberWithCommas } from "@/lib/utils";
+import { cn, formatBalance } from "@/lib/utils";
 import { type SupportedDApp } from "@/store/defi.store";
 
 // Format: { THEME_NAME: CSS_SELECTOR }
@@ -130,13 +130,13 @@ const ChartTooltipContent = React.forwardRef<
       className,
       indicator = "dot",
       hideLabel = false,
-      hideIndicator = false,
+      hideIndicator: _hideIndicator = false,
       label,
       labelFormatter,
       labelClassName,
       formatter,
-      color,
-      nameKey,
+      color: _color,
+      nameKey: _nameKey,
       labelKey,
     },
     ref,
@@ -248,13 +248,15 @@ const ChartTooltipContent = React.forwardRef<
                       {item.value && (
                         <span className="font-mono font-medium tabular-nums text-foreground">
                           {item.payload.holdings
-                            ? formatNumberWithCommas(
-                                Number(item.payload.holdings).toFixed(2),
+                            ? formatBalance(
+                                Number(item.payload.holdings),
+                                2,
                               )
-                            : formatNumberWithCommas(
+                            : formatBalance(
                                 Number(
                                   item.payload[item.name as string],
-                                ).toFixed(2),
+                                ),
+                                2,
                               )}{" "}
                           xSTRK
                         </span>
@@ -287,14 +289,14 @@ const ChartLegendContent = React.forwardRef<
     {
       className,
       innerClassName,
-      hideIcon = false,
+      hideIcon: _hideIcon = false,
       payload,
       verticalAlign = "bottom",
-      nameKey,
+      nameKey: _nameKey,
     },
     ref,
   ) => {
-    const { config } = useChart();
+    const { config: _config } = useChart();
 
     if (!payload?.length) {
       return null;
@@ -337,7 +339,7 @@ const ChartLegendContent = React.forwardRef<
 
               {item.payload?.value && (
                 <p>
-                  {formatNumberWithCommas(item.payload?.value.toFixed(2))} xSTRK
+                  {formatBalance(item.payload?.value ?? 0, 2)} xSTRK
                 </p>
               )}
             </div>

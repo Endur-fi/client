@@ -385,7 +385,7 @@ const createVesuLendingConfigsFromPools = (
 };
 
 // Legacy function for backward compatibility
-const createVesuLendingConfig = (
+const _createVesuLendingConfig = (
   token: { icon: React.ReactNode; name: string },
   protocolKey: string,
 ): ProtocolConfig => ({
@@ -575,7 +575,7 @@ const supplyProtocols: SupportedDApp[] = [
   // "avnuBTCxsBTC",
 ];
 
-const borrowProtocols: SupportedDApp[] = [
+const _borrowProtocols: SupportedDApp[] = [
   // Add borrow-specific protocols here when available
 ];
 
@@ -1200,8 +1200,8 @@ const Defi: React.FC = () => {
   const [hyperxSTRKVaultCapacity] = useAtom(hyperxSTRKVaultCapacityAtom);
 
   // Price atoms for USD conversion
-  const { data: strkPrice } = useAtomValue(assetPriceAtom);
-  const btcPrice = useAtomValue(btcPriceAtom);
+  const { data: _strkPrice } = useAtomValue(assetPriceAtom);
+  const _btcPrice = useAtomValue(btcPriceAtom);
 
   // Mapping objects for protocol-to-atom relationships
   const protocolYieldMap = useMemo(
@@ -1331,6 +1331,7 @@ const Defi: React.FC = () => {
 
       return true;
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     contributorPools,
     selectedAsset,
@@ -1553,6 +1554,7 @@ const Defi: React.FC = () => {
         }
         return yieldB - yieldA;
       });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     activeTab,
     selectedAsset,
@@ -1960,7 +1962,7 @@ const Defi: React.FC = () => {
                             const config = configsToUse[protocol];
                             if (!config) return null;
 
-                            const shouldShowApy = !noApyProtocols.has(protocol);
+                            const _shouldShowApy = !noApyProtocols.has(protocol);
 
                             const yieldData = getYieldDataForProtocol(
                               protocol as SupportedDApp,
@@ -2116,7 +2118,7 @@ const Defi: React.FC = () => {
                                           >
                                             <div className="flex w-fit items-center gap-1 rounded-lg border border-[#059669] bg-[#D1FAE5] px-2 py-1 text-sm font-semibold text-[#059669]">
                                               <Sparkles className="size-3.5" />
-                                              {config.pointsMultiplier.min ==
+                                              {config.pointsMultiplier.min ===
                                               config.pointsMultiplier.max
                                                 ? `${config.pointsMultiplier.min}x`
                                                 : `${config.pointsMultiplier.min}x - ${config.pointsMultiplier.max}x`}
@@ -2256,9 +2258,9 @@ const Defi: React.FC = () => {
                                 capacityUsed,
                                 supplyApy,
                                 borrowApr,
-                                debtPrice,
-                                debtCap,
-                                totalSupplied,
+                                debtPrice: _debtPrice,
+                                debtCap: _debtCap,
+                                totalSupplied: _totalSupplied,
                               } = calculateBorrowPoolData(
                                 config,
                                 vesuBorrowPools,
@@ -2449,7 +2451,7 @@ const Defi: React.FC = () => {
                                             >
                                               <div className="flex w-fit items-center gap-1 rounded-lg border border-[#059669] bg-[#D1FAE5] px-2 py-1 text-sm font-semibold text-[#059669]">
                                                 <Sparkles className="size-3.5" />
-                                                {config.pointsMultiplier.min ==
+                                                {config.pointsMultiplier.min ===
                                                 config.pointsMultiplier.max
                                                   ? `${config.pointsMultiplier.min}x`
                                                   : `${config.pointsMultiplier.min}x - ${config.pointsMultiplier.max}x`}
@@ -2668,7 +2670,7 @@ const Defi: React.FC = () => {
                                         >
                                           <div className="flex w-fit items-center gap-1 rounded-lg border border-[#059669] bg-[#D1FAE5] px-2 py-1 text-sm font-semibold text-[#059669]">
                                             <Sparkles className="size-3.5" />
-                                            {pool.pointsMultiplier.min ==
+                                            {pool.pointsMultiplier.min ===
                                             pool.pointsMultiplier.max
                                               ? `${pool.pointsMultiplier.min}x`
                                               : `${pool.pointsMultiplier.min}x - ${pool.pointsMultiplier.max}x`}
