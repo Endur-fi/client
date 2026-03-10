@@ -7,8 +7,9 @@ import {
   StarknetConfig,
 } from "@starknet-react/core";
 import { Figtree } from "next/font/google";
-import React from "react";
+import React, { type PropsWithChildren } from "react";
 import { BlockTag, constants, RpcProviderOptions } from "starknet";
+import { PrivyProvider as Privy } from "@privy-io/react-auth";
 
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { NETWORK } from "@/constants";
@@ -52,10 +53,30 @@ const Providers: React.FC<ProvidersProps> = ({ children }) => {
       connectors={walletConnector.getConnectors() as Connector[]}
     >
       <SidebarProvider className={cn(font.className, "w-full")}>
-        {children}
+        <PrivyProvider>{children}</PrivyProvider>
       </SidebarProvider>
     </StarknetConfig>
   );
 };
+
+function PrivyProvider({ children }: PropsWithChildren) {
+  const appId = process.env.NEXT_PUBLIC_PRIVY_APP_ID;
+
+  return appId ? (
+    <Privy
+      appId={appId}
+      config={{
+        loginMethods: ["google", "email"],
+        appearance: {
+          walletList: ["detected_wallets"],
+        },
+      }}
+    >
+      {children}
+    </Privy>
+  ) : (
+    children
+  );
+}
 
 export default Providers;
