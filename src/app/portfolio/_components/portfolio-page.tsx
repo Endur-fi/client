@@ -112,7 +112,6 @@ const PortfolioPage: React.FC = () => {
       if (!address) return;
 
       try {
-        console.log("fetching holdings");
         setHoldings([]);
         setIsFetchError(false);
         setErrorMessage(null);
@@ -173,7 +172,6 @@ const PortfolioPage: React.FC = () => {
           }
 
           const holdings: HoldingInfo[] = blocks.map((block, idx) => {
-            console.log("holdings", nostraLending, nostraLending.length, idx);
             return {
               date: block.date,
               nostraLending: serialisedMyNumberToNumber(

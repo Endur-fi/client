@@ -39,7 +39,7 @@ export const assetPriceAtom = atomWithQuery((get) => {
       }
     },
     refetchInterval: 60000,
-    staleTime: 0,
+    staleTime: 30000,
   };
 });
 
