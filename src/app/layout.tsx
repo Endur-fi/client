@@ -129,7 +129,7 @@ export default function RootLayout({
 
           <Toaster />
 
-          {/* <script
+          <script
             dangerouslySetInnerHTML={{
               __html: `
                   var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
@@ -143,7 +143,7 @@ export default function RootLayout({
                   })();
               `,
             }}
-          /> */}
+          />
         </Providers>
       </body>
     </html>
