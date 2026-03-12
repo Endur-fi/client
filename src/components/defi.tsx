@@ -867,6 +867,7 @@ const Defi: React.FC = () => {
   const [isScrolling, setIsScrolling] = useState(false);
 
   // Track scroll state for shadow visibility
+  const isScrollingRef = React.useRef(false);
   React.useEffect(() => {
     let scrollTimer: ReturnType<typeof setTimeout>;
     let lastScrollTop = 0;
@@ -875,16 +876,16 @@ const Defi: React.FC = () => {
       const currentScrollTop =
         window.pageYOffset || document.documentElement.scrollTop;
 
-      // Show shadow when scrolling
-      if (currentScrollTop > 0 && currentScrollTop !== lastScrollTop) {
+      // Only update state if scrolling status changes
+      if (currentScrollTop > 0 && currentScrollTop !== lastScrollTop && !isScrollingRef.current) {
+        isScrollingRef.current = true;
         setIsScrolling(true);
       }
 
-      // Clear any existing timer
       clearTimeout(scrollTimer);
 
-      // Hide shadow after scrolling stops
       scrollTimer = setTimeout(() => {
+        isScrollingRef.current = false;
         setIsScrolling(false);
       }, 150);
 

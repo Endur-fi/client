@@ -62,8 +62,6 @@ const Tabs = () => {
   const strkTVL = useAtomValue(strkTVLAtom);
   const btcTVL = useAtomValue(btcTVLAtom);
 
-  console.log("Apy", apy.value);
-
   // Format TVL for display
   const formatTVL = (value: number): string => {
     if (value === 0) return "$0";
@@ -89,8 +87,6 @@ const Tabs = () => {
   const tabParam = searchParams.get("tab");
 
   React.useEffect(() => {
-    console.log("Pathname Effect - pathname:", pathname);
-
     if (pathname === "/btc") {
       setActiveTab("btc");
     } else if (pathname === "/strk") {
@@ -120,30 +116,22 @@ const Tabs = () => {
       setLSTConfig(getSTRKAsset());
     } else {
       const btcAssets = getLSTAssetsByCategory("BTC");
-      console.log(
-        "Available BTC assets:",
-        btcAssets.map((asset) => asset.SYMBOL),
-      );
 
       // Check for specific BTC token routes
       if (pathname === "/lbtc") {
         const lbtcAsset = btcAssets.find((asset) => asset.SYMBOL === "LBTC");
-        console.log("Looking for LBTC asset:", lbtcAsset);
         if (lbtcAsset) {
-          console.log("Setting LST config to LBTC:", lbtcAsset);
           setLSTConfig(lbtcAsset);
           return;
         }
       } else if (pathname === "/wbtc") {
         const wbtcAsset = btcAssets.find((asset) => asset.SYMBOL === "WBTC");
-        console.log("Looking for WBTC asset:", wbtcAsset);
         if (wbtcAsset) {
           setLSTConfig(wbtcAsset);
           return;
         }
       } else if (pathname === "/tbtc") {
         const tbtcAsset = btcAssets.find((asset) => asset.SYMBOL === "tBTC");
-        console.log("Looking for tBTC asset:", tbtcAsset);
         if (tbtcAsset) {
           setLSTConfig(tbtcAsset);
           return;
@@ -152,7 +140,6 @@ const Tabs = () => {
         const solvbtcAsset = btcAssets.find(
           (asset) => asset.SYMBOL === "solvBTC",
         );
-        console.log("Looking for solvBTC asset:", solvbtcAsset);
         if (solvbtcAsset) {
           setLSTConfig(solvbtcAsset);
           return;
@@ -160,7 +147,6 @@ const Tabs = () => {
       }
 
       const firstBTCAsset = btcAssets[0];
-      console.log("Using default BTC asset:", firstBTCAsset);
       if (firstBTCAsset) {
         setLSTConfig(firstBTCAsset);
       }

@@ -142,12 +142,20 @@ export function Chart({
   const [offset, setOffset] = React.useState(150);
 
   React.useEffect(() => {
-    const interval = setInterval(() => {
-      const newOffset = offset - 1;
-      setOffset(newOffset <= 5 ? 150 : newOffset);
-    }, 10);
+    let rafId: number;
+    let lastTime = 0;
+    const FRAME_INTERVAL = 50; // ~20fps, enough for a smooth gradient animation
 
-    return () => clearInterval(interval); // Cleanup on unmount
+    const animate = (timestamp: number) => {
+      if (timestamp - lastTime >= FRAME_INTERVAL) {
+        lastTime = timestamp;
+        setOffset((prev) => (prev - 1 <= 5 ? 150 : prev - 1));
+      }
+      rafId = requestAnimationFrame(animate);
+    };
+
+    rafId = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(rafId);
   }, []);
 
   return (
