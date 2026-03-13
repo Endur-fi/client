@@ -15,11 +15,15 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { getExplorerEndpoint } from "@/constants";
-import { cn, convertFutureTimestamp } from "@/lib/utils";
+import { cn, convertFutureTimestamp, formatBalance } from "@/lib/utils";
 
 // Custom component for amount cell that can use hooks
-const AmountCell: React.FC<{ amount: string }> = ({ amount }) => {
-  return <>{amount}</>;
+const AmountCell: React.FC<{ amount: string; asset?: string }> = ({
+  amount,
+  asset,
+}) => {
+  const decimals = asset?.toLowerCase().includes("btc") ? 8 : 2;
+  return <>{formatBalance(amount, decimals)}</>;
 };
 
 export type Status = "Success" | "Pending";
@@ -59,7 +63,7 @@ export const withdrawLogColumn: ColumnDef<WithdrawLogColumn>[] = [
     },
     cell: ({ row }) => {
       const requestId = row.original.queuePosition;
-      const rank = row.original.rank;
+      const _rank = row.original.rank;
       const status = row.original.status;
 
       return (
@@ -118,7 +122,8 @@ export const withdrawLogColumn: ColumnDef<WithdrawLogColumn>[] = [
     },
     cell: ({ row }) => {
       const amount = row.original.amount;
-      return <AmountCell amount={amount} />;
+      const asset = row.original.asset;
+      return <AmountCell amount={amount} asset={asset} />;
     },
     sortingFn: (rowA, rowB, _columnId) => {
       return Number(rowA.original.amount) - Number(rowB.original.amount);

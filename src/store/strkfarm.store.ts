@@ -48,7 +48,7 @@ export const getXSTRKSenseiHoldings: DAppHoldingsFn = async ({
       lstAmount: new MyNumber(holdings.deposit2.toString(), STRK_DECIMALS),
       underlyingTokenAmount: MyNumber.fromZero(STRK_DECIMALS),
     };
-  } catch (error) {
+  } catch {
     return {
       lstAmount: MyNumber.fromZero(STRK_DECIMALS),
       underlyingTokenAmount: MyNumber.fromZero(STRK_DECIMALS),

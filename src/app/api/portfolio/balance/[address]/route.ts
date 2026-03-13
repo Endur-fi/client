@@ -8,7 +8,7 @@ export async function GET(
   try {
     const { address } = params;
     const searchParams = request.nextUrl.searchParams;
-    const lstToken = searchParams.get('lstToken') || 'XSTRK';
+    const _lstToken = searchParams.get('lstToken') || 'XSTRK';
 
     // Validate address
     if (!address) {

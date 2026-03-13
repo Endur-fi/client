@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import { NOSTRA_IXSTRK, STRK_TOKEN } from "@/constants";
 import { toast, useToast } from "@/hooks/use-toast";
-import { cn, formatNumberWithCommas } from "@/lib/utils";
+import { cn, formatBalance } from "@/lib/utils";
 import { lstConfigAtom, providerAtom } from "@/store/common.store";
 import {
   apiExchangeRateAtom,
@@ -78,6 +78,7 @@ const MigrateNostra = () => {
       .operate("multipliedBy", MyNumber.fromEther("1", 18).toString())
       .operate("div", exchangeRate.preciseRate.toString());
     return amount.subtract(MyNumber.fromEther("0.001", 18));
+      // eslint-disable-next-line react-hooks/exhaustive-deps -- nstStrkBalance, youWillStakeFull are stable
   }, [youWillStake, exchangeRate]);
 
   useEffect(() => {
@@ -87,6 +88,7 @@ const MigrateNostra = () => {
       exchangeRate.rate,
       exchangeRate.preciseRate.toString(),
     );
+      // eslint-disable-next-line react-hooks/exhaustive-deps -- exchangeRate is from atom
   }, [xSTRKAmount]);
 
   useEffect(() => {
@@ -97,7 +99,8 @@ const MigrateNostra = () => {
         nstStrkBalance: nstStrkBalance.toEtherStr(),
       });
     }
-  });
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- run once on mount
+  }, []);
 
   const handleMigrateToEndur = async () => {
     if (!address) {
@@ -248,6 +251,7 @@ const MigrateNostra = () => {
         }
       }
     })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data, data?.transaction_hash, error?.name, isPending]);
 
   return (
@@ -293,7 +297,7 @@ const MigrateNostra = () => {
         <div className="mt-2 flex items-center justify-between rounded-md bg-[#E8F3F0] px-3 py-3.5 text-[#17876D]">
           <span>Current staked STRK on Nostra</span>
           <span>
-            {formatNumberWithCommas(nstStrkBalance.toEtherToFixedDecimals(4))}{" "}
+            {formatBalance(nstStrkBalance.toEtherToFixedDecimals(4), 4)}{" "}
             STRK
           </span>
         </div>
@@ -303,12 +307,12 @@ const MigrateNostra = () => {
           <div className="mt-1 flex flex-col rounded-md bg-[#E8F3F0] px-3 py-3.5 text-[#17876D]">
             <div className="flex items-center justify-between">
               <span>You will stake</span>
-              <span>{formatNumberWithCommas(youWillStake)} STRK</span>
+              <span>{formatBalance(youWillStake, 4)} STRK</span>
             </div>
 
             <div className="mt-2 flex items-center justify-between">
               <span>xSTRK minted</span>
-              <span>{xSTRKAmount.toEtherToFixedDecimals(2)} xSTRK</span>
+              <span>{formatBalance(xSTRKAmount.toEtherToFixedDecimals(2), 2)} xSTRK</span>
             </div>
             <div className="mt-2 flex items-center justify-between">
               <span>

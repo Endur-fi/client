@@ -14,7 +14,7 @@ import {
   TooltipTrigger,
 } from "./ui/tooltip";
 import { getLSTAssetsByCategory, getSTRKAsset } from "@/constants";
-import { cn, formatNumberWithCommas } from "@/lib/utils";
+import { cn, formatBalance, formatNumberWithCommas } from "@/lib/utils";
 import { lstStatsQueryAtom } from "@/store/lst.store";
 import { btcPriceAtom, strkPriceAtom } from "@/store/staking.store";
 import MyNumber from "@/lib/MyNumber";
@@ -224,7 +224,8 @@ const PortfolioSection: React.FC = () => {
     };
 
     fetchSeason1Points();
-  }, [address, pointsApolloClient]);
+      // eslint-disable-next-line react-hooks/exhaustive-deps -- pointsApolloClient is stable
+  }, [address]);
 
   // Season 2 is 0 for now
   React.useEffect(() => {
@@ -259,7 +260,8 @@ const PortfolioSection: React.FC = () => {
     };
 
 		fetchSeason2Points();
-  }, [address, pointsApolloClient]);
+      // eslint-disable-next-line react-hooks/exhaustive-deps -- pointsApolloClient is stable
+  }, [address]);
 
   return (
     <div
@@ -291,10 +293,10 @@ const PortfolioSection: React.FC = () => {
               <div className="flex w-full flex-col gap-0.5">
                 <div className="flex w-full items-center justify-between">
                   <span className="text-left text-sm text-[#1A1F24]">
-                    {formatNumberWithCommas(strkHoldings.lstAmount, 2)} xSTRK
+                    {formatBalance(strkHoldings.lstAmount, 2)} xSTRK
                   </span>
                   <span className="text-sm font-semibold text-[#1A1F24]">
-                    {formatNumberWithCommas(strkHoldings.underlyingSTRK, 2)}{" "}
+                    {formatBalance(strkHoldings.underlyingSTRK, 2)}{" "}
                     STRK
                   </span>
                 </div>
@@ -315,11 +317,11 @@ const PortfolioSection: React.FC = () => {
                 {/* <span className="text-left text-sm text-[#1A1F24]">BTC</span> */}
                 <div className="flex w-full items-center justify-between">
                   <span className="text-left text-sm text-[#1A1F24]">
-                    {formatNumberWithCommas(btcHoldings.totalLSTAmount, 6)}{" "}
+                    {formatBalance(btcHoldings.totalLSTAmount, 6)}{" "}
                     xyBTC
                   </span>
                   <span className="text-sm font-semibold text-[#1A1F24]">
-                    {formatNumberWithCommas(btcHoldings.totalUnderlyingBTC, 6)}{" "}
+                    {formatBalance(btcHoldings.totalUnderlyingBTC, 6)}{" "}
                     BTC
                   </span>
                 </div>
@@ -340,7 +342,7 @@ const PortfolioSection: React.FC = () => {
                     <div className="flex items-center gap-1">
                       {getBTCLSTIcon(holding.asset.LST_SYMBOL)}
                       <span className="text-[#1A1F24]">
-                        {formatNumberWithCommas(holding.lstAmount, 6)}{" "}
+                        {formatBalance(holding.lstAmount, 6)}{" "}
                         {holding.asset.LST_SYMBOL}
                       </span>
                     </div>
@@ -349,7 +351,7 @@ const PortfolioSection: React.FC = () => {
                     </span>
                   </div>
                   <span className="text-right text-[#6B7780]">
-                    {formatNumberWithCommas(holding.underlyingBTC, 6)}{" "}
+                    {formatBalance(holding.underlyingBTC, 6)}{" "}
                     {holding.asset.SYMBOL}
                   </span>
                 </div>

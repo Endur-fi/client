@@ -64,6 +64,69 @@ export function formatNumber(
   return `${numberValue.toFixed(decimals ?? 0)}`;
 }
 
+/** Unicode subscript digits ₀₁₂₃₄₅₆₇₈₉ */
+const SUBSCRIPT_DIGITS = "₀₁₂₃₄₅₆₇₈₉";
+
+function toSubscriptDigits(n: number): string {
+  return n
+    .toString()
+    .split("")
+    .map((d) => SUBSCRIPT_DIGITS[parseInt(d, 10)])
+    .join("");
+}
+
+/**
+ * Returns true if a balance value should use subscript leading-zero notation.
+ * Use when: value < 1 AND there are more than 3 zeros after the decimal point.
+ * Example: 0.0000076 → 0.0₅76
+ */
+export function shouldUseSubscriptLeadingZeroNotation(
+  value: number | string,
+): boolean {
+  const numberValue = typeof value === "string" ? parseFloat(value) : value;
+  if (isNaN(numberValue) || !isFinite(numberValue) || numberValue >= 1) {
+    return false;
+  }
+  // Use toFixed to handle scientific notation (e.g. 1e-7)
+  const str = numberValue.toFixed(20).replace(/0+$/, "");
+  if (!str.includes(".")) return false;
+  const decimalPart = str.split(".")[1] ?? "";
+  const leadingZeros = decimalPart.match(/^0*/)?.[0]?.length ?? 0;
+  return leadingZeros > 3;
+}
+
+export function formatBalance(
+  value: number | string,
+  decimals?: number,
+): string {
+  const numberValue = typeof value === "string" ? parseFloat(value) : value;
+
+  if (isNaN(numberValue)) {
+    return "0";
+  }
+
+  // Zero values: always use 2 decimals to avoid 0.0000000
+  if (numberValue === 0) {
+    return formatNumberWithCommas(value, 2);
+  }
+
+  if (!shouldUseSubscriptLeadingZeroNotation(numberValue)) {
+    return formatNumberWithCommas(value, decimals);
+  }
+
+  // Apply subscript notation: 0.0000076 → 0.0₅76
+  const fixed = numberValue.toFixed(decimals ?? 8);
+  const [, decimalPart] = fixed.split(".");
+  if (!decimalPart) return fixed;
+
+  const leadingZerosMatch = decimalPart.match(/^(0+)/);
+  const leadingZeros = leadingZerosMatch?.[1]?.length ?? 0;
+  const significantPart =
+    decimalPart.slice(leadingZeros).replace(/0+$/, "") || "0";
+
+  return `0.0${toSubscriptDigits(leadingZeros)}${significantPart}`;
+}
+
 export function formatNumberWithCommas(
   value: number | string,
   decimals?: number,

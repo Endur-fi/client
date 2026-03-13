@@ -58,7 +58,7 @@ import { useTransactionHandler } from "@/hooks/use-transactions";
 import { useWalletConnection } from "@/hooks/use-wallet-connection";
 import { MyAnalytics } from "@/lib/analytics";
 import MyNumber from "@/lib/MyNumber";
-import { cn, eventNames, formatNumberWithCommas } from "@/lib/utils";
+import { cn, eventNames, formatBalance } from "@/lib/utils";
 import LSTService from "@/services/lst";
 import { lstConfigAtom, assetPriceAtom } from "@/store/common.store";
 import { protocolYieldsAtom, type SupportedDApp } from "@/store/defi.store";
@@ -450,7 +450,7 @@ const Stake: React.FC = () => {
     return sortPlatforms(allPlatforms, yields);
   }, [yields]);
 
-  const hasPositiveYields = React.useMemo(() => {
+  const _hasPositiveYields = React.useMemo(() => {
     return sortedPlatforms.some((platform) => {
       const config = getPlatformConfig(platform);
       if (!config) return false;
@@ -652,7 +652,7 @@ const Stake: React.FC = () => {
                 </span>
                 <span className="text-xs text-[#1A1F24]">
                   {balance?.formatted
-                    ? Number(balance?.formatted).toFixed(isBTC ? 8 : 2)
+                    ? formatBalance(Number(balance.formatted), isBTC ? 8 : 2)
                     : "0"}{" "}
                   {lstConfig.SYMBOL}
                 </span>
@@ -859,7 +859,7 @@ const Stake: React.FC = () => {
           </p>
           <div className="flex flex-col">
             <span className="text-xs">
-              {formatNumberWithCommas(getCalculatedLSTAmount(), isBTC ? 8 : 2)}{" "}
+              {formatBalance(getCalculatedLSTAmount(), isBTC ? 8 : 2)}{" "}
               {lstConfig.LST_SYMBOL}
             </span>
             {assetPrice && exchangeRate.rate && (

@@ -40,6 +40,7 @@ const ChartScatterIcon = () => {
     return () => {
       controls.stop();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (

@@ -3,7 +3,7 @@
 import { atom, useAtomValue } from "jotai";
 import React from "react";
 
-import { formatNumberWithCommas } from "@/lib/utils";
+import { formatBalance } from "@/lib/utils";
 import { userEkuboxSTRKPositions } from "@/store/ekubo.store";
 import { apiExchangeRateAtom, userLSTBalanceAtom } from "@/store/lst.store";
 import { userLSTNostraBalance } from "@/store/nostra.store";
@@ -55,7 +55,7 @@ const Stats: React.FC = () => {
       console.error("Error in getting xSTRK total USD value", error);
       return "";
     }
-  }, [exchangeRate.rate, totalXSTRK]);
+  }, [exchangeRate.rate, strkPrice.data, totalXSTRK]);
 
   return (
     <div className="flex h-fit w-full items-center justify-between rounded-xl border border-[#AACBC4]/30 bg-white p-5 font-poppins shadow-sm lg:px-8">
@@ -65,7 +65,7 @@ const Stats: React.FC = () => {
             Total staked STRK
           </span>
           <p className="flex items-end gap-2 text-xl font-semibold leading-[1] text-black">
-            {formatNumberWithCommas(totalXSTRK.toFixed(2))}
+            {formatBalance(totalXSTRK.toFixed(2), 2)}
             <span className="text-sm font-normal leading-[1.2] text-muted-foreground/80">
               {totalUSD}
             </span>
@@ -77,8 +77,9 @@ const Stats: React.FC = () => {
             xSTRK in Wallet
           </span>
           <p className="flex items-end gap-4 text-xl font-semibold leading-[1] text-black">
-            {formatNumberWithCommas(
+            {formatBalance(
               currentLSTBalance.value.toEtherToFixedDecimals(2),
+              2,
             )}
           </p>
         </div>
@@ -90,11 +91,12 @@ const Stats: React.FC = () => {
             xSTRK in DApps
           </span>
           <p className="flex items-end gap-4 text-xl font-semibold leading-[1] text-black">
-            {formatNumberWithCommas(
+            {formatBalance(
               (
                 totalXSTRK -
                 Number(currentLSTBalance.value.toEtherToFixedDecimals(2))
               ).toFixed(2),
+              2,
             )}
           </p>
         </div>

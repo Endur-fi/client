@@ -187,7 +187,7 @@ const convertVesuValue = (value: string, decimals: number): number => {
 };
 
 // TODO: remove if not needed
-const findEndurPair = (pairs: EkuboPair[]): EkuboPair | undefined => {
+const _findEndurPair = (pairs: EkuboPair[]): EkuboPair | undefined => {
   return pairs.find(
     (pair) =>
       (pair.token0.symbol === "xSTRK" && pair.token1.symbol === "STRK") ||
@@ -549,7 +549,7 @@ const nostraLendYieldQueryAtom = atomWithQuery(() => ({
 const strkFarmYieldQueryAtom = atomWithQuery(() => ({
   queryKey: ["strkFarmYield"],
   queryFn: async (): Promise<ProtocolYield> => {
-    const hostname = window.location.origin;
+    const _hostname = window.location.origin;
     const res = await fetch(`https://app.troves.fi/api/strategies`);
     const data = await res.json();
     const strategies = data.strategies;
@@ -571,7 +571,7 @@ const strkFarmEkuboYieldQueryAtom = atomWithQuery((get) => ({
   queryKey: ["strkFarmEkuboYield", get(assetPriceAtom)],
   queryFn: async (): Promise<ProtocolYield> => {
     //TODO: move the api call logic to api.ts under "defi calls" comment
-    const hostname = window.location.origin;
+    const _hostname = window.location.origin;
     const res = await fetch(`https://app.troves.fi/api/strategies`);
     const data = await res.json();
     const strategies = data.strategies;
@@ -1021,7 +1021,7 @@ const normalizeAddress = (addr: string): string => {
 export const vesuPoolsFilteredAtom = atom((get) => {
   const { data } = get(vesuPoolsRawQueryAtom);
   if (!data) {
-    return (filter: VesuPoolFilter = {}): VesuBorrowPool[] => [];
+    return (_filter: VesuPoolFilter = {}): VesuBorrowPool[] => [];
   }
 
   return (filter: VesuPoolFilter = {}): VesuBorrowPool[] => {
@@ -1367,7 +1367,7 @@ async function fetchVaultCapacity(
 
     // Fetch total_assets and max_deposit
     // For max_deposit, we need a receiver address, but we can use zero address
-    const zeroAddress =
+    const _zeroAddress =
       "0x0000000000000000000000000000000000000000000000000000000000000000";
 
     const [totalAssetsResult, maxDepositResult] = await Promise.all([
@@ -1547,7 +1547,7 @@ export function getHoldingAtom(uniqueKey: string, queryFn: DAppHoldingsFn) {
     return atomWithQuery((get) => {
       return {
         queryKey: [uniqueKey, blockNumber, get(userAddressAtom)],
-        queryFn: async ({ queryKey }: any): Promise<DAppHoldings> => {
+        queryFn: async ({ queryKey: _queryKey }: any): Promise<DAppHoldings> => {
           const userAddress = get(userAddressAtom);
           const lstConfig = get(lstConfigAtom);
 

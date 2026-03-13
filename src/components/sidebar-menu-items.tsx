@@ -24,7 +24,7 @@ const SidebarMenuItems = () => {
     React.useState(false);
   const [triggerDashboardIconAnimation, setTriggerDashboardIconAnimation] =
     React.useState(false);
-  const [triggerPortfolioIconAnimation, setTriggerPortfolioIconAnimation] =
+  const [_triggerPortfolioIconAnimation, _setTriggerPortfolioIconAnimation] =
     React.useState(false);
   const [triggerLeaderboardIconAnimation, setTriggerLeaderboardIconAnimation] =
     React.useState(false);
@@ -117,10 +117,10 @@ const SidebarMenuItems = () => {
               pathname === "/portfolio",
           })}
           onMouseEnter={() =>
-            pathname !== "/portfolio" && setTriggerPortfolioIconAnimation(true)
+            pathname !== "/portfolio" && _setTriggerPortfolioIconAnimation(true)
           }
           onMouseLeave={() =>
-            pathname !== "/portfolio" && setTriggerPortfolioIconAnimation(false)
+            pathname !== "/portfolio" && _setTriggerPortfolioIconAnimation(false)
           }
         >
           <Link
@@ -128,7 +128,7 @@ const SidebarMenuItems = () => {
             className="flex cursor-pointer flex-row items-center gap-2 text-nowrap rounded-[12px] text-base font-semibold text-[#03624C] transition-all"
           >
             <UserIcon
-              triggerAnimation={triggerPortfolioIconAnimation}
+              triggerAnimation={_triggerPortfolioIconAnimation}
               className="-ml-0.5 size-5"
             />
             {open && "Portfolio"}
