@@ -12,6 +12,8 @@ import { cn } from "@/lib/utils";
 import { UserCompleteDetailsApiResponse } from "./check-eligibility";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircleIcon } from "lucide-react";
+import { MyAnalytics } from "@/lib/analytics";
+import { AnalyticsEvents } from "@/lib/analytics-events";
 
 interface LeaderboardProps {
   allUsers: SizeColumn[];
@@ -37,11 +39,20 @@ const Leaderboard: React.FC<LeaderboardProps> = ({
   ));
   EmptyState.displayName = "EmptyState";
 
+  const handleTabChange = (value: "season1" | "season2") => {
+    setActiveSeason(value);
+    MyAnalytics.track(AnalyticsEvents.REWARDS_LEADERBOARD_TAB_CHANGE, {
+      season: value,
+    });
+  };
+
   return (
 		<>
 			<ShadCNTabs
 				value={activeSeason}
-				onValueChange={(value) => setActiveSeason(value as "season1" | "season2")}
+				onValueChange={(value) =>
+          handleTabChange(value as "season1" | "season2")
+        }
 				defaultValue="season1"
 			>
 				<TabsList className="h-auto w-full gap-0 rounded-[14px] border border-[#E5E8EB] bg-white p-1 lg:w-fit">

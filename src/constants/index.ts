@@ -384,13 +384,4 @@ export const convertToPlainObject = (data: any) => {
   return JSON.parse(JSON.stringify(data));
 };
 
-export const LEADERBOARD_ANALYTICS_EVENTS = {
-  LEADERBOARD_PAGE_VIEW: "leaderboard_page_view",
-  ELIGIBILITY_CHECK_CLICKED: "eligibility_check_clicked",
-  ELIGIBILITY_RESULT: "eligibility_result",
-  EMAIL_SUBMITTED: "email_submitted",
-  EMAIL_SKIP_CLICKED: "email_skip_clicked",
-  TWITTER_FOLLOW_CLICKED: "twitter_follow_clicked",
-  TWITTER_FOLLOW_SKIPPED: "twitter_follow_skipped",
-  CLICKED_CLAIM_REWARDS: "clicked_claim_rewards",
-} as const;
+// LEADERBOARD_ANALYTICS_EVENTS moved to AnalyticsEvents; use AnalyticsEvents.* directly

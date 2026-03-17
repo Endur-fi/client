@@ -18,8 +18,13 @@ import { cn, formatNumberWithCommas } from "@/lib/utils";
 import { lstStatsQueryAtom } from "@/store/lst.store";
 import { btcPriceAtom, strkPriceAtom } from "@/store/staking.store";
 import MyNumber from "@/lib/MyNumber";
-import { GET_USER_NET_TOTAL_POINTS_SEASON1, GET_USER_NET_TOTAL_POINTS_SEASON2 } from "@/constants/queries";
+import {
+  GET_USER_NET_TOTAL_POINTS_SEASON1,
+  GET_USER_NET_TOTAL_POINTS_SEASON2,
+} from "@/constants/queries";
 import { pointsApolloClient } from "@/lib/apollo-client";
+import { MyAnalytics } from "@/lib/analytics";
+import { AnalyticsEvents } from "@/lib/analytics-events";
 
 const getBTCLSTIcon = (lstSymbol: string) => {
   switch (lstSymbol) {
@@ -378,14 +383,22 @@ const PortfolioSection: React.FC = () => {
         <div className="border-t border-[#E5E8EB] p-2 lg:p-4">
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1">
                 <span className="text-sm text-[#6B7780]">Season 1 Points</span>
                 <TooltipProvider delayDuration={0}>
                   <Tooltip>
                     <TooltipTrigger>
                       <Info className="h-3 w-3 text-[#6B7780]" />
                     </TooltipTrigger>
-                    <TooltipContent className="max-w-xs rounded-md border border-[#03624C] bg-white text-[#03624C]">
+                    <TooltipContent
+                      className="max-w-xs rounded-md border border-[#03624C] bg-white text-[#03624C]"
+                      onPointerDownOutside={() => {
+                        MyAnalytics.track(
+                          AnalyticsEvents.SEASON_POINTS_TOOLTIP_OPEN,
+                          { season: 1 },
+                        );
+                      }}
+                    >
                       Points earned during Season 1 [Nov 27th 2024 - Dec 15th 2025]
                     </TooltipContent>
                   </Tooltip>
@@ -409,7 +422,15 @@ const PortfolioSection: React.FC = () => {
                     <TooltipTrigger>
                       <Info className="h-3 w-3 text-[#6B7780]" />
                     </TooltipTrigger>
-                    <TooltipContent className="max-w-xs rounded-md border border-[#03624C] bg-white text-[#03624C]">
+                    <TooltipContent
+                      className="max-w-xs rounded-md border border-[#03624C] bg-white text-[#03624C]"
+                      onPointerDownOutside={() => {
+                        MyAnalytics.track(
+                          AnalyticsEvents.SEASON_POINTS_TOOLTIP_OPEN,
+                          { season: 2 },
+                        );
+                      }}
+                    >
                       Points earned during Season 2 [Dec 16th 2025 - June 15th 2026]
                     </TooltipContent>
                   </Tooltip>

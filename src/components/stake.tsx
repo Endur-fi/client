@@ -57,8 +57,9 @@ import { toast } from "@/hooks/use-toast";
 import { useTransactionHandler } from "@/hooks/use-transactions";
 import { useWalletConnection } from "@/hooks/use-wallet-connection";
 import { MyAnalytics } from "@/lib/analytics";
+import { AnalyticsEvents } from "@/lib/analytics-events";
 import MyNumber from "@/lib/MyNumber";
-import { cn, eventNames, formatNumberWithCommas } from "@/lib/utils";
+import { cn, formatNumberWithCommas } from "@/lib/utils";
 import LSTService from "@/services/lst";
 import { lstConfigAtom, assetPriceAtom } from "@/store/common.store";
 import { protocolYieldsAtom, type SupportedDApp } from "@/store/defi.store";
@@ -197,6 +198,10 @@ const Stake: React.FC = () => {
   const { handleTransaction } = useTransactionHandler();
 
   const handleQuickStakePrice = (percentage: number) => {
+    MyAnalytics.track(AnalyticsEvents.QUICK_AMOUNT_SELECT, {
+      context: "stake",
+      percentage,
+    });
     if (!address) {
       return toast({
         description: (
@@ -333,7 +338,7 @@ const Stake: React.FC = () => {
     }
 
     // track stake button click
-    MyAnalytics.track(eventNames.STAKE_CLICK, {
+    MyAnalytics.track(AnalyticsEvents.STAKE_CLICK, {
       address,
       amount: Number(values.stakeAmount),
     });
@@ -505,6 +510,10 @@ const Stake: React.FC = () => {
                   selectedPlatform === platform
                     ? "none"
                     : (platform as Platform);
+                MyAnalytics.track(AnalyticsEvents.STAKE_PLATFORM_SELECT, {
+                  platform,
+                  selected: newSelection !== "none",
+                });
                 setSelectedPlatform(newSelection);
               }}
             />
@@ -527,6 +536,10 @@ const Stake: React.FC = () => {
       error: error ?? { name: "" },
       isPending,
       setShowShareModal,
+      metadata: {
+        platform: selectedPlatform,
+        referrer: referrer || null,
+      },
     });
   }, [data?.transaction_hash, form, isPending]);
 
@@ -563,6 +576,12 @@ const Stake: React.FC = () => {
 
             <div className="!mt-6 flex items-center justify-center">
               <TwitterShareButton
+                onClick={() =>
+                  MyAnalytics.track(AnalyticsEvents.STAKE_TWITTER_SHARE_CLICK, {
+                    platform: selectedPlatform,
+                    symbol: lstConfig.SYMBOL,
+                  })
+                }
                 url={`https://endur.fi`}
                 title={`Just staked my ${lstConfig.SYMBOL} on @endurfi, earning ${((activeTab === "strk" ? apy.value.strkApy : apy.value.btcApy) * 100 + (selectedPlatform !== "none" ? getPlatformYield(selectedPlatform) : 0)).toFixed(2)}% APY! 🚀 \n\n${selectedPlatform !== "none" ? `My ${lstConfig.LST_SYMBOL} is now with an additional ${getPlatformYield(selectedPlatform).toFixed(2)}% yield on ${getPlatformConfig(selectedPlatform).platform}! 📈\n\n` : ""}${lstConfig.SYMBOL !== "STRK" ? `Building the future of Bitcoin staking on Starknet` : `Laying the foundation for decentralising Starknet`} with Endur!\n\n`}
                 related={["endurfi", "troves", "karnotxyz"]}
@@ -770,6 +789,9 @@ const Stake: React.FC = () => {
             open={isLendingOpen}
             onOpenChange={(open) => {
               setIsLendingOpen(open);
+              MyAnalytics.track(AnalyticsEvents.STAKE_EARN_COLLAPSIBLE_TOGGLE, {
+                isOpen: open,
+              });
               if (!open) {
                 setSelectedPlatform("none");
               }

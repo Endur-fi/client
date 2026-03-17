@@ -3,6 +3,8 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Icons } from "@/components/Icons";
 import { cn, formatNumber, formatNumberWithCommas } from "@/lib/utils";
+import { MyAnalytics } from "@/lib/analytics";
+import { AnalyticsEvents } from "@/lib/analytics-events";
 import { Calendar, Clock, Flame, TrendingUp, Trophy } from "lucide-react";
 import { useAccount } from "@starknet-react/core";
 import { useWalletConnection } from "@/hooks/use-wallet-connection";
@@ -243,6 +245,12 @@ const SeasonInfoCards = ({ season }: { season: (typeof seasons)[0] }) => {
                     className="text-[#17876D] underline"
                     href="https://docs.endur.fi/docs/community/endur-season-2"
                     target="_blank"
+                    onClick={() =>
+                      MyAnalytics.track(
+                        AnalyticsEvents.REWARDS_SEASON_LEARN_MORE_CLICK,
+                        { season: 2, source: "season_info_card" },
+                      )
+                    }
                   >
                     Learn more
                   </a>
@@ -258,6 +266,12 @@ const SeasonInfoCards = ({ season }: { season: (typeof seasons)[0] }) => {
                     className="text-[#5B616D] underline"
                     href="https://blog.endur.fi/points"
                     target="_blank"
+                    onClick={() =>
+                      MyAnalytics.track(
+                        AnalyticsEvents.REWARDS_SEASON_LEARN_MORE_CLICK,
+                        { season: 1, source: "season_info_card" },
+                      )
+                    }
                   >
                     Learn more
                   </a>
@@ -617,9 +631,20 @@ const Points = ({ userSeason1Points, userSeason2Points }: { userSeason1Points: {
             </div>
           </div>
 
-          <a href="https://docs.endur.fi/docs/community/endur-season-2" target="_blank"><Button className="flex-shrink-0 bg-[#17876D] text-[#F1F7F6]">
-            View Details
-          </Button></a>
+          <a
+            href="https://docs.endur.fi/docs/community/endur-season-2"
+            target="_blank"
+            onClick={() =>
+              MyAnalytics.track(
+                AnalyticsEvents.REWARDS_DOCS_LINK_CLICK,
+                { source: "points_banner" },
+              )
+            }
+          >
+            <Button className="flex-shrink-0 bg-[#17876D] text-[#F1F7F6]">
+              View Details
+            </Button>
+          </a>
         </div>
         {/* Timeline & Points Allocation Boxes */}
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:gap-6">
@@ -630,7 +655,15 @@ const Points = ({ userSeason1Points, userSeason2Points }: { userSeason1Points: {
       </div>
       {/* your points */}
       {!address ? (
-        <Button className="w-full bg-['transparent'] text-[#17876D] border border-[#17876D] hover:bg-[#17876D] hover:text-[#F1F7F6] py-6" onClick={() => connectWallet()}>
+        <Button
+          className="w-full bg-['transparent'] text-[#17876D] border border-[#17876D] hover:bg-[#17876D] hover:text-[#F1F7F6] py-6"
+          onClick={() => {
+            MyAnalytics.track(AnalyticsEvents.WALLET_CONNECT_CLICK, {
+              source: "rewards_points",
+            });
+            connectWallet();
+          }}
+        >
           Connect Wallet to View Your Points
         </Button>
       ) : (

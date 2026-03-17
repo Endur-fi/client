@@ -6,6 +6,8 @@ import React from "react";
 
 import { LINKS } from "@/constants";
 import { cn, getInternalUrl } from "@/lib/utils";
+import { MyAnalytics } from "@/lib/analytics";
+import { AnalyticsEvents } from "@/lib/analytics-events";
 
 import { ChartColumnDecreasingIcon } from "./ui/chart-column-decreasing";
 import { ChartSplineIcon } from "./ui/chart-spline";
@@ -65,6 +67,14 @@ const SidebarMenuItems = () => {
                 ? getInternalUrl("/btc", referrer)
                 : getInternalUrl("/strk", referrer)
             }
+            onClick={() => {
+              MyAnalytics.track(AnalyticsEvents.SIDEBAR_NAV_CLICK, {
+                destination:
+                  pathname === "/btc"
+                    ? "btc_liquid_staking"
+                    : "strk_liquid_staking",
+              });
+            }}
             className="flex cursor-pointer flex-row items-center gap-2 text-nowrap rounded-[12px] text-base font-semibold text-[#03624C] transition-all"
           >
             <FlameIcon
@@ -93,6 +103,11 @@ const SidebarMenuItems = () => {
         >
           <Link
             href={getInternalUrl("/defi", referrer)}
+            onClick={() => {
+              MyAnalytics.track(AnalyticsEvents.SIDEBAR_NAV_CLICK, {
+                destination: "defi",
+              });
+            }}
             className={cn(
               "group/defi flex cursor-pointer flex-row items-center gap-2 text-nowrap text-base font-semibold text-[#03624C] transition-all",
               pathname === "/defi" ? "rounded-[6px]" : "rounded-[12px]",
@@ -153,6 +168,11 @@ const SidebarMenuItems = () => {
         >
           <Link
             href={getInternalUrl("/rewards", referrer)}
+            onClick={() => {
+              MyAnalytics.track(AnalyticsEvents.SIDEBAR_NAV_CLICK, {
+                destination: "rewards",
+              });
+            }}
             className="flex cursor-pointer flex-row items-center gap-2 text-nowrap rounded-[12px] text-base font-semibold text-[#03624C] transition-all"
           >
             <ChartSplineIcon
@@ -175,6 +195,11 @@ const SidebarMenuItems = () => {
           <Link
             href={LINKS.DUNE_ANALYTICS}
             target="_blank"
+            onClick={() => {
+              MyAnalytics.track(AnalyticsEvents.SIDEBAR_NAV_CLICK, {
+                destination: "xstrk_analytics",
+              });
+            }}
             className="flex cursor-pointer flex-row items-center gap-2 text-nowrap rounded-[12px] text-base font-semibold text-[#03624C] transition-all"
           >
             <ChartColumnDecreasingIcon
@@ -197,6 +222,11 @@ const SidebarMenuItems = () => {
           <Link
             href={LINKS.BTC_DUNE_ANALYTICS}
             target="_blank"
+            onClick={() => {
+              MyAnalytics.track(AnalyticsEvents.SIDEBAR_NAV_CLICK, {
+                destination: "xybtc_analytics",
+              });
+            }}
             className="flex cursor-pointer flex-row items-center gap-2 text-nowrap rounded-[12px] text-base font-semibold text-[#03624C] transition-all"
           >
             <ChartColumnDecreasingIcon
@@ -222,6 +252,9 @@ const SidebarMenuItems = () => {
             onClick={(e) => {
               e.preventDefault();
               setShowNativeStakingDialog(true);
+              MyAnalytics.track(AnalyticsEvents.SIDEBAR_NAV_CLICK, {
+                destination: "native_staking",
+              });
             }}
             className="flex w-full cursor-pointer flex-row items-center gap-2 text-nowrap rounded-[12px] text-left text-base font-semibold text-[#03624C] transition-all"
           >
