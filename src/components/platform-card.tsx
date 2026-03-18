@@ -1,7 +1,7 @@
 import React from "react";
 
 import { Card } from "@/components/ui/card";
-import { cn, formatNumber } from "@/lib/utils";
+import { cn, formatBalance } from "@/lib/utils";
 import { useAtomValue } from "jotai";
 import { lstConfigAtom } from "@/store/common.store";
 import { Label } from "./ui/label";
@@ -96,7 +96,7 @@ export function PlatformCard({
                 )}
               >
                 {typeof xstrkLent === "number" ? (
-                  `${formatNumber(xstrkLent, isBtc ? 8 : 2)}`
+                  `${formatBalance(xstrkLent, isBtc ? 8 : 2)}`
                 ) : (
                   <span className="inline-block h-5 w-12 animate-pulse rounded bg-gray-200" />
                 )}

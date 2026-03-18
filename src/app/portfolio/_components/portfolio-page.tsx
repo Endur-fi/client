@@ -11,7 +11,7 @@ import { STRK_DECIMALS } from "@/constants";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { MyAnalytics } from "@/lib/analytics";
 import MyNumber from "@/lib/MyNumber";
-import { cn, formatNumberWithCommas } from "@/lib/utils";
+import { cn, formatBalance } from "@/lib/utils";
 import {
   DAppHoldings,
   protocolYieldsAtom,
@@ -327,10 +327,11 @@ const PortfolioPage: React.FC = () => {
                     <b>Your Holding:</b>
                   </span>
                   <span className="flex">
-                    {formatNumberWithCommas(
+                    {formatBalance(
                       card.tokens[
                         card.tokens.findIndex((t) => t.name === "xSTRK")
                       ].holding?.toEtherToFixedDecimals(2) ?? "0.00",
+                      2,
                     )}{" "}
                     xSTRK
                   </span>

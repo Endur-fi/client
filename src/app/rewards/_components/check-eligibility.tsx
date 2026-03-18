@@ -37,6 +37,7 @@ import { Web3Number } from "@strkfarm/sdk";
 
 import {
   cn,
+  formatBalance,
   formatNumberWithCommas,
   standariseAddress,
   validateEmail,
@@ -223,12 +224,12 @@ const RewardSummary = React.memo<{
 
     // Format the allocation once
     const formattedAllocation = React.useMemo(
-      () => `${Number(allocation).toFixed(2)} xSTRK`,
+      () => `${formatBalance(allocation ?? "0", 2)} xSTRK`,
       [allocation],
     );
 
     // Determine the Twitter follow status text once
-    const twitterStatusText = React.useMemo(
+    const _twitterStatusText = React.useMemo(
       () =>
         isFollowed || bonusAlreadyAwarded
           ? `X account followed - earned bonus ${BONUS_POINTS.toLocaleString()} points`
@@ -236,7 +237,7 @@ const RewardSummary = React.memo<{
       [isFollowed, bonusAlreadyAwarded],
     );
 
-    const isTwitterVerified = isFollowed || bonusAlreadyAwarded;
+    const _isTwitterVerified = isFollowed || bonusAlreadyAwarded;
 
     return (
       <div className="px-2">
@@ -394,7 +395,7 @@ const ClaimModal = React.memo<{
 }>(
   ({
     allocation,
-    onBack,
+    onBack: _onBack,
     claimRewards,
     isFollowed,
     bonusAlreadyAwarded,
@@ -420,7 +421,7 @@ const ClaimModal = React.memo<{
           </div>
           <DialogTitle className="!mt-8 text-center text-2xl font-semibold text-white">
             {allocation
-              ? `Reward ${formatNumberWithCommas(allocation)} xSTRK`
+              ? `Reward ${formatBalance(allocation, 2)} xSTRK`
               : "Your reward is ready"}
           </DialogTitle>
           <DialogDescription className="text-center text-sm font-normal text-[#DCF6E5]">
@@ -682,7 +683,7 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
     trackAnalyticsCallback,
   ]);
 
-  const handleTwitterFollow = React.useCallback(async () => {
+  const _handleTwitterFollow = React.useCallback(async () => {
     setState((prev) => ({ ...prev, isFollowClicked: true }));
 
     try {
@@ -789,7 +790,7 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
     setState((prev) => ({ ...prev, activeModal: null }));
   }, []);
 
-  const goToClaim = React.useCallback(() => {
+  const _goToClaim = React.useCallback(() => {
     MyAnalytics.track(LEADERBOARD_ANALYTICS_EVENTS.TWITTER_FOLLOW_SKIPPED, {
       userAddress: address,
     });
@@ -797,7 +798,7 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
       ...prev,
       activeModal: state.isEligible ? "claim" : "notEligible",
     }));
-  }, [state.isEligible]);
+  }, [address, state.isEligible]);
 
   const handleClaim = React.useCallback(async () => {
     if (!address) return;
@@ -942,7 +943,7 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
       const allocation = userCompleteInfo?.allocation;
       if (allocation) {
         toast({
-          description: `Claiming ${formatNumberWithCommas(allocation)} xSTRK rewards...`,
+          description: `Claiming ${formatBalance(allocation, 2)} xSTRK rewards...`,
           duration: 3000,
         });
       }
@@ -955,7 +956,7 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
       const allocation = userCompleteInfo?.allocation;
       if (allocation) {
         toast({
-          description: `🎉 Successfully claimed ${formatNumberWithCommas(allocation)} xSTRK rewards!`,
+          description: `🎉 Successfully claimed ${formatBalance(allocation, 2)} xSTRK rewards!`,
           duration: 5000,
         });
 

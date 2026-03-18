@@ -127,7 +127,9 @@ const DefiHoldings: React.FC = () => {
     }
     return { chartData: output, sumDefiHoldings };
     // ADD_DAPP_HERE - in this list
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
+    address,
     nostraBal,
     vxStrkBalance,
     userHaikoBalance,

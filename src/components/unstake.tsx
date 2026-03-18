@@ -32,7 +32,7 @@ import { useTransactionHandler } from "@/hooks/use-transactions";
 import { useWalletConnection } from "@/hooks/use-wallet-connection";
 import { MyAnalytics } from "@/lib/analytics";
 import MyNumber from "@/lib/MyNumber";
-import { cn, eventNames, formatNumberWithCommas } from "@/lib/utils";
+import { cn, eventNames, formatBalance } from "@/lib/utils";
 import { executeAvnuSwap, getAvnuQuotes } from "@/services/avnu";
 import {
   avnuErrorAtom,
@@ -162,7 +162,7 @@ const YouWillGetSection = ({
       </p>
       <div className="flex flex-col">
         <span className="text-xs">
-          {formatNumberWithCommas(amount, isBTC ? 8 : 2)} {lstConfig.SYMBOL}
+          {formatBalance(amount, isBTC ? 8 : 2)} {lstConfig.SYMBOL}
         </span>
         {usdValue !== null && usdValue !== undefined && (
           <span className="text-right text-xs text-[#6B7780]">
@@ -411,7 +411,7 @@ const Unstake = () => {
       setAvnuLoading(true);
       try {
         const quotes = await getAvnuQuotes(
-         lstConfig.LST_SYMBOL == 'xSTRK' ? "1000" : "0.001",
+         lstConfig.LST_SYMBOL === 'xSTRK' ? "1000" : "0.001",
           "0x0",
           lstConfig.LST_ADDRESS,
           lstConfig.ASSET_ADDRESS,
@@ -589,7 +589,7 @@ const Unstake = () => {
     return ((rate1 - rate2) / rate2) * 100;
   };
 
-  const endurPercentDiff = React.useMemo(() => {
+  const _endurPercentDiff = React.useMemo(() => {
     const endurRate = exRate.rate;
     const dexRate = avnuQuote
       ? Number(avnuQuote.buyAmount) / Number(avnuQuote.sellAmount)
@@ -667,11 +667,12 @@ const Unstake = () => {
                   Balance:
                 </span>
                 <span className="text-xs text-[#1A1F24]">
-                  {Number(
+                  {formatBalance(
                     currentLSTBalance.value.toEtherToFixedDecimals(
                       isBTC ? 8 : 2,
                     ),
-                  ).toFixed(isBTC ? 8 : 2)}{" "}
+                    isBTC ? 8 : 2,
+                  )}{" "}
                   {lstConfig.LST_SYMBOL}
                 </span>
               </div>

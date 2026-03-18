@@ -76,7 +76,7 @@ export const monitorNewTxAtom = atom(
   },
 );
 
-async function waitForTransaction(
+async function _waitForTransaction(
   tx: TransactionInfo,
   get: Getter,
   set: Setter,
@@ -141,8 +141,8 @@ export async function isTxAccepted(txHash: string) {
   }
 }
 
-async function initToast(tx: TransactionInfo, get: Getter, set: Setter) {
-  const msg = `${capitalize(tx.info.actionType)} ${tx.info.amount.toEtherToFixedDecimals(4)}`;
+async function initToast(tx: TransactionInfo, _get: Getter, _set: Setter) {
+  const _msg = `${capitalize(tx.info.actionType)} ${tx.info.amount.toEtherToFixedDecimals(4)}`;
 
   // await toast.promise(
   //   waitForTransaction(tx, get, set),
