@@ -102,9 +102,9 @@ export class WalletConnector {
       return [braavosMobileConnector];
     }
 
-    // if (this.isInKeplrMobileAppBrowser()) {
-    //   return [keplrConnector];
-    // }
+    if (this.isInKeplrMobileAppBrowser()) {
+      return [keplrConnector];
+    }
 
     // For mobile devices, prioritize mobile connectors
     if (this.isMobile) {
