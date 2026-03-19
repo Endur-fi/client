@@ -10,6 +10,8 @@ import { useQuery } from "@apollo/client";
 import { GET_USER_POINTS_BREAKDOWN } from "@/constants/queries";
 import { pointsApolloClient } from "@/lib/apollo-client";
 import React, { useState, useEffect } from "react";
+import { MyAnalytics } from "@/lib/analytics";
+import { AnalyticsEvents } from "@/lib/analytics-events";
 
 const seasons = [
   {
@@ -433,6 +435,37 @@ const Season2Points = ({
   const nextDropCountdown = useNextDropCountdown(lastPointsMultiplierEndTimestamp);
   const epochsCompletedFormatted = epochsCompleted !== undefined ? `${epochsCompleted}/26` : "1/26";
 
+  const headerRef = React.useRef<HTMLDivElement | null>(null);
+  const hasTrackedViewRef = React.useRef(false);
+
+  React.useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!headerRef.current) return;
+    if (hasTrackedViewRef.current) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+        if (!entry?.isIntersecting || hasTrackedViewRef.current) return;
+
+        hasTrackedViewRef.current = true;
+        observer.disconnect();
+
+        MyAnalytics.track(AnalyticsEvents.REWARDS_SEASON2_POINTS_VIEW, {
+          points: Number(userSeason2Points.points) || 0,
+          rank: userSeason2Points.rank ?? null,
+        });
+      },
+      {
+        threshold: 0.5,
+      },
+    );
+
+    observer.observe(headerRef.current);
+
+    return () => observer.disconnect();
+  }, [userSeason2Points.points, userSeason2Points.rank]);
+
   return (
     <div className="flex flex-col gap-4 rounded-[14px] border border-[#E5E8EB] bg-white px-4 py-3">
       {/* header */}
@@ -449,7 +482,7 @@ const Season2Points = ({
             Your Season 2
           </h3>
         </div>
-        <div className="flex flex-col items-end">
+        <div className="flex flex-col items-end" ref={headerRef}>
           <span className="text-[11px] font-medium text-[#5B616D]">
             Total Points
           </span>
