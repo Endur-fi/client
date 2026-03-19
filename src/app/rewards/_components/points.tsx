@@ -12,8 +12,6 @@ import { useQuery } from "@apollo/client";
 import { GET_USER_POINTS_BREAKDOWN } from "@/constants/queries";
 import { pointsApolloClient } from "@/lib/apollo-client";
 import React, { useState, useEffect } from "react";
-import { MyAnalytics } from "@/lib/analytics";
-import { AnalyticsEvents } from "@/lib/analytics-events";
 
 const seasons = [
   {
