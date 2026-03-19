@@ -3,6 +3,8 @@ import { useSetAtom } from "jotai";
 import { useAccount, useBalance } from "@starknet-react/core";
 import { getLSTAssetsByCategory, getFirstBTCAsset } from "@/constants";
 import { lstConfigAtom } from "@/store/common.store"; // Adjust path if needed
+import { MyAnalytics } from "@/lib/analytics";
+import { AnalyticsEvents } from "@/lib/analytics-events";
 import { Icons } from "./Icons";
 import {
   DropdownMenu,
@@ -272,6 +274,11 @@ const AssetSelector: React.FC<AssetSelectorProps> = ({
   }, [selectedAsset, setLstConfig]);
 
   const handleAssetSelect = (symbol: string) => {
+    MyAnalytics.track(AnalyticsEvents.BTC_ASSET_SELECT, {
+      from: selectedAsset,
+      to: symbol,
+      mode,
+    });
     onChange(symbol);
     const selected = btcAssets.find((asset: any) => asset.SYMBOL === symbol);
     if (selected) setLstConfig(selected);

@@ -10,6 +10,7 @@ import { getProvider } from "@/constants";
 import { toast } from "@/hooks/use-toast";
 import { useWalletConnection } from "@/hooks/use-wallet-connection";
 import { MyAnalytics } from "@/lib/analytics";
+import { AnalyticsEvents } from "@/lib/analytics-events";
 import { cn, shortAddress } from "@/lib/utils";
 import {
   lastWalletAtom,
@@ -23,9 +24,6 @@ import { useSidebar } from "./ui/sidebar";
 import { VipNavbarChip } from "./vip-card";
 
 const Navbar = ({ className }: { className?: string }) => {
-  // init analytics
-  MyAnalytics.init();
-
   const { address, connector } = useAccount();
   const { provider } = useProvider();
   const { connectWallet, disconnectWallet } = useWalletConnection();
@@ -81,7 +79,12 @@ const Navbar = ({ className }: { className?: string }) => {
               "h-[34px]": isMobile,
             },
           )}
-          onClick={() => !address && connectWallet()}
+          onClick={() => {
+            if (!address) {
+              MyAnalytics.track(AnalyticsEvents.WALLET_CONNECT_CLICK, {});
+              connectWallet();
+            }
+          }}
         >
           {!address && (
             <p
@@ -103,6 +106,10 @@ const Navbar = ({ className }: { className?: string }) => {
                       toast({
                         description: "Address copied to clipboard",
                       });
+                      MyAnalytics.track(
+                        AnalyticsEvents.WALLET_ADDRESS_COPIED,
+                        { source: "navbar_desktop" },
+                      );
                     }}
                     className="flex h-8 items-center justify-center gap-2 rounded-md md:h-9"
                   >
@@ -113,7 +120,13 @@ const Navbar = ({ className }: { className?: string }) => {
                   </div>
 
                   <X
-                    onClick={() => disconnectWallet()}
+                    onClick={() => {
+                      MyAnalytics.track(
+                        AnalyticsEvents.WALLET_DISCONNECT_CLICK,
+                        { source: "navbar_desktop" },
+                      );
+                      disconnectWallet();
+                    }}
                     className="size-4 text-[#3F6870]"
                   />
                 </div>
@@ -123,6 +136,10 @@ const Navbar = ({ className }: { className?: string }) => {
                     onClick={() => {
                       navigator.clipboard.writeText(address);
                       toast({ description: "Address copied to clipboard" });
+                      MyAnalytics.track(
+                        AnalyticsEvents.WALLET_ADDRESS_COPIED,
+                        { source: "navbar_mobile" },
+                      );
                     }}
                     className="flex w-fit items-center justify-center gap-2 rounded-md"
                   >
@@ -131,7 +148,13 @@ const Navbar = ({ className }: { className?: string }) => {
                   </div>
 
                   <X
-                    onClick={() => disconnectWallet()}
+                    onClick={() => {
+                      MyAnalytics.track(
+                        AnalyticsEvents.WALLET_DISCONNECT_CLICK,
+                        { source: "navbar_mobile" },
+                      );
+                      disconnectWallet();
+                    }}
                     className="size-3 text-[#3F6870] md:size-4"
                   />
                 </div>

@@ -31,8 +31,9 @@ import { toast } from "@/hooks/use-toast";
 import { useTransactionHandler } from "@/hooks/use-transactions";
 import { useWalletConnection } from "@/hooks/use-wallet-connection";
 import { MyAnalytics } from "@/lib/analytics";
+import { AnalyticsEvents } from "@/lib/analytics-events";
 import MyNumber from "@/lib/MyNumber";
-import { cn, eventNames, formatNumberWithCommas } from "@/lib/utils";
+import { cn, formatNumberWithCommas } from "@/lib/utils";
 import { executeAvnuSwap, getAvnuQuotes } from "@/services/avnu";
 import {
   avnuErrorAtom,
@@ -403,6 +404,7 @@ const Unstake = () => {
       data: data ?? { transaction_hash: "" },
       error: error ?? { name: "" },
       isPending,
+      metadata: { method: "endur" },
     });
   }, [data?.transaction_hash, form, isPending]);
 
@@ -457,7 +459,19 @@ const Unstake = () => {
     fetchQuote();
   }, [address, form.watch("unstakeAmount")]);
 
+  const handleUnstakeMethodChange = (method: "endur" | "dex") => {
+    MyAnalytics.track(AnalyticsEvents.UNSTAKE_METHOD_CHANGE, {
+      from: txnDapp,
+      to: method,
+    });
+    setTxnDapp(method);
+  };
+
   const handleQuickUnstakePrice = (percentage: number) => {
+    MyAnalytics.track(AnalyticsEvents.QUICK_AMOUNT_SELECT, {
+      context: "unstake",
+      percentage,
+    });
     if (!address) {
       return toast({
         description: (
@@ -516,7 +530,7 @@ const Unstake = () => {
   const handleDexSwap = async () => {
     if (!address || !avnuQuote) return;
 
-    MyAnalytics.track(eventNames.UNSTAKE_CLICK, {
+    MyAnalytics.track(AnalyticsEvents.UNSTAKE_CLICK, {
       address,
       amount: Number(form.getValues("unstakeAmount")),
       mode: "Instant",
@@ -528,6 +542,12 @@ const Unstake = () => {
         account as AccountInterface,
         avnuQuote,
         () => {
+          MyAnalytics.track(AnalyticsEvents.UNSTAKE_TX_SUCCESSFUL, {
+            address,
+            amount: Number(form.getValues("unstakeAmount")),
+            asset: lstConfig.SYMBOL,
+            method: "dex",
+          });
           toast({
             itemID: "unstake",
             variant: "complete",
@@ -548,6 +568,14 @@ const Unstake = () => {
           form.reset();
         },
         (error) => {
+          MyAnalytics.track(AnalyticsEvents.UNSTAKE_TX_REJECTED, {
+            address,
+            amount: Number(form.getValues("unstakeAmount")),
+            asset: lstConfig.SYMBOL,
+            method: "dex",
+            errorName: error.name,
+            errorMessage: error.message,
+          });
           toast({
             itemID: "unstake",
             description: (
@@ -634,7 +662,7 @@ const Unstake = () => {
     }
 
     // Track unstake button click
-    MyAnalytics.track(eventNames.UNSTAKE_CLICK, {
+    MyAnalytics.track(AnalyticsEvents.UNSTAKE_CLICK, {
       address,
       amount: Number(values.unstakeAmount),
       mode: "ViaEndur",
@@ -782,7 +810,9 @@ const Unstake = () => {
         value={txnDapp}
         defaultValue="endur"
         className="w-full max-w-none"
-        onValueChange={(value) => setTxnDapp(value as "endur" | "dex")}
+        onValueChange={(value) =>
+        handleUnstakeMethodChange(value as "endur" | "dex")
+      }
       >
         <TabsList className="flex h-full flex-col items-center justify-between gap-3 bg-transparent">
           <UnstakeOptionCard

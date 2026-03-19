@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Icons } from "./Icons";
 import { cn, getInternalUrl } from "@/lib/utils";
+import { MyAnalytics } from "@/lib/analytics";
+import { AnalyticsEvents } from "@/lib/analytics-events";
 
 interface SeasonPointsCardProps {
   className?: string;
@@ -36,6 +38,9 @@ const SeasonPointsCard: React.FC<SeasonPointsCardProps> = ({ className }) => {
         <Link
           href={getInternalUrl("/rewards", referrer)}
           className="w-full rounded-md bg-[#FFFFFF33] px-4 py-2 text-center text-xs font-medium text-white transition-all hover:bg-[#6BA89A]"
+          onClick={() =>
+            MyAnalytics.track(AnalyticsEvents.SEASON_CARD_LEARN_MORE_CLICK, {})
+          }
         >
           Learn More
         </Link>

@@ -4,7 +4,8 @@ import React, { useMemo } from "react";
 
 import { useSidebar } from "@/components/ui/sidebar";
 import { MyAnalytics } from "@/lib/analytics";
-import { cn, eventNames } from "@/lib/utils";
+import { AnalyticsEvents } from "@/lib/analytics-events";
+import { cn } from "@/lib/utils";
 import {
   SupportedDApp,
   trovesHyperxWBTCYieldAtom,
@@ -60,7 +61,7 @@ export const btcProtocolConfigs: Partial<
       link: "https://app.troves.fi/strategy/ekubo_cl_xwbtcwbtc",
       buttonText: "Add Liquidity",
       onClick: () => {
-        MyAnalytics.track(eventNames.OPPORTUNITIES, {
+        MyAnalytics.track(AnalyticsEvents.OPPORTUNITIES, {
           protocol: "trovesEkuboBTCxWBTC",
           buttonText: "Add Liquidity",
         });
@@ -87,7 +88,7 @@ export const btcProtocolConfigs: Partial<
       link: "https://app.troves.fi/strategy/ekubo_cl_xtbtctbtc",
       buttonText: "Add Liquidity",
       onClick: () => {
-        MyAnalytics.track(eventNames.OPPORTUNITIES, {
+        MyAnalytics.track(AnalyticsEvents.OPPORTUNITIES, {
           protocol: "trovesEkuboBTCxtBTC",
           buttonText: "Add Liquidity",
         });
@@ -114,7 +115,7 @@ export const btcProtocolConfigs: Partial<
       link: "https://app.troves.fi/strategy/ekubo_cl_xlbtclbtc",
       buttonText: "Add Liquidity",
       onClick: () => {
-        MyAnalytics.track(eventNames.OPPORTUNITIES, {
+        MyAnalytics.track(AnalyticsEvents.OPPORTUNITIES, {
           protocol: "trovesEkuboBTCxLBTC",
           buttonText: "Add Liquidity",
         });
@@ -141,7 +142,7 @@ export const btcProtocolConfigs: Partial<
       link: "https://app.troves.fi/strategy/ekubo_cl_xsbtcsolvbtc",
       buttonText: "Add Liquidity",
       onClick: () => {
-        MyAnalytics.track(eventNames.OPPORTUNITIES, {
+        MyAnalytics.track(AnalyticsEvents.OPPORTUNITIES, {
           protocol: "trovesEkuboBTCxsBTC",
           buttonText: "Add Liquidity",
         });
@@ -168,7 +169,7 @@ export const btcProtocolConfigs: Partial<
       link: "https://app.troves.fi/strategy/hyper_xwbtc",
       buttonText: "Invest",
       onClick: () => {
-        MyAnalytics.track(eventNames.OPPORTUNITIES, {
+        MyAnalytics.track(AnalyticsEvents.OPPORTUNITIES, {
           protocol: "trovesHyperBTCxWBTC",
           buttonText: "Invest",
         });
@@ -194,7 +195,7 @@ export const btcProtocolConfigs: Partial<
       link: "https://app.troves.fi/strategy/hyper_xtbtc",
       buttonText: "Invest",
       onClick: () => {
-        MyAnalytics.track(eventNames.OPPORTUNITIES, {
+        MyAnalytics.track(AnalyticsEvents.OPPORTUNITIES, {
           protocol: "trovesHyperBTCxtBTC",
           buttonText: "Invest",
         });
@@ -220,7 +221,7 @@ export const btcProtocolConfigs: Partial<
       link: "https://app.troves.fi/strategy/hyper_xsbtc",
       buttonText: "Invest",
       onClick: () => {
-        MyAnalytics.track(eventNames.OPPORTUNITIES, {
+        MyAnalytics.track(AnalyticsEvents.OPPORTUNITIES, {
           protocol: "trovesHyperBTCxsBTC",
           buttonText: "Invest",
         });
@@ -246,7 +247,7 @@ export const btcProtocolConfigs: Partial<
       link: "https://app.troves.fi/strategy/hyper_xlbtc",
       buttonText: "Invest",
       onClick: () => {
-        MyAnalytics.track(eventNames.OPPORTUNITIES, {
+        MyAnalytics.track(AnalyticsEvents.OPPORTUNITIES, {
           protocol: "trovesHyperBTCxLBTC",
           buttonText: "Invest",
         });
@@ -268,7 +269,7 @@ export const btcProtocolConfigs: Partial<
       link: "https://app.avnu.fi/en?mode=simple&tokenFrom=0x6a567e68c805323525fe1649adb80b03cddf92c23d2629a6779f54192dffc13&tokenTo=0x3fe2b97c1fd336e750087d68b9b867997fd64a2661ff3ca5a7c771641e8e7ac&amount=100",
       buttonText: "Swap Tokens",
       onClick: () => {
-        MyAnalytics.track(eventNames.OPPORTUNITIES, {
+        MyAnalytics.track(AnalyticsEvents.OPPORTUNITIES, {
           protocol: "avnuBTCxWBTC",
           buttonText: "Swap Tokens",
         });
@@ -289,7 +290,7 @@ export const btcProtocolConfigs: Partial<
       link: "https://app.avnu.fi/en?mode=simple&tokenFrom=0x43a35c1425a0125ef8c171f1a75c6f31ef8648edcc8324b55ce1917db3f9b91&tokenTo=0x4daa17763b286d1e59b97c283c0b8c949994c361e426a28f743c67bdfe9a32f&amount=100",
       buttonText: "Swap Tokens",
       onClick: () => {
-        MyAnalytics.track(eventNames.OPPORTUNITIES, {
+        MyAnalytics.track(AnalyticsEvents.OPPORTUNITIES, {
           protocol: "avnuBTCxtBTC",
           buttonText: "Swap Tokens",
         });
@@ -310,7 +311,7 @@ export const btcProtocolConfigs: Partial<
       link: "https://app.avnu.fi/en?mode=simple&tokenFrom=0x7dd3c80de9fcc5545f0cb83678826819c79619ed7992cc06ff81fc67cd2efe0&tokenTo=0x036834a40984312f7f7de8d31e3f6305b325389eaeea5b1c0664b2fb936461a4&amount=100",
       buttonText: "Swap Tokens",
       onClick: () => {
-        MyAnalytics.track(eventNames.OPPORTUNITIES, {
+        MyAnalytics.track(AnalyticsEvents.OPPORTUNITIES, {
           protocol: "avnuBTCxLBTC",
           buttonText: "Swap Tokens",
         });
@@ -331,7 +332,7 @@ export const btcProtocolConfigs: Partial<
       link: "https://app.avnu.fi/en?mode=simple&tokenFrom=0x580f3dc564a7b82f21d40d404b3842d490ae7205e6ac07b1b7af2b4a5183dc9&tokenTo=0x0593e034dda23eea82d2ba9a30960ed42cf4a01502cc2351dc9b9881f9931a68&amount=100",
       buttonText: "Swap Tokens",
       onClick: () => {
-        MyAnalytics.track(eventNames.OPPORTUNITIES, {
+        MyAnalytics.track(AnalyticsEvents.OPPORTUNITIES, {
           protocol: "avnuBTCxsBTC",
           buttonText: "Swap Tokens",
         });
@@ -352,7 +353,7 @@ export const btcProtocolConfigs: Partial<
       link: "http://vesu.xyz/earn?onlyV2Markets=true&includeIsolatedMarkets=true",
       buttonText: "Lend & Borrow",
       onClick: () => {
-        MyAnalytics.track(eventNames.OPPORTUNITIES, {
+        MyAnalytics.track(AnalyticsEvents.OPPORTUNITIES, {
           protocol: "vesuBTCxWBTC",
           buttonText: "Lend & Borrow",
         });
@@ -372,7 +373,7 @@ export const btcProtocolConfigs: Partial<
       link: "http://vesu.xyz/earn?onlyV2Markets=true&includeIsolatedMarkets=true",
       buttonText: "Lend & Borrow",
       onClick: () => {
-        MyAnalytics.track(eventNames.OPPORTUNITIES, {
+        MyAnalytics.track(AnalyticsEvents.OPPORTUNITIES, {
           protocol: "vesuBTCxtBTC",
           buttonText: "Lend & Borrow",
         });
@@ -392,7 +393,7 @@ export const btcProtocolConfigs: Partial<
       link: "http://vesu.xyz/earn?onlyV2Markets=true&includeIsolatedMarkets=true",
       buttonText: "Lend & Borrow",
       onClick: () => {
-        MyAnalytics.track(eventNames.OPPORTUNITIES, {
+        MyAnalytics.track(AnalyticsEvents.OPPORTUNITIES, {
           protocol: "vesuBTCxLBTC",
           buttonText: "Lend & Borrow",
         });
@@ -412,7 +413,7 @@ export const btcProtocolConfigs: Partial<
       link: "http://vesu.xyz/earn?onlyV2Markets=true&includeIsolatedMarkets=true",
       buttonText: "Lend & Borrow",
       onClick: () => {
-        MyAnalytics.track(eventNames.OPPORTUNITIES, {
+        MyAnalytics.track(AnalyticsEvents.OPPORTUNITIES, {
           protocol: "vesuBTCxsBTC",
           buttonText: "Lend & Borrow",
         });
