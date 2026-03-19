@@ -16,6 +16,8 @@ import {
 } from "@/components/ui/tooltip";
 import { IS_PAUSED, getLSTAssetsByCategory, getSTRKAsset } from "@/constants";
 import { cn, formatNumberWithCommas, getInternalUrl } from "@/lib/utils";
+import { MyAnalytics } from "@/lib/analytics";
+import { AnalyticsEvents } from "@/lib/analytics-events";
 import {
   isMerryChristmasAtom,
   tabsAtom,
@@ -199,6 +201,11 @@ const Tabs = () => {
 
     setActiveTab(tab);
 
+    MyAnalytics.track(AnalyticsEvents.MAIN_TAB_CHANGE, {
+      from: activeTab,
+      to: tab,
+    });
+
     const referrer = searchParams.get("referrer");
 
     if (tab === "btc") {
@@ -216,6 +223,11 @@ const Tabs = () => {
     if (subTab === activeSubTab) return;
 
     setActiveSubTab(subTab);
+
+    MyAnalytics.track(AnalyticsEvents.SUB_TAB_CHANGE, {
+      from: activeSubTab,
+      to: subTab,
+    });
   };
 
   const handleWaitlistSubmit = async (e: React.FormEvent) => {
@@ -236,6 +248,10 @@ const Tabs = () => {
       return;
     }
 
+    MyAnalytics.track(AnalyticsEvents.WAITLIST_EMAIL_SUBMIT, {
+      address,
+    });
+
     setIsSubmitting(true);
 
     try {
@@ -255,11 +271,15 @@ const Tabs = () => {
             variant: "destructive",
           });
           setWaitlistEmail("");
+        } else {
+          MyAnalytics.track(AnalyticsEvents.WAITLIST_EMAIL_SUCCESS, {
+            address,
+          });
+          toast({
+            description: "Successfully joined waitlist.",
+            variant: "complete",
+          });
         }
-        toast({
-          description: "Successfully joined waitlist.",
-          variant: "complete",
-        });
       } else {
         toast({
           description: "Already subscribed.",
@@ -396,6 +416,9 @@ const Tabs = () => {
             <Link
               href="https://docs.endur.fi/docs/security"
               target="_blank"
+              onClick={() =>
+                MyAnalytics.track(AnalyticsEvents.AUDITED_LINK_CLICK, {})
+              }
               className="flex w-fit items-center gap-1 rounded-full border border-[#17876D33] bg-[#17876D1A] px-3 py-1 transition-opacity hover:opacity-80 md:mt-0"
             >
               <Icons.shield className="size-3.5 text-[#17876D]" />

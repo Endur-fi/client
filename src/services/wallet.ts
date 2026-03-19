@@ -7,6 +7,7 @@ import {
   BraavosMobileConnector,
   isInBraavosMobileAppBrowser,
 } from "starknetkit/braavosMobile";
+
 import { WebWalletConnector } from "starknetkit/webwallet";
 import { ControllerConnector } from "starknetkit/controller";
 import { constants } from "starknet";
@@ -113,6 +114,10 @@ export class WalletConnector {
       return [braavosMobileConnector];
     }
 
+    if (this.isInKeplrMobileAppBrowser()) {
+      return [keplrConnector];
+    }
+
     // For mobile devices, prioritize mobile connectors
     if (this.isMobile) {
       return [
@@ -120,6 +125,7 @@ export class WalletConnector {
         braavosMobileConnector,
         cartridgeConnector,
         webWalletConnector,
+        keplrConnector,
       ];
     }
 
@@ -135,5 +141,20 @@ export class WalletConnector {
       okx,
       webWalletConnector,
     ];
+  }
+
+  public isInKeplrMobileAppBrowser() {
+    if (typeof window === "undefined") {
+      return false;
+    }
+
+    const userAgent = navigator.userAgent;
+    const isKeplrMobileApp = userAgent.includes("KeplrWalletMobile");
+
+    if (!isKeplrMobileApp) {
+      return false;
+    }
+
+    return isKeplrMobileApp;
   }
 }

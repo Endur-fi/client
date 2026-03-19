@@ -3,6 +3,8 @@
 import React from "react";
 import { HelpCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { MyAnalytics } from "@/lib/analytics";
+import { AnalyticsEvents } from "@/lib/analytics-events";
 import {
   Accordion,
   AccordionContent,
@@ -94,7 +96,20 @@ const FAQSection: React.FC<{ className?: string }> = ({ className }) => {
           Frequently Asked Questions
         </h3>
       </div>
-      <Accordion type="single" collapsible defaultValue="item-1">
+      <Accordion
+        type="single"
+        collapsible
+        defaultValue="item-1"
+        onValueChange={(value) => {
+          if (!value) return;
+          const item = faq.find((f) => f.value === value);
+          if (!item) return;
+          MyAnalytics.track(AnalyticsEvents.FAQ_ITEM_TOGGLE, {
+            value,
+            question: item.question,
+          });
+        }}
+      >
         {faq.map((item, i) => (
           <AccordionItem
             key={item.value}

@@ -4,6 +4,8 @@ import Link from "next/link";
 import React from "react";
 
 import { LINKS } from "@/constants";
+import { MyAnalytics } from "@/lib/analytics";
+import { AnalyticsEvents } from "@/lib/analytics-events";
 import { BookTextIcon } from "./ui/book-text";
 import { FilePenLineIcon } from "./ui/file-pen-line";
 import { MessageCircleMoreIcon } from "./ui/message-circle-more";
@@ -28,6 +30,14 @@ const SidebarFooterMenuItems = () => {
 
   const { open } = useSidebar();
 
+  const trackFooterClick = (label: string, href: string) => {
+    MyAnalytics.track(AnalyticsEvents.SIDEBAR_FOOTER_LINK_CLICK, {
+      label,
+      href,
+      location: "sidebar_footer",
+    });
+  };
+
   return (
     <>
       <SidebarMenuItem>
@@ -41,6 +51,9 @@ const SidebarFooterMenuItems = () => {
             href={LINKS.ENDUR_DISCORD}
             target="_blank"
             className="flex w-full cursor-pointer flex-row items-center gap-2 text-nowrap rounded-[12px] text-base font-semibold text-[#03624C] transition-all"
+            onClick={() =>
+              trackFooterClick("Discord", LINKS.ENDUR_DISCORD)
+            }
           >
             <DiscordIcon
               className="size-4"
@@ -60,6 +73,9 @@ const SidebarFooterMenuItems = () => {
             href={LINKS.ENDUR_TWITTER}
             target="_blank"
             className="flex w-full cursor-pointer flex-row items-center gap-2 text-nowrap rounded-[12px] text-base font-semibold text-[#03624C] transition-all"
+            onClick={() =>
+              trackFooterClick("Twitter", LINKS.ENDUR_TWITTER)
+            }
           >
             <TwitterIcon
               className="size-4"
@@ -81,6 +97,9 @@ const SidebarFooterMenuItems = () => {
             href={LINKS.ENDUR_TELEGRAM}
             target="_blank"
             className="flex w-full cursor-pointer flex-row items-center gap-2 text-nowrap rounded-[12px] text-base font-semibold text-[#03624C] transition-all"
+            onClick={() =>
+              trackFooterClick("Telegram", LINKS.ENDUR_TELEGRAM)
+            }
           >
             <TelegramIcon
               className="size-4"
@@ -102,6 +121,7 @@ const SidebarFooterMenuItems = () => {
             href={LINKS.ENDUR_BLOG}
             target="_blank"
             className="flex w-full cursor-pointer flex-row items-center gap-2 text-nowrap rounded-[12px] text-base font-semibold text-[#03624C] transition-all"
+            onClick={() => trackFooterClick("Blog", LINKS.ENDUR_BLOG)}
           >
             <FilePenLineIcon
               className="size-4"
@@ -123,6 +143,7 @@ const SidebarFooterMenuItems = () => {
             href={LINKS.ENDUR_DOCS}
             target="_blank"
             className="flex w-full cursor-pointer flex-row items-center gap-2 text-nowrap rounded-[12px] text-base font-semibold text-[#03624C] transition-all"
+            onClick={() => trackFooterClick("Docs", LINKS.ENDUR_DOCS)}
           >
             <BookTextIcon
               triggerAnimation={triggerDocsIconAnimation}
@@ -144,6 +165,9 @@ const SidebarFooterMenuItems = () => {
             href={LINKS.ENDUR_TELEGRAM}
             target="_blank"
             className="flex w-full cursor-pointer flex-row items-center gap-2 text-nowrap rounded-[12px] text-base font-semibold text-[#03624C] transition-all"
+            onClick={() =>
+              trackFooterClick("Support", LINKS.ENDUR_TELEGRAM)
+            }
           >
             <MessageCircleMoreIcon
               triggerAnimation={triggerChatIconAnimation}

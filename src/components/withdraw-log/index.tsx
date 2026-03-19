@@ -4,6 +4,8 @@ import { Loader } from "lucide-react";
 import React from "react";
 
 import MyNumber from "@/lib/MyNumber";
+import { MyAnalytics } from "@/lib/analytics";
+import { AnalyticsEvents } from "@/lib/analytics-events";
 import { formatNumber, formatNumberWithCommas } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -53,6 +55,14 @@ const WithdrawLog: React.FC = () => {
       ),
     [withdrawals],
   );
+
+  React.useEffect(() => {
+    if (address) {
+      MyAnalytics.track(AnalyticsEvents.WITHDRAW_LOG_VIEW, {
+        address,
+      });
+    }
+  }, [address]);
 
   React.useEffect(() => {
     if (!address || !withdrawalLogs?.value) return;
@@ -166,7 +176,12 @@ const WithdrawLog: React.FC = () => {
               </p>
             </div>
             <Button
-              onClick={() => connectWallet()}
+              onClick={() => {
+                MyAnalytics.track(AnalyticsEvents.WALLET_CONNECT_CLICK, {
+                  source: "withdraw_log",
+                });
+                connectWallet();
+              }}
               className="w-full rounded-md bg-[#17876D] px-6 py-2 font-medium text-white transition-colors hover:bg-[#17876D] sm:w-auto"
             >
               Connect wallet

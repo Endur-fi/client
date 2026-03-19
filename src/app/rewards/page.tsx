@@ -5,7 +5,7 @@ import React from "react";
 import { Gift, Trophy } from "lucide-react";
 
 import { useSidebar } from "@/components/ui/sidebar";
-import { isMainnet, LEADERBOARD_ANALYTICS_EVENTS } from "@/constants";
+import { isMainnet } from "@/constants";
 import {
   GET_TOP_100_USERS_SEASON1,
   GET_USER_NET_TOTAL_POINTS_SEASON1,
@@ -14,6 +14,7 @@ import {
   GET_USER_COMPLETE_DETAILS,
 } from "@/constants/queries";
 import { MyAnalytics } from "@/lib/analytics";
+import { AnalyticsEvents } from "@/lib/analytics-events";
 import { defaultOptions, pointsApolloClient } from "@/lib/apollo-client";
 import { cn, standariseAddress } from "@/lib/utils";
 import {
@@ -23,7 +24,6 @@ import {
   TabsTrigger,
 } from "@/components/ui/tabs";
 import { useWalletConnection } from "@/hooks/use-wallet-connection";
-import { Button } from "@/components/ui/button";
 
 import { UserCompleteDetailsApiResponse } from "./_components/check-eligibility";
 import { type SizeColumn } from "./_components/table/columns";
@@ -542,71 +542,6 @@ const ErrorDisplay = React.memo(({ error }: { error: string }) => (
 ));
 ErrorDisplay.displayName = "ErrorDisplay";
 
-const Season2Banner = React.memo(() => (
-  <div className="mt-6 flex flex-col gap-3 rounded-xl bg-[#17876D26] px-2 py-2 lg:flex-row lg:items-center lg:gap-6 lg:px-4 lg:py-2">
-    <div className="flex gap-2 lg:flex-shrink-0 lg:gap-3">
-      <Icons.announcement />
-      <div className="flex flex-col gap-1 lg:hidden lg:gap-2">
-        <h4 className="text-sm font-bold text-[#17876D] lg:text-base">
-          Season 2 Points Program Active
-        </h4>
-        <span className="w-fit rounded-full bg-[#38EF7D] px-4 py-1 text-xs font-bold text-[#0D5F4E] lg:px-5 lg:py-1.5 lg:text-sm">
-          LIVE
-        </span>
-        <p className="text-xs text-[#17876D] lg:text-sm">
-          Earn points by staking or contributing to Endur throughout the season
-        </p>
-      </div>
-    </div>
-    <div className="hidden flex-1 space-y-2 lg:block">
-      <div className="flex items-center gap-2">
-        <h4 className="text-sm font-bold text-[#17876D] lg:text-base">
-          Season 2 Points Program Active
-        </h4>
-        <span className="w-fit rounded-full bg-[#38EF7D] px-4 py-1 text-xs font-bold text-[#0D5F4E] lg:px-2 lg:py-0">
-          LIVE
-        </span>
-      </div>
-      <p className="text-xs text-[#17876D] lg:text-sm">
-        Earn points by staking on Endur throughout the season
-      </p>
-    </div>
-    <div className="lg:flex-shrink-0 lg:self-center">
-      <Button className="w-full rounded-md bg-[#17876D] px-4 py-2 text-xs font-medium text-white transition-opacity hover:opacity-90 lg:w-auto lg:px-6 lg:text-sm">
-        View details
-      </Button>
-    </div>
-  </div>
-));
-Season2Banner.displayName = "Season2Banner";
-
-const BtcStakingInfoBanner = React.memo(() => (
-  <div className="mt-4 flex items-center gap-3 rounded-md border border-[#17876D]/20 bg-[#17876D]/5 px-4 py-3">
-    <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-[#17876D]/10">
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="16"
-        height="16"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        className="text-[#17876D]"
-      >
-        <circle cx="12" cy="12" r="10"></circle>
-        <path d="M12 16v-4"></path>
-        <path d="M12 8h.01"></path>
-      </svg>
-    </div>
-    <p className="text-sm font-medium text-[#021B1A]">
-      Points for BTC staking will be added soon
-    </p>
-  </div>
-));
-BtcStakingInfoBanner.displayName = "BtcStakingInfoBanner";
-
 const RewardsPage: React.FC = () => {
   const { isPinned } = useSidebar();
   const { address } = useAccount();
@@ -632,12 +567,11 @@ const RewardsPage: React.FC = () => {
   }, [fetchUsersData]);
 
   React.useEffect(() => {
-    MyAnalytics.track(LEADERBOARD_ANALYTICS_EVENTS.LEADERBOARD_PAGE_VIEW, {
+    MyAnalytics.track(AnalyticsEvents.REWARDS_SEASON_CHANGE, {
+      season: activeSeason,
       userAddress: address || "anonymous",
-      timestamp: Date.now(),
-      isWalletConnected: !!address,
     });
-  }, [address]);
+  }, [activeSeason, address]);
 
   const leaderboardData = React.useMemo(() => {
     if (!address || allUsers.length === 0) return allUsers;
@@ -737,9 +671,17 @@ const RewardsPage: React.FC = () => {
       {/* points/leaderboard/rewards tabs */}
       <ShadCNTabs
         value={activeTab}
-        onValueChange={(value) =>
-          setActiveTab(value as "your-points" | "leaderboard" | "rewards")
-        }
+        onValueChange={(value) => {
+          const to = value as "your-points" | "leaderboard" | "rewards";
+          if (to !== activeTab) {
+            MyAnalytics.track(AnalyticsEvents.REWARDS_TAB_CHANGE, {
+              from: activeTab,
+              to,
+              userAddress: address || "anonymous",
+            });
+          }
+          setActiveTab(to);
+        }}
         defaultValue="your-points"
       >
 				<TabsList className="h-auto w-full gap-0 rounded-[14px] border border-[#E5E8EB] bg-white p-1 lg:w-fit">
