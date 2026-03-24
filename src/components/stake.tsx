@@ -9,7 +9,8 @@ import {
 } from "@starknet-react/core";
 
 import { useAtomValue } from "jotai";
-import { AlertCircleIcon, ChevronDown, Info } from "lucide-react";
+import { motion } from "framer-motion";
+import { AlertCircleIcon, ArrowRight, ChevronDown, Info } from "lucide-react";
 import { Figtree } from "next/font/google";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -69,6 +70,12 @@ import { snAPYAtom } from "@/store/staking.store";
 
 import { Icons } from "./Icons";
 import { PlatformCard } from "./platform-card";
+import {
+  STAKE_SHARE_INTRO_DURATION_S,
+  StakeShareIntroAnimation,
+  stakeShareLstIcon,
+  stakeShareModalUnderlyingIcon,
+} from "./stake-share-success";
 import Stats from "./stats";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -145,6 +152,9 @@ const platformConfig = (lstConfig: LSTAssetConfig) => {
 
 const Stake: React.FC = () => {
   const [showShareModal, setShowShareModal] = React.useState(false);
+  const [shareModalPhase, setShareModalPhase] = React.useState<
+    "intro" | "content"
+  >("intro");
   const [showMaxedOutModal, setShowMaxedOutModal] = React.useState(false);
   const [selectedPlatform, setSelectedPlatform] =
     React.useState<Platform>("none");
@@ -528,6 +538,18 @@ const Stake: React.FC = () => {
     return config ? yields[config.key] : null;
   };
 
+  const defiEarnAssetParams = [
+    "xSTRK",
+    "xWBTC",
+    "xtBTC",
+    "xLBTC",
+    "xsBTC",
+  ] as const;
+  const defiEarnWithLstHref =
+    (defiEarnAssetParams as readonly string[]).includes(lstConfig.LST_SYMBOL)
+      ? `/defi?tab=borrow&asset=${encodeURIComponent(lstConfig.LST_SYMBOL)}`
+      : "/defi?tab=borrow";
+
   React.useEffect(() => {
     handleTransaction("STAKE", {
       form,
@@ -543,86 +565,184 @@ const Stake: React.FC = () => {
     });
   }, [data?.transaction_hash, form, isPending]);
 
+  React.useEffect(() => {
+    if (!showShareModal) {
+      setShareModalPhase("intro");
+      return;
+    }
+    setShareModalPhase("intro");
+    const id = window.setTimeout(
+      () => setShareModalPhase("content"),
+      STAKE_SHARE_INTRO_DURATION_S * 1000,
+    );
+    return () => window.clearTimeout(id);
+  }, [showShareModal]);
+
   return (
     <div className="relative flex h-full w-full flex-col gap-6">
       <Dialog open={showShareModal} onOpenChange={setShowShareModal}>
-        <DialogContent className={cn(font.className, "p-16 sm:max-w-xl")}>
-          <DialogHeader>
-            <DialogTitle className="text-center text-3xl font-semibold text-[#17876D]">
-              Thank you for taking a step towards decentralizing Starknet!
-            </DialogTitle>
-
-            {selectedPlatform === "trovesHyper" && (
-              <p className="!mt-5 text-center text-sm text-muted-foreground">
-                You&apos;ve successfully staked your asset with <br />{" "}
-                <Link
-                  href={`https://app.troves.fi/strategy/hyper_${lstConfig.LST_SYMBOL.toLowerCase()}`}
-                  target="_blank"
-                  className="font-bold text-[#17876D] hover:underline"
-                >
-                  {" "}
-                  Troves Vault
-                </Link>
-              </p>
-            )}
-            <DialogDescription
-              className={cn("!mt-5 text-center text-sm", {
-                hidden: selectedPlatform === "trovesHyper",
-              })}
+        <DialogContent
+          className={cn(
+            font.className,
+            "gap-0 h-auto p-0 sm:max-w-xl",
+          )}
+          aria-busy={shareModalPhase === "intro"}
+        >
+            <div
+              aria-hidden={shareModalPhase === "content"}
+              className={cn(
+                "inset-0 flex flex-col transition-opacity duration-500 ease-out",
+                shareModalPhase === "intro"
+                  ? "z-[2] opacity-100"
+                  : "pointer-events-none z-0 opacity-0 hidden",
+              )}
             >
-              While your stake is being processed, if you like Endur, do you
-              mind sharing on X/Twitter?
-            </DialogDescription>
-
-            <div className="!mt-6 flex items-center justify-center">
-              <TwitterShareButton
-                onClick={() =>
-                  MyAnalytics.track(AnalyticsEvents.STAKE_TWITTER_SHARE_CLICK, {
-                    platform: selectedPlatform,
-                    symbol: lstConfig.SYMBOL,
-                  })
-                }
-                url={`https://endur.fi`}
-                title={`Just staked my ${lstConfig.SYMBOL} on @endurfi, earning ${((activeTab === "strk" ? apy.value.strkApy : apy.value.btcApy) * 100 + (selectedPlatform !== "none" ? getPlatformYield(selectedPlatform) : 0)).toFixed(2)}% APY! 🚀 \n\n${selectedPlatform !== "none" ? `My ${lstConfig.LST_SYMBOL} is now with an additional ${getPlatformYield(selectedPlatform).toFixed(2)}% yield on ${getPlatformConfig(selectedPlatform).platform}! 📈\n\n` : ""}${lstConfig.SYMBOL !== "STRK" ? `Building the future of Bitcoin staking on Starknet` : `Laying the foundation for decentralising Starknet`} with Endur!\n\n`}
-                related={["endurfi", "troves", "karnotxyz"]}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: ".6rem",
-                  padding: ".5rem 2rem",
-                  borderRadius: "12px",
-                  backgroundColor: "#17876D",
-                  color: "white",
-                  textWrap: "nowrap",
-                }}
-              >
-                Share on
-                <Icons.X className="size-4 shrink-0" />
-              </TwitterShareButton>
+              <DialogHeader className="sr-only shrink-0">
+                <DialogTitle>Stake successful</DialogTitle>
+              </DialogHeader>
+              <StakeShareIntroAnimation
+                symbol={lstConfig.SYMBOL}
+                lstSymbol={lstConfig.LST_SYMBOL}
+                assetCategory={lstConfig.CATEGORY}
+                className="min-h-0 flex-1"
+              />
             </div>
 
-            {selectedPlatform === "trovesHyper" && (
-              <Alert className="!mt-8 border border-[#03624C] bg-[#E5EFED] p-4 text-[#03624C]">
-                <AlertCircleIcon className="size-4 !text-[#03624C]" />
-                <AlertTitle className="text-base font-semibold leading-[1]">
-                  Important
-                </AlertTitle>
-                <AlertDescription className="mt-2 flex flex-col items-start -space-y-0.5 text-[#5B616D]">
-                  <p>Your staked balance is now managed by Troves Vault.</p>
-                  <p>
-                    View your position and rewards on Troves.{" "}
+            <div
+              aria-hidden={shareModalPhase === "intro"}
+              className={cn(
+                "inset-0 p-16 transition-opacity duration-500 ease-out",
+                shareModalPhase === "content"
+                  ? "z-[2] opacity-100"
+                  : "pointer-events-none z-0 opacity-0 hidden",
+              )}
+            >
+              <DialogHeader>
+                <DialogTitle className="text-center text-3xl font-semibold text-[#17876D]">
+                  Thank you for taking a step towards decentralizing Starknet!
+                </DialogTitle>
+
+                <motion.div
+                  className="flex !mt-5 flex-wrap items-center justify-center gap-x-2 gap-y-1"
+                  initial={false}
+                  animate={
+                    shareModalPhase === "content"
+                      ? { opacity: 1, y: 0, filter: "blur(0px)" }
+                      : { opacity: 0, y: 14, filter: "blur(4px)" }
+                  }
+                  transition={{
+                    type: "spring",
+                    stiffness: 420,
+                    damping: 32,
+                    delay: shareModalPhase === "content" ? 0.08 : 0,
+                  }}
+                >
+                  <span className="text-sm font-medium tabular-nums text-[#6B7780]">
+                    {lstConfig.SYMBOL}
+                  </span>
+                  <span className="inline-flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-full [&_svg]:size-8">
+                    {stakeShareModalUnderlyingIcon(
+                      lstConfig.SYMBOL,
+                      lstConfig.CATEGORY,
+                      "size-8",
+                    )}
+                  </span>
+                  <ArrowRight
+                    className="size-5 shrink-0 text-[#17876D]"
+                    strokeWidth={2.25}
+                    aria-hidden
+                  />
+                  <span className="inline-flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-full [&_svg]:size-8">
+                    {stakeShareLstIcon(lstConfig.LST_SYMBOL, "size-8")}
+                  </span>
+                  <span className="text-sm font-medium tabular-nums text-[#6B7780]">
+                    {lstConfig.LST_SYMBOL}
+                  </span>
+                </motion.div>
+
+                {selectedPlatform === "trovesHyper" && (
+                  <p className="!mt-5 text-center text-sm text-muted-foreground">
+                    You&apos;ve successfully staked your asset with <br />{" "}
                     <Link
                       href={`https://app.troves.fi/strategy/hyper_${lstConfig.LST_SYMBOL.toLowerCase()}`}
                       target="_blank"
-                      className="font-semibold text-[#03624C] underline"
+                      className="font-bold text-[#17876D] hover:underline"
                     >
-                      Link.
+                      {" "}
+                      Troves Vault
                     </Link>
                   </p>
-                </AlertDescription>
-              </Alert>
-            )}
-          </DialogHeader>
+                )}
+                {/* <DialogDescription
+                  className={cn("!mt-5 text-center text-sm", {
+                    hidden: selectedPlatform === "trovesHyper",
+                  })}
+                >
+                  If you like Endur, do you
+                  mind sharing on X/Twitter?
+                </DialogDescription> */}
+
+                <div className="!mt-6 flex flex-wrap items-center justify-center gap-3">
+                  <TwitterShareButton
+                    onClick={() =>
+                      MyAnalytics.track(AnalyticsEvents.STAKE_TWITTER_SHARE_CLICK, {
+                        platform: selectedPlatform,
+                        symbol: lstConfig.SYMBOL,
+                      })
+                    }
+                    url={`https://endur.fi`}
+                    title={`Just staked my ${lstConfig.SYMBOL} on @endurfi, earning ${((activeTab === "strk" ? apy.value.strkApy : apy.value.btcApy) * 100 + (selectedPlatform !== "none" ? getPlatformYield(selectedPlatform) : 0)).toFixed(2)}% APY! 🚀 \n\n${selectedPlatform !== "none" ? `My ${lstConfig.LST_SYMBOL} is now with an additional ${getPlatformYield(selectedPlatform).toFixed(2)}% yield on ${getPlatformConfig(selectedPlatform).platform}! 📈\n\n` : ""}${lstConfig.SYMBOL !== "STRK" ? `Building the future of Bitcoin staking on Starknet` : `Laying the foundation for decentralising Starknet`} with Endur!\n\n`}
+                    related={["endurfi", "troves", "karnotxyz"]}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: ".6rem",
+                      padding: ".5rem 2rem",
+                      borderRadius: "12px",
+                      backgroundColor: "#17876D",
+                      color: "white",
+                      textWrap: "nowrap",
+                    }}
+                  >
+                    Share on
+                    <Icons.X className="size-4 shrink-0" />
+                  </TwitterShareButton>
+                  <Link
+                    href={defiEarnWithLstHref}
+                    className="inline-flex items-center justify-center gap-2 rounded-xl border-2 border-[#17876D] bg-white px-6 py-2.5 text-sm font-semibold text-[#17876D] shadow-sm transition-colors hover:bg-[#17876D]/5"
+                    onClick={() =>
+                      MyAnalytics.track(AnalyticsEvents.STAKE_USE_LST_CLICK, {
+                        lst: lstConfig.LST_SYMBOL,
+                      })
+                    }
+                  >
+                    Use {lstConfig.LST_SYMBOL}
+                  </Link>
+                </div>
+
+                {selectedPlatform === "trovesHyper" && (
+                  <Alert className="!mt-8 border border-[#03624C] bg-[#E5EFED] p-4 text-[#03624C]">
+                    <AlertCircleIcon className="size-4 !text-[#03624C]" />
+                    <AlertTitle className="text-base font-semibold leading-[1]">
+                      Important
+                    </AlertTitle>
+                    <AlertDescription className="mt-2 flex flex-col items-start -space-y-0.5 text-[#5B616D]">
+                      <p>Your staked balance is now managed by Troves Vault.</p>
+                      <p>
+                        View your position and rewards on Troves.{" "}
+                        <Link
+                          href={`https://app.troves.fi/strategy/hyper_${lstConfig.LST_SYMBOL.toLowerCase()}`}
+                          target="_blank"
+                          className="font-semibold text-[#03624C] underline"
+                        >
+                          Link.
+                        </Link>
+                      </p>
+                    </AlertDescription>
+                  </Alert>
+                )}
+              </DialogHeader>
+            </div>
         </DialogContent>
       </Dialog>
 

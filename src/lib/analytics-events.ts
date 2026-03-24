@@ -97,6 +97,7 @@ export const AnalyticsEvents = {
   STAKE_EARN_COLLAPSIBLE_TOGGLE: "stake_earn_collapsible_toggle",
   STAKE_PLATFORM_SELECT: "stake_platform_select",
   STAKE_TWITTER_SHARE_CLICK: "stake_twitter_share_click",
+  STAKE_USE_LST_CLICK: "stake_use_lst_click",
 
   // Rewards post-claim interactions
   REWARDS_CLAIM_TWITTER_SHARE_CLICK: "rewards_claim_twitter_share_click",
