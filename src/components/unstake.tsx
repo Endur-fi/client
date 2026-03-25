@@ -2,7 +2,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useAccount, useSendTransaction } from "@starknet-react/core";
+import { useAccount as useAccountSn } from "@starknet-react/core";
 import { useAtom, useAtomValue } from "jotai";
 import { Info } from "lucide-react";
 import React from "react";
@@ -10,6 +10,8 @@ import { useForm } from "react-hook-form";
 import { AccountInterface, Contract } from "starknet";
 
 import * as z from "zod";
+
+import { useAccount, useSendTransaction } from "@easyleap/sdk";
 
 import erc4626Abi from "@/abi/erc4626.abi.json";
 import {
@@ -315,7 +317,10 @@ const UnstakeOptionCard = ({
 const Unstake = () => {
   const [txnDapp, setTxnDapp] = React.useState<"endur" | "dex">("dex");
 
-  const { account, address } = useAccount();
+  // EasyLeap: address + Starknet tx sending (Starknet mode)
+  const { starknetAddress: address } = useAccount();
+  // Starknet-react: provides the Starknet account object required by Avnu.
+  const { account } = useAccountSn();
   const { connectWallet } = useWalletConnection();
 
   const [avnuQuote, setAvnuQuote] = useAtom(avnuQuoteAtom);
@@ -346,7 +351,7 @@ const Unstake = () => {
     providerOrAccount: provider,
   });
 
-  const { sendAsync, data, isPending, error } = useSendTransaction({});
+  const { sendAsync, data, isPending, error } = useSendTransaction();
 
   const { handleTransaction } = useTransactionHandler();
 
@@ -400,11 +405,11 @@ const Unstake = () => {
     handleTransaction("UNSTAKE", {
       form,
       address: address ?? "",
-      data: data ?? { transaction_hash: "" },
-      error: error ?? { name: "" },
+      data: data ? { transaction_hash: data } : { transaction_hash: "" },
+      error: error ? { name: (error as Error).name ?? "" } : { name: "" },
       isPending,
     });
-  }, [data?.transaction_hash, form, isPending]);
+  }, [data, form, isPending]);
 
   React.useEffect(() => {
     const initializeAvnuQuote = async () => {
@@ -514,7 +519,7 @@ const Unstake = () => {
   };
 
   const handleDexSwap = async () => {
-    if (!address || !avnuQuote) return;
+    if (!address || !avnuQuote || !account) return;
 
     MyAnalytics.track(eventNames.UNSTAKE_CLICK, {
       address,
@@ -646,7 +651,7 @@ const Unstake = () => {
       address,
     ]);
 
-    sendAsync([call1]);
+    await sendAsync({ calls: [call1] });
   };
 
   return (

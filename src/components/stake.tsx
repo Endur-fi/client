@@ -3,10 +3,12 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
+  InteractionMode,
   useAccount,
   useBalance,
+  useMode,
   useSendTransaction,
-} from "@starknet-react/core";
+} from "@easyleap/sdk";
 
 import { useAtomValue } from "jotai";
 import { AlertCircleIcon, ChevronDown, Info } from "lucide-react";
@@ -51,6 +53,7 @@ import {
   LSTAssetConfig,
   NOSTRA_iXSTRK_ADDRESS,
   REWARD_FEES,
+  WBTC_ETH_TOKEN,
   VESU_vXSTRK_ADDRESS,
 } from "@/constants";
 import { toast } from "@/hooks/use-toast";
@@ -150,17 +153,24 @@ const Stake: React.FC = () => {
 
   const searchParams = useSearchParams();
 
-  const { address } = useAccount();
+  const { starknetAddress: address } = useAccount();
   const { connectWallet } = useWalletConnection();
   const lstConfig = useAtomValue(lstConfigAtom)!;
+  const mode = useMode();
   const [isLendingOpen, setIsLendingOpen] = React.useState(
     // !lstConfig.TROVES_VAULT_MAXED_OUT,
     true,
   );
-  const { data: balance } = useBalance({
-    address,
-    token: lstConfig.ASSET_ADDRESS as `0x${string}`,
-  });
+  // In EVM mode, the SDK treats the passed token address as the EVM token.
+  // For now only WBTC has a mapped EVM token address.
+  const balanceTokenAddress =
+    mode === InteractionMode.EVM && lstConfig.SYMBOL?.toUpperCase() === "WBTC"
+      ? WBTC_ETH_TOKEN
+      : lstConfig.ASSET_ADDRESS;
+
+  const { data: balance } = useBalance(
+    balanceTokenAddress as `0x${string}`,
+  );
   const { data: assetPrice } = useAtomValue(assetPriceAtom);
 
   const exchangeRate = useAtomValue(apiExchangeRateAtom);
@@ -192,7 +202,7 @@ const Stake: React.FC = () => {
     ? lstService.getLSTContract(lstConfig.LST_ADDRESS)
     : null;
 
-  const { sendAsync, data, isPending, error } = useSendTransaction({});
+  const { sendAsync, data, isPending, error } = useSendTransaction();
 
   const { handleTransaction } = useTransactionHandler();
 
@@ -423,7 +433,7 @@ const Stake: React.FC = () => {
       }
     }
 
-    await sendAsync(calls);
+    await sendAsync({ calls });
   };
 
   const getPlatformYield = (platform: Platform) => {
@@ -523,12 +533,14 @@ const Stake: React.FC = () => {
     handleTransaction("STAKE", {
       form,
       address: address ?? "",
-      data: data ?? { transaction_hash: "" },
-      error: error ?? { name: "" },
+      data: data ? { transaction_hash: data } : { transaction_hash: "" },
+      error: error
+        ? { name: (error as Error).name ?? "" }
+        : { name: "" },
       isPending,
       setShowShareModal,
     });
-  }, [data?.transaction_hash, form, isPending]);
+  }, [data, form, isPending]);
 
   return (
     <div className="relative flex h-full w-full flex-col gap-6">
