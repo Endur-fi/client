@@ -114,18 +114,13 @@ export class WalletConnector {
       return [braavosMobileConnector];
     }
 
-    if (this.isInKeplrMobileAppBrowser()) {
-      return [keplrConnector];
-    }
-
     // For mobile devices, prioritize mobile connectors
     if (this.isMobile) {
       return [
         argentMobileConnector,
         braavosMobileConnector,
         cartridgeConnector,
-        webWalletConnector,
-        keplrConnector,
+        webWalletConnector
       ];
     }
 
@@ -141,20 +136,5 @@ export class WalletConnector {
       okx,
       webWalletConnector,
     ];
-  }
-
-  public isInKeplrMobileAppBrowser() {
-    if (typeof window === "undefined") {
-      return false;
-    }
-
-    const userAgent = navigator.userAgent;
-    const isKeplrMobileApp = userAgent.includes("KeplrWalletMobile");
-
-    if (!isKeplrMobileApp) {
-      return false;
-    }
-
-    return isKeplrMobileApp;
   }
 }
