@@ -9,6 +9,8 @@ import React from "react";
 import { cn, getInternalUrl } from "@/lib/utils";
 
 import { LINKS } from "@/constants";
+import { MyAnalytics } from "@/lib/analytics";
+import { AnalyticsEvents } from "@/lib/analytics-events";
 import { ChartSplineIcon } from "./ui/chart-spline";
 import { FlameIcon } from "./ui/flame";
 import { GaugeIcon } from "./ui/gauge";
@@ -23,6 +25,7 @@ type NavLinkProps = {
   children: React.ReactNode;
   isActive?: boolean;
   target?: string;
+  onClick?: () => void;
 };
 
 const NavLink = ({
@@ -31,12 +34,14 @@ const NavLink = ({
   children,
   isActive = false,
   target,
+  onClick,
 }: NavLinkProps) => {
   return (
     <Link
       href={href}
       target={target}
       rel={target === "_blank" ? "noopener noreferrer" : undefined}
+      onClick={onClick}
       className={cn(
         "flex w-full cursor-pointer flex-row items-center gap-2 text-nowrap rounded-md p-2 px-3 text-sm font-semibold text-[#03624C] transition-all hover:bg-[#17876D] hover:text-white",
         {
@@ -61,6 +66,13 @@ const MobileNav = () => {
   const searchParams = useSearchParams();
 
   const referrer = searchParams.get("referrer");
+
+  const handleNavClick = (label: string, href: string) => {
+    MyAnalytics.track(AnalyticsEvents.MOBILE_NAV_CLICK, {
+      label,
+      href,
+    });
+  };
 
   // Calculate Liquid Staking href based on current pathname and referrer
   const getLiquidStakingHref = () => {
@@ -91,7 +103,15 @@ const MobileNav = () => {
     <div>
       <motion.div className="relative lg:hidden">
         <div className="flex items-center justify-center gap-3">
-          <div onClick={() => setOpen(!open)} ref={iconRef}>
+          <div
+            onClick={() => {
+              setOpen(!open);
+              MyAnalytics.track(AnalyticsEvents.MOBILE_NAV_TOGGLE, {
+                isOpen: !open,
+              });
+            }}
+            ref={iconRef}
+          >
             <MenuIcon
               triggerAnimation={open}
               className="size-6 text-[#17876D]"
@@ -118,6 +138,9 @@ const MobileNav = () => {
                   href={getLiquidStakingHref()}
                   icon={<FlameIcon className="-ml-0.5 size-5" />}
                   isActive={pathname === "/strk" || pathname === "/btc"}
+                  onClick={() =>
+                    handleNavClick("Liquid Staking", getLiquidStakingHref())
+                  }
                 >
                   Liquid Staking
                 </NavLink>
@@ -127,6 +150,9 @@ const MobileNav = () => {
                 href={getInternalUrl("/defi", referrer)}
                 icon={<HandCoinsIcon className="-ml-0.5 size-5" />}
                 isActive={pathname === "/defi"}
+                onClick={() =>
+                  handleNavClick("DeFi Opportunities", "/defi")
+                }
               >
                 DeFi Opportunities
               </NavLink>
@@ -135,6 +161,7 @@ const MobileNav = () => {
                 href={getInternalUrl("/rewards", referrer)}
                 icon={<ChartSplineIcon className="size-5" />}
                 isActive={pathname === "/rewards"}
+                onClick={() => handleNavClick("Rewards", "/rewards")}
               >
                 Rewards
               </NavLink>
@@ -144,6 +171,9 @@ const MobileNav = () => {
                 target="_blank"
                 icon={<ChartColumnDecreasingIcon className="size-5" />}
                 isActive={false}
+                onClick={() =>
+                  handleNavClick("xSTRK Analytics", LINKS.DUNE_ANALYTICS)
+                }
               >
                 xSTRK Analytics
               </NavLink>
@@ -153,6 +183,9 @@ const MobileNav = () => {
                 target="_blank"
                 icon={<ChartColumnDecreasingIcon className="size-5" />}
                 isActive={false}
+                onClick={() =>
+                  handleNavClick("xyBTC Analytics", LINKS.BTC_DUNE_ANALYTICS)
+                }
               >
                 xyBTC Analytics
               </NavLink>
@@ -162,6 +195,7 @@ const MobileNav = () => {
               <button
                 onClick={(e) => {
                   e.preventDefault();
+                  handleNavClick("Native Staking", "#native-staking");
                   setShowNativeStakingDialog(true);
                   setOpen(false);
                 }}

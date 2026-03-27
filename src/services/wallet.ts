@@ -7,6 +7,7 @@ import {
   BraavosMobileConnector,
   isInBraavosMobileAppBrowser,
 } from "starknetkit/braavosMobile";
+
 import { WebWalletConnector } from "starknetkit/webwallet";
 import { ControllerConnector } from "starknetkit/controller";
 import { constants } from "starknet";
@@ -119,7 +120,7 @@ export class WalletConnector {
         argentMobileConnector,
         braavosMobileConnector,
         cartridgeConnector,
-        webWalletConnector,
+        webWalletConnector
       ];
     }
 

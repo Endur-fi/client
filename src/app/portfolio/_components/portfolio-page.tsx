@@ -10,6 +10,7 @@ import { useSidebar } from "@/components/ui/sidebar";
 import { STRK_DECIMALS } from "@/constants";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { MyAnalytics } from "@/lib/analytics";
+import { AnalyticsEvents } from "@/lib/analytics-events";
 import MyNumber from "@/lib/MyNumber";
 import { cn, formatNumberWithCommas } from "@/lib/utils";
 import {
@@ -232,8 +233,14 @@ const PortfolioPage: React.FC = () => {
   }, [holdings]);
 
   React.useEffect(() => {
-    MyAnalytics.track("Open Portfolio", {});
+    MyAnalytics.track(AnalyticsEvents.OPEN_PORTFOLIO, {});
   }, []);
+
+  React.useEffect(() => {
+    MyAnalytics.track(AnalyticsEvents.PORTFOLIO_TIME_RANGE_CHANGE, {
+      timeRange,
+    });
+  }, [timeRange]);
 
   return (
     <main
