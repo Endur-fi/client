@@ -768,7 +768,7 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
 
   const checkEligibility = React.useCallback(() => {
     // passed deadline
-    return
+    return;
     if (!address) {
       toast({ description: "Connect your wallet first." });
       return;
