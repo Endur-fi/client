@@ -767,6 +767,8 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
   }, [state.isEligible, address, trackAnalyticsCallback]);
 
   const checkEligibility = React.useCallback(() => {
+    // passed deadline
+    return
     if (!address) {
       toast({ description: "Connect your wallet first." });
       return;
