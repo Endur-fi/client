@@ -8,6 +8,7 @@ import React from "react";
 import { BlockTag, constants, RpcProviderOptions } from "starknet";
 
 import { SidebarProvider } from "@/components/ui/sidebar";
+import { endurEasyleapTheme } from "@/constants/easyleap-theme";
 import { NETWORK } from "@/constants";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
@@ -46,6 +47,7 @@ const Providers: React.FC<ProvidersProps> = ({ children }) => {
 
   return (
     <EasyleapProvider
+      theme={endurEasyleapTheme}
       starknetConfig={{
         chains,
         provider,
