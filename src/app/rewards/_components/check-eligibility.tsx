@@ -767,6 +767,8 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
   }, [state.isEligible, address, trackAnalyticsCallback]);
 
   const checkEligibility = React.useCallback(() => {
+    // passed deadline
+    return;
     if (!address) {
       toast({ description: "Connect your wallet first." });
       return;
@@ -935,8 +937,8 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
     if (state.isEligible && state.allocation) {
       return { disabled: false, text: "Claim rewards" };
     }
-    // Default to "Check Eligibility" for initial state
-    return { disabled: false, text: "Check Eligibility" };
+    // Reward collection is closed
+    return { disabled: true, text: "Reward collection closed" };
   }, [
     state.isCheckingClaimed,
     state.hasAlreadyClaimed,
