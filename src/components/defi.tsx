@@ -80,8 +80,8 @@ import { ChevronDown } from "lucide-react";
 import MyHeader from "./header";
 
 export const POINTS_CONFIG = {
-  USDC_BORROWING: 3, // additional 3x of borrowed value normalised
-  UNDERLYING_BORROWING: 0, // no additional points for underlying borrowing
+  USDC_BORROWING: 10, // additional 3x of borrowed value normalised
+  UNDERLYING_BORROWING: 10, // no additional points for underlying borrowing
   STAKING: 1, // simply for staking
 };
 export interface ProtocolConfig {
