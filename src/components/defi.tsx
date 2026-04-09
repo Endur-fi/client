@@ -906,6 +906,7 @@ const Defi: React.FC = () => {
     if (tabParam !== activeTab) {
       const params = new URLSearchParams(searchParams.toString());
       params.set("tab", activeTab);
+      params.delete("asset");
       router.replace(`/defi?${params.toString()}`, { scroll: false });
     }
   }, [activeTab, router, searchParams]);
@@ -930,6 +931,26 @@ const Defi: React.FC = () => {
     setShowMoreFilters(false);
     setShowStablesOnly(false);
   }, [activeTab]);
+
+  const prevAssetParamRef = React.useRef<string | null>(null);
+  React.useEffect(() => {
+    const raw = searchParams.get("asset");
+    const validLST: AssetFilter[] = [
+      "xSTRK",
+      "xWBTC",
+      "xtBTC",
+      "xLBTC",
+      "xsBTC",
+    ];
+    if (raw && validLST.map(lst => lst.toLowerCase()).includes(raw.toLowerCase() as AssetFilter)) {
+      const lst = validLST.find(lst => lst.toLowerCase() === raw.toLowerCase());
+      setSelectedAsset(lst as AssetFilter);
+    } else if (prevAssetParamRef.current !== null && raw === null) {
+      setSelectedAsset("all");
+    }
+    prevAssetParamRef.current = raw;
+  }, [searchParams]);
+
   const [pendingProtocolLink, setPendingProtocolLink] = useState<string | null>(
     null,
   );
