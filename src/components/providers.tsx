@@ -48,6 +48,13 @@ const Providers: React.FC<ProvidersProps> = ({ children }) => {
   return (
     <EasyleapProvider
       theme={endurEasyleapTheme}
+      privyAppId={process.env.NEXT_PUBLIC_PRIVY_APP_ID}
+      starkzap={{
+        rpcUrl: process.env.NEXT_PUBLIC_RPC_URL,
+        network:
+          NETWORK === constants.NetworkName.SN_MAIN ? "mainnet" : "sepolia",
+      }}
+      ui={{ enableEvmMode: false }}
       starknetConfig={{
         chains,
         provider,

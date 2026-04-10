@@ -2,12 +2,12 @@ import { useAccount } from "@starknet-react/core";
 import { useAtomValue } from "jotai";
 import { Loader } from "lucide-react";
 import React from "react";
+import { ConnectButton } from "@easyleap/sdk";
 
 import MyNumber from "@/lib/MyNumber";
 import { formatNumber, formatNumberWithCommas } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { useWalletConnection } from "@/hooks/use-wallet-connection";
 
 import { STRK_DECIMALS, LST_CONFIG } from "@/constants";
 import {
@@ -42,7 +42,7 @@ const WithdrawLog: React.FC = () => {
   const activeTab = useAtomValue(tabsAtom);
 
   const { address } = useAccount();
-  const { connectWallet } = useWalletConnection();
+  // Wallet connection is handled by Easyleap ConnectButton.
 
   const _yourPendingWithdrawalsAmount = React.useMemo(
     () =>
@@ -165,12 +165,7 @@ const WithdrawLog: React.FC = () => {
                 history and logs.
               </p>
             </div>
-            <Button
-              onClick={() => connectWallet()}
-              className="w-full rounded-md bg-[#17876D] px-6 py-2 font-medium text-white transition-colors hover:bg-[#17876D] sm:w-auto"
-            >
-              Connect wallet
-            </Button>
+            <ConnectButton className="w-full rounded-md bg-[#17876D] px-6 py-2 font-medium text-white transition-colors hover:bg-[#17876D] sm:w-auto" />
           </CardContent>
         </Card>
       </div>

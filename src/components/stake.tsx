@@ -3,6 +3,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
+  ConnectButton,
   InteractionMode,
   useAccount,
   useBalance,
@@ -58,7 +59,6 @@ import {
 } from "@/constants";
 import { toast } from "@/hooks/use-toast";
 import { useTransactionHandler } from "@/hooks/use-transactions";
-import { useWalletConnection } from "@/hooks/use-wallet-connection";
 import { MyAnalytics } from "@/lib/analytics";
 import MyNumber from "@/lib/MyNumber";
 import { cn, eventNames, formatNumberWithCommas } from "@/lib/utils";
@@ -154,7 +154,7 @@ const Stake: React.FC = () => {
   const searchParams = useSearchParams();
 
   const { starknetAddress: address } = useAccount();
-  const { connectWallet } = useWalletConnection();
+  // Wallet connection is handled by Easyleap ConnectButton.
   const lstConfig = useAtomValue(lstConfigAtom)!;
   const mode = useMode();
   const [isLendingOpen, setIsLendingOpen] = React.useState(
@@ -955,12 +955,7 @@ const Stake: React.FC = () => {
 
       <div className="">
         {!address && (
-          <Button
-            onClick={() => connectWallet()}
-            className="w-full rounded-2xl bg-[#17876D] py-6 text-sm font-semibold text-white hover:bg-[#17876D] disabled:bg-[#03624C4D] disabled:text-[#17876D] disabled:opacity-90"
-          >
-            Connect Wallet
-          </Button>
+          <ConnectButton className="w-full rounded-2xl bg-[#17876D] py-6 text-sm font-semibold text-white hover:bg-[#17876D] disabled:bg-[#03624C4D] disabled:text-[#17876D] disabled:opacity-90" />
         )}
 
         {address && (

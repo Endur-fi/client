@@ -2,6 +2,7 @@
 
 import { useAtomValue } from "jotai";
 import React from "react";
+import { ConnectButton } from "@easyleap/sdk";
 import { Pie, PieChart } from "recharts";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -176,6 +177,9 @@ const DefiHoldings: React.FC = () => {
               <p className="text-[13px]">
                 You will be able to see your xSTRK distribution across DApps
               </p>
+              <div className="mt-3 flex justify-center">
+                <ConnectButton className="rounded-md bg-[#17876D] px-6 py-2 font-medium text-white transition-colors hover:bg-[#17876D]" />
+              </div>
             </div>
           )}
           {address && sumDefiHoldings === 0 && (

@@ -1,7 +1,10 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 
-import { useAccount as useAccountStarknet, useProvider } from "@starknet-react/core";
+import {
+  useAccount as useAccountStarknet,
+  useProvider,
+} from "@starknet-react/core";
 import { ConnectButton, useAccount } from "@easyleap/sdk";
 import { useAtom, useSetAtom } from "jotai";
 import React from "react";

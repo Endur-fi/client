@@ -11,7 +11,7 @@ import { AccountInterface, Contract } from "starknet";
 
 import * as z from "zod";
 
-import { useAccount, useSendTransaction } from "@easyleap/sdk";
+import { ConnectButton, useAccount, useSendTransaction } from "@easyleap/sdk";
 
 import erc4626Abi from "@/abi/erc4626.abi.json";
 import {
@@ -31,7 +31,6 @@ import {
 import { getProvider, IS_PAUSED, isMainnet, REWARD_FEES } from "@/constants";
 import { toast } from "@/hooks/use-toast";
 import { useTransactionHandler } from "@/hooks/use-transactions";
-import { useWalletConnection } from "@/hooks/use-wallet-connection";
 import { MyAnalytics } from "@/lib/analytics";
 import MyNumber from "@/lib/MyNumber";
 import { cn, eventNames, formatNumberWithCommas } from "@/lib/utils";
@@ -321,7 +320,7 @@ const Unstake = () => {
   const { starknetAddress: address } = useAccount();
   // Starknet-react: provides the Starknet account object required by Avnu.
   const { account } = useAccountSn();
-  const { connectWallet } = useWalletConnection();
+  // Wallet connection is handled by Easyleap ConnectButton.
 
   const [avnuQuote, setAvnuQuote] = useAtom(avnuQuoteAtom);
   const [avnuLoading, setAvnuLoading] = useAtom(avnuLoadingAtom);
@@ -833,9 +832,7 @@ const Unstake = () => {
 
           <div className="">
             {!address ? (
-              <StyledButton onClick={() => connectWallet()}>
-                Connect Wallet
-              </StyledButton>
+              <ConnectButton className="w-full" />
             ) : (
               <StyledButton
                 onClick={form.handleSubmit(onSubmit)}
@@ -897,9 +894,7 @@ const Unstake = () => {
           </div>
           <div className="">
             {!address ? (
-              <StyledButton onClick={() => connectWallet()}>
-                Connect Wallet
-              </StyledButton>
+              <ConnectButton className="w-full" />
             ) : (
               <StyledButton
                 onClick={handleDexSwap}
