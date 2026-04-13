@@ -21,6 +21,7 @@ import {
 import MobileNav from "./mobile-nav";
 import { useSidebar } from "./ui/sidebar";
 import { VipNavbarChip } from "./vip-card";
+import { CustomModal } from "./custom-modal";
 
 const Navbar = ({ className }: { className?: string }) => {
   // init analytics
