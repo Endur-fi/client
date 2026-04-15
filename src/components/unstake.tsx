@@ -8,7 +8,6 @@ import { Info } from "lucide-react";
 import React from "react";
 import { useForm } from "react-hook-form";
 import { AccountInterface, Contract } from "starknet";
-import { usePrivy } from "@privy-io/react-auth";
 
 import * as z from "zod";
 
@@ -322,7 +321,6 @@ const Unstake = () => {
   // Starknet-react: provides the Starknet account object required by Avnu.
   const { account } = useAccountSn();
   // Wallet connection is handled by Easyleap ConnectButton.
-  const { getAccessToken } = usePrivy();
 
   const [avnuQuote, setAvnuQuote] = useAtom(avnuQuoteAtom);
   const [avnuLoading, setAvnuLoading] = useAtom(avnuLoadingAtom);
@@ -526,8 +524,6 @@ const Unstake = () => {
     if (!account) {
       setAvnuLoading(true);
       try {
-        const jwt = await getAccessToken();
-        if (!jwt) throw new Error("Missing Privy access token");
         const quoteId = (avnuQuote as any)?.quoteId as string | undefined;
         if (!quoteId) throw new Error("Missing Avnu quoteId");
 
@@ -544,18 +540,7 @@ const Unstake = () => {
             })
           : [];
 
-        const resp = await fetch("/api/privy/execute-transaction", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${jwt}`,
-          },
-          body: JSON.stringify({ calls: normalizedCalls }),
-        });
-        if (!resp.ok) {
-          const err = await resp.json().catch(() => ({}));
-          throw new Error(err?.error || "Privy execute-transaction failed");
-        }
+        await sendAsync({ calls: normalizedCalls });
 
         toast({
           itemID: "unstake",
@@ -603,27 +588,6 @@ const Unstake = () => {
 
     setAvnuLoading(true);
     try {
-      // #region agent log
-      fetch("http://127.0.0.1:7429/ingest/bdf927da-98e3-402e-ad6c-79437370adcf", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "ce02df" },
-        body: JSON.stringify({
-          sessionId: "ce02df",
-          runId: "pre-fix",
-          hypothesisId: "U2",
-          location: "src/components/unstake.tsx:handleDexSwap:beforeExecute",
-          message: "calling executeAvnuSwap",
-          data: {
-            quoteSellAmount: typeof (avnuQuote as any)?.sellAmount === "string" ? (avnuQuote as any).sellAmount.slice(0, 24) : null,
-            quoteBuyAmount: typeof (avnuQuote as any)?.buyAmount === "string" ? (avnuQuote as any).buyAmount.slice(0, 24) : null,
-            accountHasExecute: typeof (account as any)?.execute === "function",
-            accountAddress: typeof (account as any)?.address === "string" ? (account as any).address : null,
-          },
-          timestamp: Date.now(),
-        }),
-      }).catch(() => {});
-      // #endregion agent log
-
       await executeAvnuSwap(
         account as AccountInterface,
         avnuQuote,
@@ -648,25 +612,6 @@ const Unstake = () => {
           form.reset();
         },
         (error) => {
-          // #region agent log
-          fetch("http://127.0.0.1:7429/ingest/bdf927da-98e3-402e-ad6c-79437370adcf", {
-            method: "POST",
-            headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "ce02df" },
-            body: JSON.stringify({
-              sessionId: "ce02df",
-              runId: "pre-fix",
-              hypothesisId: "U3",
-              location: "src/components/unstake.tsx:handleDexSwap:onError",
-              message: "executeAvnuSwap onError called",
-              data: {
-                name: typeof (error as any)?.name === "string" ? (error as any).name : null,
-                message: typeof (error as any)?.message === "string" ? (error as any).message.slice(0, 400) : String(error).slice(0, 400),
-              },
-              timestamp: Date.now(),
-            }),
-          }).catch(() => {});
-          // #endregion agent log
-
           toast({
             itemID: "unstake",
             description: (
@@ -683,24 +628,6 @@ const Unstake = () => {
       );
     } catch (error) {
       console.error("AVNU DEX Swap error", error);
-      // #region agent log
-      fetch("http://127.0.0.1:7429/ingest/bdf927da-98e3-402e-ad6c-79437370adcf", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "ce02df" },
-        body: JSON.stringify({
-          sessionId: "ce02df",
-          runId: "pre-fix",
-          hypothesisId: "U3",
-          location: "src/components/unstake.tsx:handleDexSwap:catch",
-          message: "handleDexSwap threw",
-          data: {
-            name: error instanceof Error ? error.name : null,
-            message: error instanceof Error ? error.message.slice(0, 400) : String(error).slice(0, 400),
-          },
-          timestamp: Date.now(),
-        }),
-      }).catch(() => {});
-      // #endregion agent log
     } finally {
       setAvnuLoading(false);
     }
