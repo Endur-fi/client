@@ -27,15 +27,7 @@ export function CustomModal({ children }: PropsWithChildren) {
   usePrivyConnection();
 
   function handleConnection(connector: Connector) {
-    if (connector.id === "email_google") {
-      if (!user?.id) {
-        login();
-      } else {
-        logout(); // TODO: remove this else block
-      }
-    } else {
-      connect({ connector });
-    }
+    connect({ connector });
   }
 
   return (

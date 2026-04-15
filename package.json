@@ -7,6 +7,7 @@
     "dev:https": "next dev --experimental-https",
     "build": "next build",
     "start": "next start",
+    "db:dev": "bash ./scripts/postgres.sh",
     "lint": "next lint",
     "lint:fix": "eslint --config .eslintrc.json . --fix",
     "format:fix": "prettier --write \"**/*.{ts,tsx,json}\""
@@ -16,6 +17,7 @@
     "@avnu/avnu-sdk": "3.0.0",
     "@duneanalytics/client-sdk": "^0.2.4",
     "@easyleap/sdk": "file:../easyleap-sdk-ts/lib",
+    "@farcaster/mini-app-solana": "^2.0.0",
     "@hookform/resolvers": "^3.9.1",
     "@prisma/client": "5.22.0",
     "@privy-io/node": "^0.12.0",
@@ -57,7 +59,6 @@
     "lucide-react": "^0.456.0",
     "mixpanel-browser": "^2.58.0",
     "moment": "^2.30.1",
-    "mongoose": "^9.4.1",
     "motion": "^11.15.0",
     "next": "14.2.35",
     "qs": "^6.14.0",

@@ -39,13 +39,6 @@ export class WalletConnector {
       },
     });
 
-    const privyEmailOrGoogleConnector = new InjectedConnector({
-      options: {
-        id: "email_google",
-        name: "Email or Google",
-      },
-    });
-
     const braavosConnector = new InjectedConnector({
       options: {
         id: "braavos",
@@ -132,7 +125,6 @@ export class WalletConnector {
 
     // For desktop, only show extension wallets and web wallet (no mobile connectors)
     return [
-      privyEmailOrGoogleConnector,
       argentXConnector,
       braavosConnector,
       cartridgeConnector,

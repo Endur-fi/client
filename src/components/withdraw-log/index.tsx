@@ -1,8 +1,7 @@
-import { useAccount } from "@starknet-react/core";
 import { useAtomValue } from "jotai";
 import { Loader } from "lucide-react";
 import React from "react";
-import { ConnectButton } from "@easyleap/sdk";
+import { ConnectButton, useAccount } from "@easyleap/sdk";
 
 import MyNumber from "@/lib/MyNumber";
 import { formatNumber, formatNumberWithCommas } from "@/lib/utils";
@@ -41,7 +40,7 @@ const WithdrawLog: React.FC = () => {
   const globalAmountAvailable = useAtomValue(globalAmountAvailableAtom);
   const activeTab = useAtomValue(tabsAtom);
 
-  const { address } = useAccount();
+  const { starknetAddress: address } = useAccount();
   // Wallet connection is handled by Easyleap ConnectButton.
 
   const _yourPendingWithdrawalsAmount = React.useMemo(
