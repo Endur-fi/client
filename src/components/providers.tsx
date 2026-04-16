@@ -4,9 +4,8 @@ import { mainnet, sepolia } from "@starknet-react/chains";
 import { Connector, jsonRpcProvider } from "@starknet-react/core";
 import { EasyleapProvider } from "@easyleap/sdk";
 import { Figtree } from "next/font/google";
-import React, { type PropsWithChildren } from "react";
+import React from "react";
 import { BlockTag, constants, RpcProviderOptions } from "starknet";
-import { PrivyProvider as Privy } from "@privy-io/react-auth";
 
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { endurEasyleapTheme } from "@/constants/easyleap-theme";
@@ -46,19 +45,10 @@ const Providers: React.FC<ProvidersProps> = ({ children }) => {
   const isMobile = useIsMobile();
   const walletConnector = new WalletConnector(isMobile);
 
-  const privyConfig = React.useMemo(
-    () => ({
-      loginMethods: ["google", "email"] as const,
-      // Intentionally omit wallet UI here; wallet connectors are handled separately.
-    }),
-    [],
-  );
-
   return (
     <EasyleapProvider
       theme={endurEasyleapTheme}
       privyAppId={process.env.NEXT_PUBLIC_PRIVY_APP_ID}
-      privyConfig={privyConfig}
       starkzap={{
         rpcUrl: process.env.NEXT_PUBLIC_RPC_URL,
         network:
@@ -72,27 +62,10 @@ const Providers: React.FC<ProvidersProps> = ({ children }) => {
       }}
     >
       <SidebarProvider className={cn(font.className, "w-full")}>
-        <PrivyProvider>{children}</PrivyProvider>
+        {children}
       </SidebarProvider>
     </EasyleapProvider>
   );
 };
-
-function PrivyProvider({ children }: PropsWithChildren) {
-  const appId = process.env.NEXT_PUBLIC_PRIVY_APP_ID;
-
-  return appId ? (
-    <Privy
-      appId={appId}
-      config={{
-        loginMethods: ["google", "email"],
-      }}
-    >
-      {children}
-    </Privy>
-  ) : (
-    children
-  );
-}
 
 export default Providers;
