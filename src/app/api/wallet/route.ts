@@ -42,7 +42,6 @@ export async function GET(request: NextRequest) {
         walletId: wallet.walletId,
         address: wallet.address,
         publicKey: wallet.publicKey,
-        isDeployed: wallet.isDeployed,
       },
     });
   } catch (error: unknown) {

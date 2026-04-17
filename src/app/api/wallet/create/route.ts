@@ -45,7 +45,6 @@ export async function POST(request: NextRequest) {
           walletId: existingWallet.walletId,
           address: existingWallet.address,
           publicKey: existingWallet.publicKey,
-          isDeployed: existingWallet.isDeployed,
         },
       });
     }
@@ -66,7 +65,6 @@ export async function POST(request: NextRequest) {
         walletId: wallet.id,
         address: wallet.address,
         publicKey: wallet.public_key,
-        isDeployed: false,
       },
     });
 
@@ -76,7 +74,6 @@ export async function POST(request: NextRequest) {
         walletId: newWallet.walletId,
         address: newWallet.address,
         publicKey: newWallet.publicKey,
-        isDeployed: newWallet.isDeployed,
       },
     });
   } catch (error: unknown) {
