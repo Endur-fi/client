@@ -17,6 +17,18 @@ const withdrawLogsAtomWithQuery = atomWithQuery((get) => {
       const address: string | undefined = get(userAddressAtom);
 
       if (!address) return null;
+      const addressLower = address.toLowerCase();
+      const normalizedAddress = (() => {
+        try {
+          const hex = addressLower.startsWith("0x")
+            ? addressLower.slice(2)
+            : addressLower;
+          if (!/^[0-9a-f]+$/.test(hex)) return addressLower;
+          return `0x${hex.padStart(64, "0")}`;
+        } catch {
+          return addressLower;
+        }
+      })();
 
       try {
         const { data } = await apolloClient.query({
@@ -42,7 +54,7 @@ const withdrawLogsAtomWithQuery = atomWithQuery((get) => {
           variables: {
             where: {
               receiver: {
-                equals: address,
+                equals: normalizedAddress,
               },
             },
           },

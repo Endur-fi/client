@@ -401,6 +401,9 @@ const Unstake = () => {
   }, [queueState.value, form.watch("unstakeAmount")]);
 
   React.useEffect(() => {
+    // DEX flow manages its own success/error toasts and does not produce a stable
+    // `transaction_hash` for our generic transaction handler in all cases.
+    if (txnDapp === "dex") return;
     handleTransaction("UNSTAKE", {
       form,
       address: address ?? "",
