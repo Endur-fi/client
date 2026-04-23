@@ -543,6 +543,10 @@ const Unstake = () => {
             })
           : [];
 
+        if (normalizedCalls.length === 0) {
+          throw new Error("No calldata returned from Avnu; cannot execute swap");
+        }
+
         await sendAsync({ calls: normalizedCalls });
 
         toast({
