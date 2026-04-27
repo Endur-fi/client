@@ -20,3 +20,12 @@ model Wallet {
   @@map("wallets")
 }
 
+model EndurSponsorEvent {
+  id          String   @id @default(uuid())
+  privyUserId String
+  createdAt   DateTime @default(now())
+
+  @@index([privyUserId, createdAt])
+  @@map("endur_sponsor_events")
+}
+

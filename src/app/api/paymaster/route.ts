@@ -10,6 +10,46 @@ import {
 
 type Hex = `0x${string}`;
 
+function bigintFromDecimalEnv(
+  key: string,
+  fallback: bigint,
+): bigint {
+  const v = process.env[key];
+  if (!v) return fallback;
+  try {
+    // decimal string (recommended for ops): e.g. "1000000000000000000"
+    return BigInt(v.trim());
+  } catch {
+    throw new Error(`Invalid env var ${key}: expected decimal integer string`);
+  }
+}
+
+function numberFromDecimalEnv(key: string, fallback: number): number {
+  const v = process.env[key];
+  if (!v) return fallback;
+  const n = Number(v.trim());
+  if (!Number.isFinite(n) || !Number.isInteger(n) || n < 0) {
+    throw new Error(`Invalid env var ${key}: expected non-negative integer`);
+  }
+  return n;
+}
+
+const ENDUR_PAYMASTER_LIMITS = {
+  // All amounts are interpreted as the raw uint256 in the calldata.
+  // Stake uses STRK base units; unstake uses LST "share" base units.
+  minStakeAmount: bigintFromDecimalEnv("ENDUR_MIN_STAKE_AMOUNT", BigInt(0)),
+  minUnstakeAmount: bigintFromDecimalEnv("ENDUR_MIN_UNSTAKE_AMOUNT", BigInt(0)),
+  largeAmountExemptStake: bigintFromDecimalEnv(
+    "ENDUR_LARGE_AMOUNT_EXEMPT_STAKE",
+    BigInt(0),
+  ),
+  largeAmountExemptUnstake: bigintFromDecimalEnv(
+    "ENDUR_LARGE_AMOUNT_EXEMPT_UNSTAKE",
+    BigInt(0),
+  ),
+  middleBandRatePerHour: numberFromDecimalEnv("ENDUR_MIDDLE_BAND_RPH", 5),
+} as const;
+
 type JsonRpcRequest = {
   id?: unknown;
   jsonrpc?: unknown;
@@ -37,6 +77,9 @@ type PaymasterBuildTransactionParams = {
         invoke?: {
           user_address?: unknown;
           calls?: unknown;
+          typed_data?: unknown;
+          typedData?: unknown;
+          signature?: unknown;
         };
       };
   parameters?: unknown;
@@ -154,6 +197,107 @@ function normalizeAvnuCall(raw: unknown): AvnuCall | null {
     calldata.push(v);
   }
   return { to, selector: sel, calldata };
+}
+
+function uint256FromFeltsOrThrow(low: string, high: string): bigint {
+  // calldata limbs are already normalized 0x... strings.
+  let lo: bigint;
+  let hi: bigint;
+  try {
+    lo = BigInt(low);
+    hi = BigInt(high);
+  } catch {
+    throw new Error("Invalid uint256 calldata");
+  }
+  if (lo < BigInt(0) || hi < BigInt(0)) throw new Error("Invalid uint256 calldata");
+  return (hi << BigInt(128)) + lo;
+}
+
+type EndurOpKind = "stake" | "unstake";
+function classifyEndurOpAndAmountOrThrow(callsRaw: unknown): {
+  op: EndurOpKind;
+  amount: bigint;
+} {
+  if (!Array.isArray(callsRaw)) throw new Error("Invalid invoke.calls");
+  const calls = callsRaw.map(normalizeAvnuCall);
+  if (calls.some((c) => c === null)) throw new Error("Invalid calls format");
+  const normalized = calls as AvnuCall[];
+
+  if (normalized.length === 1) {
+    const c = normalized[0]!;
+    if (c.selector !== selector("redeem")) {
+      throw new Error("Forbidden call selector");
+    }
+    if (c.calldata.length !== 4) throw new Error("Invalid redeem calldata");
+    const amount = uint256FromFeltsOrThrow(c.calldata[0]!, c.calldata[1]!);
+    return { op: "unstake", amount };
+  }
+
+  if (normalized.length !== 2) throw new Error("Forbidden calls length");
+  const [approve, action] = normalized;
+
+  // DEX unstake: amount is approved shares (uint256) on the LST approve.
+  if (action.selector === selector("multi_route_swap")) {
+    if (approve.selector !== selector("approve")) {
+      throw new Error("First call must be approve");
+    }
+    if (approve.calldata.length !== 3) {
+      throw new Error("Invalid approve calldata");
+    }
+    const amount = uint256FromFeltsOrThrow(
+      approve.calldata[1]!,
+      approve.calldata[2]!,
+    );
+    return { op: "unstake", amount };
+  }
+
+  const allowedDepositSelectors = new Set<Hex>([
+    selector("deposit"),
+    selector("deposit_with_referral"),
+    selector("deposit_to_validator"),
+  ]);
+  if (!allowedDepositSelectors.has(action.selector)) {
+    throw new Error("Forbidden deposit selector");
+  }
+  if (action.calldata.length < 2) throw new Error("Invalid deposit calldata");
+  const amount = uint256FromFeltsOrThrow(action.calldata[0]!, action.calldata[1]!);
+  return { op: "stake", amount };
+}
+
+function callsFromOutsideExecutionTypedDataOrThrow(typed: unknown): unknown[] {
+  if (!isRecord(typed)) throw new Error("Invalid invoke typed_data");
+  const message = (typed as Record<string, unknown>).message;
+  if (!isRecord(message)) throw new Error("Invalid invoke typed_data message");
+
+  // SNIP-9 / OutsideExecutionTypedData V1:
+  // message.calls: [{ to, selector, calldata_len, calldata }]
+  const v1 = (message as Record<string, unknown>).calls;
+  if (Array.isArray(v1)) {
+    return v1.map((c) => {
+      if (!isRecord(c)) throw new Error("Invalid invoke typed_data calls");
+      return {
+        to: (c as Record<string, unknown>).to,
+        selector: (c as Record<string, unknown>).selector,
+        calldata: (c as Record<string, unknown>).calldata,
+      };
+    });
+  }
+
+  // SNIP-9 / OutsideExecutionTypedData V2:
+  // message.Calls: [{ To, Selector, Calldata }]
+  const v2 = (message as Record<string, unknown>).Calls;
+  if (Array.isArray(v2)) {
+    return v2.map((c) => {
+      if (!isRecord(c)) throw new Error("Invalid invoke typed_data Calls");
+      return {
+        to: (c as Record<string, unknown>).To,
+        selector: (c as Record<string, unknown>).Selector,
+        calldata: (c as Record<string, unknown>).Calldata,
+      };
+    });
+  }
+
+  throw new Error("Invalid invoke typed_data calls");
 }
 
 function calldataMentionsUser(user: Hex, calldata: string[]): boolean {
@@ -476,23 +620,16 @@ export async function POST(request: Request) {
           { status: 403 },
         );
       }
-      // Call-shape allowlist only applies to build: execute carries typed_data + signature, not calls.
+
+      const invokeRec = (invoke as Record<string, unknown> | undefined) ?? undefined;
+      const typed = invokeRec?.typed_data ?? invokeRec?.typedData;
+      const sig = invokeRec?.signature;
+
+      let callsRaw: unknown;
       if (rpcMethod === "paymaster_buildTransaction") {
-        try {
-          assertAllowedEndurInvokeOrThrow(userAddress, invoke?.calls);
-        } catch (e) {
-          const forbidden = e instanceof Error ? e.message : "Forbidden request";
-          return NextResponse.json(
-            { error: forbidden },
-            { status: 403 },
-          );
-        }
+        callsRaw = invokeRec?.calls;
       } else if (rpcMethod === "paymaster_executeTransaction") {
-        const typed =
-          (invoke as Record<string, unknown> | undefined)?.typed_data ??
-          (invoke as Record<string, unknown> | undefined)?.typedData;
-        const sig = (invoke as Record<string, unknown> | undefined)?.signature;
-        if (!typed || typeof typed !== "object") {
+        if (!typed) {
           return NextResponse.json(
             { error: "Missing invoke typed_data" },
             { status: 400 },
@@ -504,6 +641,83 @@ export async function POST(request: Request) {
             { status: 400 },
           );
         }
+        try {
+          callsRaw = callsFromOutsideExecutionTypedDataOrThrow(typed);
+        } catch (e) {
+          return NextResponse.json(
+            { error: e instanceof Error ? e.message : "Invalid invoke typed_data" },
+            { status: 400 },
+          );
+        }
+      } else {
+        return NextResponse.json({ error: "Unsupported method" }, { status: 400 });
+      }
+
+      try {
+        assertAllowedEndurInvokeOrThrow(userAddress, callsRaw);
+      } catch (e) {
+        const forbidden = e instanceof Error ? e.message : "Forbidden request";
+        return NextResponse.json(
+          { error: forbidden },
+          { status: 403 },
+        );
+      }
+
+      // Amount checks apply to both build and execute.
+      let op: EndurOpKind;
+      let amount: bigint;
+      try {
+        ({ op, amount } = classifyEndurOpAndAmountOrThrow(callsRaw));
+      } catch (e) {
+        return NextResponse.json(
+          { error: e instanceof Error ? e.message : "Invalid calls" },
+          { status: 400 },
+        );
+      }
+
+      const min =
+        op === "stake"
+          ? ENDUR_PAYMASTER_LIMITS.minStakeAmount
+          : ENDUR_PAYMASTER_LIMITS.minUnstakeAmount;
+      const exempt =
+        op === "stake"
+          ? ENDUR_PAYMASTER_LIMITS.largeAmountExemptStake
+          : ENDUR_PAYMASTER_LIMITS.largeAmountExemptUnstake;
+
+      const isLargeExempt = amount > exempt;
+      if (!isLargeExempt && amount < min) {
+        return NextResponse.json(
+          {
+            error:
+              op === "stake"
+                ? "Stake amount below minimum"
+                : "Unstake amount below minimum",
+          },
+          { status: 403 },
+        );
+      }
+
+      // Rolling hourly rate limit is only enforced on execute (one slot per sponsored execution),
+      // and only for the "middle band" (min <= amount <= exempt).
+      const isMiddleBand = !isLargeExempt;
+      if (
+        rpcMethod === "paymaster_executeTransaction" &&
+        isMiddleBand &&
+        ENDUR_PAYMASTER_LIMITS.middleBandRatePerHour > 0
+      ) {
+        const since = new Date(Date.now() - 60 * 60 * 1000);
+        const used = await prisma.endurSponsorEvent.count({
+          where: { privyUserId: userId, createdAt: { gte: since } },
+        });
+        if (used >= ENDUR_PAYMASTER_LIMITS.middleBandRatePerHour) {
+          return NextResponse.json(
+            { error: "Rate limit exceeded for this action" },
+            { status: 429 },
+          );
+        }
+        await prisma.endurSponsorEvent.create({
+          data: { privyUserId: userId },
+        });
       }
     }
 
