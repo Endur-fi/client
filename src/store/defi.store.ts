@@ -618,17 +618,25 @@ const strkFarmEkuboYieldQueryAtom = atomWithQuery((get) => ({
   refetchOnMount: false,
 }));
 
-const trovesHyperYieldQueryAtom = atomWithQuery((get) => ({
-  queryKey: ["trovesHyperYield", get(lstConfigAtom)] as [
-    string,
-    LSTAssetConfig | undefined,
-  ],
+const trovesHyperYieldQueryAtom = atomWithQuery((get) => {
+  const lstConfig = get(lstConfigAtom);
+  const { data: price } = get(assetPriceAtom);
+  const { value: baseApy } = get(snAPYAtom);
+
+  return {
+    queryKey: [
+      "trovesHyperYield",
+      lstConfig,
+      price ?? 0,
+      baseApy.strkApy,
+      baseApy.btcApy,
+    ] as [string, LSTAssetConfig | undefined, number, number, number],
   queryFn: async ({
     queryKey,
   }: {
-    queryKey: [string, LSTAssetConfig | undefined];
+    queryKey: [string, LSTAssetConfig | undefined, number, number, number];
   }): Promise<ProtocolYield> => {
-    const [, lstConfig] = queryKey;
+    const [, lstConfig, price, strkBaseApy, btcBaseApy] = queryKey;
     //TODO: move the api call logic to api.ts under "defi calls" comment
     const hostname = "https://app.troves.fi";
     const res = await fetch(`${hostname}/api/strategies`);
@@ -647,9 +655,6 @@ const trovesHyperYieldQueryAtom = atomWithQuery((get) => ({
       };
     }
 
-    const { data: price, isLoading } = get(assetPriceAtom);
-    const { value: baseApy } = get(snAPYAtom);
-
     if (!price) {
       return {
         value: 0,
@@ -662,21 +667,20 @@ const trovesHyperYieldQueryAtom = atomWithQuery((get) => ({
 
     const isSTRK = lstConfig!.SYMBOL === "STRK";
 
-    const apy = isSTRK
-      ? strategy.apy - baseApy.strkApy
-      : strategy.apy - baseApy.btcApy;
+    const apy = isSTRK ? strategy.apy - strkBaseApy : strategy.apy - btcBaseApy;
 
     return {
       value: apy * 100,
       totalSupplied: totalSupplied ?? 0,
-      isLoading,
+      isLoading: false,
       error: "Failed to fetch APY",
     };
   },
   refetchInterval: 60000,
   refetchOnWindowFocus: false,
   refetchOnMount: false,
-}));
+  };
+});
 
 // BTC Troves Hyper Vault atoms
 const createTrovesYieldQueryAtom = (strategyId: string, queryKey: string) =>
