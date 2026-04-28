@@ -65,6 +65,7 @@ export async function POST(request: NextRequest) {
         walletId: wallet.id,
         address: wallet.address,
         publicKey: wallet.public_key,
+        isDeployed: false,
       },
     });
 

@@ -8,11 +8,12 @@ datasource db {
 }
 
 model Wallet {
-  id         String   @id @default(uuid())
-  privyUserId String  @unique
+  id          String   @id @default(uuid())
+  privyUserId String   @unique
   walletId    String
   address     String
   publicKey   String
+  isDeployed  Boolean  @default(false)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
