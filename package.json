@@ -32,7 +32,7 @@
     "@starknet-react/chains": "^5.0.3",
     "@starknet-react/core": "^5.0.3",
     "@starknet-react/kakarot": "^3.0.9",
-    "@strkfarm/sdk": "1.1.67",
+    "@strkfarm/sdk": "2.0.0-staging.57",
     "@tanstack/react-table": "^8.20.6",
     "@types/mixpanel-browser": "^2.50.2",
     "@vercel/analytics": "^1.3.2",
