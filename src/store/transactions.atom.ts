@@ -105,8 +105,12 @@ export async function isTxAccepted(txHash: string) {
   let keepChecking = true;
   const maxRetries = 30;
   let retry = 0;
+  let lastKey: string | null = null;
+  const startedAt = Date.now();
+  let loops = 0;
 
   while (keepChecking) {
+    loops++;
     let txInfo: any;
 
     try {
@@ -117,14 +121,22 @@ export async function isTxAccepted(txHash: string) {
       if (retry > maxRetries) {
         throw new Error("Transaction status unknown");
       }
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      // Quick retry on transient RPC issues for snappier UX.
+      await new Promise((resolve) => setTimeout(resolve, 500));
       continue;
     }
 
     console.debug("isTxAccepted", txInfo);
+    const key = `${txInfo?.finality_status ?? "null"}:${txInfo?.execution_status ?? "null"}`;
+    if (lastKey !== key) {
+      lastKey = key;
+    }
     if (!txInfo.finality_status || txInfo.finality_status === "RECEIVED") {
       // do nothing
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      // Poll more frequently early to reduce perceived confirmation latency,
+      // then back off to reduce load.
+      const sleepMs = loops <= 8 ? 750 : 1500;
+      await new Promise((resolve) => setTimeout(resolve, sleepMs));
       continue;
     }
     if (txInfo.finality_status === "ACCEPTED_ON_L2") {

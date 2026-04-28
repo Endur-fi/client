@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { connectDB, WalletModel } from "@/lib/db";
 import { getPrivy } from "@/lib/privy";
+import { getPrisma } from "@/lib/prisma";
 
 export async function GET(request: NextRequest) {
   try {
@@ -27,8 +27,10 @@ export async function GET(request: NextRequest) {
 
     const userId = verifiedClaims.user_id;
 
-    await connectDB();
-    const wallet = await WalletModel.findOne({ privyUserId: userId });
+    const prisma = (await getPrisma()) as any;
+    const wallet = await prisma.wallet.findUnique({
+      where: { privyUserId: userId },
+    });
 
     if (!wallet) {
       return NextResponse.json({ wallet: null });
@@ -40,7 +42,6 @@ export async function GET(request: NextRequest) {
         walletId: wallet.walletId,
         address: wallet.address,
         publicKey: wallet.publicKey,
-        isDeployed: wallet.isDeployed,
       },
     });
   } catch (error: unknown) {

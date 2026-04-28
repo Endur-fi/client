@@ -266,6 +266,10 @@ export const getSTRKAsset = (): LSTAssetConfig & {
 
 export const WBTC_TOKEN =
   "0x03fe2b97c1fd336e750087d68b9b867997fd64a2661ff3ca5a7c771641e8e7ac";
+
+// WBTC ERC-20 token address (EVM) for EasyLeap EVM-mode balances
+export const WBTC_ETH_TOKEN =
+  "0x2260fac5e5542a773aa44fbcfedf7c193bc2c599";
 export const RUSDC =
   "0x02019e47a0bc54ea6b4853c6123ffc8158ea3ae2af4166928b0de6e89f06de6c";
 

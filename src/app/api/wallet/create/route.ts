@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { connectDB, WalletModel } from "@/lib/db";
 import { getPrivy } from "@/lib/privy";
+import { getPrisma } from "@/lib/prisma";
 
 export async function POST(request: NextRequest) {
   try {
@@ -10,8 +10,6 @@ export async function POST(request: NextRequest) {
         { status: 400 },
       );
     }
-
-    console.log({ privyAuthId: process.env.PRIVY_AUTH_ID });
 
     const authHeader = request.headers.get("authorization");
     if (!authHeader?.startsWith("Bearer ")) {
@@ -36,8 +34,10 @@ export async function POST(request: NextRequest) {
 
     const userId = verifiedClaims.user_id;
 
-    await connectDB();
-    const existingWallet = await WalletModel.findOne({ privyUserId: userId });
+    const prisma = (await getPrisma()) as any;
+    const existingWallet = await prisma.wallet.findUnique({
+      where: { privyUserId: userId },
+    });
     if (existingWallet) {
       return NextResponse.json({
         wallet: {
@@ -45,7 +45,6 @@ export async function POST(request: NextRequest) {
           walletId: existingWallet.walletId,
           address: existingWallet.address,
           publicKey: existingWallet.publicKey,
-          isDeployed: existingWallet.isDeployed,
         },
       });
     }
@@ -60,12 +59,13 @@ export async function POST(request: NextRequest) {
       ],
     });
 
-    const newWallet = await WalletModel.create({
-      privyUserId: userId,
-      walletId: wallet.id,
-      address: wallet.address,
-      publicKey: wallet.public_key,
-      isDeployed: false,
+    const newWallet = await prisma.wallet.create({
+      data: {
+        privyUserId: userId,
+        walletId: wallet.id,
+        address: wallet.address,
+        publicKey: wallet.public_key,
+      },
     });
 
     return NextResponse.json({
@@ -74,7 +74,6 @@ export async function POST(request: NextRequest) {
         walletId: newWallet.walletId,
         address: newWallet.address,
         publicKey: newWallet.publicKey,
-        isDeployed: newWallet.isDeployed,
       },
     });
   } catch (error: unknown) {

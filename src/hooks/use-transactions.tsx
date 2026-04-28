@@ -79,6 +79,35 @@ const useTransactionHandler = () => {
         ),
       });
     }
+    const hasTxHash = !!data?.transaction_hash;
+    const hasNonRejectionError =
+      !!error?.name && !error?.name?.includes("UserRejectedRequestError");
+
+    // If the wallet stops reporting "pending" but we have a tx hash, we still
+    // want to keep showing a loading state until the transaction is finalized.
+    if (!isPending && hasTxHash && !hasNonRejectionError) {
+      toast({
+        itemID: transactionType.toLowerCase(),
+        variant: "pending",
+        description: (
+          <div className="flex items-center gap-5 border-none">
+            <div className="relative shrink-0">
+              <div className="absolute left-3 top-3 z-10 size-[52px] rounded-full bg-[#BBC2CC]" />
+              <Icons.toastPending className="animate-spin" />
+              <Icons.clock className="absolute left-[26.5px] top-[26.5px] z-20" />
+            </div>
+            <div className="flex flex-col items-start gap-2 text-sm font-medium text-[#3F6870]">
+              <span className="text-[18px] font-semibold text-[#075A5A]">
+                Confirming..
+              </span>
+              {transactionType === "STAKE" ? "Staking" : "Unstaking"}{" "}
+              {form.getValues(`${transactionType.toLowerCase()}Amount`)}{" "}
+              {lstConfig.SYMBOL}
+            </div>
+          </div>
+        ),
+      });
+    }
 
     if (error?.name?.includes("UserRejectedRequestError")) {
       // Track transaction rejected analytics

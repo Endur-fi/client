@@ -1,0 +1,31 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Wallet {
+  id         String   @id @default(uuid())
+  privyUserId String  @unique
+  walletId    String
+  address     String
+  publicKey   String
+  isDeployed  Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("wallets")
+}
+
+model EndurSponsorEvent {
+  id          String   @id @default(uuid())
+  privyUserId String
+  createdAt   DateTime @default(now())
+
+  @@index([privyUserId, createdAt])
+  @@map("endur_sponsor_events")
+}
+

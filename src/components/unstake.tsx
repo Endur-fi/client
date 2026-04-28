@@ -2,7 +2,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useAccount, useSendTransaction } from "@starknet-react/core";
+import { useAccount as useAccountSn } from "@starknet-react/core";
 import { useAtom, useAtomValue } from "jotai";
 import { Info } from "lucide-react";
 import React from "react";
@@ -10,6 +10,8 @@ import { useForm } from "react-hook-form";
 import { AccountInterface, Contract } from "starknet";
 
 import * as z from "zod";
+
+import { ConnectButton, useAccount, useSendTransaction } from "@easyleap/sdk";
 
 import erc4626Abi from "@/abi/erc4626.abi.json";
 import {
@@ -29,7 +31,6 @@ import {
 import { getProvider, IS_PAUSED, isMainnet, REWARD_FEES } from "@/constants";
 import { toast } from "@/hooks/use-toast";
 import { useTransactionHandler } from "@/hooks/use-transactions";
-import { useWalletConnection } from "@/hooks/use-wallet-connection";
 import { MyAnalytics } from "@/lib/analytics";
 import MyNumber from "@/lib/MyNumber";
 import { cn, eventNames, formatNumberWithCommas } from "@/lib/utils";
@@ -315,8 +316,11 @@ const UnstakeOptionCard = ({
 const Unstake = () => {
   const [txnDapp, setTxnDapp] = React.useState<"endur" | "dex">("dex");
 
-  const { account, address } = useAccount();
-  const { connectWallet } = useWalletConnection();
+  // EasyLeap: address + Starknet tx sending (Starknet mode)
+  const { starknetAddress: address } = useAccount();
+  // Starknet-react: provides the Starknet account object required by Avnu.
+  const { account } = useAccountSn();
+  // Wallet connection is handled by Easyleap ConnectButton.
 
   const [avnuQuote, setAvnuQuote] = useAtom(avnuQuoteAtom);
   const [avnuLoading, setAvnuLoading] = useAtom(avnuLoadingAtom);
@@ -346,7 +350,7 @@ const Unstake = () => {
     providerOrAccount: provider,
   });
 
-  const { sendAsync, data, isPending, error } = useSendTransaction({});
+  const { sendAsync, data, isPending, error } = useSendTransaction();
 
   const { handleTransaction } = useTransactionHandler();
 
@@ -397,14 +401,17 @@ const Unstake = () => {
   }, [queueState.value, form.watch("unstakeAmount")]);
 
   React.useEffect(() => {
+    // DEX flow manages its own success/error toasts and does not produce a stable
+    // `transaction_hash` for our generic transaction handler in all cases.
+    if (txnDapp === "dex") return;
     handleTransaction("UNSTAKE", {
       form,
       address: address ?? "",
-      data: data ?? { transaction_hash: "" },
-      error: error ?? { name: "" },
+      data: data ? { transaction_hash: data } : { transaction_hash: "" },
+      error: error ? { name: (error as Error).name ?? "" } : { name: "" },
       isPending,
     });
-  }, [data?.transaction_hash, form, isPending]);
+  }, [data, form, isPending]);
 
   React.useEffect(() => {
     const initializeAvnuQuote = async () => {
@@ -515,6 +522,70 @@ const Unstake = () => {
 
   const handleDexSwap = async () => {
     if (!address || !avnuQuote) return;
+
+    // Privy path: starknet-react account is not available for embedded wallets.
+    if (!account) {
+      setAvnuLoading(true);
+      try {
+        const quoteId = (avnuQuote as any)?.quoteId as string | undefined;
+        if (!quoteId) throw new Error("Missing Avnu quoteId");
+
+        const { fetchBuildExecuteTransaction } = await import("@avnu/avnu-sdk");
+        const built = await fetchBuildExecuteTransaction(quoteId, address);
+
+        const normalizedCalls = Array.isArray((built as any)?.calls)
+          ? (built as any).calls.map((c: any) => {
+              // AVNU may return calls in { to, selector, calldata } shape
+              const contractAddress = c?.contractAddress ?? c?.to;
+              const entrypoint = c?.entrypoint ?? c?.selector;
+              const calldata = c?.calldata ?? [];
+              return { contractAddress, entrypoint, calldata };
+            })
+          : [];
+
+        if (normalizedCalls.length === 0) {
+          throw new Error("No calldata returned from Avnu; cannot execute swap");
+        }
+
+        await sendAsync({ calls: normalizedCalls });
+
+        toast({
+          itemID: "unstake",
+          variant: "complete",
+          duration: 3000,
+          description: (
+            <div className="flex items-center gap-2 border-none">
+              <Icons.toastSuccess />
+              <div className="flex flex-col items-start gap-2 text-sm font-medium text-[#3F6870]">
+                <span className="text-[18px] font-semibold text-[#075A5A]">
+                  Success 🎉
+                </span>
+                Unstaked {form.getValues("unstakeAmount")} {lstConfig.SYMBOL} via
+                Avnu
+              </div>
+            </div>
+          ),
+        });
+        form.reset();
+        return;
+      } catch (e: any) {
+        toast({
+          itemID: "unstake",
+          description: (
+            <div className="flex gap-2 text-red-500">
+              <Info className="mt-0.5 size-5 flex-shrink-0" />
+              <div className="max-h-32 flex-1 space-y-1 overflow-y-auto">
+                <div className="font-semibold">{e?.name ?? "Error"}</div>
+                <div className="text-sm">{e?.message ?? String(e)}</div>
+              </div>
+            </div>
+          ),
+        });
+        return;
+      } finally {
+        setAvnuLoading(false);
+      }
+    }
 
     MyAnalytics.track(eventNames.UNSTAKE_CLICK, {
       address,
@@ -646,7 +717,7 @@ const Unstake = () => {
       address,
     ]);
 
-    sendAsync([call1]);
+    await sendAsync({ calls: [call1] });
   };
 
   return (
@@ -828,9 +899,7 @@ const Unstake = () => {
 
           <div className="">
             {!address ? (
-              <StyledButton onClick={() => connectWallet()}>
-                Connect Wallet
-              </StyledButton>
+              <ConnectButton className="w-full" />
             ) : (
               <StyledButton
                 onClick={form.handleSubmit(onSubmit)}
@@ -892,9 +961,7 @@ const Unstake = () => {
           </div>
           <div className="">
             {!address ? (
-              <StyledButton onClick={() => connectWallet()}>
-                Connect Wallet
-              </StyledButton>
+              <ConnectButton className="w-full" />
             ) : (
               <StyledButton
                 onClick={handleDexSwap}
