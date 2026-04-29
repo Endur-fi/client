@@ -80,27 +80,6 @@ export async function checkRateLimit(
     };
   }
 
-  const decimals = lst.DECIMALS;
-  const bypassWei = toWeiBNum(cfg.bypassThreshold, decimals);
-  const minAmount = isStakeKind(kind) ? cfg.minStake : cfg.minUnstake;
-  const minWei = toWeiBNum(minAmount, decimals);
-  const action = isStakeKind(kind) ? "stake" : "unstake";
-
-  if (amountWei > bypassWei) {
-    return { ok: true };
-  }
-
-  if (amountWei < minWei) {
-    return {
-      ok: false,
-      status: 400,
-      // Surfaced verbatim in the client toast (see use-transactions.tsx).
-      // This limit is specifically enforced for requests keyed by the Privy
-      // user (privyUserId), so we call it out as a Privy-flow constraint.
-      message: `Privy flow ${action} minimum is ${minAmount} ${assetSymbol}. Please increase the amount.`,
-    };
-  }
-
   const since = new Date(Date.now() - PAYMASTER_RATE_CONFIG.windowMs);
   let count: number = 0;
   try {
@@ -124,6 +103,27 @@ export async function checkRateLimit(
       ok: false,
       status: 429,
       message: `Privy flow transaction limit reached. Please try again later.`,
+    };
+  }
+
+  const decimals = lst.DECIMALS;
+  const bypassWei = toWeiBNum(cfg.bypassThreshold, decimals);
+  const minAmount = isStakeKind(kind) ? cfg.minStake : cfg.minUnstake;
+  const minWei = toWeiBNum(minAmount, decimals);
+  const action = isStakeKind(kind) ? "stake" : "unstake";
+
+  if (amountWei > bypassWei) {
+    return { ok: true };
+  }
+
+  if (amountWei < minWei) {
+    return {
+      ok: false,
+      status: 400,
+      // Surfaced verbatim in the client toast (see use-transactions.tsx).
+      // This limit is specifically enforced for requests keyed by the Privy
+      // user (privyUserId), so we call it out as a Privy-flow constraint.
+      message: `Privy flow ${action} minimum is ${minAmount} ${assetSymbol}. Please increase the amount.`,
     };
   }
 

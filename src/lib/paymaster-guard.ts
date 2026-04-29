@@ -146,7 +146,7 @@ const ExecuteEnvelope = z.object({
   id: z.union([z.number(), z.string()]),
   method: z.literal("paymaster_executeTransaction"),
   params: z.object({
-    transaction: InvokeExecuteTransaction
+    transaction: z.union([DeployTransaction, InvokeExecuteTransaction]),
   }),
 });
 
@@ -507,6 +507,15 @@ export function validatePaymasterRequest(
 
   // ---- paymaster_executeTransaction -------------------------------------
   const tx = body.params.transaction;
+
+  // If the request is executing the account deploy, validate the deploy
+  // arguments against the JWT-bound wallet (and prevent redeploy).
+  if (tx.type === "deploy") {
+    return matchDeploy(tx, wallet);
+  }
+
+  // Otherwise it is executing an invoke: typed_data calls are the signed
+  // calldata, so we extract them and run the usual call-template matchers.
   if (!eqAddr(tx.invoke.user_address, wallet.address)) {
     return fail("invoke.user_address does not match JWT-bound wallet");
   }

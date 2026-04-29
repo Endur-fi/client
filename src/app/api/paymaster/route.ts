@@ -143,7 +143,13 @@ export async function POST(request: Request) {
     const data = await response.json();
 
     if (response.ok) {
-      if (guard.kind === "deploy") {
+      const isExecuteTx =
+        parsedBody &&
+        typeof parsedBody === "object" &&
+        (parsedBody as { method?: unknown }).method ===
+          "paymaster_executeTransaction";
+
+      if (isExecuteTx && guard.kind === "deploy") {
         try {
           await prisma.wallet.update({
             where: { privyUserId: userId },
@@ -155,12 +161,7 @@ export async function POST(request: Request) {
             err,
           });
         }
-      } else if (
-        parsedBody &&
-        typeof parsedBody === "object" &&
-        (parsedBody as { method?: unknown }).method ===
-          "paymaster_executeTransaction"
-      ) {
+      } else if (isExecuteTx && guard.kind !== "deploy") {
         // Only successful executes consume gas, so only they count toward
         // the rate-limit window. Build-only quotes (and failed executes)
         // are free for the user.
