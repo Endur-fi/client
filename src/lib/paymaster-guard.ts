@@ -169,8 +169,15 @@ export type PaymasterKind =
   | "unstake-endur"
   | "unstake-avnu";
 
+/** Non-deploy kinds carry the amount + asset for downstream rate limiting. */
+export type GuardOpDetails = {
+  assetSymbol: string;
+  amountWei: bigint;
+};
+
 export type GuardResult =
-  | { ok: true; kind: PaymasterKind }
+  | { ok: true; kind: "deploy" }
+  | ({ ok: true; kind: Exclude<PaymasterKind, "deploy"> } & GuardOpDetails)
   | { ok: false; reason: string };
 
 type NormalizedCall = {
@@ -181,6 +188,15 @@ type NormalizedCall = {
 
 function fail(reason: string): GuardResult {
   return { ok: false, reason };
+}
+
+/**
+ * Decode a u256 split across two felts (low, high) into a single bigint.
+ * Felts are normalized to 0x-prefixed hex; BigInt() handles them directly.
+ */
+const U256_HIGH_SHIFT = BigInt(128);
+function u256FromLowHigh(low: string, high: string): bigint {
+  return BigInt(low) | (BigInt(high) << U256_HIGH_SHIFT);
 }
 
 function normalizeCalls(
@@ -351,18 +367,33 @@ function isAvnuSwapLstToAsset(
 
 /**
  * Try to match the call array against one of our supported templates.
- * Returns the matched kind or a failure reason.
+ * Returns the matched kind + amount/asset (for non-deploy kinds), or a
+ * failure reason.
+ *
+ * Amount-extraction layout (after a positive structural match):
+ *   stake / stake+hyper:   call[1] = LST.deposit(amount.low, amount.high, ..)
+ *                          -> calldata[0..1]
+ *   unstake-endur:         call[0] = LST.redeem(amount.low, amount.high, ..)
+ *                          -> calldata[0..1]
+ *   unstake-avnu:          call[1] = AVNU.multi_route_swap(sell_token,
+ *                                       sell_amount.low, sell_amount.high, ..)
+ *                          -> calldata[1..2]
  */
 function matchCalls(
   calls: NormalizedCall[],
   user: string,
-): { ok: true; kind: PaymasterKind } | { ok: false; reason: string } {
-  // ---- 1 call: unstake via Endur (request_withdrawal on LST) -------------
+): GuardResult {
+  // ---- 1 call: unstake via Endur (redeem on LST) -------------------------
   if (calls.length === 1) {
     const c = calls[0];
     const lst = findLstByLstAddress(c.to);
     if (lst && isRequestWithdrawal(c, lst.LST_ADDRESS, user)) {
-      return { ok: true, kind: "unstake-endur" };
+      return {
+        ok: true,
+        kind: "unstake-endur",
+        assetSymbol: lst.SYMBOL,
+        amountWei: u256FromLowHigh(c.calldata[0], c.calldata[1]),
+      };
     }
     return fail("single-call shape did not match unstake-endur");
   }
@@ -379,7 +410,12 @@ function matchCalls(
         isApprove(a, lst.LST_ADDRESS, [AVNU_EXCHANGE_ADDRESS]) &&
         isAvnuSwapLstToAsset(b, lst, user)
       ) {
-        return { ok: true, kind: "unstake-avnu" };
+        return {
+          ok: true,
+          kind: "unstake-avnu",
+          assetSymbol: lst.SYMBOL,
+          amountWei: u256FromLowHigh(b.calldata[1], b.calldata[2]),
+        };
       }
     }
 
@@ -391,7 +427,12 @@ function matchCalls(
         isApprove(a, lst.ASSET_ADDRESS, [lst.LST_ADDRESS]) &&
         isLstDeposit(b, lst.LST_ADDRESS, user)
       ) {
-        return { ok: true, kind: "stake" };
+        return {
+          ok: true,
+          kind: "stake",
+          assetSymbol: lst.SYMBOL,
+          amountWei: u256FromLowHigh(b.calldata[0], b.calldata[1]),
+        };
       }
     }
 
@@ -412,7 +453,12 @@ function matchCalls(
       isApprove(c, lst.LST_ADDRESS, [trovesAddr]) &&
       isTrovesDeposit(d, trovesAddr, user)
     ) {
-      return { ok: true, kind: "stake+hyper" };
+      return {
+        ok: true,
+        kind: "stake+hyper",
+        assetSymbol: lst.SYMBOL,
+        amountWei: u256FromLowHigh(b.calldata[0], b.calldata[1]),
+      };
     }
     return fail("four-call shape did not match stake+hyper");
   }

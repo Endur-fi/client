@@ -18,8 +18,8 @@ importers:
         specifier: ^0.2.4
         version: 0.2.5
       '@easyleap/sdk':
-        specifier: file:../easyleap-sdk-ts/lib
-        version: file:../easyleap-sdk-ts/lib(25154f77cbf5b61d3a75967c3f6501c6)
+        specifier: file:../../unwraplabs/easyleap-sdk-ts/lib
+        version: file:../../unwraplabs/easyleap-sdk-ts/lib(25154f77cbf5b61d3a75967c3f6501c6)
       '@farcaster/mini-app-solana':
         specifier: ^2.0.0
         version: 2.0.0(@farcaster/miniapp-sdk@0.3.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@6.0.6)(zod@3.25.76))(@solana/wallet-adapter-base@0.9.27(@solana/web3.js@1.98.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@6.0.6)))(@solana/wallet-adapter-react@0.15.39(@solana/web3.js@1.98.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@6.0.6))(bs58@6.0.0)(react-native@0.85.1(@babel/core@7.29.0)(@types/react@19.2.14)(bufferutil@4.1.0)(react@19.2.5)(utf-8-validate@6.0.6))(react@19.2.5)(typescript@5.9.3))(bufferutil@4.1.0)(react@19.2.5)(typescript@5.9.3)(utf-8-validate@6.0.6)
@@ -580,8 +580,8 @@ packages:
   '@duneanalytics/client-sdk@0.2.5':
     resolution: {integrity: sha512-ftE9sLIuzcxX0g9nhOA0pN/uxTvPwa88CVXpgU2sSRGnN43Kb5ZuaexetVNcNidapdIV95bWW+VpnoSvpMJUXw==}
 
-  '@easyleap/sdk@file:../easyleap-sdk-ts/lib':
-    resolution: {directory: ../easyleap-sdk-ts/lib, type: directory}
+  '@easyleap/sdk@file:../../unwraplabs/easyleap-sdk-ts/lib':
+    resolution: {directory: ../../unwraplabs/easyleap-sdk-ts/lib, type: directory}
     peerDependencies:
       '@starknet-react/chains': ^5.0.3
       '@starknet-react/core': ^5.0.3
@@ -9089,7 +9089,7 @@ snapshots:
       deprecated: 0.0.2
       loglevel: 1.9.2
 
-  '@easyleap/sdk@file:../easyleap-sdk-ts/lib(25154f77cbf5b61d3a75967c3f6501c6)':
+  '@easyleap/sdk@file:../../unwraplabs/easyleap-sdk-ts/lib(25154f77cbf5b61d3a75967c3f6501c6)':
     dependencies:
       '@apollo/client': 3.14.1(@types/react@19.2.14)(graphql@16.13.2)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
       '@cartridge/controller': 0.13.11(@react-native-async-storage/async-storage@1.24.0(react-native@0.85.1(@babel/core@7.29.0)(@types/react@19.2.14)(bufferutil@4.1.0)(react@19.2.5)(utf-8-validate@6.0.6)))(@types/react@19.2.14)(bufferutil@4.1.0)(react@19.2.5)(typescript@5.9.3)(use-sync-external-store@1.4.0(react@19.2.5))(utf-8-validate@6.0.6)(zod@3.25.76)

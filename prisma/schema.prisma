@@ -20,3 +20,17 @@ model Wallet {
   @@map("wallets")
 }
 
+// Audit log of sponsored paymaster operations, used for sliding-window
+// rate limiting on /api/paymaster.
+model PaymasterUsage {
+  id          String   @id @default(uuid())
+  privyUserId String
+  kind        String   // "stake" | "stake+hyper" | "unstake-endur" | "unstake-avnu"
+  asset       String   // LST symbol, e.g. "STRK", "WBTC", "tBTC", "LBTC", "solvBTC"
+  amountWei   String   // raw on-chain amount as decimal string (BigInt)
+  createdAt   DateTime @default(now())
+
+  @@index([privyUserId, createdAt])
+  @@map("paymaster_usage")
+}
+

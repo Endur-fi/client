@@ -534,9 +534,7 @@ const Stake: React.FC = () => {
       form,
       address: address ?? "",
       data: data ? { transaction_hash: data } : { transaction_hash: "" },
-      error: error
-        ? { name: (error as Error).name ?? "" }
-        : { name: "" },
+      error: (error as Error & { baseError?: unknown; cause?: unknown }) ?? null,
       isPending,
       setShowShareModal,
     });
