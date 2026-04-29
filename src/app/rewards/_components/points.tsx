@@ -3,6 +3,8 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Icons } from "@/components/Icons";
 import { cn, formatNumber, formatNumberWithCommas } from "@/lib/utils";
+import { MyAnalytics } from "@/lib/analytics";
+import { AnalyticsEvents } from "@/lib/analytics-events";
 import { Calendar, Clock, Flame, TrendingUp, Trophy } from "lucide-react";
 import { useAccount } from "@starknet-react/core";
 import { ConnectButton } from "@easyleap/sdk";
@@ -243,6 +245,12 @@ const SeasonInfoCards = ({ season }: { season: (typeof seasons)[0] }) => {
                     className="text-[#17876D] underline"
                     href="https://docs.endur.fi/docs/community/endur-season-2"
                     target="_blank"
+                    onClick={() =>
+                      MyAnalytics.track(
+                        AnalyticsEvents.REWARDS_SEASON_LEARN_MORE_CLICK,
+                        { season: 2, source: "season_info_card" },
+                      )
+                    }
                   >
                     Learn more
                   </a>
@@ -258,6 +266,12 @@ const SeasonInfoCards = ({ season }: { season: (typeof seasons)[0] }) => {
                     className="text-[#5B616D] underline"
                     href="https://blog.endur.fi/points"
                     target="_blank"
+                    onClick={() =>
+                      MyAnalytics.track(
+                        AnalyticsEvents.REWARDS_SEASON_LEARN_MORE_CLICK,
+                        { season: 1, source: "season_info_card" },
+                      )
+                    }
                   >
                     Learn more
                   </a>
@@ -433,6 +447,37 @@ const Season2Points = ({
   const nextDropCountdown = useNextDropCountdown(lastPointsMultiplierEndTimestamp);
   const epochsCompletedFormatted = epochsCompleted !== undefined ? `${epochsCompleted}/26` : "1/26";
 
+  const headerRef = React.useRef<HTMLDivElement | null>(null);
+  const hasTrackedViewRef = React.useRef(false);
+
+  React.useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!headerRef.current) return;
+    if (hasTrackedViewRef.current) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+        if (!entry?.isIntersecting || hasTrackedViewRef.current) return;
+
+        hasTrackedViewRef.current = true;
+        observer.disconnect();
+
+        MyAnalytics.track(AnalyticsEvents.REWARDS_SEASON2_POINTS_VIEW, {
+          points: Number(userSeason2Points.points) || 0,
+          rank: userSeason2Points.rank ?? null,
+        });
+      },
+      {
+        threshold: 0.5,
+      },
+    );
+
+    observer.observe(headerRef.current);
+
+    return () => observer.disconnect();
+  }, [userSeason2Points.points, userSeason2Points.rank]);
+
   return (
     <div className="flex flex-col gap-4 rounded-[14px] border border-[#E5E8EB] bg-white px-4 py-3">
       {/* header */}
@@ -449,7 +494,7 @@ const Season2Points = ({
             Your Season 2
           </h3>
         </div>
-        <div className="flex flex-col items-end">
+        <div className="flex flex-col items-end" ref={headerRef}>
           <span className="text-[11px] font-medium text-[#5B616D]">
             Total Points
           </span>
@@ -617,9 +662,20 @@ const Points = ({ userSeason1Points, userSeason2Points }: { userSeason1Points: {
             </div>
           </div>
 
-          <a href="https://docs.endur.fi/docs/community/endur-season-2" target="_blank"><Button className="flex-shrink-0 bg-[#17876D] text-[#F1F7F6]">
-            View Details
-          </Button></a>
+          <a
+            href="https://docs.endur.fi/docs/community/endur-season-2"
+            target="_blank"
+            onClick={() =>
+              MyAnalytics.track(
+                AnalyticsEvents.REWARDS_DOCS_LINK_CLICK,
+                { source: "points_banner" },
+              )
+            }
+          >
+            <Button className="flex-shrink-0 bg-[#17876D] text-[#F1F7F6]">
+              View Details
+            </Button>
+          </a>
         </div>
         {/* Timeline & Points Allocation Boxes */}
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:gap-6">

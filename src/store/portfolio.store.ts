@@ -54,26 +54,22 @@ const isVIPQueryAtom = atomWithQuery((get) => {
   };
 });
 
+const VIP_DEFAULT = {
+  isVIP: false,
+  totalValueUSD: 0,
+  breakdown: { nativeSTRK: 0, nativeBTC: 0, lstSTRK: 0, lstBTC: 0 },
+  contacts: { call: null as string | null, telegram: null as string | null },
+};
+
 export const isVIPAtom = atom((get) => {
-  const { data, error } = get(isVIPQueryAtom);
+  const { data, error, isPending } = get(isVIPQueryAtom);
+
+  if (isPending) {
+    return { ...VIP_DEFAULT, isLoading: true, error: null };
+  }
 
   if (error || !data) {
-    return {
-      isVIP: false,
-      totalValueUSD: 0,
-      breakdown: {
-        nativeSTRK: 0,
-        nativeBTC: 0,
-        lstSTRK: 0,
-        lstBTC: 0,
-      },
-      contacts: {
-        call: null,
-        telegram: null,
-      },
-      isLoading: false,
-      error: error?.message || null,
-    };
+    return { ...VIP_DEFAULT, isLoading: false, error: error?.message || null };
   }
 
   return {

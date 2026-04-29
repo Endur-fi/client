@@ -2,7 +2,7 @@ import React from "react";
 
 import { Icons } from "@/components/Icons";
 import { MyAnalytics } from "@/lib/analytics";
-import { eventNames } from "@/lib/utils";
+import { AnalyticsEvents } from "@/lib/analytics-events";
 import { isTxAccepted } from "@/store/transactions.atom";
 import { lstConfigAtom } from "@/store/common.store";
 import { useAtomValue } from "jotai";
@@ -68,6 +68,8 @@ interface TransactionHandlerProps {
   error: (Error & { baseError?: unknown; cause?: unknown }) | null | undefined;
   isPending: boolean;
   setShowShareModal?: (show: boolean) => void;
+  // Extra context forwarded by the caller (platform, method, referrer, etc.)
+  metadata?: Record<string, unknown>;
 }
 
 const useTransactionHandler = () => {
@@ -83,17 +85,26 @@ const useTransactionHandler = () => {
       error,
       isPending,
       setShowShareModal,
+      metadata,
     }: TransactionHandlerProps,
   ) => {
+    // Common props sent with every event for this TX
+    const baseProps = {
+      address,
+      amount: Number(
+        form.getValues(`${transactionType.toLowerCase()}Amount`),
+      ),
+      asset: lstConfig.SYMBOL,
+      ...metadata,
+    };
+
     if (data?.transaction_hash) {
-      // Track transaction init analytics
       MyAnalytics.track(
-        eventNames[`${transactionType}_TX_INIT` as keyof typeof eventNames],
+        transactionType === "STAKE"
+          ? AnalyticsEvents.STAKE_TX_INIT
+          : AnalyticsEvents.UNSTAKE_TX_INIT,
         {
-          address,
-          amount: Number(
-            form.getValues(`${transactionType.toLowerCase()}Amount`),
-          ),
+          ...baseProps,
           txHash: data.transaction_hash,
         },
       );
@@ -124,14 +135,12 @@ const useTransactionHandler = () => {
     }
 
     if (error?.name?.includes("UserRejectedRequestError")) {
-      // Track transaction rejected analytics
       MyAnalytics.track(
-        eventNames[`${transactionType}_TX_REJECTED` as keyof typeof eventNames],
+        transactionType === "STAKE"
+          ? AnalyticsEvents.STAKE_TX_REJECTED
+          : AnalyticsEvents.UNSTAKE_TX_REJECTED,
         {
-          address,
-          amount: Number(
-            form.getValues(`${transactionType.toLowerCase()}Amount`),
-          ),
+          ...baseProps,
           type: error.name,
         },
       );
@@ -139,14 +148,12 @@ const useTransactionHandler = () => {
     }
 
     if (error?.name && !error?.name?.includes("UserRejectedRequestError")) {
-      // Track transaction rejected analytics
       MyAnalytics.track(
-        eventNames[`${transactionType}_TX_REJECTED` as keyof typeof eventNames],
+        transactionType === "STAKE"
+          ? AnalyticsEvents.STAKE_TX_REJECTED
+          : AnalyticsEvents.UNSTAKE_TX_REJECTED,
         {
-          address,
-          amount: Number(
-            form.getValues(`${transactionType.toLowerCase()}Amount`),
-          ),
+          ...baseProps,
           type: error.name,
         },
       );
@@ -175,16 +182,12 @@ const useTransactionHandler = () => {
       const res = await isTxAccepted(data.transaction_hash);
 
       if (res) {
-        // Track transaction successful analytics
         MyAnalytics.track(
-          eventNames[
-            `${transactionType}_TX_SUCCESSFUL` as keyof typeof eventNames
-          ],
+          transactionType === "STAKE"
+            ? AnalyticsEvents.STAKE_TX_SUCCESSFUL
+            : AnalyticsEvents.UNSTAKE_TX_SUCCESSFUL,
           {
-            address,
-            amount: Number(
-              form.getValues(`${transactionType.toLowerCase()}Amount`),
-            ),
+            ...baseProps,
             txHash: data.transaction_hash,
           },
         );

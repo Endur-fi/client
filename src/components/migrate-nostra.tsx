@@ -26,6 +26,7 @@ import Link from "next/link";
 import { Contract, uint256 } from "starknet";
 
 import { MyAnalytics } from "@/lib/analytics";
+import { AnalyticsEvents } from "@/lib/analytics-events";
 import MyNumber from "@/lib/MyNumber";
 import LSTService from "@/services/lst";
 import { nostraLendYieldAtom } from "@/store/defi.store";
@@ -92,7 +93,7 @@ const MigrateNostra = () => {
   useEffect(() => {
     if (!nstStrkBalance.isZero()) {
       // track the user has nstStrk
-      MyAnalytics.track("Has Nostra STRK", {
+      MyAnalytics.track(AnalyticsEvents.NOSTRA_HAS_STRK, {
         address,
         nstStrkBalance: nstStrkBalance.toEtherStr(),
       });
@@ -149,7 +150,7 @@ const MigrateNostra = () => {
       uint256.bnToUint256(xSTRKAmount.toString()),
     ]);
 
-    MyAnalytics.track("Init Nostra migrate", {
+    MyAnalytics.track(AnalyticsEvents.NOSTRA_INIT_MIGRATE, {
       address,
       nstStrkBalance: nstStrkBalance.toEtherStr(),
       youWillStake: youWillStakeFull.toEtherStr(),
@@ -180,7 +181,7 @@ const MigrateNostra = () => {
             </div>
           ),
         });
-        MyAnalytics.track("Init Tx Nostra migrate", {
+        MyAnalytics.track(AnalyticsEvents.NOSTRA_INIT_TX_MIGRATE, {
           address,
           nstStrkBalance: nstStrkBalance.toEtherStr(),
           youWillStake: youWillStakeFull.toEtherStr(),
@@ -209,7 +210,7 @@ const MigrateNostra = () => {
             </div>
           ),
         });
-        MyAnalytics.track("Error Nostra migrate", {
+        MyAnalytics.track(AnalyticsEvents.NOSTRA_ERROR_MIGRATE, {
           address,
           nstStrkBalance: nstStrkBalance.toEtherStr(),
           youWillStake: youWillStakeFull.toEtherStr(),
@@ -238,7 +239,7 @@ const MigrateNostra = () => {
               </div>
             ),
           });
-          MyAnalytics.track("Completed Nostra migrate", {
+          MyAnalytics.track(AnalyticsEvents.NOSTRA_COMPLETED_MIGRATE, {
             address,
             nstStrkBalance: nstStrkBalance.toEtherStr(),
             youWillStake: youWillStakeFull.toEtherStr(),
@@ -256,7 +257,7 @@ const MigrateNostra = () => {
         <button
           className="flex items-center gap-2 rounded-md bg-[#FF4240] px-3 py-2 text-sm font-medium text-white transition-all hover:bg-[#b03d3c]"
           onClick={() => {
-            MyAnalytics.track("Click Migrate Nostra STRK", {
+            MyAnalytics.track(AnalyticsEvents.NOSTRA_CLICK_MIGRATE, {
               address,
               nstStrkBalance: nstStrkBalance.toEtherStr(),
             });

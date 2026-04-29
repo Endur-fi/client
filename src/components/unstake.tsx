@@ -32,8 +32,9 @@ import { getProvider, IS_PAUSED, isMainnet, REWARD_FEES } from "@/constants";
 import { toast } from "@/hooks/use-toast";
 import { useTransactionHandler } from "@/hooks/use-transactions";
 import { MyAnalytics } from "@/lib/analytics";
+import { AnalyticsEvents } from "@/lib/analytics-events";
 import MyNumber from "@/lib/MyNumber";
-import { cn, eventNames, formatNumberWithCommas } from "@/lib/utils";
+import { cn, formatNumberWithCommas } from "@/lib/utils";
 import { executeAvnuSwap, getAvnuQuotes } from "@/services/avnu";
 import {
   avnuErrorAtom,
@@ -410,6 +411,7 @@ const Unstake = () => {
       data: data ? { transaction_hash: data } : { transaction_hash: "" },
       error: (error as Error & { baseError?: unknown; cause?: unknown }) ?? null,
       isPending,
+      metadata: { method: "endur" },
     });
   }, [data, form, isPending]);
 
@@ -464,7 +466,19 @@ const Unstake = () => {
     fetchQuote();
   }, [address, form.watch("unstakeAmount")]);
 
+  const handleUnstakeMethodChange = (method: "endur" | "dex") => {
+    MyAnalytics.track(AnalyticsEvents.UNSTAKE_METHOD_CHANGE, {
+      from: txnDapp,
+      to: method,
+    });
+    setTxnDapp(method);
+  };
+
   const handleQuickUnstakePrice = (percentage: number) => {
+    MyAnalytics.track(AnalyticsEvents.QUICK_AMOUNT_SELECT, {
+      context: "unstake",
+      percentage,
+    });
     if (!address) {
       return toast({
         description: (
@@ -523,67 +537,7 @@ const Unstake = () => {
   const handleDexSwap = async () => {
     if (!address || !avnuQuote) return;
 
-    // Privy path: starknet-react account is not available for embedded wallets.
-    if (!account) {
-      setAvnuLoading(true);
-      try {
-        const quoteId = (avnuQuote as any)?.quoteId as string | undefined;
-        if (!quoteId) throw new Error("Missing Avnu quoteId");
-
-        const { fetchBuildExecuteTransaction } = await import("@avnu/avnu-sdk");
-        const built = await fetchBuildExecuteTransaction(quoteId, address);
-
-        const normalizedCalls = Array.isArray((built as any)?.calls)
-          ? (built as any).calls.map((c: any) => {
-              // AVNU may return calls in { to, selector, calldata } shape
-              const contractAddress = c?.contractAddress ?? c?.to;
-              const entrypoint = c?.entrypoint ?? c?.selector;
-              const calldata = c?.calldata ?? [];
-              return { contractAddress, entrypoint, calldata };
-            })
-          : [];
-
-        await sendAsync({ calls: normalizedCalls });
-
-        toast({
-          itemID: "unstake",
-          variant: "complete",
-          duration: 3000,
-          description: (
-            <div className="flex items-center gap-2 border-none">
-              <Icons.toastSuccess />
-              <div className="flex flex-col items-start gap-2 text-sm font-medium text-[#3F6870]">
-                <span className="text-[18px] font-semibold text-[#075A5A]">
-                  Success 🎉
-                </span>
-                Unstaked {form.getValues("unstakeAmount")} {lstConfig.SYMBOL} via
-                Avnu
-              </div>
-            </div>
-          ),
-        });
-        form.reset();
-        return;
-      } catch (e: any) {
-        toast({
-          itemID: "unstake",
-          description: (
-            <div className="flex gap-2 text-red-500">
-              <Info className="mt-0.5 size-5 flex-shrink-0" />
-              <div className="max-h-32 flex-1 space-y-1 overflow-y-auto">
-                <div className="font-semibold">{e?.name ?? "Error"}</div>
-                <div className="text-sm">{e?.message ?? String(e)}</div>
-              </div>
-            </div>
-          ),
-        });
-        return;
-      } finally {
-        setAvnuLoading(false);
-      }
-    }
-
-    MyAnalytics.track(eventNames.UNSTAKE_CLICK, {
+    MyAnalytics.track(AnalyticsEvents.UNSTAKE_CLICK, {
       address,
       amount: Number(form.getValues("unstakeAmount")),
       mode: "Instant",
@@ -595,6 +549,12 @@ const Unstake = () => {
         account as AccountInterface,
         avnuQuote,
         () => {
+          MyAnalytics.track(AnalyticsEvents.UNSTAKE_TX_SUCCESSFUL, {
+            address,
+            amount: Number(form.getValues("unstakeAmount")),
+            asset: lstConfig.SYMBOL,
+            method: "dex",
+          });
           toast({
             itemID: "unstake",
             variant: "complete",
@@ -615,6 +575,14 @@ const Unstake = () => {
           form.reset();
         },
         (error) => {
+          MyAnalytics.track(AnalyticsEvents.UNSTAKE_TX_REJECTED, {
+            address,
+            amount: Number(form.getValues("unstakeAmount")),
+            asset: lstConfig.SYMBOL,
+            method: "dex",
+            errorName: error.name,
+            errorMessage: error.message,
+          });
           toast({
             itemID: "unstake",
             description: (
@@ -701,7 +669,7 @@ const Unstake = () => {
     }
 
     // Track unstake button click
-    MyAnalytics.track(eventNames.UNSTAKE_CLICK, {
+    MyAnalytics.track(AnalyticsEvents.UNSTAKE_CLICK, {
       address,
       amount: Number(values.unstakeAmount),
       mode: "ViaEndur",
@@ -849,7 +817,9 @@ const Unstake = () => {
         value={txnDapp}
         defaultValue="endur"
         className="w-full max-w-none"
-        onValueChange={(value) => setTxnDapp(value as "endur" | "dex")}
+        onValueChange={(value) =>
+        handleUnstakeMethodChange(value as "endur" | "dex")
+      }
       >
         <TabsList className="flex h-full flex-col items-center justify-between gap-3 bg-transparent">
           <UnstakeOptionCard

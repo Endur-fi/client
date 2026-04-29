@@ -11,6 +11,8 @@ import {
   DialogTitle,
 } from "./ui/dialog";
 import { LINKS } from "@/constants";
+import { MyAnalytics } from "@/lib/analytics";
+import { AnalyticsEvents } from "@/lib/analytics-events";
 
 interface NativeStakingWarningDialogProps {
   open: boolean;
@@ -21,10 +23,15 @@ export const NativeStakingWarningDialog: React.FC<
   NativeStakingWarningDialogProps
 > = ({ open, onOpenChange }) => {
   const handleStay = () => {
+    MyAnalytics.track(AnalyticsEvents.NATIVE_STAKING_DIALOG_STAY_CLICK, {});
     onOpenChange(false);
   };
 
   const handleContinue = () => {
+    MyAnalytics.track(
+      AnalyticsEvents.NATIVE_STAKING_DIALOG_CONTINUE_CLICK,
+      {},
+    );
     window.open(LINKS.DASHBOARD_URL, "_blank", "noopener,noreferrer");
     onOpenChange(false);
   };

@@ -11,7 +11,8 @@ import React from "react";
 
 import { getProvider } from "@/constants";
 import { MyAnalytics } from "@/lib/analytics";
-import { cn } from "@/lib/utils";
+import { AnalyticsEvents } from "@/lib/analytics-events";
+import { cn, shortAddress } from "@/lib/utils";
 import {
   lastWalletAtom,
   providerAtom,
@@ -89,6 +90,13 @@ const Navbar = ({ className }: { className?: string }) => {
               border: "1px solid #ECECED80",
             },
           }}
+          onConnectStarknet={
+            () => {
+              if (!starknetAddress) {
+                MyAnalytics.track(AnalyticsEvents.WALLET_CONNECT_CLICK, {});
+              }
+            }
+          }
         />
       </div>
     </div>
