@@ -35,27 +35,27 @@ export const PAYMASTER_RATE_CONFIG: RateLimitConfig = {
     STRK: {
       bypassThreshold: "10000",
       minStake: "5",
-      minUnstake: "5",
+      minUnstake: "4",
     },
     WBTC: {
       bypassThreshold: "0.01",
       minStake: "0.0001",
-      minUnstake: "0.0001",
+      minUnstake: "0.00009",
     },
     tBTC: {
       bypassThreshold: "0.01",
       minStake: "0.0001",
-      minUnstake: "0.0001",
+      minUnstake: "0.00009",
     },
     LBTC: {
       bypassThreshold: "0.01",
       minStake: "0.0001",
-      minUnstake: "0.0001",
+      minUnstake: "0.00009",
     },
     solvBTC: {
       bypassThreshold: "0.01",
       minStake: "0.0001",
-      minUnstake: "0.0001",
+      minUnstake: "0.00009",
     },
   },
 };
