@@ -60,5 +60,7 @@ export const endurEasyleapTheme = {
     rowHoverBackground: "#E5EFED",
     rowTextColor: "#03624C",
     closeButtonColor: "#03624C",
+    moreOptionsBackground: "#03624F",
+    moreOptionsTextColor: "#FFFFFF",
   },
 } as GlobalTheme;
