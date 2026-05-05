@@ -7,7 +7,6 @@ import MyNumber from "@/lib/MyNumber";
 import { MyAnalytics } from "@/lib/analytics";
 import { AnalyticsEvents } from "@/lib/analytics-events";
 import { formatNumber, formatNumberWithCommas } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
 import { STRK_DECIMALS, LST_CONFIG } from "@/constants";

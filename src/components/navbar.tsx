@@ -12,7 +12,7 @@ import React from "react";
 import { getProvider } from "@/constants";
 import { MyAnalytics } from "@/lib/analytics";
 import { AnalyticsEvents } from "@/lib/analytics-events";
-import { cn, shortAddress } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import {
   lastWalletAtom,
   providerAtom,
