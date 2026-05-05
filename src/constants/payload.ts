@@ -25,6 +25,32 @@ const deploy = {
   },
 };
 
+const executeAfterDeploy = {
+  id: 2,
+  jsonrpc: "2.0",
+  method: "paymaster_executeTransaction",
+  params: {
+    transaction: {
+      type: "deploy",
+      deployment: {
+        address:
+          "0x71a102aadba80d3cf1b50b95fd43c3bf7dc520d151fcad3227a8ecff57cd58a",
+        class_hash:
+          "0x73414441639dcd11d1846f287650a00c60c416b9d3ba45d31c651672125b2c2",
+        salt: "0x7e4fba093e4e484f385af7b966122c13c1af3fc2b992876f4ee700ef8d0216c",
+        calldata: [
+          "0x0",
+          "0x7e4fba093e4e484f385af7b966122c13c1af3fc2b992876f4ee700ef8d0216c",
+          "0x1",
+        ],
+        sigdata: null,
+        version: 1,
+      },
+    },
+    parameters: { version: "0x1", fee_mode: { mode: "sponsored" } },
+  },
+};
+
 const stakeWithHyper = {
   id: 1,
   jsonrpc: "2.0",

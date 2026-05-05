@@ -102,7 +102,8 @@ export async function checkRateLimit(
     return {
       ok: false,
       status: 429,
-      message: `Privy flow transaction limit reached. Please try again later.`,
+      message:
+        "You've reached the transaction limit for sponsored transactions. Please try again later.",
     };
   }
 
@@ -121,9 +122,7 @@ export async function checkRateLimit(
       ok: false,
       status: 400,
       // Surfaced verbatim in the client toast (see use-transactions.tsx).
-      // This limit is specifically enforced for requests keyed by the Privy
-      // user (privyUserId), so we call it out as a Privy-flow constraint.
-      message: `Privy flow ${action} minimum is ${minAmount} ${assetSymbol}. Please increase the amount.`,
+      message: `Minimum ${action} amount is ${minAmount} ${assetSymbol}. Please increase the amount.`,
     };
   }
 
