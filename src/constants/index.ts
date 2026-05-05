@@ -91,7 +91,6 @@ const LST_ASSETS: Record<string, LSTAssetConfig> = {
     CATEGORY: "BTC",
     DISPLAY_NAME: "Wrapped Bitcoin",
     DESCRIPTION: "Wrapped Bitcoin on Starknet",
-    TROVES_VAULT_MAXED_OUT: true,
     NETWORKS: {
       SN_MAIN: {
         LST_ADDRESS:
@@ -112,7 +111,6 @@ const LST_ASSETS: Record<string, LSTAssetConfig> = {
     CATEGORY: "BTC",
     DISPLAY_NAME: "Threshold Bitcoin",
     DESCRIPTION: "Threshold Bitcoin on Starknet",
-    TROVES_VAULT_MAXED_OUT: false,
     NETWORKS: {
       SN_MAIN: {
         LST_ADDRESS:
@@ -222,7 +220,6 @@ function buildLSTConfig(network: string): LSTNetworkConfig {
         LST_ADDRESS: networkConfig.LST_ADDRESS,
         WITHDRAWAL_QUEUE_ADDRESS: networkConfig.WITHDRAWAL_QUEUE_ADDRESS,
         TROVES_HYPER_VAULT_ADDRESS: networkConfig.TROVES_HYPER_VAULT_ADDRESS,
-        TROVES_VAULT_MAXED_OUT: baseAsset.TROVES_VAULT_MAXED_OUT,
       };
     }
   });
