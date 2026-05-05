@@ -3,13 +3,11 @@ import { Atom, atom, WritableAtom } from "jotai";
 import { atomWithQuery, AtomWithQueryResult } from "jotai-tanstack-query";
 import { atomFamily } from "jotai/utils";
 import { AtomFamily } from "jotai/vanilla/utils/atomFamily";
-import { BlockIdentifier, Contract } from "starknet";
+import { BlockIdentifier } from "starknet";
 import { assetPriceAtom, lstConfigAtom, userAddressAtom } from "./common.store";
 import { apiExchangeRateAtom } from "./lst.store";
 import { snAPYAtom, btcPriceAtom } from "./staking.store";
-import { LSTAssetConfig, LST_CONFIG, NETWORK, getProvider } from "@/constants";
-import erc4626Abi from "@/abi/erc4626.abi.json";
-import { getAssetPrice } from "@/lib/utils";
+import { LSTAssetConfig, LST_CONFIG } from "@/constants";
 import { Web3Number } from "@strkfarm/sdk";
 
 interface VesuAsset {
@@ -631,54 +629,56 @@ const trovesHyperYieldQueryAtom = atomWithQuery((get) => {
       baseApy.strkApy,
       baseApy.btcApy,
     ] as [string, LSTAssetConfig | undefined, number, number, number],
-  queryFn: async ({
-    queryKey,
-  }: {
-    queryKey: [string, LSTAssetConfig | undefined, number, number, number];
-  }): Promise<ProtocolYield> => {
-    const [, lstConfig, price, strkBaseApy, btcBaseApy] = queryKey;
-    //TODO: move the api call logic to api.ts under "defi calls" comment
-    const hostname = "https://app.troves.fi";
-    const res = await fetch(`${hostname}/api/strategies`);
-    const data = await res.json();
-    const strategies = data.strategies;
-    const strategy = strategies.find(
-      (strategy: any) =>
-        strategy.id === `hyper_${lstConfig!.LST_SYMBOL.toLocaleLowerCase()}`,
-    );
+    queryFn: async ({
+      queryKey,
+    }: {
+      queryKey: [string, LSTAssetConfig | undefined, number, number, number];
+    }): Promise<ProtocolYield> => {
+      const [, lstConfig, price, strkBaseApy, btcBaseApy] = queryKey;
+      //TODO: move the api call logic to api.ts under "defi calls" comment
+      const hostname = "https://app.troves.fi";
+      const res = await fetch(`${hostname}/api/strategies`);
+      const data = await res.json();
+      const strategies = data.strategies;
+      const strategy = strategies.find(
+        (strategy: any) =>
+          strategy.id === `hyper_${lstConfig!.LST_SYMBOL.toLocaleLowerCase()}`,
+      );
 
-    if (!strategy) {
+      if (!strategy) {
+        return {
+          value: 0,
+          isLoading: false,
+          error: "Failed to find strategy",
+        };
+      }
+
+      if (!price) {
+        return {
+          value: 0,
+          isLoading: false,
+          error: "Failed to fetch STRK price",
+        };
+      }
+
+      const totalSupplied = strategy.tvlUsd / price;
+
+      const isSTRK = lstConfig!.SYMBOL === "STRK";
+
+      const apy = isSTRK
+        ? strategy.apy - strkBaseApy
+        : strategy.apy - btcBaseApy;
+
       return {
-        value: 0,
+        value: apy * 100,
+        totalSupplied: totalSupplied ?? 0,
         isLoading: false,
-        error: "Failed to find strategy",
+        error: "Failed to fetch APY",
       };
-    }
-
-    if (!price) {
-      return {
-        value: 0,
-        isLoading: false,
-        error: "Failed to fetch STRK price",
-      };
-    }
-
-    const totalSupplied = strategy.tvlUsd / price;
-
-    const isSTRK = lstConfig!.SYMBOL === "STRK";
-
-    const apy = isSTRK ? strategy.apy - strkBaseApy : strategy.apy - btcBaseApy;
-
-    return {
-      value: apy * 100,
-      totalSupplied: totalSupplied ?? 0,
-      isLoading: false,
-      error: "Failed to fetch APY",
-    };
-  },
-  refetchInterval: 60000,
-  refetchOnWindowFocus: false,
-  refetchOnMount: false,
+    },
+    refetchInterval: 60000,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
   };
 });
 
@@ -1000,9 +1000,7 @@ const vesuPoolsRawQueryAtom = atomWithQuery(() => ({
   queryKey: ["vesuPoolsRaw"],
   queryFn: async (): Promise<VesuPoolsAPIResponse> => {
     try {
-      const response = await fetch(
-        "https://proxy.api.troves.fi/vesu/pools",
-      );
+      const response = await fetch("https://proxy.api.troves.fi/vesu/pools");
       const data: VesuPoolsAPIResponse = await response.json();
       return data;
     } catch (error) {
@@ -1354,100 +1352,115 @@ export interface VaultCapacity {
   total: number | null; // null means no limit
 }
 
-// Helper function to fetch vault capacity from troves hyper vault
-async function fetchVaultCapacity(
-  vaultAddress: string,
-  vaultDecimals: number,
-  isBTC: boolean,
-): Promise<VaultCapacity | null> {
+type TrovesStrategiesApiResponse = {
+  status: boolean;
+  strategies: Array<{
+    id: string;
+    tvlUsd?: number | null;
+    maxTvl?: number | null;
+  }>;
+};
+
+async function fetchTrovesStrategies(): Promise<
+  TrovesStrategiesApiResponse["strategies"]
+> {
+  const res = await fetch("https://app.troves.fi/api/strategies");
+  if (!res.ok)
+    throw new Error(`Troves strategies request failed (${res.status})`);
+  const data = (await res.json()) as TrovesStrategiesApiResponse;
+  return Array.isArray(data?.strategies) ? data.strategies : [];
+}
+
+async function fetchHyperVaultCapacityFromTrovesApi(params: {
+  strategyId: string;
+  tokenUsdPrice: number;
+}): Promise<VaultCapacity | null> {
+  const { strategyId, tokenUsdPrice } = params;
+
   try {
-    const provider = getProvider();
+    const strategies = await fetchTrovesStrategies();
+    const strategy = strategies.find((s) => s.id === strategyId);
+    if (!strategy) return null;
 
-    const contract = new Contract({
-      abi: erc4626Abi,
-      address: vaultAddress as `0x${string}`,
-      providerOrAccount: provider,
-    });
+    const usedUsd = Number(strategy.tvlUsd ?? 0);
+    const maxTvl = Number(strategy.maxTvl ?? 0);
 
-    // Fetch total_assets and max_deposit
-    // For max_deposit, we need a receiver address, but we can use zero address
-    const zeroAddress =
-      "0x0000000000000000000000000000000000000000000000000000000000000000";
-
-    const [totalAssetsResult, maxDepositResult] = await Promise.all([
-      contract.call("total_assets", []),
-      contract.call("get_deposit_limit", []),
-    ]);
-
-    // Convert u256 results using MyNumber
-    // Handle both string and u256 struct (low/high) formats
-    const totalAssetsStr = totalAssetsResult.toString();
-    const maxDepositStr = maxDepositResult.toString();
-
-    const totalAssetsMyNum = new MyNumber(totalAssetsStr, vaultDecimals);
-    const maxDepositMyNum = new MyNumber(maxDepositStr, vaultDecimals);
-
-    // Calculate used capacity
-    const used = Number(totalAssetsMyNum.toEtherToFixedDecimals(6));
-
-    const underlyingPrice = await getAssetPrice(!isBTC);
-
-    const usedUSD = used * underlyingPrice;
-
-    // If max_deposit is 0, it means no limit
-    const maxDepositValue = Number(maxDepositMyNum.toEtherToFixedDecimals(6));
-    const maxDepositUSD = maxDepositValue * underlyingPrice;
-
-    // alert(`used: ${usedUSD}, maxDeposit: ${maxDepositUSD}, address: ${vaultAddress}`);
-
-    if (maxDepositUSD === 0) {
-      return { used: usedUSD, total: null };
+    if (!Number.isFinite(usedUsd) || usedUsd < 0) return null;
+    if (!Number.isFinite(maxTvl) || maxTvl <= 0) {
+      return { used: usedUsd, total: null };
     }
 
-    // If max deposit is > 1B, show no limit
-    if (maxDepositUSD > 1_000_000_000) {
-      return { used: usedUSD, total: null };
+    if (!Number.isFinite(tokenUsdPrice) || tokenUsdPrice <= 0) {
+      // If we can't price the token, don't block deposits—treat as no limit.
+      return { used: usedUsd, total: null };
     }
 
-    return { used: usedUSD, total: maxDepositUSD };
+    const totalUsd = maxTvl * tokenUsdPrice;
+
+    if (!Number.isFinite(totalUsd) || totalUsd <= 0) {
+      return { used: usedUsd, total: null };
+    }
+
+    return { used: usedUsd, total: totalUsd };
   } catch (error) {
-    console.error("Error fetching vault capacity:", error);
+    console.error("Error fetching Troves hyper vault capacity:", error);
     return null;
   }
 }
 
 // Create vault capacity atoms for each hyper vault
-const createVaultCapacityAtom = (vaultSymbol: string) => {
-  return atomWithQuery(() => ({
-    queryKey: [`vaultCapacity_${vaultSymbol}`],
-    queryFn: async (_queryKey: any): Promise<VaultCapacity | null> => {
+const createVaultCapacityAtom = (vaultSymbol: string, strategyId: string) => {
+  return atomWithQuery((get) => ({
+    queryKey: [
+      `vaultCapacity_${vaultSymbol}`,
+      get(assetPriceAtom),
+      get(btcPriceAtom),
+    ],
+    queryFn: async (): Promise<VaultCapacity | null> => {
       const asset = Object.values(LST_CONFIG).find(
         (a) => a.LST_SYMBOL === vaultSymbol,
       );
+      if (!asset) return null;
 
-      if (!asset?.NETWORKS[NETWORK]?.TROVES_HYPER_VAULT_ADDRESS) {
-        return null;
-      }
+      const isSTRK = asset.SYMBOL === "STRK";
+      const { data: strkPrice } = get(assetPriceAtom);
+      const btcPrice = get(btcPriceAtom);
 
-      const networkConfig = asset.NETWORKS[NETWORK];
-      if (!networkConfig?.TROVES_HYPER_VAULT_ADDRESS) {
-        return null;
-      }
-      const vaultAddress = networkConfig.TROVES_HYPER_VAULT_ADDRESS;
-      const isBTC = asset.SYMBOL.toLowerCase().includes("btc");
-      return fetchVaultCapacity(vaultAddress, asset.DECIMALS, isBTC);
+      const tokenUsdPrice = isSTRK
+        ? Number(strkPrice ?? 0)
+        : Number(btcPrice ?? 0);
+
+      return fetchHyperVaultCapacityFromTrovesApi({
+        strategyId,
+        tokenUsdPrice,
+      });
     },
-    refetchInterval: 60000, // Refetch every minute
+    refetchInterval: 60000,
     refetchOnWindowFocus: false,
     refetchOnMount: true,
   }));
 };
 
-export const hyperxWBTCVaultCapacityAtom = createVaultCapacityAtom("xWBTC");
-export const hyperxtBTCVaultCapacityAtom = createVaultCapacityAtom("xtBTC");
-export const hyperxLBTCVaultCapacityAtom = createVaultCapacityAtom("xLBTC");
-export const hyperxsBTCVaultCapacityAtom = createVaultCapacityAtom("xsBTC");
-export const hyperxSTRKVaultCapacityAtom = createVaultCapacityAtom("xSTRK");
+export const hyperxWBTCVaultCapacityAtom = createVaultCapacityAtom(
+  "xWBTC",
+  "hyper_xwbtc",
+);
+export const hyperxtBTCVaultCapacityAtom = createVaultCapacityAtom(
+  "xtBTC",
+  "hyper_xtbtc",
+);
+export const hyperxLBTCVaultCapacityAtom = createVaultCapacityAtom(
+  "xLBTC",
+  "hyper_xlbtc",
+);
+export const hyperxsBTCVaultCapacityAtom = createVaultCapacityAtom(
+  "xsBTC",
+  "hyper_xsbtc",
+);
+export const hyperxSTRKVaultCapacityAtom = createVaultCapacityAtom(
+  "xSTRK",
+  "hyper_xstrk",
+);
 
 // TODO: move to separate type file
 export type SupportedDApp =

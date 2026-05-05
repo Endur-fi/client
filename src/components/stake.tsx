@@ -62,7 +62,15 @@ import MyNumber from "@/lib/MyNumber";
 import { cn, formatNumberWithCommas } from "@/lib/utils";
 import LSTService from "@/services/lst";
 import { lstConfigAtom, assetPriceAtom } from "@/store/common.store";
-import { protocolYieldsAtom, type SupportedDApp } from "@/store/defi.store";
+import {
+  hyperxLBTCVaultCapacityAtom,
+  hyperxSTRKVaultCapacityAtom,
+  hyperxsBTCVaultCapacityAtom,
+  hyperxtBTCVaultCapacityAtom,
+  hyperxWBTCVaultCapacityAtom,
+  protocolYieldsAtom,
+  type SupportedDApp,
+} from "@/store/defi.store";
 import { apiExchangeRateAtom } from "@/store/lst.store";
 import { tabsAtom } from "@/store/merry.store";
 import { snAPYAtom } from "@/store/staking.store";
@@ -97,7 +105,7 @@ const PLATFORMS = {
   HYPER_HYPER: "trovesHyper",
 } as const;
 
-const platformConfig = (lstConfig: LSTAssetConfig) => {
+const platformConfig = (lstConfig: LSTAssetConfig, isTrovesMaxedOut: boolean) => {
   // Determine the correct yield key based on the LST symbol
   let yieldKey: string;
   switch (lstConfig.LST_SYMBOL) {
@@ -138,7 +146,7 @@ const platformConfig = (lstConfig: LSTAssetConfig) => {
           </a>
         </p>
       ),
-      isMaxedOut: lstConfig.TROVES_VAULT_MAXED_OUT,
+      isMaxedOut: isTrovesMaxedOut,
     },
   };
 };
@@ -155,7 +163,6 @@ const Stake: React.FC = () => {
   const { connectWallet } = useWalletConnection();
   const lstConfig = useAtomValue(lstConfigAtom)!;
   const [isLendingOpen, setIsLendingOpen] = React.useState(
-    // !lstConfig.TROVES_VAULT_MAXED_OUT,
     true,
   );
   const { data: balance } = useBalance({
@@ -173,6 +180,29 @@ const Stake: React.FC = () => {
   const referrer = searchParams.get("referrer");
 
   const isBTC = lstConfig.SYMBOL?.toLowerCase().includes("btc");
+
+  const trovesCapacityAtom = React.useMemo(() => {
+    switch (lstConfig.LST_SYMBOL) {
+      case "xSTRK":
+        return hyperxSTRKVaultCapacityAtom;
+      case "xWBTC":
+        return hyperxWBTCVaultCapacityAtom;
+      case "xtBTC":
+        return hyperxtBTCVaultCapacityAtom;
+      case "xLBTC":
+        return hyperxLBTCVaultCapacityAtom;
+      case "xsBTC":
+        return hyperxsBTCVaultCapacityAtom;
+      default:
+        return hyperxSTRKVaultCapacityAtom;
+    }
+  }, [lstConfig.LST_SYMBOL]);
+
+  const trovesCapacity = useAtomValue(trovesCapacityAtom);
+  const isTrovesMaxedOut =
+    !!trovesCapacity?.data &&
+    trovesCapacity.data.total !== null &&
+    trovesCapacity.data.used >= trovesCapacity.data.total;
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -446,7 +476,7 @@ const Stake: React.FC = () => {
   };
 
   const getPlatformConfig = (platform: string) => {
-    const config = platformConfig(lstConfig);
+    const config = platformConfig(lstConfig, isTrovesMaxedOut);
     return config[platform as keyof typeof config];
   };
 
