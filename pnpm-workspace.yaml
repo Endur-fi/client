@@ -1,0 +1,10 @@
+ignoredBuiltDependencies:
+  - '@prisma/client'
+  - '@prisma/engines'
+  - '@reown/appkit'
+  - bufferutil
+  - cbor-extract
+  - keccak
+  - prisma
+  - unrs-resolver
+  - utf-8-validate

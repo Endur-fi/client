@@ -4,6 +4,7 @@ import { useAtom, useAtomValue } from "jotai";
 import { Loader } from "lucide-react";
 import * as React from "react";
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
+import { ConnectButton } from "@easyleap/sdk";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -323,6 +324,9 @@ export function Chart({
                   You will be able to see your xSTRK holding history across
                   DApps
                 </p>
+                <div className="mt-3 flex justify-center">
+                  <ConnectButton className="rounded-md bg-[#17876D] px-6 py-2 font-medium text-white transition-colors hover:bg-[#17876D]" />
+                </div>
               </div>
             )}
             {address && filteredData.length == 0 && !error && (

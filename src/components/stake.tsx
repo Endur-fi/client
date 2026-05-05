@@ -3,10 +3,13 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
+  ConnectButton,
+  InteractionMode,
   useAccount,
   useBalance,
+  useMode,
   useSendTransaction,
-} from "@starknet-react/core";
+} from "@easyleap/sdk";
 
 import { useAtomValue } from "jotai";
 import { AlertCircleIcon, ChevronDown, Info } from "lucide-react";
@@ -51,11 +54,11 @@ import {
   LSTAssetConfig,
   NOSTRA_iXSTRK_ADDRESS,
   REWARD_FEES,
+  WBTC_ETH_TOKEN,
   VESU_vXSTRK_ADDRESS,
 } from "@/constants";
 import { toast } from "@/hooks/use-toast";
 import { useTransactionHandler } from "@/hooks/use-transactions";
-import { useWalletConnection } from "@/hooks/use-wallet-connection";
 import { MyAnalytics } from "@/lib/analytics";
 import { AnalyticsEvents } from "@/lib/analytics-events";
 import MyNumber from "@/lib/MyNumber";
@@ -151,17 +154,24 @@ const Stake: React.FC = () => {
 
   const searchParams = useSearchParams();
 
-  const { address } = useAccount();
-  const { connectWallet } = useWalletConnection();
+  const { starknetAddress: address } = useAccount();
+  // Wallet connection is handled by Easyleap ConnectButton.
   const lstConfig = useAtomValue(lstConfigAtom)!;
+  const mode = useMode();
   const [isLendingOpen, setIsLendingOpen] = React.useState(
     // !lstConfig.TROVES_VAULT_MAXED_OUT,
     true,
   );
-  const { data: balance } = useBalance({
-    address,
-    token: lstConfig.ASSET_ADDRESS as `0x${string}`,
-  });
+  // In EVM mode, the SDK treats the passed token address as the EVM token.
+  // For now only WBTC has a mapped EVM token address.
+  const balanceTokenAddress =
+    mode === InteractionMode.EVM && lstConfig.SYMBOL?.toUpperCase() === "WBTC"
+      ? WBTC_ETH_TOKEN
+      : lstConfig.ASSET_ADDRESS;
+
+  const { data: balance } = useBalance(
+    balanceTokenAddress as `0x${string}`,
+  );
   const { data: assetPrice } = useAtomValue(assetPriceAtom);
 
   const exchangeRate = useAtomValue(apiExchangeRateAtom);
@@ -193,7 +203,7 @@ const Stake: React.FC = () => {
     ? lstService.getLSTContract(lstConfig.LST_ADDRESS)
     : null;
 
-  const { sendAsync, data, isPending, error } = useSendTransaction({});
+  const { sendAsync, data, isPending, error } = useSendTransaction();
 
   const { handleTransaction } = useTransactionHandler();
 
@@ -428,7 +438,7 @@ const Stake: React.FC = () => {
       }
     }
 
-    await sendAsync(calls);
+    await sendAsync({ calls });
   };
 
   const getPlatformYield = (platform: Platform) => {
@@ -532,8 +542,8 @@ const Stake: React.FC = () => {
     handleTransaction("STAKE", {
       form,
       address: address ?? "",
-      data: data ?? { transaction_hash: "" },
-      error: error ?? { name: "" },
+      data: data ? { transaction_hash: data } : { transaction_hash: "" },
+      error: (error as Error & { baseError?: unknown; cause?: unknown }) ?? null,
       isPending,
       setShowShareModal,
       metadata: {
@@ -541,7 +551,7 @@ const Stake: React.FC = () => {
         referrer: referrer || null,
       },
     });
-  }, [data?.transaction_hash, form, isPending]);
+  }, [data, form, isPending]);
 
   return (
     <div className="relative flex h-full w-full flex-col gap-6">
@@ -965,12 +975,7 @@ const Stake: React.FC = () => {
 
       <div className="">
         {!address && (
-          <Button
-            onClick={() => connectWallet()}
-            className="w-full rounded-2xl bg-[#17876D] py-6 text-sm font-semibold text-white hover:bg-[#17876D] disabled:bg-[#03624C4D] disabled:text-[#17876D] disabled:opacity-90"
-          >
-            Connect Wallet
-          </Button>
+          <ConnectButton className="w-full rounded-2xl bg-[#17876D] py-6 text-sm font-semibold text-white hover:bg-[#17876D] disabled:bg-[#03624C4D] disabled:text-[#17876D] disabled:opacity-90" />
         )}
 
         {address && (

@@ -11,6 +11,48 @@ import { toast, useToast } from "./use-toast";
 
 type TransactionType = "STAKE" | "UNSTAKE";
 
+/**
+ * Extract a user-facing message from an Endur paymaster rejection.
+ *
+ * Our /api/paymaster route emits JSON-RPC 2.0 error envelopes tagged with
+ * `data: { source: "endur" }` so we can distinguish them from upstream AVNU
+ * errors and on-chain reverts. starknet.js wraps the JSON-RPC error in an
+ * `RpcError` whose `baseError` is the parsed `{ code, message, data }`.
+ *
+ * Returns the message only when the discriminator is present; otherwise
+ * `null`, so the caller falls back to its generic toast copy.
+ */
+function getEndurPaymasterMessage(error: unknown): string | null {
+  if (!error || typeof error !== "object") return null;
+
+  // Walk error.baseError and error.cause?.baseError (RpcError may be wrapped
+  // by easyleap/starknet-react before reaching the React boundary).
+  const candidates: Array<{ data?: unknown; message?: unknown }> = [];
+  const e = error as { baseError?: unknown; cause?: unknown };
+  if (e.baseError && typeof e.baseError === "object") {
+    candidates.push(e.baseError as { data?: unknown; message?: unknown });
+  }
+  if (
+    e.cause &&
+    typeof e.cause === "object" &&
+    "baseError" in e.cause &&
+    typeof (e.cause as { baseError?: unknown }).baseError === "object"
+  ) {
+    candidates.push(
+      (e.cause as { baseError: { data?: unknown; message?: unknown } })
+        .baseError,
+    );
+  }
+
+  for (const c of candidates) {
+    const data = c.data as { source?: unknown } | undefined;
+    if (data?.source === "endur" && typeof c.message === "string") {
+      return c.message;
+    }
+  }
+  return null;
+}
+
 interface TransactionHandlerProps {
   form: {
     getValues: (key: string) => number | string;
@@ -20,9 +62,10 @@ interface TransactionHandlerProps {
   data: {
     transaction_hash?: string;
   };
-  error: {
-    name?: string;
-  };
+  // Accept the raw error object (typically starknet.js's RpcError). Earlier
+  // call sites narrowed this to `{ name }`, which discarded `baseError` and
+  // made it impossible to surface paymaster-specific messages downstream.
+  error: (Error & { baseError?: unknown; cause?: unknown }) | null | undefined;
   isPending: boolean;
   setShowShareModal?: (show: boolean) => void;
   // Extra context forwarded by the caller (platform, method, referrer, etc.)
@@ -114,6 +157,10 @@ const useTransactionHandler = () => {
           type: error.name,
         },
       );
+      // Show the underlying message only when the error originated from our
+      // paymaster route (rate limit, below-min, deploy-once, etc.). Upstream
+      // AVNU errors and chain reverts keep the generic copy.
+      const endurMessage = getEndurPaymasterMessage(error);
       toast({
         itemID: transactionType.toLowerCase(),
         variant: "pending",
@@ -122,9 +169,9 @@ const useTransactionHandler = () => {
             ❌
             <div className="flex flex-col items-start text-sm font-medium text-[#3F6870]">
               <span className="text-base font-semibold text-[#075A5A]">
-                Something went wrong
+                {endurMessage ? "Transaction failed" : "Something went wrong"}
               </span>
-              Please try again
+              {endurMessage ?? "Please try again"}
             </div>
           </div>
         ),

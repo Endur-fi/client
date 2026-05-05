@@ -1,7 +1,12 @@
 "use client";
 
 import { useAtomValue } from "jotai";
-import { useAccount, useBalance } from "@starknet-react/core";
+import {
+  InteractionMode,
+  useAccount,
+  useBalance,
+  useMode,
+} from "@easyleap/sdk";
 import React from "react";
 import { Info } from "lucide-react";
 
@@ -13,7 +18,11 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "./ui/tooltip";
-import { getLSTAssetsByCategory, getSTRKAsset } from "@/constants";
+import {
+  WBTC_ETH_TOKEN,
+  getLSTAssetsByCategory,
+  getSTRKAsset,
+} from "@/constants";
 import { cn, formatNumberWithCommas } from "@/lib/utils";
 import { lstStatsQueryAtom } from "@/store/lst.store";
 import { btcPriceAtom, strkPriceAtom } from "@/store/staking.store";
@@ -42,37 +51,33 @@ const getBTCLSTIcon = (lstSymbol: string) => {
 };
 
 const PortfolioSection: React.FC = () => {
-  const { address } = useAccount();
+  const { starknetAddress: address } = useAccount();
+  const mode = useMode();
   const strkLSTConfig = getSTRKAsset();
   const btcAssets = getLSTAssetsByCategory("BTC");
 
   // Get STRK LST balance
-  const strkLSTBalanceData = useBalance({
-    address,
-    token: strkLSTConfig.LST_ADDRESS as `0x${string}`,
-  });
+  const strkLSTBalanceData = useBalance(
+    strkLSTConfig.LST_ADDRESS as `0x${string}`,
+  );
 
   // Get BTC LST balances
-  const wbtcBalance = useBalance({
-    address,
-    token: btcAssets.find((a) => a.SYMBOL === "WBTC")
-      ?.LST_ADDRESS as `0x${string}`,
-  });
-  const tbtcBalance = useBalance({
-    address,
-    token: btcAssets.find((a) => a.SYMBOL === "tBTC")
-      ?.LST_ADDRESS as `0x${string}`,
-  });
-  const lbtcBalance = useBalance({
-    address,
-    token: btcAssets.find((a) => a.SYMBOL === "LBTC")
-      ?.LST_ADDRESS as `0x${string}`,
-  });
-  const solvbtcBalance = useBalance({
-    address,
-    token: btcAssets.find((a) => a.SYMBOL === "solvBTC")
-      ?.LST_ADDRESS as `0x${string}`,
-  });
+  const wbtcTokenAddress =
+    mode === InteractionMode.EVM
+      ? (WBTC_ETH_TOKEN as `0x${string}`)
+      : (btcAssets.find((a) => a.SYMBOL === "WBTC")
+          ?.LST_ADDRESS as `0x${string}`);
+
+  const wbtcBalance = useBalance(wbtcTokenAddress);
+  const tbtcBalance = useBalance(
+    btcAssets.find((a) => a.SYMBOL === "tBTC")?.LST_ADDRESS as `0x${string}`,
+  );
+  const lbtcBalance = useBalance(
+    btcAssets.find((a) => a.SYMBOL === "LBTC")?.LST_ADDRESS as `0x${string}`,
+  );
+  const solvbtcBalance = useBalance(
+    btcAssets.find((a) => a.SYMBOL === "solvBTC")?.LST_ADDRESS as `0x${string}`,
+  );
 
   // Get prices and stats
   const strkPrice = useAtomValue(strkPriceAtom);
@@ -194,8 +199,8 @@ const PortfolioSection: React.FC = () => {
   const [season1Points, setSeason1Points] = React.useState<string | null>(null);
   const [season1Loading, setSeason1Loading] = React.useState(false);
 
-	const [season2Points, setSeason2Points] = React.useState<string | null>(null);
-	const [season2Loading, setSeason2Loading] = React.useState(false);
+  const [season2Points, setSeason2Points] = React.useState<string | null>(null);
+  const [season2Loading, setSeason2Loading] = React.useState(false);
 
   React.useEffect(() => {
     if (!address) {
@@ -238,7 +243,7 @@ const PortfolioSection: React.FC = () => {
       return;
     }
 
-		const fetchSeason2Points = async () => {
+    const fetchSeason2Points = async () => {
       setSeason2Loading(true);
       try {
         const result = await pointsApolloClient.query({
@@ -263,7 +268,7 @@ const PortfolioSection: React.FC = () => {
       }
     };
 
-		fetchSeason2Points();
+    fetchSeason2Points();
   }, [address, pointsApolloClient]);
 
   return (
@@ -349,7 +354,7 @@ const PortfolioSection: React.FC = () => {
                         {holding.asset.LST_SYMBOL}
                       </span>
                     </div>
-                    <span className="text-[#6B7780] ml-[22px]">
+                    <span className="ml-[22px] text-[#6B7780]">
                       ${formatNumberWithCommas(holding.usdValue, 2)}
                     </span>
                   </div>

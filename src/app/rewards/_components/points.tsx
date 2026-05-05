@@ -7,7 +7,7 @@ import { MyAnalytics } from "@/lib/analytics";
 import { AnalyticsEvents } from "@/lib/analytics-events";
 import { Calendar, Clock, Flame, TrendingUp, Trophy } from "lucide-react";
 import { useAccount } from "@starknet-react/core";
-import { useWalletConnection } from "@/hooks/use-wallet-connection";
+import { ConnectButton } from "@easyleap/sdk";
 import { useQuery } from "@apollo/client";
 import { GET_USER_POINTS_BREAKDOWN } from "@/constants/queries";
 import { pointsApolloClient } from "@/lib/apollo-client";
@@ -573,7 +573,7 @@ interface UserPointsBreakdownResponse {
 
 const Points = ({ userSeason1Points, userSeason2Points }: { userSeason1Points: { rank: number|null, points: string }, userSeason2Points: { rank: number|null, points: string } }) => {
   const { address } = useAccount();
-  const { connectWallet } = useWalletConnection();
+  // Wallet connection is handled by Easyleap ConnectButton.
   
   const { data: breakdownData, loading: breakdownLoading } = useQuery<UserPointsBreakdownResponse>(
     GET_USER_POINTS_BREAKDOWN,
@@ -686,17 +686,7 @@ const Points = ({ userSeason1Points, userSeason2Points }: { userSeason1Points: {
       </div>
       {/* your points */}
       {!address ? (
-        <Button
-          className="w-full bg-['transparent'] text-[#17876D] border border-[#17876D] hover:bg-[#17876D] hover:text-[#F1F7F6] py-6"
-          onClick={() => {
-            MyAnalytics.track(AnalyticsEvents.WALLET_CONNECT_CLICK, {
-              source: "rewards_points",
-            });
-            connectWallet();
-          }}
-        >
-          Connect Wallet to View Your Points
-        </Button>
+        <ConnectButton className="w-full bg-['transparent'] text-[#17876D] border border-[#17876D] hover:bg-[#17876D] hover:text-[#F1F7F6] py-6" />
       ) : (
         <div className="flex flex-col gap-4">
           <div className="flex flex-row rounded-[14px] border border-[#E5E8EB] bg-white px-4 py-3">
