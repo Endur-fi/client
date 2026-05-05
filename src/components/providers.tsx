@@ -27,6 +27,16 @@ interface ProvidersProps {
 const chains =
   NETWORK === constants.NetworkName.SN_MAIN ? [mainnet] : [sepolia];
 
+const privyAppId = (() => {
+  const id = process.env.NEXT_PUBLIC_PRIVY_APP_ID?.trim() ?? "";
+  if (!id) {
+    throw new Error(
+      "NEXT_PUBLIC_PRIVY_APP_ID is required. Set your Privy app id in the environment (e.g. .env.local or CI secrets) before building or running the app.",
+    );
+  }
+  return id;
+})();
+
 const provider = jsonRpcProvider({
   rpc: () => {
     const args: RpcProviderOptions = {
@@ -48,7 +58,7 @@ const Providers: React.FC<ProvidersProps> = ({ children }) => {
   return (
     <EasyleapProvider
       theme={endurEasyleapTheme}
-      privyAppId={process.env.NEXT_PUBLIC_PRIVY_APP_ID}
+      privyAppId={privyAppId}
       starkzap={{
         rpcUrl: process.env.NEXT_PUBLIC_RPC_URL,
         network:
