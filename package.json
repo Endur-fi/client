@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "dev:https": "next dev --experimental-https",
-    "build": "next build && pnpm prisma generate",
+    "build": "prisma generate && next build",
     "start": "next start",
     "db:dev": "bash ./scripts/postgres.sh",
     "lint": "next lint",
