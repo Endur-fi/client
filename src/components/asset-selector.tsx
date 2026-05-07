@@ -65,6 +65,11 @@ const useBtcTokenBalances = () => {
       ?.ASSET_ADDRESS as `0x${string}`,
   );
 
+  const strkBtcBalance = useBalance(
+    btcAssets.find((asset) => asset.SYMBOL === "strkBTC")
+      ?.ASSET_ADDRESS as `0x${string}`,
+  );
+
   const tbtc1Balance = useBalance(
     btcAssets.find((asset) => asset.SYMBOL === "TBTC1")
       ?.ASSET_ADDRESS as `0x${string}`,
@@ -90,6 +95,9 @@ const useBtcTokenBalances = () => {
         break;
       case "solvBTC":
         balance = solvbtcBalance.data?.value || BigInt(0);
+        break;
+      case "strkBTC":
+        balance = strkBtcBalance.data?.value || BigInt(0);
         break;
       case "TBTC1":
         balance = tbtc1Balance.data?.value || BigInt(0);
@@ -138,6 +146,11 @@ const useXBtcTokenBalances = () => {
       ?.LST_ADDRESS as `0x${string}`,
   );
 
+  const xstrkBtcBalance = useBalance(
+    btcAssets.find((asset) => asset.SYMBOL === "strkBTC")
+      ?.LST_ADDRESS as `0x${string}`,
+  );
+
   const xtbtc1Balance = useBalance(
     btcAssets.find((asset) => asset.SYMBOL === "TBTC1")
       ?.LST_ADDRESS as `0x${string}`,
@@ -163,6 +176,9 @@ const useXBtcTokenBalances = () => {
         break;
       case "solvBTC":
         balance = xsolvbtcBalance.data?.value || BigInt(0);
+        break;
+      case "strkBTC":
+        balance = xstrkBtcBalance.data?.value || BigInt(0);
         break;
       case "TBTC1":
         balance = xtbtc1Balance.data?.value || BigInt(0);
@@ -227,6 +243,9 @@ export const ASSET_ICONS: Record<string, React.FC<any>> = {
   solvBTC: (props: any) => (
     <BtcIcon symbol="solvBTC" className={props.className} />
   ),
+  strkBTC: (props: any) => (
+    <BtcIcon symbol="strkBTC" className={props.className} />
+  ),
 };
 
 const AssetSelector: React.FC<AssetSelectorProps> = ({
@@ -287,9 +306,6 @@ const AssetSelector: React.FC<AssetSelectorProps> = ({
     setIsOpen(false);
   };
 
-  const selectedAssetData = btcAssets.find(
-    (asset: any) => asset.SYMBOL === selectedAsset,
-  );
   const SelectedIcon = ASSET_ICONS[selectedAsset];
 
   return (

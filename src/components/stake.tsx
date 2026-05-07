@@ -119,6 +119,9 @@ const platformConfig = (lstConfig: LSTAssetConfig) => {
     case "xsBTC":
       yieldKey = "hyperxsBTC";
       break;
+    case "xstrkBTC":
+      yieldKey = "hyperxstrkBTC";
+      break;
     default:
       throw new Error("Invalid LST config");
   }
@@ -169,9 +172,7 @@ const Stake: React.FC = () => {
       ? WBTC_ETH_TOKEN
       : lstConfig.ASSET_ADDRESS;
 
-  const { data: balance } = useBalance(
-    balanceTokenAddress as `0x${string}`,
-  );
+  const { data: balance } = useBalance(balanceTokenAddress as `0x${string}`);
   const { data: assetPrice } = useAtomValue(assetPriceAtom);
 
   const exchangeRate = useAtomValue(apiExchangeRateAtom);
@@ -543,7 +544,8 @@ const Stake: React.FC = () => {
       form,
       address: address ?? "",
       data: data ? { transaction_hash: data } : { transaction_hash: "" },
-      error: (error as Error & { baseError?: unknown; cause?: unknown }) ?? null,
+      error:
+        (error as Error & { baseError?: unknown; cause?: unknown }) ?? null,
       isPending,
       setShowShareModal,
       metadata: {
