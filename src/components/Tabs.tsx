@@ -3,6 +3,7 @@
 import { useAtom, useAtomValue } from "jotai";
 import { Info, Layers } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter, usePathname } from "next/navigation";
 import React from "react";
 import { useAccount } from "@starknet-react/core";
@@ -48,6 +49,7 @@ import { MyDottedTooltip } from "./my-tooltip";
 import { useSearchParams } from "next/navigation";
 import MyHeader from "./header";
 import VipCard from "./vip-card";
+import strkBTCBanner from "@public/strk-btc-live-banner.png";
 
 const Tabs = () => {
   const router = useRouter();
@@ -395,6 +397,14 @@ const Tabs = () => {
           )}
         > */}
 
+        <div className="mb-2 w-full max-w-[calc(100vw-1rem)] overflow-hidden rounded-2xl lg:mb-6 lg:max-w-4xl">
+          <Image
+            alt="strkBTC banner"
+            src={strkBTCBanner}
+            className="block h-auto w-full"
+          />
+        </div>
+
         <MyHeader
           title="Starknet Liquid Staking"
           description={
@@ -606,7 +616,7 @@ const Tabs = () => {
               className={cn("flex w-full max-w-full flex-col gap-4 lg:hidden")}
             >
               <SeasonPointsCard />
-							<VipCard />
+              <VipCard />
               <StakingRewardsInfo />
               <PortfolioSection />
               <FAQSection />
@@ -626,7 +636,7 @@ const Tabs = () => {
             </div>
 
             <SeasonPointsCard />
-						<VipCard />
+            <VipCard />
             <PortfolioSection />
             <StakingRewardsInfo />
             {/* <FAQSection /> */}
