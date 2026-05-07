@@ -7,7 +7,7 @@
  * (before route handlers execute).
  */
 
-export type PrismaClientType = unknown;
+export type PrismaClientType = import("@prisma/client").PrismaClient;
 
 declare global {
   // eslint-disable-next-line no-var
@@ -15,11 +15,11 @@ declare global {
 }
 
 export async function getPrisma() {
-  if (globalThis.prisma) return globalThis.prisma as any;
+  if (globalThis.prisma) return globalThis.prisma;
 
   try {
     const mod = await import("@prisma/client");
-    const PrismaClient = (mod as any).PrismaClient as any;
+    const PrismaClient = mod.PrismaClient;
     const prisma = new PrismaClient({
       log:
         process.env.NODE_ENV === "development"
@@ -29,11 +29,10 @@ export async function getPrisma() {
 
     if (process.env.NODE_ENV !== "production") globalThis.prisma = prisma;
 
-    return prisma;
+    return prisma as PrismaClientType;
   } catch (err: any) {
     throw new Error(
       "Prisma client is not generated. Run `pnpm approve-builds` then `pnpm prisma generate` (or reinstall), and restart the dev server.",
     );
   }
 }
-

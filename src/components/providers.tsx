@@ -12,6 +12,7 @@ import { endurEasyleapTheme } from "@/constants/easyleap-theme";
 import { NETWORK } from "@/constants";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
+import { installPrivyResetInstrumentation } from "@/lib/privy-reset";
 import { WalletConnector } from "@/services/wallet";
 
 import "@easyleap/sdk/styles.css";
@@ -54,9 +55,17 @@ const provider = jsonRpcProvider({
 const Providers: React.FC<ProvidersProps> = ({ children }) => {
   const isMobile = useIsMobile();
   const walletConnector = new WalletConnector(isMobile);
+  const [easyleapRemountKey, setEasyleapRemountKey] = React.useState(0);
+
+  React.useEffect(() => {
+    return installPrivyResetInstrumentation({
+      onReset: () => setEasyleapRemountKey((k) => k + 1),
+    });
+  }, []);
 
   return (
     <EasyleapProvider
+      key={easyleapRemountKey}
       theme={endurEasyleapTheme}
       privyAppId={privyAppId}
       starkzap={{

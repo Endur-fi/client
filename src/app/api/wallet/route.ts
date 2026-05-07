@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getPrivy } from "@/lib/privy";
-import { getPrisma } from "@/lib/prisma";
+import { getPrisma, PrismaClientType } from "@/lib/prisma";
 
 export async function GET(request: NextRequest) {
   try {
@@ -27,26 +27,34 @@ export async function GET(request: NextRequest) {
 
     const userId = verifiedClaims.user_id;
 
-    const prisma = (await getPrisma()) as any;
-    const wallet = await prisma.wallet.findUnique({
-      where: { privyUserId: userId },
-    });
+    try {
+      const prisma: PrismaClientType = await getPrisma();
+      const wallet = await prisma.wallet.findUnique({
+        where: { privyUserId: userId },
+      });
+      if (!wallet) {
+        return NextResponse.json({ wallet: null });
+      }
 
-    if (!wallet) {
+      return NextResponse.json({
+        wallet: {
+          id: wallet.id,
+          walletId: wallet.walletId,
+          address: wallet.address,
+          publicKey: wallet.publicKey,
+        },
+      });
+    } catch (err) {
+      // If the DB is down / prisma fails, returning a raw 500 here can put
+      // the upstream client SDK into a sticky error state until refresh.
+      // Degrade gracefully: respond 200 with wallet:null so the client can
+      // retry connection flows without a full reload.
       return NextResponse.json({ wallet: null });
     }
-
-    return NextResponse.json({
-      wallet: {
-        id: wallet.id,
-        walletId: wallet.walletId,
-        address: wallet.address,
-        publicKey: wallet.publicKey,
-      },
-    });
   } catch (error: unknown) {
     if (error instanceof Error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
+    return NextResponse.json({ error: "Unknown error" }, { status: 500 });
   }
 }

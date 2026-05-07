@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getPrivy } from "@/lib/privy";
-import { getPrisma } from "@/lib/prisma";
+import { getPrisma, PrismaClientType } from "@/lib/prisma";
 
 export async function POST(request: NextRequest) {
   try {
@@ -34,19 +34,35 @@ export async function POST(request: NextRequest) {
 
     const userId = verifiedClaims.user_id;
 
-    const prisma = (await getPrisma()) as any;
-    const existingWallet = await prisma.wallet.findUnique({
-      where: { privyUserId: userId },
-    });
-    if (existingWallet) {
-      return NextResponse.json({
-        wallet: {
-          id: existingWallet.id,
-          walletId: existingWallet.walletId,
-          address: existingWallet.address,
-          publicKey: existingWallet.publicKey,
-        },
+    let prisma: PrismaClientType;
+    try {
+      prisma = await getPrisma();
+    } catch (err) {
+      // If the DB is down / prisma fails, returning a raw 500 here can put
+      // the upstream client SDK into a sticky error state until refresh.
+      // Degrade gracefully: respond 200 with wallet:null so the client can
+      // retry connection flows without a full reload.
+      return NextResponse.json({ wallet: null });
+    }
+
+    try {
+      const existingWallet = await prisma.wallet.findUnique({
+        where: { privyUserId: userId },
       });
+      if (existingWallet) {
+        return NextResponse.json({
+          wallet: {
+            id: existingWallet.id,
+            walletId: existingWallet.walletId,
+            address: existingWallet.address,
+            publicKey: existingWallet.publicKey,
+          },
+        });
+      }
+    } catch (err) {
+      // See above: if Prisma fails, degrade gracefully so the client can
+      // re-run its auth/connect flow.
+      return NextResponse.json({ wallet: null });
     }
 
     const wallet = await privy.wallets().create({
@@ -59,27 +75,38 @@ export async function POST(request: NextRequest) {
       ],
     });
 
-    const newWallet = await prisma.wallet.create({
-      data: {
-        privyUserId: userId,
-        walletId: wallet.id,
-        address: wallet.address,
-        publicKey: wallet.public_key,
-        isDeployed: false,
-      },
-    });
+    if (!wallet.public_key) {
+      return NextResponse.json({ wallet: null });
+    }
 
-    return NextResponse.json({
-      wallet: {
-        id: newWallet.id,
-        walletId: newWallet.walletId,
-        address: newWallet.address,
-        publicKey: newWallet.publicKey,
-      },
-    });
+    try {
+      const newWallet = await prisma.wallet.create({
+        data: {
+          privyUserId: userId,
+          walletId: wallet.id,
+          address: wallet.address,
+          publicKey: wallet.public_key,
+          isDeployed: false,
+        },
+      });
+
+      return NextResponse.json({
+        wallet: {
+          id: newWallet.id,
+          walletId: newWallet.walletId,
+          address: newWallet.address,
+          publicKey: newWallet.publicKey,
+        },
+      });
+    } catch (err) {
+      // DB failed while persisting the wallet. Do not return a wallet object.
+      // Let the client reset and retry once DB is healthy.
+      return NextResponse.json({ wallet: null });
+    }
   } catch (error: unknown) {
     if (error instanceof Error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
+    return NextResponse.json({ error: "Unknown error" }, { status: 500 });
   }
 }
