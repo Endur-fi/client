@@ -54,16 +54,20 @@ const provider = jsonRpcProvider({
 const Providers: React.FC<ProvidersProps> = ({ children }) => {
   const isMobile = useIsMobile();
   const walletConnector = new WalletConnector(isMobile);
+  // TODO: export a starkzapConfig type from sdk later on
+  const starkzapConfig = {
+    rpcUrl: process.env.NEXT_PUBLIC_RPC_URL,
+    network: NETWORK === constants.NetworkName.SN_MAIN ? "mainnet" : "sepolia",
+    ethereumRpcUrl: process.env.NEXT_PUBLIC_ETHEREUM_RPC_URL,
+    layerZeroApiKey: process.env.NEXT_PUBLIC_LAYERZERO_API_KEY,
+    bridgePrivateKey: process.env.NEXT_PUBLIC_BRIDGE_PRIVATE_KEY,
+  };
 
   return (
     <EasyleapProvider
       theme={endurEasyleapTheme}
       privyAppId={privyAppId}
-      starkzap={{
-        rpcUrl: process.env.NEXT_PUBLIC_RPC_URL,
-        network:
-          NETWORK === constants.NetworkName.SN_MAIN ? "mainnet" : "sepolia",
-      }}
+      starkzap={starkzapConfig as any}
       ui={{ enableEvmMode: false }}
       starknetConfig={{
         chains,
