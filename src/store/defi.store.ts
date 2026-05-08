@@ -631,54 +631,56 @@ const trovesHyperYieldQueryAtom = atomWithQuery((get) => {
       baseApy.strkApy,
       baseApy.btcApy,
     ] as [string, LSTAssetConfig | undefined, number, number, number],
-  queryFn: async ({
-    queryKey,
-  }: {
-    queryKey: [string, LSTAssetConfig | undefined, number, number, number];
-  }): Promise<ProtocolYield> => {
-    const [, lstConfig, price, strkBaseApy, btcBaseApy] = queryKey;
-    //TODO: move the api call logic to api.ts under "defi calls" comment
-    const hostname = "https://app.troves.fi";
-    const res = await fetch(`${hostname}/api/strategies`);
-    const data = await res.json();
-    const strategies = data.strategies;
-    const strategy = strategies.find(
-      (strategy: any) =>
-        strategy.id === `hyper_${lstConfig!.LST_SYMBOL.toLocaleLowerCase()}`,
-    );
+    queryFn: async ({
+      queryKey,
+    }: {
+      queryKey: [string, LSTAssetConfig | undefined, number, number, number];
+    }): Promise<ProtocolYield> => {
+      const [, lstConfig, price, strkBaseApy, btcBaseApy] = queryKey;
+      //TODO: move the api call logic to api.ts under "defi calls" comment
+      const hostname = "https://app.troves.fi";
+      const res = await fetch(`${hostname}/api/strategies`);
+      const data = await res.json();
+      const strategies = data.strategies;
+      const strategy = strategies.find(
+        (strategy: any) =>
+          strategy.id === `hyper_${lstConfig!.LST_SYMBOL.toLocaleLowerCase()}`,
+      );
 
-    if (!strategy) {
+      if (!strategy) {
+        return {
+          value: 0,
+          isLoading: false,
+          error: "Failed to find strategy",
+        };
+      }
+
+      if (!price) {
+        return {
+          value: 0,
+          isLoading: false,
+          error: "Failed to fetch STRK price",
+        };
+      }
+
+      const totalSupplied = strategy.tvlUsd / price;
+
+      const isSTRK = lstConfig!.SYMBOL === "STRK";
+
+      const apy = isSTRK
+        ? strategy.apy - strkBaseApy
+        : strategy.apy - btcBaseApy;
+
       return {
-        value: 0,
+        value: apy * 100,
+        totalSupplied: totalSupplied ?? 0,
         isLoading: false,
-        error: "Failed to find strategy",
+        error: "Failed to fetch APY",
       };
-    }
-
-    if (!price) {
-      return {
-        value: 0,
-        isLoading: false,
-        error: "Failed to fetch STRK price",
-      };
-    }
-
-    const totalSupplied = strategy.tvlUsd / price;
-
-    const isSTRK = lstConfig!.SYMBOL === "STRK";
-
-    const apy = isSTRK ? strategy.apy - strkBaseApy : strategy.apy - btcBaseApy;
-
-    return {
-      value: apy * 100,
-      totalSupplied: totalSupplied ?? 0,
-      isLoading: false,
-      error: "Failed to fetch APY",
-    };
-  },
-  refetchInterval: 60000,
-  refetchOnWindowFocus: false,
-  refetchOnMount: false,
+    },
+    refetchInterval: 60000,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
   };
 });
 
@@ -1000,9 +1002,7 @@ const vesuPoolsRawQueryAtom = atomWithQuery(() => ({
   queryKey: ["vesuPoolsRaw"],
   queryFn: async (): Promise<VesuPoolsAPIResponse> => {
     try {
-      const response = await fetch(
-        "https://proxy.api.troves.fi/vesu/pools",
-      );
+      const response = await fetch("https://proxy.api.troves.fi/vesu/pools");
       const data: VesuPoolsAPIResponse = await response.json();
       return data;
     } catch (error) {
@@ -1448,6 +1448,8 @@ export const hyperxtBTCVaultCapacityAtom = createVaultCapacityAtom("xtBTC");
 export const hyperxLBTCVaultCapacityAtom = createVaultCapacityAtom("xLBTC");
 export const hyperxsBTCVaultCapacityAtom = createVaultCapacityAtom("xsBTC");
 export const hyperxSTRKVaultCapacityAtom = createVaultCapacityAtom("xSTRK");
+export const hyperxstrkBTCVaultCapacityAtom =
+  createVaultCapacityAtom("xstrkBTC");
 
 // TODO: move to separate type file
 export type SupportedDApp =
@@ -1478,6 +1480,7 @@ export type SupportedDApp =
   | "hyperxtBTC"
   | "hyperxsBTC"
   | "hyperxLBTC"
+  | "hyperxstrkBTC"
   | "avnuBTCxWBTC"
   | "avnuBTCxtBTC"
   | "avnuBTCxLBTC"
@@ -1505,6 +1508,7 @@ export const protocolYieldsAtom = atom<
   hyperxtBTC: get(trovesHyperYieldAtom),
   hyperxLBTC: get(trovesHyperYieldAtom),
   hyperxsBTC: get(trovesHyperYieldAtom),
+  hyperxstrkBTC: get(trovesHyperYieldAtom),
   vesu: get(vesuYieldAtom),
   vesuBTCxWBTC: get(vesuBTCxWBTCYieldAtom),
   vesuBTCxtBTC: get(vesuBTCxtBTCYieldAtom),

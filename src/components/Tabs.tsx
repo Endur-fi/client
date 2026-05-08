@@ -105,6 +105,8 @@ const Tabs = () => {
       setActiveTab("btc");
     } else if (pathname === "/solvbtc") {
       setActiveTab("btc");
+    } else if (pathname === "/strkbtc") {
+      setActiveTab("btc");
     } else {
       setActiveTab("btc");
     }
@@ -157,6 +159,13 @@ const Tabs = () => {
         console.log("Looking for solvBTC asset:", solvbtcAsset);
         if (solvbtcAsset) {
           setLSTConfig(solvbtcAsset);
+          return;
+        }
+      } else if (pathname === "/strkbtc") {
+        const strkBtcAsset = btcAssets.find((asset) => asset.SYMBOL === "strkBTC");
+        console.log("Looking for strkBTC asset:", strkBtcAsset);
+        if (strkBtcAsset) {
+          setLSTConfig(strkBtcAsset);
           return;
         }
       }

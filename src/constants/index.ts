@@ -82,6 +82,25 @@ const LST_ASSETS: Record<string, LSTAssetConfig> = {
       },
     },
   },
+  strkBTC: {
+    SYMBOL: "strkBTC",
+    ASSET_ADDRESS:
+      "0x0787150e306e6eae6e3f79dea881770e8bbff2c1b8eb490f969669ee945b3135",
+    LST_SYMBOL: "xstrkBTC",
+    DECIMALS: 8,
+    CATEGORY: "BTC",
+    DISPLAY_NAME: "Endur xstrkBTC",
+    DESCRIPTION: "",
+    NETWORKS: {
+      SN_MAIN: {
+        LST_ADDRESS:
+          "0x047751b3532fABCa89B0f2E35cA1cB45e5A7b11d5e3D3663dfA1F4406b45FD88",
+        WITHDRAWAL_QUEUE_ADDRESS:
+          "0x0535B6a83818D3Ec384e90c1aD0bC05d7B2807Ad455903D91d64B6f75F4Ac11F",
+        TROVES_HYPER_VAULT_ADDRESS: "",
+      },
+    },
+  },
   WBTC: {
     SYMBOL: "WBTC",
     ASSET_ADDRESS:
@@ -208,7 +227,7 @@ function buildLSTConfig(network: string): LSTNetworkConfig {
 
   const networkAssets =
     network === "SN_MAIN"
-      ? ["STRK", "WBTC", "tBTC", "LBTC", "solvBTC"] // Mainnet assets
+      ? ["STRK", "strkBTC", "WBTC", "tBTC", "LBTC", "solvBTC"] // Mainnet assets
       : ["STRK", "TBTC1", "TBTC2"]; // Testnet assets
 
   networkAssets.forEach((assetKey) => {
@@ -268,8 +287,7 @@ export const WBTC_TOKEN =
   "0x03fe2b97c1fd336e750087d68b9b867997fd64a2661ff3ca5a7c771641e8e7ac";
 
 // WBTC ERC-20 token address (EVM) for EasyLeap EVM-mode balances
-export const WBTC_ETH_TOKEN =
-  "0x2260fac5e5542a773aa44fbcfedf7c193bc2c599";
+export const WBTC_ETH_TOKEN = "0x2260fac5e5542a773aa44fbcfedf7c193bc2c599";
 export const RUSDC =
   "0x02019e47a0bc54ea6b4853c6123ffc8158ea3ae2af4166928b0de6e89f06de6c";
 
