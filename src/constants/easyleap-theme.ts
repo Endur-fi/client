@@ -63,4 +63,41 @@ export const endurEasyleapTheme = {
     moreOptionsBackground: "#03624F",
     moreOptionsTextColor: "#FFFFFF",
   },
+  bridgeDialog: {
+    // Base colors
+    white: "#FFFFFF",
+    black: "#000000",
+    brandGreen: "#17876D",
+    brandGreenHover: "#14755F",
+    brandGreenActive: "#116652",
+    brandGreenDark: "#03624C",
+    brandGreenDarker: "#0D5F4E",
+    brandGreenDarkest: "#135638",
+    brandGreenLight: "#E8F5F1",
+
+    // Gray scale
+    gray50: "#F9FAFB",
+    gray100: "#F5F7F8",
+    gray200: "#EBEEF0",
+    gray300: "#E5E8EB",
+    gray350: "#E5E7EB",
+    gray400: "#D1D5DC",
+    gray500: "#CBD0D5",
+    gray600: "#C9D1D6",
+    gray700: "#9CA3AF",
+    gray800: "#8D9C9C",
+    gray900: "#6B7780",
+    gray1000: "#4A5565",
+    gray1100: "#1A1F24",
+    gray1200: "#101828",
+
+    // Border colors
+    iconBorderColor: "#DBDBDB",
+    cardHoverBackground: "#FAFBFC",
+
+    modalBorder: "1px solid #ECECED80",
+    modalBorderRadius: "10px",
+    providerExternalIconOpacity: 0.4,
+    providerExternalIconHoverOpacity: 0.7,
+  },
 } as GlobalTheme;

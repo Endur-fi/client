@@ -5,7 +5,7 @@ import {
   useAccount as useAccountStarknet,
   useProvider,
 } from "@starknet-react/core";
-import { ConnectButton, useAccount } from "@easyleap/sdk";
+import { BridgeButton, ConnectButton, useAccount } from "@easyleap/sdk";
 import { useAtom, useSetAtom } from "jotai";
 import React from "react";
 
@@ -76,6 +76,21 @@ const Navbar = ({ className }: { className?: string }) => {
         )} */}
 
         <VipNavbarChip />
+        <BridgeButton
+          className={cn(
+            "flex h-8 items-center justify-center gap-2 rounded-lg border border-[#ECECED80] bg-[#AACBC433] text-xs font-bold text-[#03624C] focus-visible:outline-[#03624C] md:h-10 md:text-sm",
+            {
+              "h-[34px]": isMobile,
+            },
+          )}
+          style={{
+            buttonStyles: {
+              color: "#03624C",
+              backgroundColor: "#AACBC433",
+              border: "1px solid #ECECED80",
+            },
+          }}
+        />
         <ConnectButton
           className={cn(
             "flex h-8 items-center justify-center gap-2 rounded-lg border border-[#ECECED80] bg-[#AACBC433] text-xs font-bold text-[#03624C] focus-visible:outline-[#03624C] md:h-10 md:text-sm",
