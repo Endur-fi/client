@@ -160,12 +160,12 @@ export const getNostraDexHoldings: DAppHoldingsFn = async ({
   ).toEtherStr();
 
   const lstTokenBal =
-    Number(totalSupplyStr) == 0
+    Number(totalSupplyStr) === 0
       ? 0
       : (Number(balanceStr) / Number(totalSupplyStr)) * Number(getReserves0Str);
 
   const underlyingTokenBal =
-    Number(totalSupplyStr) == 0
+    Number(totalSupplyStr) === 0
       ? 0
       : (Number(balanceStr) / Number(totalSupplyStr)) * Number(getReserves1Str);
 

@@ -23,7 +23,7 @@ const withdrawLogsAtomWithQuery = atomWithQuery((get) => {
           const hex = addressLower.startsWith("0x")
             ? addressLower.slice(2)
             : addressLower;
-          if (!/^[0-9a-f]+$/.test(hex)) return addressLower;
+          if (!(/^[0-9a-f]+$/).test(hex)) return addressLower;
           return `0x${hex.padStart(64, "0")}`;
         } catch {
           return addressLower;
