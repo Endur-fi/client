@@ -1,4 +1,13 @@
+import { Figtree } from "next/font/google";
 import type { GlobalTheme } from "@easyleap/sdk";
+
+/**
+ * Single Figtree instance for Endur + Easyleap (connect + bridge).
+ * Use `className` on a layout wrapper and `style.fontFamily` in theme.
+ */
+export const endurEasyleapFont = Figtree({
+  subsets: ["latin-ext"],
+});
 
 /** Brand-aligned Easyleap UI (connect modal, wallet chip, mode switch) — green for Endur / Troves. */
 export const endurEasyleapTheme = {
@@ -62,6 +71,7 @@ export const endurEasyleapTheme = {
     closeButtonColor: "#03624C",
     moreOptionsBackground: "#03624F",
     moreOptionsTextColor: "#FFFFFF",
+    fontFamily: endurEasyleapFont.style.fontFamily,
   },
   bridgeDialog: {
     // Base colors
@@ -99,5 +109,6 @@ export const endurEasyleapTheme = {
     modalBorderRadius: "10px",
     providerExternalIconOpacity: 0.4,
     providerExternalIconHoverOpacity: 0.7,
+    fontFamily: endurEasyleapFont.style.fontFamily,
   },
 } as GlobalTheme;
