@@ -37,6 +37,8 @@ import { AnalyticsEvents } from "@/lib/analytics-events";
 
 const getBTCLSTIcon = (lstSymbol: string) => {
   switch (lstSymbol) {
+    case "xstrkBTC":
+      return <Icons.xstrkbtc className="h-5 w-5 shrink-0" />;
     case "xWBTC":
       return <Icons.xwbtc className="h-5 w-5 shrink-0" />;
     case "xtBTC":
@@ -68,6 +70,9 @@ const PortfolioSection: React.FC = () => {
       : (btcAssets.find((a) => a.SYMBOL === "WBTC")
           ?.LST_ADDRESS as `0x${string}`);
 
+  const strkBtcBalance = useBalance(
+    btcAssets.find((a) => a.SYMBOL === "strkBTC")?.LST_ADDRESS as `0x${string}`,
+  );
   const wbtcBalance = useBalance(wbtcTokenAddress);
   const tbtcBalance = useBalance(
     btcAssets.find((a) => a.SYMBOL === "tBTC")?.LST_ADDRESS as `0x${string}`,
@@ -125,6 +130,9 @@ const PortfolioSection: React.FC = () => {
     return btcAssets.map((asset) => {
       let balance = BigInt(0);
       switch (asset.SYMBOL) {
+        case "strkBTC":
+          balance = strkBtcBalance.data?.value || BigInt(0);
+          break;
         case "WBTC":
           balance = wbtcBalance.data?.value || BigInt(0);
           break;

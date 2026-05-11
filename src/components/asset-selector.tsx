@@ -206,6 +206,8 @@ const BtcIcon: React.FC<{ symbol: string; className?: string }> = ({
 }) => {
   const getIconPath = (tokenSymbol: string) => {
     switch (tokenSymbol.toLowerCase()) {
+      case "strkbtc":
+        return "/strkbtc.svg";
       case "wbtc":
         return "/wbtc.svg";
       case "tbtc":

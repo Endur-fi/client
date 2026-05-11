@@ -436,7 +436,7 @@ const Tabs = () => {
               strkBTC is now live on Starknet!
             </h1>
             <p className="text-[8px] text-[#FFFFFFCC] md:text-[14px]">
-              Stake your BTC. Earn yield. Stay liquid.
+              End to End private BTC staking
             </p>
           </div>
         </div>
