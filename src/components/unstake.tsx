@@ -279,9 +279,9 @@ const UnstakeOptionCard = ({
           )}
         </div>
         <div className="flex items-center gap-2">
-        <p className={isBestRate ? "font-semibold text-[#17876D]" : ""}>
-          {isLoading ? "Loading..." : `1=${Number(rate).toFixed(4)}`}
-        </p>
+          <p className={isBestRate ? "font-semibold text-[#17876D]" : ""}>
+            {isLoading ? "Loading..." : `1=${Number(rate).toFixed(4)}`}
+          </p>
           {percentDiff !== null && percentDiff !== undefined && !isLoading && (
             <p
               className={`text-xs ${
@@ -409,7 +409,8 @@ const Unstake = () => {
       form,
       address: address ?? "",
       data: data ? { transaction_hash: data } : { transaction_hash: "" },
-      error: (error as Error & { baseError?: unknown; cause?: unknown }) ?? null,
+      error:
+        (error as Error & { baseError?: unknown; cause?: unknown }) ?? null,
       isPending,
       metadata: { method: "endur" },
     });
@@ -420,7 +421,7 @@ const Unstake = () => {
       setAvnuLoading(true);
       try {
         const quotes = await getAvnuQuotes(
-         lstConfig.LST_SYMBOL == 'xSTRK' ? "1000" : "0.001",
+          lstConfig.LST_SYMBOL == "xSTRK" ? "1000" : "0.001",
           "0x0",
           lstConfig.LST_ADDRESS,
           lstConfig.ASSET_ADDRESS,
@@ -570,8 +571,8 @@ const Unstake = () => {
                 <span className="text-[18px] font-semibold text-[#075A5A]">
                   Success 🎉
                 </span>
-                Unstaked {form.getValues("unstakeAmount")} {lstConfig.SYMBOL} via
-                Avnu
+                Unstaked {form.getValues("unstakeAmount")} {lstConfig.SYMBOL}{" "}
+                via Avnu
               </div>
             </div>
           ),
@@ -671,7 +672,7 @@ const Unstake = () => {
       : 0;
 
     if (endurRate === 0 || dexRate === 0) return "none";
-    if (dexRate < (endurRate * 0.995)) return "endur";
+    if (dexRate < endurRate * 0.995) return "endur";
     return "dex";
   };
 
@@ -878,8 +879,8 @@ const Unstake = () => {
         defaultValue="endur"
         className="w-full max-w-none"
         onValueChange={(value) =>
-        handleUnstakeMethodChange(value as "endur" | "dex")
-      }
+          handleUnstakeMethodChange(value as "endur" | "dex")
+        }
       >
         <TabsList className="flex h-full flex-col items-center justify-between gap-3 bg-transparent">
           <UnstakeOptionCard

@@ -91,9 +91,7 @@ const useTransactionHandler = () => {
     // Common props sent with every event for this TX
     const baseProps = {
       address,
-      amount: Number(
-        form.getValues(`${transactionType.toLowerCase()}Amount`),
-      ),
+      amount: Number(form.getValues(`${transactionType.toLowerCase()}Amount`)),
       asset: lstConfig.SYMBOL,
       ...metadata,
     };

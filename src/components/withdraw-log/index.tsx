@@ -173,8 +173,13 @@ const WithdrawLog: React.FC = () => {
                 history and logs.
               </p>
             </div>
-            <ConnectButton className="w-full rounded-md bg-[#17876D] px-6 py-2 font-medium text-white transition-colors hover:bg-[#17876D] sm:w-auto"
-              onConnectStarknet={() => MyAnalytics.track(AnalyticsEvents.WALLET_CONNECT_CLICK, {source: "withdraw_log"})}
+            <ConnectButton
+              className="w-full rounded-md bg-[#17876D] px-6 py-2 font-medium text-white transition-colors hover:bg-[#17876D] sm:w-auto"
+              onConnectStarknet={() =>
+                MyAnalytics.track(AnalyticsEvents.WALLET_CONNECT_CLICK, {
+                  source: "withdraw_log",
+                })
+              }
             />
           </CardContent>
         </Card>

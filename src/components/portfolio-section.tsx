@@ -388,7 +388,7 @@ const PortfolioSection: React.FC = () => {
         <div className="border-t border-[#E5E8EB] p-2 lg:p-4">
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-            <div className="flex items-center gap-1">
+              <div className="flex items-center gap-1">
                 <span className="text-sm text-[#6B7780]">Season 1 Points</span>
                 <TooltipProvider delayDuration={0}>
                   <Tooltip>
@@ -404,7 +404,8 @@ const PortfolioSection: React.FC = () => {
                         );
                       }}
                     >
-                      Points earned during Season 1 [Nov 27th 2024 - Dec 15th 2025]
+                      Points earned during Season 1 [Nov 27th 2024 - Dec 15th
+                      2025]
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
@@ -436,7 +437,8 @@ const PortfolioSection: React.FC = () => {
                         );
                       }}
                     >
-                      Points earned during Season 2 [Dec 16th 2025 - June 15th 2026]
+                      Points earned during Season 2 [Dec 16th 2025 - June 15th
+                      2026]
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>

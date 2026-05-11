@@ -15,4 +15,3 @@ export function AnalyticsProvider({ children }: AnalyticsProviderProps) {
 
   return children;
 }
-

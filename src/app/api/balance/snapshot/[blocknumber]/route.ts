@@ -1,16 +1,16 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getAllLstPoints } from '@/lib/portfolio';
+import { NextRequest, NextResponse } from "next/server";
+import { getAllLstPoints } from "@/lib/portfolio";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { blocknumber: string } }
+  { params }: { params: { blocknumber: string } },
 ) {
   try {
     const blockNumberParam = params.blocknumber.toLowerCase();
 
     // Handle "latest" case
-    if (blockNumberParam === 'latest') {
-      const pointsData = await getAllLstPoints('latest');
+    if (blockNumberParam === "latest") {
+      const pointsData = await getAllLstPoints("latest");
       return NextResponse.json({
         success: true,
         data: pointsData,
@@ -23,8 +23,10 @@ export async function GET(
     // Validate block number
     if (isNaN(blockNumber) || blockNumber <= 0) {
       return NextResponse.json(
-        { error: 'Invalid block number. Must be a positive integer or "latest"' },
-        { status: 400 }
+        {
+          error: 'Invalid block number. Must be a positive integer or "latest"',
+        },
+        { status: 400 },
       );
     }
 
@@ -36,14 +38,13 @@ export async function GET(
       data: pointsData,
     });
   } catch (error) {
-    console.error('Error fetching portfolio points:', error);
+    console.error("Error fetching portfolio points:", error);
     return NextResponse.json(
       {
-        error: 'Failed to fetch portfolio points',
-        message: error instanceof Error ? error.message : 'Unknown error',
+        error: "Failed to fetch portfolio points",
+        message: error instanceof Error ? error.message : "Unknown error",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
-

@@ -1,9 +1,6 @@
 import { NextResponse } from "next/server";
 
-import {
-  GuardWallet,
-  validatePaymasterRequest,
-} from "@/lib/paymaster-guard";
+import { GuardWallet, validatePaymasterRequest } from "@/lib/paymaster-guard";
 import {
   checkRateLimit,
   recordPaymasterUsage,
@@ -105,11 +102,7 @@ export async function POST(request: Request) {
         userId,
         reason: guard.reason,
       });
-      return endurRpcError(
-        id,
-        -32602,
-        "Request not eligible for sponsorship",
-      );
+      return endurRpcError(id, -32602, "Request not eligible for sponsorship");
     }
 
     // Rate-limit stake/unstake (deploy is a one-shot gated by isDeployed and

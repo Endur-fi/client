@@ -6,21 +6,32 @@ import erc4626Abi from "@/abi/erc4626.abi.json";
 import pragmaOracleAbi from "@/abi/pragma-oracle.abi.json";
 
 // Token addresses from constants
-const STRK_TOKEN_ADDRESS = "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d";
-const WBTC_TOKEN_ADDRESS = "0x03fe2b97c1fd336e750087d68b9b867997fd64a2661ff3ca5a7c771641e8e7ac";
-const SBTC_TOKEN_ADDRESS = "0x0593e034dda23eea82d2ba9a30960ed42cf4a01502cc2351dc9b9881f9931a68";
-const LBTC_TOKEN_ADDRESS = "0x036834a40984312f7f7de8d31e3f6305b325389eaeea5b1c0664b2fb936461a4";
-const TBTC_TOKEN_ADDRESS = "0x04daa17763b286d1e59b97c283c0b8c949994c361e426a28f743c67bdfe9a32f";
+const STRK_TOKEN_ADDRESS =
+  "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d";
+const WBTC_TOKEN_ADDRESS =
+  "0x03fe2b97c1fd336e750087d68b9b867997fd64a2661ff3ca5a7c771641e8e7ac";
+const SBTC_TOKEN_ADDRESS =
+  "0x0593e034dda23eea82d2ba9a30960ed42cf4a01502cc2351dc9b9881f9931a68";
+const LBTC_TOKEN_ADDRESS =
+  "0x036834a40984312f7f7de8d31e3f6305b325389eaeea5b1c0664b2fb936461a4";
+const TBTC_TOKEN_ADDRESS =
+  "0x04daa17763b286d1e59b97c283c0b8c949994c361e426a28f743c67bdfe9a32f";
 
 // LST token addresses
-const XSTRK_TOKEN_ADDRESS = "0x028d709c875c0ceac3dce7065bec5328186dc89fe254527084d1689910954b0a";
-const XWBTC_TOKEN_ADDRESS = "0x6a567e68c805323525fe1649adb80b03cddf92c23d2629a6779f54192dffc13";
-const XLBTC_TOKEN_ADDRESS = "0x7dd3c80de9fcc5545f0cb83678826819c79619ed7992cc06ff81fc67cd2efe0";
-const XSBTC_TOKEN_ADDRESS = "0x580f3dc564a7b82f21d40d404b3842d490ae7205e6ac07b1b7af2b4a5183dc9";
-const XTBTC_TOKEN_ADDRESS = "0x43a35c1425a0125ef8c171f1a75c6f31ef8648edcc8324b55ce1917db3f9b91";
+const XSTRK_TOKEN_ADDRESS =
+  "0x028d709c875c0ceac3dce7065bec5328186dc89fe254527084d1689910954b0a";
+const XWBTC_TOKEN_ADDRESS =
+  "0x6a567e68c805323525fe1649adb80b03cddf92c23d2629a6779f54192dffc13";
+const XLBTC_TOKEN_ADDRESS =
+  "0x7dd3c80de9fcc5545f0cb83678826819c79619ed7992cc06ff81fc67cd2efe0";
+const XSBTC_TOKEN_ADDRESS =
+  "0x580f3dc564a7b82f21d40d404b3842d490ae7205e6ac07b1b7af2b4a5183dc9";
+const XTBTC_TOKEN_ADDRESS =
+  "0x43a35c1425a0125ef8c171f1a75c6f31ef8648edcc8324b55ce1917db3f9b91";
 
 // Pragma Oracle address
-const PRAGMA_ORACLE_ADDRESS = "0x02a85BD616F912537c50A49a4076db02c00b29b2cdc8a197Ce92ed1837fa875B";
+const PRAGMA_ORACLE_ADDRESS =
+  "0x02a85BD616F912537c50A49a4076db02c00b29b2cdc8a197Ce92ed1837fa875B";
 
 export interface PoolBreakdown {
   poolId: string;
@@ -66,7 +77,7 @@ export interface PortfolioData {
  */
 async function getPortfolioBalanceUncached(
   userAddress: string,
-  lstToken: string = 'XSTRK'
+  lstToken: string = "XSTRK",
 ): Promise<PortfolioData> {
   const { data, error } = await pointsApolloClient.query({
     query: gql`
@@ -85,7 +96,7 @@ async function getPortfolioBalanceUncached(
           vesuCollateral {
             balance
             balanceInXstrk
-						breakdown {
+            breakdown {
               poolId
               balance
               balanceInXstrk
@@ -94,7 +105,7 @@ async function getPortfolioBalanceUncached(
           vesuVtoken {
             balance
             balanceInXstrk
-						breakdown {
+            breakdown {
               poolId
               balance
               balanceInXstrk
@@ -136,7 +147,7 @@ async function getPortfolioBalanceUncached(
       userAddress,
       lstToken,
     },
-    errorPolicy: 'all',
+    errorPolicy: "all",
   });
 
   if (error) {
@@ -152,9 +163,9 @@ async function getPortfolioBalanceUncached(
  * @returns Promise resolving to a record mapping LST token names to their PortfolioData
  */
 async function getAllLstTokenBalancesUncached(
-  userAddress: string
+  userAddress: string,
 ): Promise<Record<string, PortfolioData>> {
-  const lstTokens = ['XSTRK', 'XWBTC', 'XLBTC', 'XSBTC', 'XTBTC'];
+  const lstTokens = ["XSTRK", "XWBTC", "XLBTC", "XSBTC", "XTBTC"];
 
   // Fetch all portfolio balances in parallel
   const portfolioDataPromises = lstTokens.map((lstToken) =>
@@ -164,18 +175,18 @@ async function getAllLstTokenBalancesUncached(
       return {
         blockNumber: 0,
         timestamp: 0,
-        endur: { balance: '0', balanceInXstrk: '0' },
-        ekubo: { balance: '0', balanceInXstrk: '0' },
-        vesuCollateral: { balance: '0', balanceInXstrk: '0' },
-        vesuVtoken: { balance: '0', balanceInXstrk: '0' },
-        vesuDebt: { balance: '0', balanceInXstrk: '0' },
-        trovesSensei: { balance: '0', balanceInXstrk: '0' },
-        trovesHyper: { balance: '0', balanceInXstrk: '0' },
-        trovesEkubo: { balance: '0', balanceInXstrk: '0' },
-        nostra: { balance: '0', balanceInXstrk: '0' },
-        opus: { balance: '0', balanceInXstrk: '0' },
+        endur: { balance: "0", balanceInXstrk: "0" },
+        ekubo: { balance: "0", balanceInXstrk: "0" },
+        vesuCollateral: { balance: "0", balanceInXstrk: "0" },
+        vesuVtoken: { balance: "0", balanceInXstrk: "0" },
+        vesuDebt: { balance: "0", balanceInXstrk: "0" },
+        trovesSensei: { balance: "0", balanceInXstrk: "0" },
+        trovesHyper: { balance: "0", balanceInXstrk: "0" },
+        trovesEkubo: { balance: "0", balanceInXstrk: "0" },
+        nostra: { balance: "0", balanceInXstrk: "0" },
+        opus: { balance: "0", balanceInXstrk: "0" },
       } as PortfolioData;
-    })
+    }),
   );
 
   const portfolioDataArray = await Promise.all(portfolioDataPromises);
@@ -195,17 +206,18 @@ async function getAllLstTokenBalancesUncached(
  * @returns Promise resolving to NativeTokenBalances
  */
 async function getNativeTokenBalancesUncached(
-  userAddress: string
+  userAddress: string,
 ): Promise<NativeTokenBalances> {
   try {
     // Get all token balances (STRK and BTC tokens are all ERC20 - use balance_of)
-    const [strkBalance, wbtcBalance, sbtcBalance, lbtcBalance, tbtcBalance] = await Promise.all([
-      getTokenBalance(userAddress, STRK_TOKEN_ADDRESS),
-      getTokenBalance(userAddress, WBTC_TOKEN_ADDRESS),
-      getTokenBalance(userAddress, SBTC_TOKEN_ADDRESS),
-      getTokenBalance(userAddress, LBTC_TOKEN_ADDRESS),
-      getTokenBalance(userAddress, TBTC_TOKEN_ADDRESS),
-    ]);
+    const [strkBalance, wbtcBalance, sbtcBalance, lbtcBalance, tbtcBalance] =
+      await Promise.all([
+        getTokenBalance(userAddress, STRK_TOKEN_ADDRESS),
+        getTokenBalance(userAddress, WBTC_TOKEN_ADDRESS),
+        getTokenBalance(userAddress, SBTC_TOKEN_ADDRESS),
+        getTokenBalance(userAddress, LBTC_TOKEN_ADDRESS),
+        getTokenBalance(userAddress, TBTC_TOKEN_ADDRESS),
+      ]);
 
     return {
       strk: strkBalance,
@@ -215,14 +227,14 @@ async function getNativeTokenBalancesUncached(
       tbtc: tbtcBalance,
     };
   } catch (error) {
-    console.error('Error fetching native token balances:', error);
+    console.error("Error fetching native token balances:", error);
     // Return zero balances on error
     return {
-      strk: '0',
-      wbtc: '0',
-      sbtc: '0',
-      lbtc: '0',
-      tbtc: '0',
+      strk: "0",
+      wbtc: "0",
+      sbtc: "0",
+      lbtc: "0",
+      tbtc: "0",
     };
   }
 }
@@ -235,7 +247,7 @@ async function getNativeTokenBalancesUncached(
  */
 async function getTokenBalance(
   userAddress: string,
-  tokenAddress: string
+  tokenAddress: string,
 ): Promise<string> {
   try {
     const contract = new Contract({
@@ -245,28 +257,29 @@ async function getTokenBalance(
     });
 
     const result = await contract.call("balance_of", [userAddress]);
-    
+
     // Handle both u256 and felt252 return types
-    if (typeof result === 'bigint') {
+    if (typeof result === "bigint") {
       return result.toString();
-    } else if (result && typeof result === 'object') { // no need
+    } else if (result && typeof result === "object") {
+      // no need
       // Handle u256 struct { low, high }
-      if ('low' in result && 'high' in result) {
+      if ("low" in result && "high" in result) {
         const low = BigInt(result.low || 0);
         const high = BigInt(result.high || 0);
-        const twoTo128 = BigInt('340282366920938463463374607431768211456'); // 2^128
+        const twoTo128 = BigInt("340282366920938463463374607431768211456"); // 2^128
         return (high * twoTo128 + low).toString();
       }
       // Handle direct value
-      if ('value' in result) {
+      if ("value" in result) {
         return result.value.toString();
       }
     }
-    
-    return '0';
+
+    return "0";
   } catch (error) {
     console.error(`Error fetching token balance for ${tokenAddress}:`, error);
-    return '0';
+    return "0";
   }
 }
 
@@ -278,7 +291,7 @@ async function getTokenBalance(
  */
 async function getPriceFromOracle(
   pairId: string,
-  provider?: RpcProvider
+  provider?: RpcProvider,
 ): Promise<{ price: bigint; decimals: bigint }> {
   if (!provider) {
     provider = getProvider();
@@ -292,15 +305,15 @@ async function getPriceFromOracle(
 
   const data = new CairoCustomEnum({ SpotEntry: pairId });
 
-  const result = await contract.call('get_data_median', [data], {
-    blockIdentifier: 'latest',
+  const result = await contract.call("get_data_median", [data], {
+    blockIdentifier: "latest",
   });
 
-  if (!result || typeof result !== 'object') {
+  if (!result || typeof result !== "object") {
     throw new Error(`Price data not found for ${pairId}`);
   }
 
-  if (!('price' in result) || !('decimals' in result)) {
+  if (!("price" in result) || !("decimals" in result)) {
     throw new Error(`Price or decimals not found for ${pairId}`);
   }
 
@@ -327,8 +340,8 @@ async function getUSDConversionRatesUncached(): Promise<{
 
   // Get base prices from Oracle
   const [strkPrice, btcPrice] = await Promise.all([
-    getPriceFromOracle('STRK/USD', provider),
-    getPriceFromOracle('BTC/USD', provider),
+    getPriceFromOracle("STRK/USD", provider),
+    getPriceFromOracle("BTC/USD", provider),
   ]);
 
   // Calculate USD rates for base tokens
@@ -337,13 +350,14 @@ async function getUSDConversionRatesUncached(): Promise<{
 
   // For LST tokens, we need to get total_assets and total_supply to calculate exchange rate
   // Then multiply by base token rate
-  const [xstrkRate, xwbtcRate, xlbtcRate, xsbtcRate, xtbtcRate] = await Promise.all([
-    calculateLSTRate(XSTRK_TOKEN_ADDRESS, strkRate, provider),
-    calculateLSTRate(XWBTC_TOKEN_ADDRESS, btcRate, provider),
-    calculateLSTRate(XLBTC_TOKEN_ADDRESS, btcRate, provider),
-    calculateLSTRate(XSBTC_TOKEN_ADDRESS, btcRate, provider),
-    calculateLSTRate(XTBTC_TOKEN_ADDRESS, btcRate, provider),
-  ]);
+  const [xstrkRate, xwbtcRate, xlbtcRate, xsbtcRate, xtbtcRate] =
+    await Promise.all([
+      calculateLSTRate(XSTRK_TOKEN_ADDRESS, strkRate, provider),
+      calculateLSTRate(XWBTC_TOKEN_ADDRESS, btcRate, provider),
+      calculateLSTRate(XLBTC_TOKEN_ADDRESS, btcRate, provider),
+      calculateLSTRate(XSBTC_TOKEN_ADDRESS, btcRate, provider),
+      calculateLSTRate(XTBTC_TOKEN_ADDRESS, btcRate, provider),
+    ]);
 
   return {
     strk: strkRate,
@@ -363,7 +377,7 @@ async function getUSDConversionRatesUncached(): Promise<{
 async function calculateLSTRate(
   lstAddress: string,
   baseTokenRate: number,
-  provider: RpcProvider
+  provider: RpcProvider,
 ): Promise<number> {
   try {
     const contract = new Contract({
@@ -373,8 +387,8 @@ async function calculateLSTRate(
     });
 
     const [totalAssets, totalSupply] = await Promise.all([
-      contract.call('total_assets', [], { blockIdentifier: 'latest' }),
-      contract.call('total_supply', [], { blockIdentifier: 'latest' }),
+      contract.call("total_assets", [], { blockIdentifier: "latest" }),
+      contract.call("total_supply", [], { blockIdentifier: "latest" }),
     ]);
 
     const assets = BigInt(totalAssets.toString());
@@ -544,12 +558,12 @@ export interface AllLstPointsResponse {
  * @returns Points for all LST tokens organized by token
  */
 export async function getAllLstPoints(
-  blockNumber: number | 'latest'
+  blockNumber: number | "latest",
 ): Promise<AllLstPointsResponse> {
-  const lstTokens = ['XSTRK', 'XWBTC', 'XLBTC', 'XSBTC', 'XTBTC'];
+  const lstTokens = ["XSTRK", "XWBTC", "XLBTC", "XSBTC", "XTBTC"];
 
   // Convert "latest" to null for GraphQL query
-  const graphqlBlockNumber = blockNumber === 'latest' ? null : blockNumber;
+  const graphqlBlockNumber = blockNumber === "latest" ? null : blockNumber;
 
   // Fetch points for all LST tokens in parallel
   const pointsPromises = lstTokens.map(async (lstToken) => {
@@ -635,11 +649,13 @@ export async function getAllLstPoints(
         blockNumber: graphqlBlockNumber,
         lstToken,
       },
-      fetchPolicy: 'network-only',
+      fetchPolicy: "network-only",
     });
 
     if (error) {
-      throw new Error(`Failed to fetch points for ${lstToken}: ${error.message}`);
+      throw new Error(
+        `Failed to fetch points for ${lstToken}: ${error.message}`,
+      );
     }
 
     if (!data?.getPoints) {
@@ -676,18 +692,15 @@ export async function getAllLstPoints(
     const vesuPoints: VesuPoints = {
       ...points.vesu.totalPoints,
       breakdown: {
-        collateralV1:
-          (vesuBreakdown?.collateralPointsV1 as RawAndXstrk & {
-            pools?: Record<string, RawAndXstrk>;
-          }) || { raw: '0', inXstrk: '0' },
-        collateralV2:
-          (vesuBreakdown?.collateralPointsV2 as RawAndXstrk & {
-            pools?: Record<string, RawAndXstrk>;
-          }) || { raw: '0', inXstrk: '0' },
-        transfer:
-          (vesuBreakdown?.transferPoints as RawAndXstrk & {
-            pools?: Record<string, RawAndXstrk>;
-          }) || { raw: '0', inXstrk: '0' },
+        collateralV1: (vesuBreakdown?.collateralPointsV1 as RawAndXstrk & {
+          pools?: Record<string, RawAndXstrk>;
+        }) || { raw: "0", inXstrk: "0" },
+        collateralV2: (vesuBreakdown?.collateralPointsV2 as RawAndXstrk & {
+          pools?: Record<string, RawAndXstrk>;
+        }) || { raw: "0", inXstrk: "0" },
+        transfer: (vesuBreakdown?.transferPoints as RawAndXstrk & {
+          pools?: Record<string, RawAndXstrk>;
+        }) || { raw: "0", inXstrk: "0" },
       },
     };
 
@@ -696,9 +709,12 @@ export async function getAllLstPoints(
     const trovesPoints: TrovesPoints = {
       ...points.troves.totalPoints,
       breakdown: {
-        sensei: trovesBreakdown?.senseiTotalPoints || { raw: '0', inXstrk: '0' },
-        hyper: trovesBreakdown?.hyperTotalPoints || { raw: '0', inXstrk: '0' },
-        ekubo: trovesBreakdown?.ekuboTotalPoints || { raw: '0', inXstrk: '0' },
+        sensei: trovesBreakdown?.senseiTotalPoints || {
+          raw: "0",
+          inXstrk: "0",
+        },
+        hyper: trovesBreakdown?.hyperTotalPoints || { raw: "0", inXstrk: "0" },
+        ekubo: trovesBreakdown?.ekuboTotalPoints || { raw: "0", inXstrk: "0" },
       },
     };
 

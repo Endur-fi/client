@@ -162,7 +162,9 @@ const Tabs = () => {
           return;
         }
       } else if (pathname === "/strkbtc") {
-        const strkBtcAsset = btcAssets.find((asset) => asset.SYMBOL === "strkBTC");
+        const strkBtcAsset = btcAssets.find(
+          (asset) => asset.SYMBOL === "strkBTC",
+        );
         console.log("Looking for strkBTC asset:", strkBtcAsset);
         if (strkBtcAsset) {
           setLSTConfig(strkBtcAsset);
@@ -615,7 +617,7 @@ const Tabs = () => {
               className={cn("flex w-full max-w-full flex-col gap-4 lg:hidden")}
             >
               <SeasonPointsCard />
-							<VipCard />
+              <VipCard />
               <StakingRewardsInfo />
               <PortfolioSection />
               <FAQSection />
@@ -635,7 +637,7 @@ const Tabs = () => {
             </div>
 
             <SeasonPointsCard />
-						<VipCard />
+            <VipCard />
             <PortfolioSection />
             <StakingRewardsInfo />
             {/* <FAQSection /> */}

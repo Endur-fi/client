@@ -105,13 +105,11 @@ const Navbar = ({ className }: { className?: string }) => {
               border: "1px solid #ECECED80",
             },
           }}
-          onConnectStarknet={
-            () => {
-              if (!starknetAddress) {
-                MyAnalytics.track(AnalyticsEvents.WALLET_CONNECT_CLICK, {});
-              }
+          onConnectStarknet={() => {
+            if (!starknetAddress) {
+              MyAnalytics.track(AnalyticsEvents.WALLET_CONNECT_CLICK, {});
             }
-          }
+          }}
         />
       </div>
     </div>

@@ -1,20 +1,23 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getNativeTokenBalances, getAllLstTokenBalances } from "@/lib/portfolio";
+import { NextRequest, NextResponse } from "next/server";
+import {
+  getNativeTokenBalances,
+  getAllLstTokenBalances,
+} from "@/lib/portfolio";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { address: string } }
+  { params }: { params: { address: string } },
 ) {
   try {
     const { address } = params;
     const searchParams = request.nextUrl.searchParams;
-    const lstToken = searchParams.get('lstToken') || 'XSTRK';
+    const lstToken = searchParams.get("lstToken") || "XSTRK";
 
     // Validate address
     if (!address) {
       return NextResponse.json(
-        { error: 'Address is required' },
-        { status: 400 }
+        { error: "Address is required" },
+        { status: 400 },
       );
     }
 
@@ -32,14 +35,13 @@ export async function GET(
       },
     });
   } catch (error) {
-    console.error('Error fetching portfolio balance:', error);
+    console.error("Error fetching portfolio balance:", error);
     return NextResponse.json(
-      { 
-        error: 'Failed to fetch portfolio balance',
-        message: error instanceof Error ? error.message : 'Unknown error'
+      {
+        error: "Failed to fetch portfolio balance",
+        message: error instanceof Error ? error.message : "Unknown error",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
-

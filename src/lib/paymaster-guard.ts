@@ -102,7 +102,7 @@ const TypedDataCallSchema = z.object({
 const TypedDataSchema = z.object({
   message: z.object({
     Calls: z.array(TypedDataCallSchema).min(1).max(8),
-  })
+  }),
 });
 
 const DeployTransaction = z.object({
@@ -137,7 +137,7 @@ const BuildEnvelope = z.object({
   id: z.union([z.number(), z.string()]),
   method: z.literal("paymaster_buildTransaction"),
   params: z.object({
-    transaction: z.union([DeployTransaction, InvokeBuildTransaction])
+    transaction: z.union([DeployTransaction, InvokeBuildTransaction]),
   }),
 });
 
@@ -214,9 +214,7 @@ function normalizeCalls(
  * Returns undefined if no LST claims that address.
  */
 function findLstByLstAddress(addr: string) {
-  return Object.values(LST_CONFIG).find((cfg) =>
-    eqAddr(cfg.LST_ADDRESS, addr),
-  );
+  return Object.values(LST_CONFIG).find((cfg) => eqAddr(cfg.LST_ADDRESS, addr));
 }
 
 function findLstByAssetAddress(addr: string) {
@@ -379,10 +377,7 @@ function isAvnuSwapLstToAsset(
  *                                       sell_amount.low, sell_amount.high, ..)
  *                          -> calldata[1..2]
  */
-function matchCalls(
-  calls: NormalizedCall[],
-  user: string,
-): GuardResult {
+function matchCalls(calls: NormalizedCall[], user: string): GuardResult {
   // ---- 1 call: unstake via Endur (redeem on LST) -------------------------
   if (calls.length === 1) {
     const c = calls[0];
