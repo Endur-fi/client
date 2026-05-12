@@ -18,8 +18,8 @@ importers:
         specifier: ^0.2.4
         version: 0.2.5
       '@easyleap/sdk':
-        specifier: 1.0.0-beta.4
-        version: 1.0.0-beta.4(b6869738edb88a55c19412ca340afaab)
+        specifier: 1.0.0-beta.5
+        version: 1.0.0-beta.5(b6869738edb88a55c19412ca340afaab)
       '@farcaster/mini-app-solana':
         specifier: ^2.0.0
         version: 2.0.0(@farcaster/miniapp-sdk@0.3.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@6.0.6)(zod@3.25.76))(@solana/wallet-adapter-base@0.9.27(@solana/web3.js@1.98.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@6.0.6)))(@solana/wallet-adapter-react@0.15.39(@solana/web3.js@1.98.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@6.0.6))(bs58@6.0.0)(react-native@0.85.1(@babel/core@7.29.0)(@types/react@19.2.14)(bufferutil@4.1.0)(react@19.2.5)(utf-8-validate@6.0.6))(react@19.2.5)(typescript@5.9.3))(bufferutil@4.1.0)(react@19.2.5)(typescript@5.9.3)(utf-8-validate@6.0.6)
@@ -587,8 +587,8 @@ packages:
   '@duneanalytics/client-sdk@0.2.5':
     resolution: {integrity: sha512-ftE9sLIuzcxX0g9nhOA0pN/uxTvPwa88CVXpgU2sSRGnN43Kb5ZuaexetVNcNidapdIV95bWW+VpnoSvpMJUXw==}
 
-  '@easyleap/sdk@1.0.0-beta.4':
-    resolution: {integrity: sha512-kcg730K/GLbVsQ/zIXjDzhp9vMIHe/KbWKO2IWBT4Mx+idcT8i1jJasfYU/QJ6W4jW9U8M8UdbFII1dph67PPA==}
+  '@easyleap/sdk@1.0.0-beta.5':
+    resolution: {integrity: sha512-sMwltPBYZag9PAA+XtGjHlhpVU8TUki9iTls83c+ijihH8wy5WvskVdbZZe0NGz4Lni1h16686Wbh1GkuqPAAA==}
     peerDependencies:
       '@starknet-react/chains': ^5.0.3
       '@starknet-react/core': ^5.0.3
@@ -9129,7 +9129,7 @@ snapshots:
       deprecated: 0.0.2
       loglevel: 1.9.2
 
-  '@easyleap/sdk@1.0.0-beta.4(b6869738edb88a55c19412ca340afaab)':
+  '@easyleap/sdk@1.0.0-beta.5(b6869738edb88a55c19412ca340afaab)':
     dependencies:
       '@apollo/client': 3.14.1(@types/react@19.2.14)(graphql@16.13.2)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
       '@cartridge/controller': 0.13.11(@react-native-async-storage/async-storage@1.24.0(react-native@0.85.1(@babel/core@7.29.0)(@types/react@19.2.14)(bufferutil@4.1.0)(react@19.2.5)(utf-8-validate@6.0.6)))(@types/react@19.2.14)(bufferutil@4.1.0)(react@19.2.5)(typescript@5.9.3)(use-sync-external-store@1.4.0(react@19.2.5))(utf-8-validate@6.0.6)(zod@3.25.76)
@@ -12449,7 +12449,7 @@ snapshots:
 
   '@scure/bip32@1.7.0':
     dependencies:
-      '@noble/curves': 1.9.1
+      '@noble/curves': 1.9.7
       '@noble/hashes': 1.8.0
       '@scure/base': 1.2.6
 
@@ -12471,7 +12471,7 @@ snapshots:
   '@scure/starknet@1.1.0':
     dependencies:
       '@noble/curves': 1.7.0
-      '@noble/hashes': 1.6.0
+      '@noble/hashes': 1.6.1
 
   '@scure/starknet@2.0.0':
     dependencies:
@@ -16750,7 +16750,7 @@ snapshots:
 
   extension-port-stream@3.0.0:
     dependencies:
-      readable-stream: 3.6.2
+      readable-stream: 4.7.0
       webextension-polyfill: 0.10.0
 
   external-editor@3.1.0:
