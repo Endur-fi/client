@@ -36,7 +36,7 @@ export class WalletConnector {
     const argentXConnector = new InjectedConnector({
       options: {
         id: "argentX",
-        name: "Argent X",
+        name: "Ready X",
       },
     });
 
@@ -89,7 +89,9 @@ export class WalletConnector {
         url: hostname,
         chainId: NETWORK,
       },
-      inAppBrowserOptions: {},
+      inAppBrowserOptions: {
+        name: "Ready X (mobile)",
+      },
     });
 
     const braavosMobileConnector = BraavosMobileConnector.init({
@@ -105,7 +107,7 @@ export class WalletConnector {
     const isInArgentMobile = isInArgentMobileAppBrowser();
     const isInBraavosMobile = isInBraavosMobileAppBrowser();
 
-    // Return appropriate connectors based on environment
+    // If in actual mobile app browser, return only that specific connector
     if (isInArgentMobile) {
       return [argentMobileConnector];
     }
@@ -114,10 +116,10 @@ export class WalletConnector {
       return [braavosMobileConnector];
     }
 
-    // For mobile devices, prioritize mobile connectors
+    // For mobile screen dimensions (but NOT in mobile app browser)
+    // Show web wallet, social login, and Braavos mobile
     if (this.isMobile) {
       return [
-        argentMobileConnector,
         braavosMobileConnector,
         cartridgeConnector,
         webWalletConnector,
