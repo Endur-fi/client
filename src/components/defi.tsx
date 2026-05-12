@@ -301,8 +301,8 @@ const createHyperVaultConfig = (
     type: "vault",
     link: `https://app.troves.fi/strategy/${strategyPath}`,
     buttonText: "Invest",
-      onClick: () => {
-        MyAnalytics.track(AnalyticsEvents.OPPORTUNITIES, {
+    onClick: () => {
+      MyAnalytics.track(AnalyticsEvents.OPPORTUNITIES, {
         protocol: protocolKey,
         buttonText: "Invest",
       });
@@ -733,7 +733,9 @@ const TOKEN_ICON_MAP: Record<string, (className?: string) => React.ReactNode> =
     xtBTC: (className) => <Icons.xtbtc className={className} />,
     xLBTC: (className) => <Icons.xlbtc className={className} />,
     xsBTC: (className) => <Icons.xsbtc className={className} />,
+    xstrkBTC: (className) => <Icons.xstrkbtc className={className} />,
     STRK: (className) => <Icons.strkLogo className={className} />,
+    strkBTC: (className) => <Icons.strkbtc className={className} />,
     WBTC: (className) => <Icons.wbtc className={className} />,
     tBTC: (className) => <Icons.tbtc className={className} />,
     LBTC: (className) => <Icons.lbtc className={className} />,
@@ -846,7 +848,7 @@ const Defi: React.FC = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const yields: any = useAtomValue(protocolYieldsAtom);
-  
+
   // Get initial tab from URL query parameter, default to "borrow"
   const tabParam = searchParams.get("tab");
   const getInitialTab = (): "earn" | "borrow" | "contribute-liquidity" => {
@@ -855,7 +857,7 @@ const Defi: React.FC = () => {
     if (tabParam === "contribute-liquidity") return "contribute-liquidity";
     return "borrow"; // default
   };
-  
+
   const [activeTab, setActiveTab] = useState<
     "earn" | "borrow" | "contribute-liquidity"
   >(getInitialTab());
@@ -913,8 +915,12 @@ const Defi: React.FC = () => {
   // Sync tab state with URL parameter changes (only when URL changes externally)
   React.useEffect(() => {
     const tabParam = searchParams.get("tab");
-    const validTabs: Array<"earn" | "borrow" | "contribute-liquidity"> = ["earn", "borrow", "contribute-liquidity"];
-    
+    const validTabs: Array<"earn" | "borrow" | "contribute-liquidity"> = [
+      "earn",
+      "borrow",
+      "contribute-liquidity",
+    ];
+
     if (validTabs.includes(tabParam as any)) {
       setActiveTab(tabParam as "earn" | "borrow" | "contribute-liquidity");
     } else if (!tabParam) {
@@ -1043,8 +1049,8 @@ const Defi: React.FC = () => {
     // 1. Vesu supply pools from Re7 xSTRK and Re7 xBTC
     vesuContributorSupplyPools.forEach((pool) => {
       const tokenIcon = getTokenIcon(pool.assetSymbol);
-			const vesuUrl = process.env.NEXT_PUBLIC_VESU_URL || "http://vesu.xyz/pro";
-			const vesuEarnEndpoint = `${vesuUrl}/earn`;
+      const vesuUrl = process.env.NEXT_PUBLIC_VESU_URL || "http://vesu.xyz/pro";
+      const vesuEarnEndpoint = `${vesuUrl}/earn`;
       pools.push({
         id: `vesu-supply-${pool.poolId}-${pool.assetSymbol}`,
         tokens: [{ icon: tokenIcon, name: pool.assetSymbol }],
@@ -1374,8 +1380,8 @@ const Defi: React.FC = () => {
   // Create dynamic protocol configs from Vesu borrow pools using generic atom
   const vesuBorrowConfigs = useMemo(() => {
     const configs: Record<string, ProtocolConfig> = {};
-		const vesuUrl = process.env.NEXT_PUBLIC_VESU_URL || "http://vesu.xyz/pro";
-		const vesuBorrowEndpoint = `${vesuUrl}/borrow`;
+    const vesuUrl = process.env.NEXT_PUBLIC_VESU_URL || "http://vesu.xyz/pro";
+    const vesuBorrowEndpoint = `${vesuUrl}/borrow`;
     vesuBorrowPools.forEach((pool, index) => {
       const key = `vesuBorrow_${pool.collateralSymbol}_${pool.debtSymbol}_${index}`;
       const isDebtUSDC = pool.debtSymbol === "USDC";
@@ -1787,7 +1793,10 @@ const Defi: React.FC = () => {
           <ShadCNTabs
             value={activeTab}
             onValueChange={(value) => {
-              const newTab = value as "earn" | "borrow" | "contribute-liquidity";
+              const newTab = value as
+                | "earn"
+                | "borrow"
+                | "contribute-liquidity";
               MyAnalytics.track(AnalyticsEvents.DEFI_TAB_CHANGE, {
                 from: activeTab,
                 to: newTab,

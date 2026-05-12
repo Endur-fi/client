@@ -28,7 +28,7 @@ export const pointsApolloClient = new ApolloClient({
   uri: isMainnet()
     ? "https://endur-points-indexers-mainnet-graphql.onrender.com"
     : "https://graphql.sepolia.endur.fi",
-	// uri: "http://localhost:4001",
+  // uri: "http://localhost:4001",
   cache: new InMemoryCache(),
   defaultOptions,
 });

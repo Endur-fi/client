@@ -120,7 +120,7 @@ export class WalletConnector {
         argentMobileConnector,
         braavosMobileConnector,
         cartridgeConnector,
-        webWalletConnector
+        webWalletConnector,
       ];
     }
 

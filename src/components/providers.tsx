@@ -1,20 +1,20 @@
 "use client";
 
 import { mainnet, sepolia } from "@starknet-react/chains";
-import {
-  Connector,
-  jsonRpcProvider,
-  StarknetConfig,
-} from "@starknet-react/core";
+import { Connector, jsonRpcProvider } from "@starknet-react/core";
+import { EasyleapProvider } from "@easyleap/sdk";
 import { Figtree } from "next/font/google";
 import React from "react";
 import { BlockTag, constants, RpcProviderOptions } from "starknet";
 
 import { SidebarProvider } from "@/components/ui/sidebar";
+import { endurEasyleapTheme } from "@/constants/easyleap-theme";
 import { NETWORK } from "@/constants";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 import { WalletConnector } from "@/services/wallet";
+
+import "@easyleap/sdk/styles.css";
 
 const font = Figtree({
   subsets: ["latin-ext"],
@@ -26,6 +26,16 @@ interface ProvidersProps {
 
 const chains =
   NETWORK === constants.NetworkName.SN_MAIN ? [mainnet] : [sepolia];
+
+const privyAppId = (() => {
+  const id = process.env.NEXT_PUBLIC_PRIVY_APP_ID?.trim() ?? "";
+  if (!id) {
+    throw new Error(
+      "NEXT_PUBLIC_PRIVY_APP_ID is required. Set your Privy app id in the environment (e.g. .env.local or CI secrets) before building or running the app.",
+    );
+  }
+  return id;
+})();
 
 const provider = jsonRpcProvider({
   rpc: () => {
@@ -44,17 +54,31 @@ const provider = jsonRpcProvider({
 const Providers: React.FC<ProvidersProps> = ({ children }) => {
   const isMobile = useIsMobile();
   const walletConnector = new WalletConnector(isMobile);
+  // TODO: export a starkzapConfig type from sdk later on
+  const starkzapConfig = {
+    rpcUrl: process.env.NEXT_PUBLIC_RPC_URL,
+    network: NETWORK === constants.NetworkName.SN_MAIN ? "mainnet" : "sepolia",
+    ethereumRpcUrl: process.env.NEXT_PUBLIC_ETHEREUM_RPC_URL,
+    layerZeroApiKey: process.env.NEXT_PUBLIC_LAYERZERO_API_KEY,
+    bridgePrivateKey: process.env.NEXT_PUBLIC_BRIDGE_PRIVATE_KEY,
+  };
 
   return (
-    <StarknetConfig
-      chains={chains}
-      provider={provider}
-      connectors={walletConnector.getConnectors() as Connector[]}
+    <EasyleapProvider
+      theme={endurEasyleapTheme}
+      privyAppId={privyAppId}
+      starkzap={starkzapConfig as any}
+      ui={{ enableEvmMode: false }}
+      starknetConfig={{
+        chains,
+        provider,
+        connectors: walletConnector.getConnectors() as Connector[],
+      }}
     >
       <SidebarProvider className={cn(font.className, "w-full")}>
         {children}
       </SidebarProvider>
-    </StarknetConfig>
+    </EasyleapProvider>
   );
 };
 

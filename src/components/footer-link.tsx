@@ -13,7 +13,12 @@ interface FooterLinkProps {
   children: ReactNode;
 }
 
-export function FooterLink({ href, label, className, children }: FooterLinkProps) {
+export function FooterLink({
+  href,
+  label,
+  className,
+  children,
+}: FooterLinkProps) {
   return (
     <Link
       href={href}

@@ -16,7 +16,8 @@ import { PageViewWrapper } from "@/components/page-view-wrapper";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Endur.fi | Starknet Liquid Staking (xSTRK & xyBTCs) | Earn STRK & BTC Rewards",
+  title:
+    "Endur.fi | Starknet Liquid Staking (xSTRK & xyBTCs) | Earn STRK & BTC Rewards",
   description:
     "Stake STRK & BTC with Endur and receive xSTRK & xyBTCs - the liquid staking tokens on Starknet. Earn rewards while accessing DeFi with instant liquidity, higher rewards and faster unstaking",
   keywords: [

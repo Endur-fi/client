@@ -1491,6 +1491,7 @@ export type SupportedDApp =
   | "hyperxtBTC"
   | "hyperxsBTC"
   | "hyperxLBTC"
+  | "hyperxstrkBTC"
   | "avnuBTCxWBTC"
   | "avnuBTCxtBTC"
   | "avnuBTCxLBTC"
@@ -1518,6 +1519,7 @@ export const protocolYieldsAtom = atom<
   hyperxtBTC: get(trovesHyperYieldAtom),
   hyperxLBTC: get(trovesHyperYieldAtom),
   hyperxsBTC: get(trovesHyperYieldAtom),
+  hyperxstrkBTC: get(trovesHyperYieldAtom),
   vesu: get(vesuYieldAtom),
   vesuBTCxWBTC: get(vesuBTCxWBTCYieldAtom),
   vesuBTCxtBTC: get(vesuBTCxtBTCYieldAtom),

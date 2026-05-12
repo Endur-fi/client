@@ -1,7 +1,11 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useSetAtom } from "jotai";
-import { useAccount, useBalance } from "@starknet-react/core";
-import { getLSTAssetsByCategory, getFirstBTCAsset } from "@/constants";
+import { InteractionMode, useBalance, useMode } from "@easyleap/sdk";
+import {
+  getLSTAssetsByCategory,
+  getFirstBTCAsset,
+  WBTC_ETH_TOKEN,
+} from "@/constants";
 import { lstConfigAtom } from "@/store/common.store"; // Adjust path if needed
 import { MyAnalytics } from "@/lib/analytics";
 import { AnalyticsEvents } from "@/lib/analytics-events";
@@ -31,44 +35,50 @@ export const getFirstBtcAsset = (): string => {
 
 // Custom hook to get BTC token balances
 const useBtcTokenBalances = () => {
-  const { address } = useAccount();
+  const mode = useMode();
+
+  const starknetWBtc = (btcAssets.find((asset) => asset.SYMBOL === "WBTC")
+    ?.ASSET_ADDRESS ?? btcAssets[0]?.ASSET_ADDRESS) as `0x${string}`;
 
   // Get balances for each BTC token individually
-  const wbtcBalance = useBalance({
-    address,
-    token: btcAssets.find((asset) => asset.SYMBOL === "WBTC")
-      ?.ASSET_ADDRESS as `0x${string}`,
-  });
+  // TODO: For now we are manually using for WBTC since the contract only supports WBTC for now
+  // Later on we will move to a more organized approach
 
-  const tbtcBalance = useBalance({
-    address,
-    token: btcAssets.find((asset) => asset.SYMBOL === "tBTC")
-      ?.ASSET_ADDRESS as `0x${string}`,
-  });
+  const wbtcBalance = useBalance(
+    (mode === InteractionMode.EVM
+      ? WBTC_ETH_TOKEN
+      : starknetWBtc) as `0x${string}`,
+  );
 
-  const lbtcBalance = useBalance({
-    address,
-    token: btcAssets.find((asset) => asset.SYMBOL === "LBTC")
+  const tbtcBalance = useBalance(
+    btcAssets.find((asset) => asset.SYMBOL === "tBTC")
       ?.ASSET_ADDRESS as `0x${string}`,
-  });
+  );
 
-  const solvbtcBalance = useBalance({
-    address,
-    token: btcAssets.find((asset) => asset.SYMBOL === "solvBTC")
+  const lbtcBalance = useBalance(
+    btcAssets.find((asset) => asset.SYMBOL === "LBTC")
       ?.ASSET_ADDRESS as `0x${string}`,
-  });
+  );
 
-  const tbtc1Balance = useBalance({
-    address,
-    token: btcAssets.find((asset) => asset.SYMBOL === "TBTC1")
+  const solvbtcBalance = useBalance(
+    btcAssets.find((asset) => asset.SYMBOL === "solvBTC")
       ?.ASSET_ADDRESS as `0x${string}`,
-  });
+  );
 
-  const tbtc2Balance = useBalance({
-    address,
-    token: btcAssets.find((asset) => asset.SYMBOL === "TBTC2")
+  const strkBtcBalance = useBalance(
+    btcAssets.find((asset) => asset.SYMBOL === "strkBTC")
       ?.ASSET_ADDRESS as `0x${string}`,
-  });
+  );
+
+  const tbtc1Balance = useBalance(
+    btcAssets.find((asset) => asset.SYMBOL === "TBTC1")
+      ?.ASSET_ADDRESS as `0x${string}`,
+  );
+
+  const tbtc2Balance = useBalance(
+    btcAssets.find((asset) => asset.SYMBOL === "TBTC2")
+      ?.ASSET_ADDRESS as `0x${string}`,
+  );
 
   return btcAssets.map((asset) => {
     let balance = BigInt(0);
@@ -85,6 +95,9 @@ const useBtcTokenBalances = () => {
         break;
       case "solvBTC":
         balance = solvbtcBalance.data?.value || BigInt(0);
+        break;
+      case "strkBTC":
+        balance = strkBtcBalance.data?.value || BigInt(0);
         break;
       case "TBTC1":
         balance = tbtc1Balance.data?.value || BigInt(0);
@@ -107,44 +120,46 @@ const useBtcTokenBalances = () => {
 
 // Custom hook to get xBTC token balances (for unstake mode)
 const useXBtcTokenBalances = () => {
-  const { address } = useAccount();
+  const mode = useMode();
 
+  const starknetXWBtc = (btcAssets.find((asset) => asset.SYMBOL === "WBTC")
+    ?.LST_ADDRESS ?? btcAssets[0]?.LST_ADDRESS) as `0x${string}`;
   // Get balances for each xBTC token individually
-  const xwbtcBalance = useBalance({
-    address,
-    token: btcAssets.find((asset) => asset.SYMBOL === "WBTC")
-      ?.LST_ADDRESS as `0x${string}`,
-  });
+  const xwbtcBalance = useBalance(
+    (mode === InteractionMode.EVM
+      ? WBTC_ETH_TOKEN
+      : starknetXWBtc) as `0x${string}`,
+  );
 
-  const xtbtcBalance = useBalance({
-    address,
-    token: btcAssets.find((asset) => asset.SYMBOL === "tBTC")
+  const xtbtcBalance = useBalance(
+    btcAssets.find((asset) => asset.SYMBOL === "tBTC")
       ?.LST_ADDRESS as `0x${string}`,
-  });
+  );
 
-  const xlbtcBalance = useBalance({
-    address,
-    token: btcAssets.find((asset) => asset.SYMBOL === "LBTC")
+  const xlbtcBalance = useBalance(
+    btcAssets.find((asset) => asset.SYMBOL === "LBTC")
       ?.LST_ADDRESS as `0x${string}`,
-  });
+  );
 
-  const xsolvbtcBalance = useBalance({
-    address,
-    token: btcAssets.find((asset) => asset.SYMBOL === "solvBTC")
+  const xsolvbtcBalance = useBalance(
+    btcAssets.find((asset) => asset.SYMBOL === "solvBTC")
       ?.LST_ADDRESS as `0x${string}`,
-  });
+  );
 
-  const xtbtc1Balance = useBalance({
-    address,
-    token: btcAssets.find((asset) => asset.SYMBOL === "TBTC1")
+  const xstrkBtcBalance = useBalance(
+    btcAssets.find((asset) => asset.SYMBOL === "strkBTC")
       ?.LST_ADDRESS as `0x${string}`,
-  });
+  );
 
-  const xtbtc2Balance = useBalance({
-    address,
-    token: btcAssets.find((asset) => asset.SYMBOL === "TBTC2")
+  const xtbtc1Balance = useBalance(
+    btcAssets.find((asset) => asset.SYMBOL === "TBTC1")
       ?.LST_ADDRESS as `0x${string}`,
-  });
+  );
+
+  const xtbtc2Balance = useBalance(
+    btcAssets.find((asset) => asset.SYMBOL === "TBTC2")
+      ?.LST_ADDRESS as `0x${string}`,
+  );
 
   return btcAssets.map((asset) => {
     let balance = BigInt(0);
@@ -161,6 +176,9 @@ const useXBtcTokenBalances = () => {
         break;
       case "solvBTC":
         balance = xsolvbtcBalance.data?.value || BigInt(0);
+        break;
+      case "strkBTC":
+        balance = xstrkBtcBalance.data?.value || BigInt(0);
         break;
       case "TBTC1":
         balance = xtbtc1Balance.data?.value || BigInt(0);
@@ -188,6 +206,8 @@ const BtcIcon: React.FC<{ symbol: string; className?: string }> = ({
 }) => {
   const getIconPath = (tokenSymbol: string) => {
     switch (tokenSymbol.toLowerCase()) {
+      case "strkbtc":
+        return "/strkbtc.svg";
       case "wbtc":
         return "/wbtc.svg";
       case "tbtc":
@@ -224,6 +244,9 @@ export const ASSET_ICONS: Record<string, React.FC<any>> = {
   LBTC: (props: any) => <BtcIcon symbol="LBTC" className={props.className} />,
   solvBTC: (props: any) => (
     <BtcIcon symbol="solvBTC" className={props.className} />
+  ),
+  strkBTC: (props: any) => (
+    <BtcIcon symbol="strkBTC" className={props.className} />
   ),
 };
 
@@ -285,9 +308,6 @@ const AssetSelector: React.FC<AssetSelectorProps> = ({
     setIsOpen(false);
   };
 
-  const selectedAssetData = btcAssets.find(
-    (asset: any) => asset.SYMBOL === selectedAsset,
-  );
   const SelectedIcon = ASSET_ICONS[selectedAsset];
 
   return (

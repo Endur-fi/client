@@ -35,7 +35,7 @@ const isVIPQueryAtom = atomWithQuery((get) => {
 
       try {
         const res = await axios.get<VIPStatusResponse>(
-          `/api/portfolio/isVIP/${address}`
+          `/api/portfolio/isVIP/${address}`,
         );
 
         if (res.data.success && res.data.data) {

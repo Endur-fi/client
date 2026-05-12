@@ -28,10 +28,7 @@ export const NativeStakingWarningDialog: React.FC<
   };
 
   const handleContinue = () => {
-    MyAnalytics.track(
-      AnalyticsEvents.NATIVE_STAKING_DIALOG_CONTINUE_CLICK,
-      {},
-    );
+    MyAnalytics.track(AnalyticsEvents.NATIVE_STAKING_DIALOG_CONTINUE_CLICK, {});
     window.open(LINKS.DASHBOARD_URL, "_blank", "noopener,noreferrer");
     onOpenChange(false);
   };

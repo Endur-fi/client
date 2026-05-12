@@ -51,9 +51,7 @@ const SidebarFooterMenuItems = () => {
             href={LINKS.ENDUR_DISCORD}
             target="_blank"
             className="flex w-full cursor-pointer flex-row items-center gap-2 text-nowrap rounded-[12px] text-base font-semibold text-[#03624C] transition-all"
-            onClick={() =>
-              trackFooterClick("Discord", LINKS.ENDUR_DISCORD)
-            }
+            onClick={() => trackFooterClick("Discord", LINKS.ENDUR_DISCORD)}
           >
             <DiscordIcon
               className="size-4"
@@ -73,9 +71,7 @@ const SidebarFooterMenuItems = () => {
             href={LINKS.ENDUR_TWITTER}
             target="_blank"
             className="flex w-full cursor-pointer flex-row items-center gap-2 text-nowrap rounded-[12px] text-base font-semibold text-[#03624C] transition-all"
-            onClick={() =>
-              trackFooterClick("Twitter", LINKS.ENDUR_TWITTER)
-            }
+            onClick={() => trackFooterClick("Twitter", LINKS.ENDUR_TWITTER)}
           >
             <TwitterIcon
               className="size-4"
@@ -97,9 +93,7 @@ const SidebarFooterMenuItems = () => {
             href={LINKS.ENDUR_TELEGRAM}
             target="_blank"
             className="flex w-full cursor-pointer flex-row items-center gap-2 text-nowrap rounded-[12px] text-base font-semibold text-[#03624C] transition-all"
-            onClick={() =>
-              trackFooterClick("Telegram", LINKS.ENDUR_TELEGRAM)
-            }
+            onClick={() => trackFooterClick("Telegram", LINKS.ENDUR_TELEGRAM)}
           >
             <TelegramIcon
               className="size-4"
@@ -165,9 +159,7 @@ const SidebarFooterMenuItems = () => {
             href={LINKS.ENDUR_TELEGRAM}
             target="_blank"
             className="flex w-full cursor-pointer flex-row items-center gap-2 text-nowrap rounded-[12px] text-base font-semibold text-[#03624C] transition-all"
-            onClick={() =>
-              trackFooterClick("Support", LINKS.ENDUR_TELEGRAM)
-            }
+            onClick={() => trackFooterClick("Support", LINKS.ENDUR_TELEGRAM)}
           >
             <MessageCircleMoreIcon
               triggerAnimation={triggerChatIconAnimation}

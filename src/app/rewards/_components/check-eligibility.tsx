@@ -779,12 +779,9 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
       return;
     }
 
-    trackAnalyticsCallback(
-      AnalyticsEvents.REWARDS_ELIGIBILITY_CHECK_CLICKED,
-      {
-        userAddress: address,
-      },
-    );
+    trackAnalyticsCallback(AnalyticsEvents.REWARDS_ELIGIBILITY_CHECK_CLICKED, {
+      userAddress: address,
+    });
 
     const { allocation, isEligible } = eligibilityData;
 
