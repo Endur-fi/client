@@ -68,6 +68,7 @@ const Providers: React.FC<ProvidersProps> = ({ children }) => {
       theme={endurEasyleapTheme}
       privyAppId={privyAppId}
       starkzap={starkzapConfig as any}
+      mixpanelToken={process.env.NEXT_PUBLIC_MIXPANEL_TOKEN}
       ui={{ enableEvmMode: false }}
       starknetConfig={{
         chains,
