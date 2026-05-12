@@ -492,9 +492,16 @@ const Stake: React.FC = () => {
   };
 
   const sortedPlatforms = React.useMemo(() => {
-    const allPlatforms = Object.values(PLATFORMS);
+    const allPlatforms = Object.values(PLATFORMS).filter((platform) => {
+      // TODO: remove this filter later on 
+      // Don't show Troves Hyper vault for xstrkBTC as it doesn't exist yet
+      if (lstConfig.LST_SYMBOL === "xstrkBTC" && platform === PLATFORMS.HYPER_HYPER) {
+        return false;
+      }
+      return true;
+    });
     return sortPlatforms(allPlatforms, yields);
-  }, [yields]);
+  }, [yields, lstConfig.LST_SYMBOL]);
 
   const hasPositiveYields = React.useMemo(() => {
     return sortedPlatforms.some((platform) => {
