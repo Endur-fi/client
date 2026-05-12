@@ -26,4 +26,3 @@ export function usePageViewTracking() {
     });
   }, [pathname, searchParams, userAddress]);
 }
-

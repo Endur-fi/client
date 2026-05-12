@@ -12,4 +12,3 @@ export function PageViewWrapper({ children }: PageViewWrapperProps) {
   usePageViewTracking();
   return children;
 }
-

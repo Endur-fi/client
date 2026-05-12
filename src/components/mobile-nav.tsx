@@ -150,9 +150,7 @@ const MobileNav = () => {
                 href={getInternalUrl("/defi", referrer)}
                 icon={<HandCoinsIcon className="-ml-0.5 size-5" />}
                 isActive={pathname === "/defi"}
-                onClick={() =>
-                  handleNavClick("DeFi Opportunities", "/defi")
-                }
+                onClick={() => handleNavClick("DeFi Opportunities", "/defi")}
               >
                 DeFi Opportunities
               </NavLink>

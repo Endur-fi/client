@@ -29,7 +29,7 @@ export async function GET(_req: Request) {
   for (const value of Object.values(LST_CONFIG)) {
     try {
       const isBtcAsset = value.SYMBOL.toLowerCase().includes("btc");
-      const isStrkAsset = value.SYMBOL.toLowerCase().includes("strk");
+      const isStrkAsset = value.SYMBOL.toLowerCase().includes("strk") && !isBtcAsset;
 
       // Get the asset price for TVL calculation
       const { data: assetPrice, error: assetPriceError } = await tryCatch(

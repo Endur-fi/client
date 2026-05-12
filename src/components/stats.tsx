@@ -70,6 +70,7 @@ const Stats: React.FC<StatsProps> = ({
 
     if (activeTab === "btc") {
       const pathMap: Record<string, string> = {
+        strkBTC: "/strkbtc",
         LBTC: "/lbtc",
         WBTC: "/wbtc",
         tBTC: "/tbtc",

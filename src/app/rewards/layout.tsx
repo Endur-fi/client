@@ -3,8 +3,7 @@ import React from "react";
 import { type Metadata } from "next";
 
 export const metadata: Metadata = {
-  title:
-    "Rewards and Points Leaderboard | Endur.fi",
+  title: "Rewards and Points Leaderboard | Endur.fi",
   description:
     "Leaderboard of Endur.fi - the Starknet liquid staking solution. Stake STRK & BTC with Endur and receive xSTRK & xyBTCs - the liquid staking tokens on Starknet. Earn rewards while accessing DeFi with instant liquidity, higher rewards and faster unstaking",
   keywords: [
@@ -26,8 +25,7 @@ export const metadata: Metadata = {
   ],
   robots: "index,follow",
   openGraph: {
-    title:
-      "Rewards and Points Leaderboard | Endur.fi",
+    title: "Rewards and Points Leaderboard | Endur.fi",
     description:
       "Leaderboard of Endur.fi - the Starknet liquid staking solution. Stake STRK & BTC with Endur and receive xSTRK & xyBTCs - the liquid staking tokens on Starknet. Earn rewards while accessing DeFi with instant liquidity, higher rewards and faster unstaking",
     images: [
@@ -42,8 +40,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title:
-      "Rewards and Points Leaderboard | Endur.fi",
+    title: "Rewards and Points Leaderboard | Endur.fi",
     description:
       "Leaderboard of Endur.fi - the Starknet liquid staking solution. Stake STRK & BTC with Endur and receive xSTRK & xyBTCs - the liquid staking tokens on Starknet. Earn rewards while accessing DeFi with instant liquidity, higher rewards and faster unstaking",
     site: "@endurfi",

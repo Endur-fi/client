@@ -68,8 +68,7 @@ export const AnalyticsEvents = {
 
   // Native staking dialog
   NATIVE_STAKING_DIALOG_STAY_CLICK: "native_staking_dialog_stay_click",
-  NATIVE_STAKING_DIALOG_CONTINUE_CLICK:
-    "native_staking_dialog_continue_click",
+  NATIVE_STAKING_DIALOG_CONTINUE_CLICK: "native_staking_dialog_continue_click",
 
   // Sidebar pin
   SIDEBAR_PIN_TOGGLE: "sidebar_pin_toggle",
@@ -115,9 +114,7 @@ export const AnalyticsEvents = {
 
   // Rewards claim success (on-chain TX confirmed)
   REWARDS_CLAIM_TX_SUCCESS: "rewards_claim_tx_success",
-
 } as const;
 
 export type AnalyticsEventName =
   (typeof AnalyticsEvents)[keyof typeof AnalyticsEvents];
-

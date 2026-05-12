@@ -3,10 +3,13 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
+  ConnectButton,
+  InteractionMode,
   useAccount,
   useBalance,
+  useMode,
   useSendTransaction,
-} from "@starknet-react/core";
+} from "@easyleap/sdk";
 
 import { useAtomValue } from "jotai";
 import { AlertCircleIcon, ChevronDown, Info } from "lucide-react";
@@ -51,18 +54,26 @@ import {
   LSTAssetConfig,
   NOSTRA_iXSTRK_ADDRESS,
   REWARD_FEES,
+  WBTC_ETH_TOKEN,
   VESU_vXSTRK_ADDRESS,
 } from "@/constants";
 import { toast } from "@/hooks/use-toast";
 import { useTransactionHandler } from "@/hooks/use-transactions";
-import { useWalletConnection } from "@/hooks/use-wallet-connection";
 import { MyAnalytics } from "@/lib/analytics";
 import { AnalyticsEvents } from "@/lib/analytics-events";
 import MyNumber from "@/lib/MyNumber";
 import { cn, formatNumberWithCommas } from "@/lib/utils";
 import LSTService from "@/services/lst";
 import { lstConfigAtom, assetPriceAtom } from "@/store/common.store";
-import { protocolYieldsAtom, type SupportedDApp } from "@/store/defi.store";
+import {
+  hyperxLBTCVaultCapacityAtom,
+  hyperxSTRKVaultCapacityAtom,
+  hyperxsBTCVaultCapacityAtom,
+  hyperxtBTCVaultCapacityAtom,
+  hyperxWBTCVaultCapacityAtom,
+  protocolYieldsAtom,
+  type SupportedDApp,
+} from "@/store/defi.store";
 import { apiExchangeRateAtom } from "@/store/lst.store";
 import { tabsAtom } from "@/store/merry.store";
 import { snAPYAtom } from "@/store/staking.store";
@@ -97,7 +108,7 @@ const PLATFORMS = {
   HYPER_HYPER: "trovesHyper",
 } as const;
 
-const platformConfig = (lstConfig: LSTAssetConfig) => {
+const platformConfig = (lstConfig: LSTAssetConfig, isTrovesMaxedOut: boolean) => {
   // Determine the correct yield key based on the LST symbol
   let yieldKey: string;
   switch (lstConfig.LST_SYMBOL) {
@@ -115,6 +126,9 @@ const platformConfig = (lstConfig: LSTAssetConfig) => {
       break;
     case "xsBTC":
       yieldKey = "hyperxsBTC";
+      break;
+    case "xstrkBTC":
+      yieldKey = "hyperxstrkBTC";
       break;
     default:
       throw new Error("Invalid LST config");
@@ -138,7 +152,7 @@ const platformConfig = (lstConfig: LSTAssetConfig) => {
           </a>
         </p>
       ),
-      isMaxedOut: lstConfig.TROVES_VAULT_MAXED_OUT,
+      isMaxedOut: isTrovesMaxedOut,
     },
   };
 };
@@ -151,17 +165,21 @@ const Stake: React.FC = () => {
 
   const searchParams = useSearchParams();
 
-  const { address } = useAccount();
-  const { connectWallet } = useWalletConnection();
+  const { starknetAddress: address } = useAccount();
+  // Wallet connection is handled by Easyleap ConnectButton.
   const lstConfig = useAtomValue(lstConfigAtom)!;
+  const mode = useMode();
   const [isLendingOpen, setIsLendingOpen] = React.useState(
-    // !lstConfig.TROVES_VAULT_MAXED_OUT,
     true,
   );
-  const { data: balance } = useBalance({
-    address,
-    token: lstConfig.ASSET_ADDRESS as `0x${string}`,
-  });
+  // In EVM mode, the SDK treats the passed token address as the EVM token.
+  // For now only WBTC has a mapped EVM token address.
+  const balanceTokenAddress =
+    mode === InteractionMode.EVM && lstConfig.SYMBOL?.toUpperCase() === "WBTC"
+      ? WBTC_ETH_TOKEN
+      : lstConfig.ASSET_ADDRESS;
+
+  const { data: balance } = useBalance(balanceTokenAddress as `0x${string}`);
   const { data: assetPrice } = useAtomValue(assetPriceAtom);
 
   const exchangeRate = useAtomValue(apiExchangeRateAtom);
@@ -173,6 +191,29 @@ const Stake: React.FC = () => {
   const referrer = searchParams.get("referrer");
 
   const isBTC = lstConfig.SYMBOL?.toLowerCase().includes("btc");
+
+  const trovesCapacityAtom = React.useMemo(() => {
+    switch (lstConfig.LST_SYMBOL) {
+      case "xSTRK":
+        return hyperxSTRKVaultCapacityAtom;
+      case "xWBTC":
+        return hyperxWBTCVaultCapacityAtom;
+      case "xtBTC":
+        return hyperxtBTCVaultCapacityAtom;
+      case "xLBTC":
+        return hyperxLBTCVaultCapacityAtom;
+      case "xsBTC":
+        return hyperxsBTCVaultCapacityAtom;
+      default:
+        return hyperxSTRKVaultCapacityAtom;
+    }
+  }, [lstConfig.LST_SYMBOL]);
+
+  const trovesCapacity = useAtomValue(trovesCapacityAtom);
+  const isTrovesMaxedOut =
+    !!trovesCapacity?.data &&
+    trovesCapacity.data.total !== null &&
+    trovesCapacity.data.used >= trovesCapacity.data.total;
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -193,7 +234,7 @@ const Stake: React.FC = () => {
     ? lstService.getLSTContract(lstConfig.LST_ADDRESS)
     : null;
 
-  const { sendAsync, data, isPending, error } = useSendTransaction({});
+  const { sendAsync, data, isPending, error } = useSendTransaction();
 
   const { handleTransaction } = useTransactionHandler();
 
@@ -428,7 +469,7 @@ const Stake: React.FC = () => {
       }
     }
 
-    await sendAsync(calls);
+    await sendAsync({ calls });
   };
 
   const getPlatformYield = (platform: Platform) => {
@@ -446,14 +487,21 @@ const Stake: React.FC = () => {
   };
 
   const getPlatformConfig = (platform: string) => {
-    const config = platformConfig(lstConfig);
+    const config = platformConfig(lstConfig, isTrovesMaxedOut);
     return config[platform as keyof typeof config];
   };
 
   const sortedPlatforms = React.useMemo(() => {
-    const allPlatforms = Object.values(PLATFORMS);
+    const allPlatforms = Object.values(PLATFORMS).filter((platform) => {
+      // TODO: remove this filter later on 
+      // Don't show Troves Hyper vault for xstrkBTC as it doesn't exist yet
+      if (lstConfig.LST_SYMBOL === "xstrkBTC" && platform === PLATFORMS.HYPER_HYPER) {
+        return false;
+      }
+      return true;
+    });
     return sortPlatforms(allPlatforms, yields);
-  }, [yields]);
+  }, [yields, lstConfig.LST_SYMBOL]);
 
   const hasPositiveYields = React.useMemo(() => {
     return sortedPlatforms.some((platform) => {
@@ -532,8 +580,9 @@ const Stake: React.FC = () => {
     handleTransaction("STAKE", {
       form,
       address: address ?? "",
-      data: data ?? { transaction_hash: "" },
-      error: error ?? { name: "" },
+      data: data ? { transaction_hash: data } : { transaction_hash: "" },
+      error:
+        (error as Error & { baseError?: unknown; cause?: unknown }) ?? null,
       isPending,
       setShowShareModal,
       metadata: {
@@ -541,7 +590,7 @@ const Stake: React.FC = () => {
         referrer: referrer || null,
       },
     });
-  }, [data?.transaction_hash, form, isPending]);
+  }, [data, form, isPending]);
 
   return (
     <div className="relative flex h-full w-full flex-col gap-6">
@@ -965,12 +1014,7 @@ const Stake: React.FC = () => {
 
       <div className="">
         {!address && (
-          <Button
-            onClick={() => connectWallet()}
-            className="w-full rounded-2xl bg-[#17876D] py-6 text-sm font-semibold text-white hover:bg-[#17876D] disabled:bg-[#03624C4D] disabled:text-[#17876D] disabled:opacity-90"
-          >
-            Connect Wallet
-          </Button>
+          <ConnectButton className="w-full rounded-2xl bg-[#17876D] py-6 text-sm font-semibold text-white hover:bg-[#17876D] disabled:bg-[#03624C4D] disabled:text-[#17876D] disabled:opacity-90" />
         )}
 
         {address && (

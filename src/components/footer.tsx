@@ -37,7 +37,11 @@ const Footer = () => {
     <div className="w-full bg-[#17876D1A]">
       <div className="flex items-center gap-4 px-3 py-8 md:px-7">
         {navItems.map((item) => (
-          <FooterLink key={item.label} href={item.href} label={item.label.toLowerCase()}>
+          <FooterLink
+            key={item.label}
+            href={item.href}
+            label={item.label.toLowerCase()}
+          >
             <item.icon asIcon className="size-4 text-[#03624C]" />
           </FooterLink>
         ))}

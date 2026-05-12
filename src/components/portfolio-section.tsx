@@ -1,7 +1,12 @@
 "use client";
 
 import { useAtomValue } from "jotai";
-import { useAccount, useBalance } from "@starknet-react/core";
+import {
+  InteractionMode,
+  useAccount,
+  useBalance,
+  useMode,
+} from "@easyleap/sdk";
 import React from "react";
 import { Info } from "lucide-react";
 
@@ -13,7 +18,11 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "./ui/tooltip";
-import { getLSTAssetsByCategory, getSTRKAsset } from "@/constants";
+import {
+  WBTC_ETH_TOKEN,
+  getLSTAssetsByCategory,
+  getSTRKAsset,
+} from "@/constants";
 import { cn, formatNumberWithCommas } from "@/lib/utils";
 import { lstStatsQueryAtom } from "@/store/lst.store";
 import { btcPriceAtom, strkPriceAtom } from "@/store/staking.store";
@@ -28,6 +37,8 @@ import { AnalyticsEvents } from "@/lib/analytics-events";
 
 const getBTCLSTIcon = (lstSymbol: string) => {
   switch (lstSymbol) {
+    case "xstrkBTC":
+      return <Icons.xstrkbtc className="h-5 w-5 shrink-0" />;
     case "xWBTC":
       return <Icons.xwbtc className="h-5 w-5 shrink-0" />;
     case "xtBTC":
@@ -42,37 +53,36 @@ const getBTCLSTIcon = (lstSymbol: string) => {
 };
 
 const PortfolioSection: React.FC = () => {
-  const { address } = useAccount();
+  const { starknetAddress: address } = useAccount();
+  const mode = useMode();
   const strkLSTConfig = getSTRKAsset();
   const btcAssets = getLSTAssetsByCategory("BTC");
 
   // Get STRK LST balance
-  const strkLSTBalanceData = useBalance({
-    address,
-    token: strkLSTConfig.LST_ADDRESS as `0x${string}`,
-  });
+  const strkLSTBalanceData = useBalance(
+    strkLSTConfig.LST_ADDRESS as `0x${string}`,
+  );
 
   // Get BTC LST balances
-  const wbtcBalance = useBalance({
-    address,
-    token: btcAssets.find((a) => a.SYMBOL === "WBTC")
-      ?.LST_ADDRESS as `0x${string}`,
-  });
-  const tbtcBalance = useBalance({
-    address,
-    token: btcAssets.find((a) => a.SYMBOL === "tBTC")
-      ?.LST_ADDRESS as `0x${string}`,
-  });
-  const lbtcBalance = useBalance({
-    address,
-    token: btcAssets.find((a) => a.SYMBOL === "LBTC")
-      ?.LST_ADDRESS as `0x${string}`,
-  });
-  const solvbtcBalance = useBalance({
-    address,
-    token: btcAssets.find((a) => a.SYMBOL === "solvBTC")
-      ?.LST_ADDRESS as `0x${string}`,
-  });
+  const wbtcTokenAddress =
+    mode === InteractionMode.EVM
+      ? (WBTC_ETH_TOKEN as `0x${string}`)
+      : (btcAssets.find((a) => a.SYMBOL === "WBTC")
+          ?.LST_ADDRESS as `0x${string}`);
+
+  const strkBtcBalance = useBalance(
+    btcAssets.find((a) => a.SYMBOL === "strkBTC")?.LST_ADDRESS as `0x${string}`,
+  );
+  const wbtcBalance = useBalance(wbtcTokenAddress);
+  const tbtcBalance = useBalance(
+    btcAssets.find((a) => a.SYMBOL === "tBTC")?.LST_ADDRESS as `0x${string}`,
+  );
+  const lbtcBalance = useBalance(
+    btcAssets.find((a) => a.SYMBOL === "LBTC")?.LST_ADDRESS as `0x${string}`,
+  );
+  const solvbtcBalance = useBalance(
+    btcAssets.find((a) => a.SYMBOL === "solvBTC")?.LST_ADDRESS as `0x${string}`,
+  );
 
   // Get prices and stats
   const strkPrice = useAtomValue(strkPriceAtom);
@@ -120,6 +130,9 @@ const PortfolioSection: React.FC = () => {
     return btcAssets.map((asset) => {
       let balance = BigInt(0);
       switch (asset.SYMBOL) {
+        case "strkBTC":
+          balance = strkBtcBalance.data?.value || BigInt(0);
+          break;
         case "WBTC":
           balance = wbtcBalance.data?.value || BigInt(0);
           break;
@@ -194,8 +207,8 @@ const PortfolioSection: React.FC = () => {
   const [season1Points, setSeason1Points] = React.useState<string | null>(null);
   const [season1Loading, setSeason1Loading] = React.useState(false);
 
-	const [season2Points, setSeason2Points] = React.useState<string | null>(null);
-	const [season2Loading, setSeason2Loading] = React.useState(false);
+  const [season2Points, setSeason2Points] = React.useState<string | null>(null);
+  const [season2Loading, setSeason2Loading] = React.useState(false);
 
   React.useEffect(() => {
     if (!address) {
@@ -238,7 +251,7 @@ const PortfolioSection: React.FC = () => {
       return;
     }
 
-		const fetchSeason2Points = async () => {
+    const fetchSeason2Points = async () => {
       setSeason2Loading(true);
       try {
         const result = await pointsApolloClient.query({
@@ -263,7 +276,7 @@ const PortfolioSection: React.FC = () => {
       }
     };
 
-		fetchSeason2Points();
+    fetchSeason2Points();
   }, [address, pointsApolloClient]);
 
   return (
@@ -349,7 +362,7 @@ const PortfolioSection: React.FC = () => {
                         {holding.asset.LST_SYMBOL}
                       </span>
                     </div>
-                    <span className="text-[#6B7780] ml-[22px]">
+                    <span className="ml-[22px] text-[#6B7780]">
                       ${formatNumberWithCommas(holding.usdValue, 2)}
                     </span>
                   </div>
@@ -383,7 +396,7 @@ const PortfolioSection: React.FC = () => {
         <div className="border-t border-[#E5E8EB] p-2 lg:p-4">
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-            <div className="flex items-center gap-1">
+              <div className="flex items-center gap-1">
                 <span className="text-sm text-[#6B7780]">Season 1 Points</span>
                 <TooltipProvider delayDuration={0}>
                   <Tooltip>
@@ -399,7 +412,8 @@ const PortfolioSection: React.FC = () => {
                         );
                       }}
                     >
-                      Points earned during Season 1 [Nov 27th 2024 - Dec 15th 2025]
+                      Points earned during Season 1 [Nov 27th 2024 - Dec 15th
+                      2025]
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
@@ -431,7 +445,8 @@ const PortfolioSection: React.FC = () => {
                         );
                       }}
                     >
-                      Points earned during Season 2 [Dec 16th 2025 - June 15th 2026]
+                      Points earned during Season 2 [Dec 16th 2025 - June 15th
+                      2026]
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>

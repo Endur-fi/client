@@ -7,7 +7,7 @@ import { MyAnalytics } from "@/lib/analytics";
 import { AnalyticsEvents } from "@/lib/analytics-events";
 import { Calendar, Clock, Flame, TrendingUp, Trophy } from "lucide-react";
 import { useAccount } from "@starknet-react/core";
-import { useWalletConnection } from "@/hooks/use-wallet-connection";
+import { ConnectButton } from "@easyleap/sdk";
 import { useQuery } from "@apollo/client";
 import { GET_USER_POINTS_BREAKDOWN } from "@/constants/queries";
 import { pointsApolloClient } from "@/lib/apollo-client";
@@ -51,21 +51,26 @@ function getDurationString(start: Date, end: Date): string {
  * @param lastPointsMultiplierEndTimestamp Unix timestamp (seconds) of the last points multiplier end timestamp
  * @returns Date object representing the next Tuesday at 10:00 UTC
  */
-function getNextDropTime(lastPointsMultiplierEndTimestamp: number | null | undefined): Date {
+function getNextDropTime(
+  lastPointsMultiplierEndTimestamp: number | null | undefined,
+): Date {
   const now = new Date();
-  
+
   // If we have a lastPointsMultiplierEndTimestamp, use it as the reference point
   if (lastPointsMultiplierEndTimestamp) {
-		const referenceDate = new Date(lastPointsMultiplierEndTimestamp * 1000);
-    
+    const referenceDate = new Date(lastPointsMultiplierEndTimestamp * 1000);
+
     // Check if lastPointsMultiplierEndTimestamp is today (Tuesday)
     const today = new Date(now);
     today.setUTCHours(0, 0, 0, 0);
     const referenceDay = new Date(referenceDate);
     referenceDay.setUTCHours(0, 0, 0, 0);
-    
+
     // If lastPointsMultiplierEndTimestamp is today (Tuesday), skip today and use next Tuesday
-    if (referenceDay.getTime() === today.getTime() && referenceDate.getUTCDay() === 2) {
+    if (
+      referenceDay.getTime() === today.getTime() &&
+      referenceDate.getUTCDay() === 2
+    ) {
       // It's today (Tuesday), so next drop is next Tuesday at 10 UTC
       const nextDrop = new Date(referenceDate);
       nextDrop.setUTCDate(referenceDate.getUTCDate() + 7);
@@ -73,24 +78,24 @@ function getNextDropTime(lastPointsMultiplierEndTimestamp: number | null | undef
       return nextDrop;
     }
   }
-  
+
   // Fallback to current time logic if no timestamp provided
   const currentDay = now.getUTCDay();
   const targetDay = 2; // Tuesday
-  
+
   let daysUntilTuesday = (targetDay - currentDay + 7) % 7;
-  
+
   if (daysUntilTuesday === 0) {
     const currentHour = now.getUTCHours();
     if (currentHour >= 10) {
       daysUntilTuesday = 7; // Next Tuesday
     }
   }
-  
+
   const nextDrop = new Date(now);
   nextDrop.setUTCDate(now.getUTCDate() + daysUntilTuesday);
   nextDrop.setUTCHours(10, 0, 0, 0);
-  
+
   return nextDrop;
 }
 
@@ -102,27 +107,29 @@ function getNextDropTime(lastPointsMultiplierEndTimestamp: number | null | undef
 function formatTimeUntilDrop(targetDate: Date): string {
   const now = new Date();
   const diffInMs = targetDate.getTime() - now.getTime();
-  
+
   if (diffInMs <= 0) {
     return "0 Days, 0 Hours";
   }
-  
+
   const diffInSeconds = Math.floor(diffInMs / 1000);
   const days = Math.floor(diffInSeconds / 86400);
   const hours = Math.floor((diffInSeconds % 86400) / 3600);
-  
-	if (days > 0) {
-		return `${days} Day${days !== 1 ? "s" : ""}, ${hours} Hour${hours !== 1 ? "s" : ""}`;
-	}
-	const minutes = Math.floor((diffInSeconds % 3600) / 60);
-	return `${hours} Hour${hours !== 1 ? "s" : ""}, ${minutes} Minute${minutes !== 1 ? "s" : ""}`;
+
+  if (days > 0) {
+    return `${days} Day${days !== 1 ? "s" : ""}, ${hours} Hour${hours !== 1 ? "s" : ""}`;
+  }
+  const minutes = Math.floor((diffInSeconds % 3600) / 60);
+  return `${hours} Hour${hours !== 1 ? "s" : ""}, ${minutes} Minute${minutes !== 1 ? "s" : ""}`;
 }
 
 /**
  * Hook to get the time until next drop, updating every minute
  * @param lastPointsMultiplierEndTimestamp Unix timestamp (seconds) of the last points multiplier end timestamp
  */
-function useNextDropCountdown(lastPointsMultiplierEndTimestamp: number | null | undefined): string {
+function useNextDropCountdown(
+  lastPointsMultiplierEndTimestamp: number | null | undefined,
+): string {
   const [countdown, setCountdown] = useState<string>(() => {
     const nextDrop = getNextDropTime(lastPointsMultiplierEndTimestamp);
     return formatTimeUntilDrop(nextDrop);
@@ -359,16 +366,20 @@ const PointsBreakdownItem = ({
         {type}
       </span>
     </div>
-		<div className="flex flex-row gap-3 items-start" >
-			<div className="flex flex-col">
-				<span className="text-[12px] font-medium text-[#868898]">Weekly</span>
-				<span className="text-[14px] text-[#021B1A] leading-[20px]">+{weekly}</span>
-			</div>
-			<div className="flex flex-col">
-				<span className="text-[12px] font-medium text-[#868898]">Total</span>
-				<span className="text-[16px] font-medium text-[#17876D] leading-[20px]">{total}</span>
-			</div>
-		</div>
+    <div className="flex flex-row items-start gap-3">
+      <div className="flex flex-col">
+        <span className="text-[12px] font-medium text-[#868898]">Weekly</span>
+        <span className="text-[14px] leading-[20px] text-[#021B1A]">
+          +{weekly}
+        </span>
+      </div>
+      <div className="flex flex-col">
+        <span className="text-[12px] font-medium text-[#868898]">Total</span>
+        <span className="text-[16px] font-medium leading-[20px] text-[#17876D]">
+          {total}
+        </span>
+      </div>
+    </div>
   </div>
 );
 
@@ -384,7 +395,7 @@ const PointsBreakdownCard = ({
   return (
     <div
       className={cn(
-        "flex flex-1 flex-col gap-4 rounded-[14px] border border-[#D4E8E3] bg-white p-4 min-w-[340px]",
+        "flex min-w-[340px] flex-1 flex-col gap-4 rounded-[14px] border border-[#D4E8E3] bg-white p-4",
         pointsBreakdownClassNameMaps[title].border,
         pointsBreakdownClassNameMaps[title].bg,
       )}
@@ -433,7 +444,7 @@ const Season2Points = ({
     items: pointsBreakdownItem[];
   }[];
   userSeason2Points: {
-    rank: number|null;
+    rank: number | null;
     points: string;
   };
   weeklyEarned?: string;
@@ -441,11 +452,14 @@ const Season2Points = ({
   lastPointsMultiplierEndTimestamp?: number;
   isLoading?: boolean;
 }) => {
-  const weeklyEarnedFormatted = weeklyEarned 
+  const weeklyEarnedFormatted = weeklyEarned
     ? `+${formatNumber(parseFloat(weeklyEarned) || 0, 2)} Pts`
     : "+0 Pts";
-  const nextDropCountdown = useNextDropCountdown(lastPointsMultiplierEndTimestamp);
-  const epochsCompletedFormatted = epochsCompleted !== undefined ? `${epochsCompleted}/26` : "1/26";
+  const nextDropCountdown = useNextDropCountdown(
+    lastPointsMultiplierEndTimestamp,
+  );
+  const epochsCompletedFormatted =
+    epochsCompleted !== undefined ? `${epochsCompleted}/26` : "1/26";
 
   const headerRef = React.useRef<HTMLDivElement | null>(null);
   const hasTrackedViewRef = React.useRef(false);
@@ -515,16 +529,16 @@ const Season2Points = ({
           value={isLoading ? "..." : weeklyEarnedFormatted}
           valueClass="text-[16px] text-[#17876D]"
         />
-        <StatsItem 
-          label="Epoch Completed" 
-          value={isLoading ? "..." : epochsCompletedFormatted} 
+        <StatsItem
+          label="Epoch Completed"
+          value={isLoading ? "..." : epochsCompletedFormatted}
         />
         <StatsItem label="Next Drop" value={nextDropCountdown} />
       </div>
       {/* points breakdown */}
       <div className="flex flex-1 flex-row flex-wrap gap-4">
         {isLoading ? (
-          <div className="w-full flex items-center justify-center py-8">
+          <div className="flex w-full items-center justify-center py-8">
             <div className="flex items-center gap-3">
               <div className="h-6 w-6 animate-spin rounded-full border-2 border-[#17876D] border-t-transparent" />
               <p className="text-[#021B1A]">Loading points data...</p>
@@ -540,7 +554,7 @@ const Season2Points = ({
             />
           ))
         ) : (
-          <div className="w-full text-center text-sm text-[#5B616D] py-4">
+          <div className="w-full py-4 text-center text-sm text-[#5B616D]">
             No points breakdown available
           </div>
         )}
@@ -571,19 +585,23 @@ interface UserPointsBreakdownResponse {
   } | null;
 }
 
-const Points = ({ userSeason1Points, userSeason2Points }: { userSeason1Points: { rank: number|null, points: string }, userSeason2Points: { rank: number|null, points: string } }) => {
+const Points = ({
+  userSeason1Points,
+  userSeason2Points,
+}: {
+  userSeason1Points: { rank: number | null; points: string };
+  userSeason2Points: { rank: number | null; points: string };
+}) => {
   const { address } = useAccount();
-  const { connectWallet } = useWalletConnection();
-  
-  const { data: breakdownData, loading: breakdownLoading } = useQuery<UserPointsBreakdownResponse>(
-    GET_USER_POINTS_BREAKDOWN,
-    {
+  // Wallet connection is handled by Easyleap ConnectButton.
+
+  const { data: breakdownData, loading: breakdownLoading } =
+    useQuery<UserPointsBreakdownResponse>(GET_USER_POINTS_BREAKDOWN, {
       client: pointsApolloClient,
       variables: { userAddress: address || "" },
       skip: !address,
       fetchPolicy: "network-only",
-    }
-  );
+    });
 
   // Transform API response to component format
   const pointsBreakdown: {
@@ -595,7 +613,8 @@ const Points = ({ userSeason1Points, userSeason2Points }: { userSeason1Points: {
       return [];
     }
 
-    const { userBreakdown, contributorBreakdown } = breakdownData.getUserPointsBreakdown.breakdown;
+    const { userBreakdown, contributorBreakdown } =
+      breakdownData.getUserPointsBreakdown.breakdown;
 
     const transformed: {
       title: string;
@@ -666,10 +685,9 @@ const Points = ({ userSeason1Points, userSeason2Points }: { userSeason1Points: {
             href="https://docs.endur.fi/docs/community/endur-season-2"
             target="_blank"
             onClick={() =>
-              MyAnalytics.track(
-                AnalyticsEvents.REWARDS_DOCS_LINK_CLICK,
-                { source: "points_banner" },
-              )
+              MyAnalytics.track(AnalyticsEvents.REWARDS_DOCS_LINK_CLICK, {
+                source: "points_banner",
+              })
             }
           >
             <Button className="flex-shrink-0 bg-[#17876D] text-[#F1F7F6]">
@@ -686,17 +704,7 @@ const Points = ({ userSeason1Points, userSeason2Points }: { userSeason1Points: {
       </div>
       {/* your points */}
       {!address ? (
-        <Button
-          className="w-full bg-['transparent'] text-[#17876D] border border-[#17876D] hover:bg-[#17876D] hover:text-[#F1F7F6] py-6"
-          onClick={() => {
-            MyAnalytics.track(AnalyticsEvents.WALLET_CONNECT_CLICK, {
-              source: "rewards_points",
-            });
-            connectWallet();
-          }}
-        >
-          Connect Wallet to View Your Points
-        </Button>
+        <ConnectButton className="w-full border border-[#17876D] bg-['transparent'] py-6 text-[#17876D] hover:bg-[#17876D] hover:text-[#F1F7F6]" />
       ) : (
         <div className="flex flex-col gap-4">
           <div className="flex flex-row rounded-[14px] border border-[#E5E8EB] bg-white px-4 py-3">
@@ -722,12 +730,17 @@ const Points = ({ userSeason1Points, userSeason2Points }: { userSeason1Points: {
             </div>
           </div>
           {/* season 2 points */}
-          <Season2Points 
-            pointsBreakdown={pointsBreakdown} 
+          <Season2Points
+            pointsBreakdown={pointsBreakdown}
             userSeason2Points={userSeason2Points}
             weeklyEarned={breakdownData?.getUserPointsBreakdown?.weeklyEarned}
-            epochsCompleted={breakdownData?.getUserPointsBreakdown?.epochsCompleted}
-            lastPointsMultiplierEndTimestamp={breakdownData?.getUserPointsBreakdown?.lastPointsMultiplierEndTimestamp}
+            epochsCompleted={
+              breakdownData?.getUserPointsBreakdown?.epochsCompleted
+            }
+            lastPointsMultiplierEndTimestamp={
+              breakdownData?.getUserPointsBreakdown
+                ?.lastPointsMultiplierEndTimestamp
+            }
             isLoading={breakdownLoading}
           />
         </div>
