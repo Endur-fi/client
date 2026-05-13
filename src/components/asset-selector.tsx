@@ -302,9 +302,9 @@ const AssetSelector: React.FC<AssetSelectorProps> = ({
       to: symbol,
       mode,
     });
-    onChange(symbol);
     const selected = btcAssets.find((asset: any) => asset.SYMBOL === symbol);
     if (selected) setLstConfig(selected);
+    onChange(symbol);
     setIsOpen(false);
   };
 

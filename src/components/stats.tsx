@@ -1,7 +1,7 @@
 import { useAtomValue } from "jotai";
 import { Info } from "lucide-react";
 import React, { useMemo } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import {
   Tooltip,
@@ -23,6 +23,14 @@ import { totalXSTRKAcrossDefiHoldingsAtom } from "@/app/portfolio/_components/st
 import AssetSelector, { getFirstBtcAsset } from "./asset-selector";
 import { tabsAtom, activeSubTabAtom } from "@/store/merry.store";
 import { lstConfigAtom } from "@/store/common.store";
+
+const BTC_ASSET_PATH_MAP: Record<string, string> = {
+  strkBTC: "/strkbtc",
+  LBTC: "/lbtc",
+  WBTC: "/wbtc",
+  tBTC: "/tbtc",
+  solvBTC: "/solvbtc",
+};
 
 const platformConfig = (lstConfig: any) => {
   return {
@@ -48,6 +56,7 @@ const Stats: React.FC<StatsProps> = ({
   mode = "stake", // Default to stake mode
 }) => {
   const router = useRouter();
+  const pathname = usePathname();
   const apy = useAtomValue(snAPYAtom);
   const currentStaked = useAtomValue(userLSTBalanceAtom);
   const totalStaked = useAtomValue(totalStakedAtom);
@@ -55,7 +64,6 @@ const Stats: React.FC<StatsProps> = ({
   const activeTab = useAtomValue(tabsAtom);
   const activeSubTab = useAtomValue(activeSubTabAtom);
   const lstConfig = useAtomValue(lstConfigAtom)!;
-  const isBTC = lstConfig.SYMBOL?.toLowerCase().includes("btc");
   const searchParams = useSearchParams();
   const referrer = searchParams.get("referrer");
 
@@ -69,15 +77,7 @@ const Stats: React.FC<StatsProps> = ({
     setSelectedAsset(assetSymbol);
 
     if (activeTab === "btc") {
-      const pathMap: Record<string, string> = {
-        strkBTC: "/strkbtc",
-        LBTC: "/lbtc",
-        WBTC: "/wbtc",
-        tBTC: "/tbtc",
-        solvBTC: "/solvbtc",
-      };
-
-      const newPath = pathMap[assetSymbol] || "/btc";
+      const newPath = BTC_ASSET_PATH_MAP[assetSymbol] || "/btc";
 
       const queryParams = new URLSearchParams();
       if (referrer) queryParams.set("referrer", referrer);
@@ -87,15 +87,24 @@ const Stats: React.FC<StatsProps> = ({
       const queryString = queryParams.toString();
       const finalPath = queryString ? `${newPath}?${queryString}` : newPath;
 
-      router.push(finalPath);
+      // Preserve scroll position: default router.push scrolls to top on navigation.
+      router.replace(finalPath, { scroll: false });
     }
   };
 
   React.useEffect(() => {
-    if (lstConfig?.SYMBOL && activeTab === "btc") {
+    if (activeTab !== "btc" || !lstConfig?.SYMBOL) return;
+
+    if (pathname === "/btc") {
+      setSelectedAsset(lstConfig.SYMBOL);
+      return;
+    }
+
+    const expectedPath = BTC_ASSET_PATH_MAP[lstConfig.SYMBOL] ?? "/btc";
+    if (pathname === expectedPath) {
       setSelectedAsset(lstConfig.SYMBOL);
     }
-  }, [lstConfig?.SYMBOL, activeTab]);
+  }, [lstConfig?.SYMBOL, activeTab, pathname]);
 
   // Memoize APY values to prevent re-renders from async calculations
   const memoizedApyValue = useMemo(() => {
