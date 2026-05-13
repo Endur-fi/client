@@ -87,7 +87,7 @@ const Stats: React.FC<StatsProps> = ({
       const queryString = queryParams.toString();
       const finalPath = queryString ? `${newPath}?${queryString}` : newPath;
 
-      router.push(finalPath);
+      router.push(finalPath, { scroll: false });
     }
   };
 
