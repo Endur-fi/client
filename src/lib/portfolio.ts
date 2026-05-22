@@ -4,6 +4,10 @@ import { pointsApolloClient } from "@/lib/apollo-client";
 import { getProvider } from "@/constants";
 import erc4626Abi from "@/abi/erc4626.abi.json";
 import pragmaOracleAbi from "@/abi/pragma-oracle.abi.json";
+import {
+  getAllLstTokenBalancesRpc as getAllLstTokenBalancesRpcImpl,
+  getPortfolioBalanceRpc as getPortfolioBalanceRpcImpl,
+} from "@/lib/portfolio-rpc";
 
 // Token addresses from constants
 const STRK_TOKEN_ADDRESS =
@@ -327,6 +331,16 @@ async function getPriceFromOracle(
  * Get USD conversion rates for tokens
  * Returns rates as numbers (price in USD)
  */
+const DEFAULT_USD_CONVERSION_RATES = {
+  strk: 0,
+  btc: 0,
+  xstrk: 0,
+  xwbtc: 0,
+  xlbtc: 0,
+  xsbtc: 0,
+  xtbtc: 0,
+};
+
 async function getUSDConversionRatesUncached(): Promise<{
   strk: number;
   btc: number;
@@ -336,38 +350,40 @@ async function getUSDConversionRatesUncached(): Promise<{
   xsbtc: number;
   xtbtc: number;
 }> {
-  const provider = getProvider();
+  try {
+    const provider = getProvider();
 
-  // Get base prices from Oracle
-  const [strkPrice, btcPrice] = await Promise.all([
-    getPriceFromOracle("STRK/USD", provider),
-    getPriceFromOracle("BTC/USD", provider),
-  ]);
-
-  // Calculate USD rates for base tokens
-  const strkRate = Number(strkPrice.price) / 10 ** Number(strkPrice.decimals);
-  const btcRate = Number(btcPrice.price) / 10 ** Number(btcPrice.decimals);
-
-  // For LST tokens, we need to get total_assets and total_supply to calculate exchange rate
-  // Then multiply by base token rate
-  const [xstrkRate, xwbtcRate, xlbtcRate, xsbtcRate, xtbtcRate] =
-    await Promise.all([
-      calculateLSTRate(XSTRK_TOKEN_ADDRESS, strkRate, provider),
-      calculateLSTRate(XWBTC_TOKEN_ADDRESS, btcRate, provider),
-      calculateLSTRate(XLBTC_TOKEN_ADDRESS, btcRate, provider),
-      calculateLSTRate(XSBTC_TOKEN_ADDRESS, btcRate, provider),
-      calculateLSTRate(XTBTC_TOKEN_ADDRESS, btcRate, provider),
+    // Get base prices from Oracle
+    const [strkPrice, btcPrice] = await Promise.all([
+      getPriceFromOracle("STRK/USD", provider),
+      getPriceFromOracle("BTC/USD", provider),
     ]);
 
-  return {
-    strk: strkRate,
-    btc: btcRate,
-    xstrk: xstrkRate,
-    xwbtc: xwbtcRate,
-    xlbtc: xlbtcRate,
-    xsbtc: xsbtcRate,
-    xtbtc: xtbtcRate,
-  };
+    const strkRate = Number(strkPrice.price) / 10 ** Number(strkPrice.decimals);
+    const btcRate = Number(btcPrice.price) / 10 ** Number(btcPrice.decimals);
+
+    const [xstrkRate, xwbtcRate, xlbtcRate, xsbtcRate, xtbtcRate] =
+      await Promise.all([
+        calculateLSTRate(XSTRK_TOKEN_ADDRESS, strkRate, provider),
+        calculateLSTRate(XWBTC_TOKEN_ADDRESS, btcRate, provider),
+        calculateLSTRate(XLBTC_TOKEN_ADDRESS, btcRate, provider),
+        calculateLSTRate(XSBTC_TOKEN_ADDRESS, btcRate, provider),
+        calculateLSTRate(XTBTC_TOKEN_ADDRESS, btcRate, provider),
+      ]);
+
+    return {
+      strk: strkRate,
+      btc: btcRate,
+      xstrk: xstrkRate,
+      xwbtc: xwbtcRate,
+      xlbtc: xlbtcRate,
+      xsbtc: xsbtcRate,
+      xtbtc: xtbtcRate,
+    };
+  } catch (error) {
+    console.error("Error fetching USD conversion rates:", error);
+    return { ...DEFAULT_USD_CONVERSION_RATES };
+  }
 }
 
 /**
@@ -451,6 +467,24 @@ export const getUSDConversionRates = getUSDConversionRatesUncached;
 export const getPortfolioBalance = getPortfolioBalanceUncached;
 export const getAllLstTokenBalances = getAllLstTokenBalancesUncached;
 export const getNativeTokenBalances = getNativeTokenBalancesUncached;
+
+export async function getAllLstTokenBalancesRpc(userAddress: string) {
+  return getAllLstTokenBalancesRpcImpl(
+    userAddress,
+    getPortfolioBalanceUncached,
+  );
+}
+
+export async function getPortfolioBalanceRpc(
+  userAddress: string,
+  lstToken: string = "XSTRK",
+) {
+  return getPortfolioBalanceRpcImpl(
+    userAddress,
+    lstToken,
+    getPortfolioBalanceUncached,
+  );
+}
 
 // Types for points response
 export interface RawAndXstrk {

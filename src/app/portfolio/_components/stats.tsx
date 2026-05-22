@@ -3,19 +3,35 @@
 import { atom, useAtomValue } from "jotai";
 import React from "react";
 
+import { getLSTAssetBySymbol, getSTRKAsset } from "@/constants";
 import { formatNumberWithCommas } from "@/lib/utils";
+import {
+  getLstTokenKeyForAsset,
+  portfolioDataTotalEther,
+  portfolioWalletEther,
+} from "@/lib/portfolio-ui-utils";
 import { userEkuboxSTRKPositions } from "@/store/ekubo.store";
-import { apiExchangeRateAtom, userLSTBalanceAtom } from "@/store/lst.store";
+import { userLSTBalanceAtom } from "@/store/lst.store";
 import { userLSTNostraBalance } from "@/store/nostra.store";
 import { snAPYAtom } from "@/store/staking.store";
 import { uservXSTRKBalanceAtom } from "@/store/vesu.store";
-import { assetPriceAtom } from "@/store/common.store";
 import { getSTRKFarmBalanceAtom } from "@/store/strkfarm.store";
 import { userOpusBalanceAtom } from "@/store/opus.store";
+import {
+  portfolioAssetSymbolAtom,
+  portfolioSnapshotAtom,
+} from "@/store/portfolio.store";
+import { protocolYieldsAtom } from "@/store/defi.store";
+import type { SupportedDApp } from "@/store/defi.store";
 
 export const totalXSTRKAcrossDefiHoldingsAtom = atom((get) => {
+  const snapshot = get(portfolioSnapshotAtom);
+  const xstrk = snapshot.data?.byLst?.XSTRK;
+  const strkDecimals = getSTRKAsset().DECIMALS;
+  if (xstrk && portfolioDataTotalEther(xstrk, strkDecimals) > 0) {
+    return portfolioDataTotalEther(xstrk, strkDecimals);
+  }
   const vesuBalance = get(uservXSTRKBalanceAtom(undefined));
-  // const haikoBalance = get(userHaikoBalanceAtom(undefined));
   const nostraBalance = get(userLSTNostraBalance(undefined));
   const ekuboBalance = get(userEkuboxSTRKPositions(undefined));
   const lstBalance = get(userLSTBalanceAtom);
@@ -34,38 +50,93 @@ export const totalXSTRKAcrossDefiHoldingsAtom = atom((get) => {
   return value;
 });
 
-const Stats: React.FC = () => {
-  const strkPrice = useAtomValue(assetPriceAtom);
-  const apy = useAtomValue(snAPYAtom);
-  const currentLSTBalance = useAtomValue(userLSTBalanceAtom);
-  const exchangeRate = useAtomValue(apiExchangeRateAtom);
+const HYPER_YIELD_KEY: Record<string, SupportedDApp> = {
+  STRK: "hyperxSTRK",
+  WBTC: "hyperxWBTC",
+  tBTC: "hyperxtBTC",
+  LBTC: "hyperxLBTC",
+  solvBTC: "hyperxsBTC",
+};
 
-  const totalXSTRK = useAtomValue(totalXSTRKAcrossDefiHoldingsAtom);
+const Stats: React.FC = () => {
+  const assetSymbol = useAtomValue(portfolioAssetSymbolAtom);
+  const { data: snapshot, isLoading, error } = useAtomValue(
+    portfolioSnapshotAtom,
+  );
+  const lstConfig = getLSTAssetBySymbol(assetSymbol) ?? getSTRKAsset();
+  const lstTokenKey = getLstTokenKeyForAsset(assetSymbol);
+  const portfolioData = snapshot?.byLst?.[lstTokenKey];
+
+  const apy = useAtomValue(snAPYAtom);
+  const yields = useAtomValue(protocolYieldsAtom);
+  const clientLstBalance = useAtomValue(userLSTBalanceAtom);
+  const clientStrkTotal = useAtomValue(totalXSTRKAcrossDefiHoldingsAtom);
+
+  const decimals = lstConfig.DECIMALS;
+  const lstSymbol = lstConfig.LST_SYMBOL;
+
+  const snapshotTotal = portfolioDataTotalEther(portfolioData, decimals);
+  const snapshotWallet = portfolioWalletEther(portfolioData, decimals);
+  const useClientFallback =
+    assetSymbol === "STRK" &&
+    !isLoading &&
+    (!snapshot ||
+      !!error ||
+      portfolioDataTotalEther(portfolioData, decimals) <= 0);
+
+  const clientWalletLst = Number(
+    clientLstBalance.value.toEtherToFixedDecimals(2),
+  );
+  const clientTotalLst = clientStrkTotal;
+
+  const totalLst = useClientFallback ? clientTotalLst : snapshotTotal;
+  const walletLst = useClientFallback ? clientWalletLst : snapshotWallet;
+  const defiLst = useClientFallback
+    ? Math.max(0, clientTotalLst - clientWalletLst)
+    : totalLst - walletLst;
 
   const totalUSD = React.useMemo(() => {
-    if (Number.isNaN(exchangeRate.rate) || !strkPrice.data) {
-      return "";
-    }
+    if (!portfolioData || !snapshot?.conversionRates) return "";
+    const rates = snapshot.conversionRates;
+    const priceMap: Record<string, number> = {
+      XSTRK: rates.xstrk,
+      XWBTC: rates.xwbtc,
+      XLBTC: rates.xlbtc,
+      XSBTC: rates.xsbtc,
+      XTBTC: rates.xtbtc,
+    };
+    const lstPrice = priceMap[lstTokenKey] ?? rates.xstrk;
+    return `$${(totalLst * lstPrice).toFixed(2)}`;
+  }, [portfolioData, snapshot, totalLst, lstTokenKey]);
 
-    try {
-      const xstrkPrice = strkPrice.data * exchangeRate.rate;
-
-      return `$${(totalXSTRK * xstrkPrice).toFixed(2)}`;
-    } catch (error) {
-      console.error("Error in getting xSTRK total USD value", error);
-      return "";
+  const displayApy = React.useMemo(() => {
+    const hyperKey = HYPER_YIELD_KEY[assetSymbol];
+    if (hyperKey && yields[hyperKey]?.value) {
+      return yields[hyperKey]!.value!;
     }
-  }, [exchangeRate.rate, totalXSTRK]);
+    if (assetSymbol === "STRK") {
+      return (apy.value.strkApy ?? 0) * 100;
+    }
+    return (apy.value.btcApy ?? 0) * 100;
+  }, [assetSymbol, yields, apy]);
+
+  if (isLoading) {
+    return (
+      <div className="flex h-fit w-full items-center justify-center rounded-xl border border-[#AACBC4]/30 bg-white p-8 font-poppins text-sm text-muted-foreground">
+        Loading portfolio…
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-fit w-full items-center justify-between rounded-xl border border-[#AACBC4]/30 bg-white p-5 font-poppins shadow-sm lg:px-8">
       <div className="flex w-[100%] gap-3 lg:w-[60%]">
         <div className="flex w-full flex-col items-start gap-3">
           <span className="text-xs font-medium text-[#03624C] lg:text-sm">
-            Total staked STRK
+            Total {lstSymbol}
           </span>
           <p className="flex items-end gap-2 text-xl font-semibold leading-[1] text-black">
-            {formatNumberWithCommas(totalXSTRK.toFixed(2))}
+            {formatNumberWithCommas(totalLst.toFixed(2))}
             <span className="text-sm font-normal leading-[1.2] text-muted-foreground/80">
               {totalUSD}
             </span>
@@ -74,12 +145,10 @@ const Stats: React.FC = () => {
 
         <div className="flex w-full flex-col items-start gap-3">
           <span className="text-xs font-medium text-[#03624C] lg:text-sm">
-            xSTRK in Wallet
+            {lstSymbol} in Wallet
           </span>
           <p className="flex items-end gap-4 text-xl font-semibold leading-[1] text-black">
-            {formatNumberWithCommas(
-              currentLSTBalance.value.toEtherToFixedDecimals(2),
-            )}
+            {formatNumberWithCommas(walletLst.toFixed(2))}
           </p>
         </div>
       </div>
@@ -87,24 +156,19 @@ const Stats: React.FC = () => {
       <div className="mt-[25px] flex w-[100%] gap-3 lg:mt-0 lg:w-[40%]">
         <div className="flex w-full flex-col items-start gap-3">
           <span className="text-xs font-medium text-[#03624C] lg:text-sm">
-            xSTRK in DApps
+            {lstSymbol} in DApps
           </span>
           <p className="flex items-end gap-4 text-xl font-semibold leading-[1] text-black">
-            {formatNumberWithCommas(
-              (
-                totalXSTRK -
-                Number(currentLSTBalance.value.toEtherToFixedDecimals(2))
-              ).toFixed(2),
-            )}
+            {formatNumberWithCommas(Math.max(0, defiLst).toFixed(2))}
           </p>
         </div>
 
         <div className="flex w-full flex-col items-start gap-3">
           <span className="text-xs font-medium text-[#03624C] lg:text-sm">
-            xSTRK APY
+            {lstSymbol} APY
           </span>
           <p className="-ml-3 flex items-end gap-4 text-xl font-semibold leading-[1] text-black">
-            ~{(apy.value.strkApy * 100).toFixed(2)}%
+            ~{displayApy.toFixed(2)}%
           </p>
         </div>
       </div>

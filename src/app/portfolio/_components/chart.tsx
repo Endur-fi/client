@@ -53,10 +53,12 @@ function getDummyData() {
 export function Chart({
   chartData,
   lastUpdated,
+  lstSymbol = "xSTRK",
   error,
 }: {
   chartData: HoldingInfo[];
   lastUpdated: Date | null;
+  lstSymbol?: string;
   error: string | null;
 }) {
   const [timeRange, setTimeRange] = useAtom(chartFilter);
@@ -85,7 +87,6 @@ export function Chart({
         protocolOrder: ["endur"],
       };
     }
-    // sort protocol key with highest value as on latest date
     const protocolKeys = Object.keys(
       filteredData[filteredData.length - 1],
     ).filter((key) => key !== "date");
@@ -101,18 +102,15 @@ export function Chart({
     });
     protocolValues.sort((a, b) => b.value - a.value);
 
-    // taking protocol ordered by highest value,
-    // sum the values to lower value protocols
-    // to create a stacked area chart
     const areaData = filteredData.map((item) => {
-      // ADD_DAPP_HERE
-      const data: (typeof filteredData)[0] = {
+      const data: Record<string, number | string> = {
         date: item.date,
-        nostraLending: 0,
-        nostraDex: 0,
+        nostra: 0,
         ekubo: 0,
         vesu: 0,
         endur: 0,
+        strkfarm: 0,
+        trovesHyper: 0,
         opus: 0,
       };
       let sum = 0;
@@ -161,25 +159,25 @@ export function Chart({
       setOffset(newOffset <= 5 ? 150 : newOffset);
     }, 10);
 
-    return () => clearInterval(interval); // Cleanup on unmount
+    return () => clearInterval(interval);
   }, []);
 
   return (
-    <Card className="w-full shadow-none">
+    <Card className="w-full overflow-hidden rounded-xl border border-[#AACBC4]/30 shadow-none">
       <CardHeader className="flex items-center gap-2 space-y-0 py-5 pb-2 sm:flex-row">
         <div className="grid flex-1 gap-1 text-center sm:text-left">
           <CardTitle className="text-sm lg:text-base">
-            Your xSTRK holdings over time
+            Your {lstSymbol} holdings over time
           </CardTitle>
           <CardDescription>
             Last updated:{" "}
             {lastUpdated ? formatHumanFriendlyDateTime(lastUpdated) : "-"}
           </CardDescription>
         </div>
-        <div className="mt-3 flex w-fit rounded-md border shadow-sm lg:ml-auto lg:mt-0">
+        <div className="mt-3 flex w-fit overflow-hidden rounded-lg border border-[#AACBC4]/30 shadow-sm lg:ml-auto lg:mt-0">
           <Button
             className={cn(
-              "flex h-7 w-10 items-center justify-center rounded-none rounded-l-[5px] border-r bg-transparent py-0 text-xs text-black text-muted-foreground shadow-none transition-all ease-linear hover:bg-transparent hover:text-black",
+              "flex h-7 w-10 items-center justify-center rounded-none border-r bg-transparent py-0 text-xs text-black text-muted-foreground shadow-none transition-all ease-linear hover:bg-transparent hover:text-black",
               {
                 "bg-border/60 text-black hover:bg-border/60":
                   timeRange === "7d",
@@ -215,7 +213,7 @@ export function Chart({
           </Button>
           <Button
             className={cn(
-              "flex h-7 w-10 items-center justify-center rounded-none rounded-r-[5px] border-0 bg-transparent py-0 text-xs text-black text-muted-foreground shadow-none transition-all ease-linear hover:bg-transparent hover:text-black",
+              "flex h-7 w-10 items-center justify-center rounded-none border-0 bg-transparent py-0 text-xs text-black text-muted-foreground shadow-none transition-all ease-linear hover:bg-transparent hover:text-black",
               {
                 "bg-border/60 text-black hover:bg-border/60":
                   timeRange === "180d",
@@ -233,15 +231,7 @@ export function Chart({
           config={chartConfig}
           className="aspect-auto h-[400px] w-full sm:h-[250px]"
         >
-          {/* <AreaChart data={filteredData}> */}
-          <AreaChart
-            accessibilityLayer
-            data={areaChartData}
-            // margin={{
-            //   left: 12,
-            //   right: 12,
-            // }}
-          >
+          <AreaChart accessibilityLayer data={areaChartData}>
             <ChartLegend
               content={<ChartLegendContent innerClassName="w-fit" />}
               className="relative mx-auto mt-4 flex w-fit flex-row items-center gap-4 rounded-lg border px-4 py-2"
@@ -253,10 +243,6 @@ export function Chart({
 
             <XAxis
               dataKey="date"
-              // tickLine={false}
-              // axisLine={true}
-              // tickMargin={8}
-              // minTickGap={32}
               tickFormatter={(value) => {
                 return formatDate(value);
               }}
@@ -313,25 +299,24 @@ export function Chart({
               />
             ))}
           </AreaChart>
-          {/* </AreaChart> */}
         </ChartContainer>
         {(!address || filteredData.length == 0) && (
-          <div className="absolute inset-0 flex items-center justify-center bg-white/80 backdrop-blur-sm">
+          <div className="absolute inset-0 flex items-center justify-center rounded-xl bg-white/80 backdrop-blur-sm">
             {!address && (
-              <div className="gap-2 p-[10px] text-center">
+              <div className="gap-2 rounded-xl p-[10px] text-center">
                 <b className="w-full">Connect Wallet</b>
                 <p className="text-[13px]">
-                  You will be able to see your xSTRK holding history across
+                  You will be able to see your {lstSymbol} holding history across
                   DApps
                 </p>
                 <div className="mt-3 flex justify-center">
-                  <ConnectButton className="rounded-md bg-[#17876D] px-6 py-2 font-medium text-white transition-colors hover:bg-[#17876D]" />
+                  <ConnectButton className="rounded-xl bg-[#17876D] px-6 py-2 font-medium text-white transition-colors hover:bg-[#17876D]" />
                 </div>
               </div>
             )}
             {address && filteredData.length == 0 && !error && (
               <div className="my-5 flex w-full items-center justify-center gap-2 p-[10px] text-center">
-                Computing your wallet xSTRK holding history{" "}
+                Computing your wallet {lstSymbol} holding history{" "}
                 <Loader className="size-4 animate-spin text-black" />
               </div>
             )}

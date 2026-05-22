@@ -14,6 +14,7 @@ import { ChartSplineIcon } from "./ui/chart-spline";
 import { FlameIcon } from "./ui/flame";
 import { GaugeIcon } from "./ui/gauge";
 import { HandCoinsIcon } from "./ui/hand-coins";
+import { UserIcon } from "./ui/user";
 import { SidebarMenuButton, SidebarMenuItem, useSidebar } from "./ui/sidebar";
 import { NativeStakingWarningDialog } from "./native-staking-warning-dialog";
 
@@ -122,24 +123,29 @@ const SidebarMenuItems = () => {
         </SidebarMenuButton>
       </SidebarMenuItem>
 
-      {/* Portfolio */}
-      {/* TODO: Add link to portfolio page */}
-      {/* <SidebarMenuItem>
+      <SidebarMenuItem>
         <SidebarMenuButton
           asChild
           className={cn("opacity-70 transition-all hover:opacity-100", {
             "bg-[rgba(23,135,109,0.2)] font-bold text-[#17876d] opacity-100":
               pathname === "/portfolio",
           })}
-          onMouseEnter={() =>
-            pathname !== "/portfolio" && setTriggerPortfolioIconAnimation(true)
-          }
-          onMouseLeave={() =>
-            pathname !== "/portfolio" && setTriggerPortfolioIconAnimation(false)
-          }
         >
           <Link
-            href="/portfolio"
+            href={getInternalUrl("/portfolio", referrer)}
+            onMouseEnter={() =>
+              pathname !== "/portfolio" &&
+              setTriggerPortfolioIconAnimation(true)
+            }
+            onMouseLeave={() =>
+              pathname !== "/portfolio" &&
+              setTriggerPortfolioIconAnimation(false)
+            }
+            onClick={() => {
+              MyAnalytics.track(AnalyticsEvents.SIDEBAR_NAV_CLICK, {
+                destination: "portfolio",
+              });
+            }}
             className="flex cursor-pointer flex-row items-center gap-2 text-nowrap rounded-[12px] text-base font-semibold text-[#03624C] transition-all"
           >
             <UserIcon
@@ -149,7 +155,7 @@ const SidebarMenuItems = () => {
             {open && "Portfolio"}
           </Link>
         </SidebarMenuButton>
-      </SidebarMenuItem> */}
+      </SidebarMenuItem>
 
       {/* Leaderboard */}
       <SidebarMenuItem>

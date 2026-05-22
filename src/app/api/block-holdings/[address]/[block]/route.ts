@@ -11,7 +11,7 @@ import {
   getNostraDEXHoldings,
   getNostraLendingHoldings,
   getAllOpusHoldings,
-} from "@/app/api/holdings/[address]/[nDays]/route";
+} from "@/lib/portfolio-holdings-history";
 import { DAppHoldings } from "@/store/defi.store";
 
 export const revalidate = 3600 * 6;

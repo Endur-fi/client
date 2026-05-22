@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import {
   getNativeTokenBalances,
-  getAllLstTokenBalances,
+  getAllLstTokenBalancesRpc,
 } from "@/lib/portfolio";
 
 export async function GET(
@@ -23,7 +23,7 @@ export async function GET(
 
     // Fetch both LST portfolio data and native token balances in parallel
     const [portfolioData, nativeBalances] = await Promise.all([
-      getAllLstTokenBalances(address),
+      getAllLstTokenBalancesRpc(address),
       getNativeTokenBalances(address),
     ]);
 
