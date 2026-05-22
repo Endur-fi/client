@@ -15,6 +15,8 @@ import {
 import * as React from "react";
 
 import { type ProtocolConfig } from "@/components/defi";
+import { MyAnalytics } from "@/lib/analytics";
+import { AnalyticsEvents } from "@/lib/analytics-events";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -167,7 +169,13 @@ export function DataTable<TData, TValue>({
         <Button
           variant="outline"
           size="sm"
-          onClick={() => table.previousPage()}
+          onClick={() => {
+            table.previousPage();
+            MyAnalytics.track(AnalyticsEvents.PORTFOLIO_TABLE_PAGINATION, {
+              direction: "previous",
+              page: table.getState().pagination.pageIndex,
+            });
+          }}
           disabled={!table.getCanPreviousPage()}
         >
           Previous
@@ -175,7 +183,13 @@ export function DataTable<TData, TValue>({
         <Button
           variant="outline"
           size="sm"
-          onClick={() => table.nextPage()}
+          onClick={() => {
+            table.nextPage();
+            MyAnalytics.track(AnalyticsEvents.PORTFOLIO_TABLE_PAGINATION, {
+              direction: "next",
+              page: table.getState().pagination.pageIndex + 2,
+            });
+          }}
           disabled={!table.getCanNextPage()}
         >
           Next

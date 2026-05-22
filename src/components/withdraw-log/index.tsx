@@ -1,13 +1,13 @@
-import { useAccount } from "@starknet-react/core";
 import { useAtomValue } from "jotai";
 import { Loader } from "lucide-react";
 import React from "react";
+import { ConnectButton, useAccount } from "@easyleap/sdk";
 
 import MyNumber from "@/lib/MyNumber";
+import { MyAnalytics } from "@/lib/analytics";
+import { AnalyticsEvents } from "@/lib/analytics-events";
 import { formatNumber, formatNumberWithCommas } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { useWalletConnection } from "@/hooks/use-wallet-connection";
 
 import { STRK_DECIMALS, LST_CONFIG } from "@/constants";
 import {
@@ -41,8 +41,8 @@ const WithdrawLog: React.FC = () => {
   const globalAmountAvailable = useAtomValue(globalAmountAvailableAtom);
   const activeTab = useAtomValue(tabsAtom);
 
-  const { address } = useAccount();
-  const { connectWallet } = useWalletConnection();
+  const { starknetAddress: address } = useAccount();
+  // Wallet connection is handled by Easyleap ConnectButton.
 
   const _yourPendingWithdrawalsAmount = React.useMemo(
     () =>
@@ -53,6 +53,14 @@ const WithdrawLog: React.FC = () => {
       ),
     [withdrawals],
   );
+
+  React.useEffect(() => {
+    if (address) {
+      MyAnalytics.track(AnalyticsEvents.WITHDRAW_LOG_VIEW, {
+        address,
+      });
+    }
+  }, [address]);
 
   React.useEffect(() => {
     if (!address || !withdrawalLogs?.value) return;
@@ -165,12 +173,14 @@ const WithdrawLog: React.FC = () => {
                 history and logs.
               </p>
             </div>
-            <Button
-              onClick={() => connectWallet()}
+            <ConnectButton
               className="w-full rounded-md bg-[#17876D] px-6 py-2 font-medium text-white transition-colors hover:bg-[#17876D] sm:w-auto"
-            >
-              Connect wallet
-            </Button>
+              onConnectStarknet={() =>
+                MyAnalytics.track(AnalyticsEvents.WALLET_CONNECT_CLICK, {
+                  source: "withdraw_log",
+                })
+              }
+            />
           </CardContent>
         </Card>
       </div>

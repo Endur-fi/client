@@ -256,7 +256,7 @@ const DefiCard: React.FC<DefiCardProps> = ({
               href={action.link}
               target="_blank"
               rel="noopener noreferrer"
-              onClick={action.onClick}
+              // onClick={action.onClick}
             >
               <Button
                 className={cn(

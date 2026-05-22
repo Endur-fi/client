@@ -13,7 +13,8 @@ import {
 
 import { useSidebar } from "@/components/ui/sidebar";
 import { MyAnalytics } from "@/lib/analytics";
-import { cn, eventNames, formatNumber } from "@/lib/utils";
+import { AnalyticsEvents } from "@/lib/analytics-events";
+import { cn, formatNumber } from "@/lib/utils";
 import {
   protocolYieldsAtom,
   SupportedDApp,
@@ -114,7 +115,7 @@ const createEkuboPoolConfig = (
     link: `https://app.ekubo.org/starknet/positions/new?quoteCurrency=${quoteCurrency}&baseCurrency=${baseCurrency}`,
     buttonText: "Add Liquidity",
     onClick: () => {
-      MyAnalytics.track(eventNames.OPPORTUNITIES, {
+      MyAnalytics.track(AnalyticsEvents.OPPORTUNITIES, {
         protocol: protocolKey,
         buttonText: "Add Liquidity",
       });
@@ -156,7 +157,7 @@ const createTrovesEkuboLiquidityConfig = (
     link: `https://app.troves.fi/strategy/${strategyPath}`,
     buttonText: "Add Liquidity",
     onClick: () => {
-      MyAnalytics.track(eventNames.OPPORTUNITIES, {
+      MyAnalytics.track(AnalyticsEvents.OPPORTUNITIES, {
         protocol: protocolKey,
         buttonText: "Add Liquidity",
       });
@@ -190,7 +191,7 @@ export const strkProtocolConfigs: Partial<
       link: "https://app.avnu.fi/en?mode=simple&tokenFrom=0x28d709c875c0ceac3dce7065bec5328186dc89fe254527084d1689910954b0a&tokenTo=0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d&amount=100",
       buttonText: "Swap Tokens",
       onClick: () => {
-        MyAnalytics.track(eventNames.OPPORTUNITIES, {
+        MyAnalytics.track(AnalyticsEvents.OPPORTUNITIES, {
           protocol: "anvu",
           buttonText: "Swap Tokens",
         });
@@ -212,7 +213,7 @@ export const strkProtocolConfigs: Partial<
       link: "https://app.fibrous.finance/en?network=starknet&mode=swap&source=0x028d709c875c0ceac3dce7065bec5328186dc89fe254527084d1689910954b0a&destination=0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
       buttonText: "Swap Tokens",
       onClick: () => {
-        MyAnalytics.track(eventNames.OPPORTUNITIES, {
+        MyAnalytics.track(AnalyticsEvents.OPPORTUNITIES, {
           protocol: "fibrous",
           buttonText: "Swap Tokens",
         });
@@ -235,7 +236,7 @@ export const strkProtocolConfigs: Partial<
       link: "https://app.nostra.finance/pools/xSTRK-STRK/deposit",
       buttonText: "Add Liquidity",
       onClick: () => {
-        MyAnalytics.track(eventNames.OPPORTUNITIES, {
+        MyAnalytics.track(AnalyticsEvents.OPPORTUNITIES, {
           protocol: "nostra-pool",
           buttonText: "Add Liquidity",
         });
@@ -266,7 +267,7 @@ export const strkProtocolConfigs: Partial<
       link: "https://app.opus.money/",
       buttonText: "Borrow",
       onClick: () => {
-        MyAnalytics.track(eventNames.OPPORTUNITIES, {
+        MyAnalytics.track(AnalyticsEvents.OPPORTUNITIES, {
           protocol: "opus",
           buttonText: "Borrow",
         });
@@ -301,7 +302,7 @@ const createHyperVaultConfig = (
     link: `https://app.troves.fi/strategy/${strategyPath}`,
     buttonText: "Invest",
     onClick: () => {
-      MyAnalytics.track(eventNames.OPPORTUNITIES, {
+      MyAnalytics.track(AnalyticsEvents.OPPORTUNITIES, {
         protocol: protocolKey,
         buttonText: "Invest",
       });
@@ -328,7 +329,7 @@ const createAvnuSwapConfig = (
     link: `https://app.avnu.fi/en?mode=simple&tokenFrom=${tokenFrom}&tokenTo=${tokenTo}&amount=100`,
     buttonText: "Swap Tokens",
     onClick: () => {
-      MyAnalytics.track(eventNames.OPPORTUNITIES, {
+      MyAnalytics.track(AnalyticsEvents.OPPORTUNITIES, {
         protocol: protocolKey,
         buttonText: "Swap Tokens",
       });
@@ -372,7 +373,7 @@ const createVesuLendingConfigsFromPools = (
         link: "http://vesu.xyz/earn?onlyV2Markets=true&includeIsolatedMarkets=true",
         buttonText: "Lend & Borrow",
         onClick: () => {
-          MyAnalytics.track(eventNames.OPPORTUNITIES, {
+          MyAnalytics.track(AnalyticsEvents.OPPORTUNITIES, {
             protocol: `vesuLending_${pool.collateralSymbol}`,
             buttonText: "Lend & Borrow",
           });
@@ -400,7 +401,7 @@ const _createVesuLendingConfig = (
     link: "http://vesu.xyz/earn?onlyV2Markets=true&includeIsolatedMarkets=true",
     buttonText: "Lend & Borrow",
     onClick: () => {
-      MyAnalytics.track(eventNames.OPPORTUNITIES, {
+      MyAnalytics.track(AnalyticsEvents.OPPORTUNITIES, {
         protocol: protocolKey,
         buttonText: "Lend & Borrow",
       });
@@ -732,7 +733,9 @@ const TOKEN_ICON_MAP: Record<string, (className?: string) => React.ReactNode> =
     xtBTC: (className) => <Icons.xtbtc className={className} />,
     xLBTC: (className) => <Icons.xlbtc className={className} />,
     xsBTC: (className) => <Icons.xsbtc className={className} />,
+    xstrkBTC: (className) => <Icons.xstrkbtc className={className} />,
     STRK: (className) => <Icons.strkLogo className={className} />,
+    strkBTC: (className) => <Icons.strkbtc className={className} />,
     WBTC: (className) => <Icons.wbtc className={className} />,
     tBTC: (className) => <Icons.tbtc className={className} />,
     LBTC: (className) => <Icons.lbtc className={className} />,
@@ -845,7 +848,7 @@ const Defi: React.FC = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const yields: any = useAtomValue(protocolYieldsAtom);
-  
+
   // Get initial tab from URL query parameter, default to "borrow"
   const tabParam = searchParams.get("tab");
   const getInitialTab = (): "earn" | "borrow" | "contribute-liquidity" => {
@@ -854,7 +857,7 @@ const Defi: React.FC = () => {
     if (tabParam === "contribute-liquidity") return "contribute-liquidity";
     return "borrow"; // default
   };
-  
+
   const [activeTab, setActiveTab] = useState<
     "earn" | "borrow" | "contribute-liquidity"
   >(getInitialTab());
@@ -912,8 +915,12 @@ const Defi: React.FC = () => {
   // Sync tab state with URL parameter changes (only when URL changes externally)
   React.useEffect(() => {
     const tabParam = searchParams.get("tab");
-    const validTabs: Array<"earn" | "borrow" | "contribute-liquidity"> = ["earn", "borrow", "contribute-liquidity"];
-    
+    const validTabs: Array<"earn" | "borrow" | "contribute-liquidity"> = [
+      "earn",
+      "borrow",
+      "contribute-liquidity",
+    ];
+
     if (validTabs.includes(tabParam as any)) {
       setActiveTab(tabParam as "earn" | "borrow" | "contribute-liquidity");
     } else if (!tabParam) {
@@ -935,10 +942,38 @@ const Defi: React.FC = () => {
 
   const handleContinue = () => {
     setShowDisclaimer(false);
+    MyAnalytics.track(AnalyticsEvents.DEFI_DISCLAIMER_CONTINUE, {
+      tab: activeTab,
+      link: pendingProtocolLink,
+    });
     if (pendingProtocolLink) {
       window.open(pendingProtocolLink, "_blank");
       setPendingProtocolLink(null);
     }
+  };
+
+  const handleAssetChange = (asset: AssetFilter) => {
+    setSelectedAsset(asset);
+    MyAnalytics.track(AnalyticsEvents.DEFI_ASSET_FILTER_CHANGE, {
+      asset,
+      tab: activeTab,
+    });
+  };
+
+  const handleProtocolChange = (protocol: ProtocolFilter) => {
+    setSelectedProtocol(protocol);
+    MyAnalytics.track(AnalyticsEvents.DEFI_PROTOCOL_FILTER_CHANGE, {
+      protocol,
+      tab: activeTab,
+    });
+  };
+
+  const handleStablesToggle = (show: boolean) => {
+    setShowStablesOnly(show);
+    MyAnalytics.track(AnalyticsEvents.DEFI_STABLES_TOGGLE, {
+      show,
+      tab: activeTab,
+    });
   };
 
   const handleCTAClick = (link: string, onClick?: () => void) => {
@@ -1014,8 +1049,8 @@ const Defi: React.FC = () => {
     // 1. Vesu supply pools from Re7 xSTRK and Re7 xBTC
     vesuContributorSupplyPools.forEach((pool) => {
       const tokenIcon = getTokenIcon(pool.assetSymbol);
-			const vesuUrl = process.env.NEXT_PUBLIC_VESU_URL || "http://vesu.xyz/pro";
-			const vesuEarnEndpoint = `${vesuUrl}/earn`;
+      const vesuUrl = process.env.NEXT_PUBLIC_VESU_URL || "http://vesu.xyz/pro";
+      const vesuEarnEndpoint = `${vesuUrl}/earn`;
       pools.push({
         id: `vesu-supply-${pool.poolId}-${pool.assetSymbol}`,
         tokens: [{ icon: tokenIcon, name: pool.assetSymbol }],
@@ -1044,7 +1079,7 @@ const Defi: React.FC = () => {
           link: `${vesuEarnEndpoint}/${pool.poolId}/${pool.assetAddress}`,
           buttonText: "Supply",
           onClick: () => {
-            MyAnalytics.track(eventNames.OPPORTUNITIES, {
+            MyAnalytics.track(AnalyticsEvents.OPPORTUNITIES, {
               protocol: `vesu-supply-${pool.assetSymbol}`,
               buttonText: "Supply",
             });
@@ -1053,7 +1088,7 @@ const Defi: React.FC = () => {
         actionLink: `${vesuEarnEndpoint}/${pool.poolId}/${pool.assetAddress}`,
         actionText: "Supply",
         actionOnClick: () => {
-          MyAnalytics.track(eventNames.OPPORTUNITIES, {
+          MyAnalytics.track(AnalyticsEvents.OPPORTUNITIES, {
             protocol: `vesu-supply-${pool.assetSymbol}`,
             buttonText: "Supply",
           });
@@ -1346,8 +1381,8 @@ const Defi: React.FC = () => {
   // Create dynamic protocol configs from Vesu borrow pools using generic atom
   const vesuBorrowConfigs = useMemo(() => {
     const configs: Record<string, ProtocolConfig> = {};
-		const vesuUrl = process.env.NEXT_PUBLIC_VESU_URL || "http://vesu.xyz/pro";
-		const vesuBorrowEndpoint = `${vesuUrl}/borrow`;
+    const vesuUrl = process.env.NEXT_PUBLIC_VESU_URL || "http://vesu.xyz/pro";
+    const vesuBorrowEndpoint = `${vesuUrl}/borrow`;
     vesuBorrowPools.forEach((pool, index) => {
       const key = `vesuBorrow_${pool.collateralSymbol}_${pool.debtSymbol}_${index}`;
       const isDebtUSDC = pool.debtSymbol === "USDC";
@@ -1383,7 +1418,7 @@ const Defi: React.FC = () => {
           link: `${vesuBorrowEndpoint}/${pool.poolId}/${pool.collateralAddress}/${pool.debtAddress}`,
           buttonText: "Borrow",
           onClick: () => {
-            MyAnalytics.track(eventNames.OPPORTUNITIES, {
+            MyAnalytics.track(AnalyticsEvents.OPPORTUNITIES, {
               protocol: "vesuBorrow",
               buttonText: "Borrow",
             });
@@ -1759,11 +1794,17 @@ const Defi: React.FC = () => {
           {/* Main Tabs - Supply & Earn / Borrow */}
           <ShadCNTabs
             value={activeTab}
-            onValueChange={(value) =>
-              setActiveTab(
-                value as "earn" | "borrow" | "contribute-liquidity",
-              )
-            }
+            onValueChange={(value) => {
+              const newTab = value as
+                | "earn"
+                | "borrow"
+                | "contribute-liquidity";
+              MyAnalytics.track(AnalyticsEvents.DEFI_TAB_CHANGE, {
+                from: activeTab,
+                to: newTab,
+              });
+              setActiveTab(newTab);
+            }}
             className="w-full"
           >
             {/* Sticky Header Section - Tabs + Table Headers */}
@@ -1844,12 +1885,12 @@ const Defi: React.FC = () => {
                         showMoreFilters={showMoreFilters}
                         activeTab={tab}
                         showStablesOnly={showStablesOnly}
-                        onAssetChange={setSelectedAsset}
-                        onProtocolChange={setSelectedProtocol}
+                        onAssetChange={handleAssetChange}
+                        onProtocolChange={handleProtocolChange}
                         onToggleMoreFilters={() =>
                           setShowMoreFilters(!showMoreFilters)
                         }
-                        onShowStablesOnlyChange={setShowStablesOnly}
+                        onShowStablesOnlyChange={handleStablesToggle}
                       />
                     </TabsContent>
                   ),

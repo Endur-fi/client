@@ -1,7 +1,12 @@
 "use client";
 
 import { useAtomValue } from "jotai";
-import { useAccount, useBalance } from "@starknet-react/core";
+import {
+  InteractionMode,
+  useAccount,
+  useBalance,
+  useMode,
+} from "@easyleap/sdk";
 import React from "react";
 import { Info } from "lucide-react";
 
@@ -13,16 +18,27 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "./ui/tooltip";
-import { getLSTAssetsByCategory, getSTRKAsset } from "@/constants";
+import {
+  WBTC_ETH_TOKEN,
+  getLSTAssetsByCategory,
+  getSTRKAsset,
+} from "@/constants";
 import { cn, formatBalance, formatNumberWithCommas } from "@/lib/utils";
 import { lstStatsQueryAtom } from "@/store/lst.store";
 import { btcPriceAtom, strkPriceAtom } from "@/store/staking.store";
 import MyNumber from "@/lib/MyNumber";
-import { GET_USER_NET_TOTAL_POINTS_SEASON1, GET_USER_NET_TOTAL_POINTS_SEASON2 } from "@/constants/queries";
+import {
+  GET_USER_NET_TOTAL_POINTS_SEASON1,
+  GET_USER_NET_TOTAL_POINTS_SEASON2,
+} from "@/constants/queries";
 import { pointsApolloClient } from "@/lib/apollo-client";
+import { MyAnalytics } from "@/lib/analytics";
+import { AnalyticsEvents } from "@/lib/analytics-events";
 
 const getBTCLSTIcon = (lstSymbol: string) => {
   switch (lstSymbol) {
+    case "xstrkBTC":
+      return <Icons.xstrkbtc className="h-5 w-5 shrink-0" />;
     case "xWBTC":
       return <Icons.xwbtc className="h-5 w-5 shrink-0" />;
     case "xtBTC":
@@ -37,37 +53,36 @@ const getBTCLSTIcon = (lstSymbol: string) => {
 };
 
 const PortfolioSection: React.FC = () => {
-  const { address } = useAccount();
+  const { starknetAddress: address } = useAccount();
+  const mode = useMode();
   const strkLSTConfig = getSTRKAsset();
   const btcAssets = getLSTAssetsByCategory("BTC");
 
   // Get STRK LST balance
-  const strkLSTBalanceData = useBalance({
-    address,
-    token: strkLSTConfig.LST_ADDRESS as `0x${string}`,
-  });
+  const strkLSTBalanceData = useBalance(
+    strkLSTConfig.LST_ADDRESS as `0x${string}`,
+  );
 
   // Get BTC LST balances
-  const wbtcBalance = useBalance({
-    address,
-    token: btcAssets.find((a) => a.SYMBOL === "WBTC")
-      ?.LST_ADDRESS as `0x${string}`,
-  });
-  const tbtcBalance = useBalance({
-    address,
-    token: btcAssets.find((a) => a.SYMBOL === "tBTC")
-      ?.LST_ADDRESS as `0x${string}`,
-  });
-  const lbtcBalance = useBalance({
-    address,
-    token: btcAssets.find((a) => a.SYMBOL === "LBTC")
-      ?.LST_ADDRESS as `0x${string}`,
-  });
-  const solvbtcBalance = useBalance({
-    address,
-    token: btcAssets.find((a) => a.SYMBOL === "solvBTC")
-      ?.LST_ADDRESS as `0x${string}`,
-  });
+  const wbtcTokenAddress =
+    mode === InteractionMode.EVM
+      ? (WBTC_ETH_TOKEN as `0x${string}`)
+      : (btcAssets.find((a) => a.SYMBOL === "WBTC")
+          ?.LST_ADDRESS as `0x${string}`);
+
+  const strkBtcBalance = useBalance(
+    btcAssets.find((a) => a.SYMBOL === "strkBTC")?.LST_ADDRESS as `0x${string}`,
+  );
+  const wbtcBalance = useBalance(wbtcTokenAddress);
+  const tbtcBalance = useBalance(
+    btcAssets.find((a) => a.SYMBOL === "tBTC")?.LST_ADDRESS as `0x${string}`,
+  );
+  const lbtcBalance = useBalance(
+    btcAssets.find((a) => a.SYMBOL === "LBTC")?.LST_ADDRESS as `0x${string}`,
+  );
+  const solvbtcBalance = useBalance(
+    btcAssets.find((a) => a.SYMBOL === "solvBTC")?.LST_ADDRESS as `0x${string}`,
+  );
 
   // Get prices and stats
   const strkPrice = useAtomValue(strkPriceAtom);
@@ -115,6 +130,9 @@ const PortfolioSection: React.FC = () => {
     return btcAssets.map((asset) => {
       let balance = BigInt(0);
       switch (asset.SYMBOL) {
+        case "strkBTC":
+          balance = strkBtcBalance.data?.value || BigInt(0);
+          break;
         case "WBTC":
           balance = wbtcBalance.data?.value || BigInt(0);
           break;
@@ -189,8 +207,8 @@ const PortfolioSection: React.FC = () => {
   const [season1Points, setSeason1Points] = React.useState<string | null>(null);
   const [season1Loading, setSeason1Loading] = React.useState(false);
 
-	const [season2Points, setSeason2Points] = React.useState<string | null>(null);
-	const [season2Loading, setSeason2Loading] = React.useState(false);
+  const [season2Points, setSeason2Points] = React.useState<string | null>(null);
+  const [season2Loading, setSeason2Loading] = React.useState(false);
 
   React.useEffect(() => {
     if (!address) {
@@ -224,7 +242,7 @@ const PortfolioSection: React.FC = () => {
     };
 
     fetchSeason1Points();
-      // eslint-disable-next-line react-hooks/exhaustive-deps -- pointsApolloClient is stable
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- pointsApolloClient is stable
   }, [address]);
 
   // Season 2 is 0 for now
@@ -234,7 +252,7 @@ const PortfolioSection: React.FC = () => {
       return;
     }
 
-		const fetchSeason2Points = async () => {
+    const fetchSeason2Points = async () => {
       setSeason2Loading(true);
       try {
         const result = await pointsApolloClient.query({
@@ -259,9 +277,8 @@ const PortfolioSection: React.FC = () => {
       }
     };
 
-		fetchSeason2Points();
-      // eslint-disable-next-line react-hooks/exhaustive-deps -- pointsApolloClient is stable
-  }, [address]);
+    fetchSeason2Points();
+  }, [address, pointsApolloClient]);
 
   return (
     <div
@@ -296,8 +313,7 @@ const PortfolioSection: React.FC = () => {
                     {formatBalance(strkHoldings.lstAmount, 2)} xSTRK
                   </span>
                   <span className="text-sm font-semibold text-[#1A1F24]">
-                    {formatBalance(strkHoldings.underlyingSTRK, 2)}{" "}
-                    STRK
+                    {formatBalance(strkHoldings.underlyingSTRK, 2)} STRK
                   </span>
                 </div>
                 <span className="text-left text-xs text-[#6B7780]">
@@ -317,12 +333,10 @@ const PortfolioSection: React.FC = () => {
                 {/* <span className="text-left text-sm text-[#1A1F24]">BTC</span> */}
                 <div className="flex w-full items-center justify-between">
                   <span className="text-left text-sm text-[#1A1F24]">
-                    {formatBalance(btcHoldings.totalLSTAmount, 6)}{" "}
-                    xyBTC
+                    {formatBalance(btcHoldings.totalLSTAmount, 6)} xyBTC
                   </span>
                   <span className="text-sm font-semibold text-[#1A1F24]">
-                    {formatBalance(btcHoldings.totalUnderlyingBTC, 6)}{" "}
-                    BTC
+                    {formatBalance(btcHoldings.totalUnderlyingBTC, 6)} BTC
                   </span>
                 </div>
                 <span className="text-left text-xs text-[#6B7780]">
@@ -346,7 +360,7 @@ const PortfolioSection: React.FC = () => {
                         {holding.asset.LST_SYMBOL}
                       </span>
                     </div>
-                    <span className="text-[#6B7780] ml-[22px]">
+                    <span className="ml-[22px] text-[#6B7780]">
                       ${formatNumberWithCommas(holding.usdValue, 2)}
                     </span>
                   </div>
@@ -387,8 +401,17 @@ const PortfolioSection: React.FC = () => {
                     <TooltipTrigger>
                       <Info className="h-3 w-3 text-[#6B7780]" />
                     </TooltipTrigger>
-                    <TooltipContent className="max-w-xs rounded-md border border-[#03624C] bg-white text-[#03624C]">
-                      Points earned during Season 1 [Nov 27th 2024 - Dec 15th 2025]
+                    <TooltipContent
+                      className="max-w-xs rounded-md border border-[#03624C] bg-white text-[#03624C]"
+                      onPointerDownOutside={() => {
+                        MyAnalytics.track(
+                          AnalyticsEvents.SEASON_POINTS_TOOLTIP_OPEN,
+                          { season: 1 },
+                        );
+                      }}
+                    >
+                      Points earned during Season 1 [Nov 27th 2024 - Dec 15th
+                      2025]
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
@@ -411,8 +434,17 @@ const PortfolioSection: React.FC = () => {
                     <TooltipTrigger>
                       <Info className="h-3 w-3 text-[#6B7780]" />
                     </TooltipTrigger>
-                    <TooltipContent className="max-w-xs rounded-md border border-[#03624C] bg-white text-[#03624C]">
-                      Points earned during Season 2 [Dec 16th 2025 - June 15th 2026]
+                    <TooltipContent
+                      className="max-w-xs rounded-md border border-[#03624C] bg-white text-[#03624C]"
+                      onPointerDownOutside={() => {
+                        MyAnalytics.track(
+                          AnalyticsEvents.SEASON_POINTS_TOOLTIP_OPEN,
+                          { season: 2 },
+                        );
+                      }}
+                    >
+                      Points earned during Season 2 [Dec 16th 2025 - June 15th
+                      2026]
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>

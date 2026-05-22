@@ -3,6 +3,7 @@
 import { useAtom, useAtomValue } from "jotai";
 import { Info, Layers } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter, usePathname } from "next/navigation";
 import React from "react";
 import { useAccount } from "@starknet-react/core";
@@ -16,6 +17,8 @@ import {
 } from "@/components/ui/tooltip";
 import { IS_PAUSED, getLSTAssetsByCategory, getSTRKAsset } from "@/constants";
 import { cn, formatNumberWithCommas, getInternalUrl } from "@/lib/utils";
+import { MyAnalytics } from "@/lib/analytics";
+import { AnalyticsEvents } from "@/lib/analytics-events";
 import {
   isMerryChristmasAtom,
   tabsAtom,
@@ -46,6 +49,7 @@ import { MyDottedTooltip } from "./my-tooltip";
 import { useSearchParams } from "next/navigation";
 import MyHeader from "./header";
 import VipCard from "./vip-card";
+import strkBTCBanner from "@public/strk-btc-live-banner.png";
 
 const Tabs = () => {
   const router = useRouter();
@@ -103,6 +107,8 @@ const Tabs = () => {
       setActiveTab("btc");
     } else if (pathname === "/solvbtc") {
       setActiveTab("btc");
+    } else if (pathname === "/strkbtc") {
+      setActiveTab("btc");
     } else {
       setActiveTab("btc");
     }
@@ -157,6 +163,15 @@ const Tabs = () => {
           setLSTConfig(solvbtcAsset);
           return;
         }
+      } else if (pathname === "/strkbtc") {
+        const strkBtcAsset = btcAssets.find(
+          (asset) => asset.SYMBOL === "strkBTC",
+        );
+        console.log("Looking for strkBTC asset:", strkBtcAsset);
+        if (strkBtcAsset) {
+          setLSTConfig(strkBtcAsset);
+          return;
+        }
       }
 
       const firstBTCAsset = btcAssets[0];
@@ -199,6 +214,11 @@ const Tabs = () => {
 
     setActiveTab(tab);
 
+    MyAnalytics.track(AnalyticsEvents.MAIN_TAB_CHANGE, {
+      from: activeTab,
+      to: tab,
+    });
+
     const referrer = searchParams.get("referrer");
 
     if (tab === "btc") {
@@ -216,6 +236,11 @@ const Tabs = () => {
     if (subTab === activeSubTab) return;
 
     setActiveSubTab(subTab);
+
+    MyAnalytics.track(AnalyticsEvents.SUB_TAB_CHANGE, {
+      from: activeSubTab,
+      to: subTab,
+    });
   };
 
   const _handleWaitlistSubmit = async (e: React.FormEvent) => {
@@ -236,6 +261,10 @@ const Tabs = () => {
       return;
     }
 
+    MyAnalytics.track(AnalyticsEvents.WAITLIST_EMAIL_SUBMIT, {
+      address,
+    });
+
     setIsSubmitting(true);
 
     try {
@@ -255,11 +284,15 @@ const Tabs = () => {
             variant: "destructive",
           });
           setWaitlistEmail("");
+        } else {
+          MyAnalytics.track(AnalyticsEvents.WAITLIST_EMAIL_SUCCESS, {
+            address,
+          });
+          toast({
+            description: "Successfully joined waitlist.",
+            variant: "complete",
+          });
         }
-        toast({
-          description: "Successfully joined waitlist.",
-          variant: "complete",
-        });
       } else {
         toast({
           description: "Already subscribed.",
@@ -375,6 +408,41 @@ const Tabs = () => {
           )}
         > */}
 
+        <div className="relative mb-2 w-full max-w-[calc(100vw-1rem)] overflow-hidden rounded-2xl shadow-[0px_5.55px_22.2px_0px_#11998E4D] lg:mb-6 lg:max-w-4xl bg-[#011a38]">
+          <a href="https://www.starknet.io/blog/strkbtc-starknets-shielded-bitcoin-with-private-transactions/" target="_blank">
+            <Image
+              alt="strkBTC banner"
+              src={strkBTCBanner}
+              className="block h-auto w-full"
+            />
+            <div className="absolute inset-x-[22.2px] inset-y-[16.65px] flex flex-col justify-center md:gap-3">
+              <span className="flex w-fit items-center gap-1 rounded-3xl border border-[#38EF7D66] bg-[#38EF7D33] px-2 py-[0.5px] text-[7px] text-[#38EF7D] md:px-3 md:py-1 md:text-[12px]">
+                <svg
+                  width="5"
+                  height="5"
+                  viewBox="0 0 5 5"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <g opacity="0.751095">
+                    <path
+                      d="M0 2.08125C0 0.931808 0.931808 0 2.08125 0C3.23069 0 4.1625 0.931808 4.1625 2.08125C4.1625 3.23069 3.23069 4.1625 2.08125 4.1625C0.931808 4.1625 0 3.23069 0 2.08125Z"
+                      fill="#38EF7D"
+                    />
+                  </g>
+                </svg>
+                LIVE
+              </span>
+              <h1 className="text-sm font-bold text-white md:text-[32px]">
+                strkBTC is now live on Starknet!
+              </h1>
+              <p className="text-[8px] text-[#FFFFFFCC] md:text-[14px]">
+                With Endur, you can do End to End private BTC staking
+              </p>
+            </div>
+          </a>
+        </div>
+
         <MyHeader
           title="Starknet Liquid Staking"
           description={
@@ -396,6 +464,9 @@ const Tabs = () => {
             <Link
               href="https://docs.endur.fi/docs/security"
               target="_blank"
+              onClick={() =>
+                MyAnalytics.track(AnalyticsEvents.AUDITED_LINK_CLICK, {})
+              }
               className="flex w-fit items-center gap-1 rounded-full border border-[#17876D33] bg-[#17876D1A] px-3 py-1 transition-opacity hover:opacity-80 md:mt-0"
             >
               <Icons.shield className="size-3.5 text-[#17876D]" />
@@ -583,7 +654,7 @@ const Tabs = () => {
               className={cn("flex w-full max-w-full flex-col gap-4 lg:hidden")}
             >
               <SeasonPointsCard />
-							<VipCard />
+              <VipCard />
               <StakingRewardsInfo />
               <PortfolioSection />
               <FAQSection />
@@ -603,7 +674,7 @@ const Tabs = () => {
             </div>
 
             <SeasonPointsCard />
-						<VipCard />
+            <VipCard />
             <PortfolioSection />
             <StakingRewardsInfo />
             {/* <FAQSection /> */}

@@ -5,7 +5,7 @@ import React from "react";
 import { Gift, Trophy } from "lucide-react";
 
 import { useSidebar } from "@/components/ui/sidebar";
-import { isMainnet, LEADERBOARD_ANALYTICS_EVENTS } from "@/constants";
+import { isMainnet } from "@/constants";
 import {
   GET_TOP_100_USERS_SEASON1,
   GET_USER_NET_TOTAL_POINTS_SEASON1,
@@ -14,6 +14,7 @@ import {
   GET_USER_COMPLETE_DETAILS,
 } from "@/constants/queries";
 import { MyAnalytics } from "@/lib/analytics";
+import { AnalyticsEvents } from "@/lib/analytics-events";
 import { defaultOptions, pointsApolloClient } from "@/lib/apollo-client";
 import { cn, standariseAddress } from "@/lib/utils";
 import {
@@ -23,7 +24,6 @@ import {
   TabsTrigger,
 } from "@/components/ui/tabs";
 import { useWalletConnection } from "@/hooks/use-wallet-connection";
-import { Button } from "@/components/ui/button";
 
 import { UserCompleteDetailsApiResponse } from "./_components/check-eligibility";
 import { type SizeColumn } from "./_components/table/columns";
@@ -108,8 +108,8 @@ interface LeaderboardState {
   totalUsers: number | null;
   currentUserInfo: CurrentUserInfo;
   userCompleteInfo: UserCompleteDetailsApiResponse | null;
-	season2Top100Users: SizeColumn[];
-	season2CurreUserInfo: CurrentUserInfo;
+  season2Top100Users: SizeColumn[];
+  season2CurreUserInfo: CurrentUserInfo;
 }
 
 interface LeaderboardCache {
@@ -118,8 +118,8 @@ interface LeaderboardCache {
   totalUsers: number | null;
   currentUserInfo: CurrentUserInfo;
   userCompleteInfo: UserCompleteDetailsApiResponse | null;
-	season2Top100Users: SizeColumn[];
-	season2CurreUserInfo: CurrentUserInfo;
+  season2Top100Users: SizeColumn[];
+  season2CurreUserInfo: CurrentUserInfo;
 }
 
 // Old API client for Season 1 allocation and proof data
@@ -143,8 +143,13 @@ const useLeaderboardData = () => {
     totalUsers: null,
     currentUserInfo: { points: "0", rank: null, address: "", isLoading: false },
     userCompleteInfo: null,
-		season2Top100Users: [],
-		season2CurreUserInfo: { points: "0", rank: null, address: "", isLoading: false },
+    season2Top100Users: [],
+    season2CurreUserInfo: {
+      points: "0",
+      rank: null,
+      address: "",
+      isLoading: false,
+    },
   });
 
   const { address } = useAccount();
@@ -167,8 +172,8 @@ const useLeaderboardData = () => {
             totalUsers: leaderboardCache.totalUsers,
             currentUserInfo: leaderboardCache.currentUserInfo,
             userCompleteInfo: leaderboardCache.userCompleteInfo,
-						season2Top100Users: leaderboardCache.season2Top100Users,
-						season2CurreUserInfo: leaderboardCache.season2CurreUserInfo,
+            season2Top100Users: leaderboardCache.season2Top100Users,
+            season2CurreUserInfo: leaderboardCache.season2CurreUserInfo,
           });
           return;
         }
@@ -186,101 +191,106 @@ const useLeaderboardData = () => {
           error: null,
         }));
 
-        const [usersResult, season2Top100UsersResult, season2CurrentUserResult, currentUserResult, oldApiUserResult] =
-          await Promise.allSettled([
-            pointsApolloClient.query<Top100UsersSeason1Response>({
-              query: GET_TOP_100_USERS_SEASON1,
-              fetchPolicy: "network-only", // fetch fresh data when we bypass cache
-            }),
+        const [
+          usersResult,
+          season2Top100UsersResult,
+          season2CurrentUserResult,
+          currentUserResult,
+          oldApiUserResult,
+        ] = await Promise.allSettled([
+          pointsApolloClient.query<Top100UsersSeason1Response>({
+            query: GET_TOP_100_USERS_SEASON1,
+            fetchPolicy: "network-only", // fetch fresh data when we bypass cache
+          }),
 
-						pointsApolloClient.query<Top100UsersSeason2Response>({
-							query: GET_TOP_100_USERS_SEASON2,
-							variables: {
-								overall: true,
-							},
-							fetchPolicy: "network-only", // fetch fresh data when we bypass cache
-						}),
+          pointsApolloClient.query<Top100UsersSeason2Response>({
+            query: GET_TOP_100_USERS_SEASON2,
+            variables: {
+              overall: true,
+            },
+            fetchPolicy: "network-only", // fetch fresh data when we bypass cache
+          }),
 
-						address
-              ? pointsApolloClient.query<UserNetTotalPointsSeason2Response>({
-                  query: GET_USER_NET_TOTAL_POINTS_SEASON2,
-                  variables: {
-                    userAddress: address,
-                    overall: true,
+          address
+            ? pointsApolloClient.query<UserNetTotalPointsSeason2Response>({
+                query: GET_USER_NET_TOTAL_POINTS_SEASON2,
+                variables: {
+                  userAddress: address,
+                  overall: true,
+                },
+              })
+            : Promise.resolve<{ data: UserNetTotalPointsSeason2Response }>({
+                data: {
+                  getUserNetTotalPointsSeason2: {
+                    userAddress: "",
+                    totalPoints: "0",
+                    weightedTotalPoints: "0",
+                    rank: null,
                   },
-                })
-              : Promise.resolve<{ data: UserNetTotalPointsSeason2Response }>({
-                  data: { 
-                    getUserNetTotalPointsSeason2: {
-                      userAddress: "",
-                      totalPoints: "0",
-                      weightedTotalPoints: "0",
-                      rank: null,
-                    },
-                  },
-                }),
+                },
+              }),
 
-            address
-              ? pointsApolloClient.query<UserNetTotalPointsSeason1Response>({
-                  query: GET_USER_NET_TOTAL_POINTS_SEASON1,
-                  variables: {
-                    userAddress: address,
-                  },
-                })
-              : Promise.resolve({
-                  data: { getUserNetTotalPointsSeason1: null },
-                }),
-            // Fetch from old API for allocation and proof data
-            // Try multiple address formats since old API might store addresses differently
-            address
-              ? (async () => {
-                  const addressVariants = [
-                    address, // Original address (with leading zeros if any)
-                    standariseAddress(address), // Standardized (no leading zeros)
-                    address.toLowerCase(), // Lowercase original
-                    standariseAddress(address).toLowerCase(), // Lowercase standardized
-                  ].filter((addr, index, self) => self.indexOf(addr) === index); // Remove duplicates
+          address
+            ? pointsApolloClient.query<UserNetTotalPointsSeason1Response>({
+                query: GET_USER_NET_TOTAL_POINTS_SEASON1,
+                variables: {
+                  userAddress: address,
+                },
+              })
+            : Promise.resolve({
+                data: { getUserNetTotalPointsSeason1: null },
+              }),
+          // Fetch from old API for allocation and proof data
+          // Try multiple address formats since old API might store addresses differently
+          address
+            ? (async () => {
+                const addressVariants = [
+                  address, // Original address (with leading zeros if any)
+                  standariseAddress(address), // Standardized (no leading zeros)
+                  address.toLowerCase(), // Lowercase original
+                  standariseAddress(address).toLowerCase(), // Lowercase standardized
+                ].filter((addr, index, self) => self.indexOf(addr) === index); // Remove duplicates
 
-                  for (const addr of addressVariants) {
-                    try {
-                      const result =
-                        await apolloClientOldApi.query<OldApiUserCompleteDetailsResponse>(
-                          {
-                            query: GET_USER_COMPLETE_DETAILS,
-                            variables: {
-                              userAddress: addr,
-                            },
-                            errorPolicy: "all",
+                for (const addr of addressVariants) {
+                  try {
+                    const result =
+                      await apolloClientOldApi.query<OldApiUserCompleteDetailsResponse>(
+                        {
+                          query: GET_USER_COMPLETE_DETAILS,
+                          variables: {
+                            userAddress: addr,
                           },
-                        );
-
-                      // Check for GraphQL errors
-                      if (result.errors && result.errors.length > 0) {
-                        console.warn(
-                          `Old API GraphQL errors for address ${addr}:`,
-                          result.errors,
-                        );
-                      }
-
-                      // Check if we got data
-                      if (result?.data?.getUserCompleteDetails) {
-                        return result;
-                      }
-                    } catch (err) {
-                      console.error(
-                        `Old API query failed for address ${addr}:`,
-                        err,
+                          errorPolicy: "all",
+                        },
                       );
-                      continue;
-                    }
-                  }
 
-                  return { data: { getUserCompleteDetails: null } };
-                })()
-              : Promise.resolve({
-                  data: { getUserCompleteDetails: null },
-                }),
-          ]);
+                    // Check for GraphQL errors
+                    if (result.errors && result.errors.length > 0) {
+                      console.warn(
+                        `Old API GraphQL errors for address ${addr}:`,
+                        result.errors,
+                      );
+                    }
+
+                    // Check if we got data
+                    if (result?.data?.getUserCompleteDetails) {
+                      return result;
+                    }
+                  } catch (err) {
+                    console.error(
+                      `Old API query failed for address ${addr}:`,
+                      err,
+                    );
+                    continue;
+                  }
+                }
+
+                return { data: { getUserCompleteDetails: null } };
+              })()
+            : Promise.resolve({
+                data: { getUserCompleteDetails: null },
+              }),
+        ]);
 
         if (usersResult.status === "rejected") {
           throw new Error(
@@ -351,15 +361,16 @@ const useLeaderboardData = () => {
           isLoading: false,
           rank: userRank,
         };
-        
-				// --------
-				if (season2Top100UsersResult.status === "rejected") {
+
+        // --------
+        if (season2Top100UsersResult.status === "rejected") {
           throw new Error(
             season2Top100UsersResult.reason?.message || "Failed to fetch users",
           );
         }
 
-        const season2Top100ApiResponse = season2Top100UsersResult.value.data?.getTop100UsersSeason2;
+        const season2Top100ApiResponse =
+          season2Top100UsersResult.value.data?.getTop100UsersSeason2;
         if (!season2Top100ApiResponse) {
           throw new Error("Invalid response format");
         }
@@ -370,23 +381,34 @@ const useLeaderboardData = () => {
             : null;
 
         // Use weightedTotalPoints for display (weighted points refer to previous total_points)
-        const season2TransformedData: SizeColumn[] = season2Top100ApiResponse.map(
-          (user: { userAddress: string; totalPoints: string; weightedTotalPoints: string }, index: number) => ({
-            rank: (index + 1).toString(),
-            address: user.userAddress,
-            score: user.weightedTotalPoints || "0",
-          }),
-        );
+        const season2TransformedData: SizeColumn[] =
+          season2Top100ApiResponse.map(
+            (
+              user: {
+                userAddress: string;
+                totalPoints: string;
+                weightedTotalPoints: string;
+              },
+              index: number,
+            ) => ({
+              rank: (index + 1).toString(),
+              address: user.userAddress,
+              score: user.weightedTotalPoints || "0",
+            }),
+          );
 
         const season2UserRank =
-          season2CurrentUserData?.rank !== null && season2CurrentUserData?.rank !== undefined
+          season2CurrentUserData?.rank !== null &&
+          season2CurrentUserData?.rank !== undefined
             ? season2CurrentUserData.rank
             : null;
 
         // Get points value, handling empty strings, null, or undefined
         const season2UserPoints = season2CurrentUserData?.weightedTotalPoints;
         const season2PointsValue =
-          season2UserPoints && season2UserPoints.trim() !== "" ? season2UserPoints : "0";
+          season2UserPoints && season2UserPoints.trim() !== ""
+            ? season2UserPoints
+            : "0";
 
         const season2CurrentUserInfo: CurrentUserInfo = {
           points: season2PointsValue,
@@ -477,8 +499,8 @@ const useLeaderboardData = () => {
           totalUsers: apiResponse.length,
           currentUserInfo,
           userCompleteInfo: userCompleteInfoMapped,
-					season2Top100Users: season2TransformedData,
-					season2CurreUserInfo: season2CurrentUserInfo,
+          season2Top100Users: season2TransformedData,
+          season2CurreUserInfo: season2CurrentUserInfo,
         };
 
         setState({
@@ -489,8 +511,8 @@ const useLeaderboardData = () => {
           totalUsers: apiResponse.length,
           currentUserInfo,
           userCompleteInfo: userCompleteInfoMapped,
-					season2Top100Users: season2TransformedData,
-					season2CurreUserInfo: season2CurrentUserInfo,
+          season2Top100Users: season2TransformedData,
+          season2CurreUserInfo: season2CurrentUserInfo,
         });
       } catch (err) {
         console.error("Error fetching users data:", err);
@@ -542,79 +564,16 @@ const ErrorDisplay = React.memo(({ error }: { error: string }) => (
 ));
 ErrorDisplay.displayName = "ErrorDisplay";
 
-const Season2Banner = React.memo(() => (
-  <div className="mt-6 flex flex-col gap-3 rounded-xl bg-[#17876D26] px-2 py-2 lg:flex-row lg:items-center lg:gap-6 lg:px-4 lg:py-2">
-    <div className="flex gap-2 lg:flex-shrink-0 lg:gap-3">
-      <Icons.announcement />
-      <div className="flex flex-col gap-1 lg:hidden lg:gap-2">
-        <h4 className="text-sm font-bold text-[#17876D] lg:text-base">
-          Season 2 Points Program Active
-        </h4>
-        <span className="w-fit rounded-full bg-[#38EF7D] px-4 py-1 text-xs font-bold text-[#0D5F4E] lg:px-5 lg:py-1.5 lg:text-sm">
-          LIVE
-        </span>
-        <p className="text-xs text-[#17876D] lg:text-sm">
-          Earn points by staking or contributing to Endur throughout the season
-        </p>
-      </div>
-    </div>
-    <div className="hidden flex-1 space-y-2 lg:block">
-      <div className="flex items-center gap-2">
-        <h4 className="text-sm font-bold text-[#17876D] lg:text-base">
-          Season 2 Points Program Active
-        </h4>
-        <span className="w-fit rounded-full bg-[#38EF7D] px-4 py-1 text-xs font-bold text-[#0D5F4E] lg:px-2 lg:py-0">
-          LIVE
-        </span>
-      </div>
-      <p className="text-xs text-[#17876D] lg:text-sm">
-        Earn points by staking on Endur throughout the season
-      </p>
-    </div>
-    <div className="lg:flex-shrink-0 lg:self-center">
-      <Button className="w-full rounded-md bg-[#17876D] px-4 py-2 text-xs font-medium text-white transition-opacity hover:opacity-90 lg:w-auto lg:px-6 lg:text-sm">
-        View details
-      </Button>
-    </div>
-  </div>
-));
-Season2Banner.displayName = "Season2Banner";
-
-const BtcStakingInfoBanner = React.memo(() => (
-  <div className="mt-4 flex items-center gap-3 rounded-md border border-[#17876D]/20 bg-[#17876D]/5 px-4 py-3">
-    <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-[#17876D]/10">
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="16"
-        height="16"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        className="text-[#17876D]"
-      >
-        <circle cx="12" cy="12" r="10"></circle>
-        <path d="M12 16v-4"></path>
-        <path d="M12 8h.01"></path>
-      </svg>
-    </div>
-    <p className="text-sm font-medium text-[#021B1A]">
-      Points for BTC staking will be added soon
-    </p>
-  </div>
-));
-BtcStakingInfoBanner.displayName = "BtcStakingInfoBanner";
-
 const RewardsPage: React.FC = () => {
   const { isPinned } = useSidebar();
   const { address } = useAccount();
   const { connectWallet: _connectWallet } = useWalletConnection();
-  const [_activeSeason, _setActiveSeason] = React.useState<
-    "season1" | "season2"
-  >("season1");
-	const [activeTab, setActiveTab] = React.useState<"your-points" | "leaderboard" | "rewards">("your-points");
+  const [activeSeason, setActiveSeason] = React.useState<"season1" | "season2">(
+    "season1",
+  );
+  const [activeTab, setActiveTab] = React.useState<
+    "your-points" | "leaderboard" | "rewards"
+  >("your-points");
 
   const {
     data: allUsers,
@@ -623,8 +582,8 @@ const RewardsPage: React.FC = () => {
     fetchUsersData,
     currentUserInfo,
     userCompleteInfo,
-		season2Top100Users,
-		season2CurreUserInfo
+    season2Top100Users,
+    season2CurreUserInfo,
   } = useLeaderboardData();
 
   React.useEffect(() => {
@@ -632,12 +591,11 @@ const RewardsPage: React.FC = () => {
   }, [fetchUsersData]);
 
   React.useEffect(() => {
-    MyAnalytics.track(LEADERBOARD_ANALYTICS_EVENTS.LEADERBOARD_PAGE_VIEW, {
+    MyAnalytics.track(AnalyticsEvents.REWARDS_SEASON_CHANGE, {
+      season: activeSeason,
       userAddress: address || "anonymous",
-      timestamp: Date.now(),
-      isWalletConnected: !!address,
     });
-  }, [address]);
+  }, [activeSeason, address]);
 
   const leaderboardData = React.useMemo(() => {
     if (!address || allUsers.length === 0) return allUsers;
@@ -662,8 +620,8 @@ const RewardsPage: React.FC = () => {
     return [currentUserData, ...allUsers];
   }, [address, allUsers, currentUserInfo]);
 
-	const season2LeaderboardData = React.useMemo(() => {
-		if (!address || season2Top100Users.length === 0) return season2Top100Users;
+  const season2LeaderboardData = React.useMemo(() => {
+    if (!address || season2Top100Users.length === 0) return season2Top100Users;
 
     const existingUserIndex = season2Top100Users.findIndex(
       (user) => user.address.toLowerCase() === address,
@@ -683,13 +641,16 @@ const RewardsPage: React.FC = () => {
       score: season2CurreUserInfo.points,
     };
     return [currentUserData, ...season2Top100Users];
-	}, [address, season2Top100Users, season2CurreUserInfo]);
+  }, [address, season2Top100Users, season2CurreUserInfo]);
 
   const containerClasses = React.useMemo(
     () =>
-      cn("lg:mt-10 w-full max-w-[calc(100vw-1rem)] px-2 lg:max-w-4xl flex flex-col gap-6", {
-        "lg:pl-28": !isPinned,
-      }),
+      cn(
+        "lg:mt-10 w-full max-w-[calc(100vw-1rem)] px-2 lg:max-w-4xl flex flex-col gap-6",
+        {
+          "lg:pl-28": !isPinned,
+        },
+      ),
     [isPinned],
   );
 
@@ -737,61 +698,89 @@ const RewardsPage: React.FC = () => {
       {/* points/leaderboard/rewards tabs */}
       <ShadCNTabs
         value={activeTab}
-        onValueChange={(value) =>
-          setActiveTab(value as "your-points" | "leaderboard" | "rewards")
-        }
+        onValueChange={(value) => {
+          const to = value as "your-points" | "leaderboard" | "rewards";
+          if (to !== activeTab) {
+            MyAnalytics.track(AnalyticsEvents.REWARDS_TAB_CHANGE, {
+              from: activeTab,
+              to,
+              userAddress: address || "anonymous",
+            });
+          }
+          setActiveTab(to);
+        }}
         defaultValue="your-points"
       >
-				<TabsList className="h-auto w-full gap-0 rounded-[14px] border border-[#E5E8EB] bg-white p-1 lg:w-fit">
-					<TabsTrigger
-						value="your-points"
-						className={cn(
-							"flex-1 flex-row gap-1 sm:gap-1.5 rounded-[10px] border border-transparent bg-transparent px-2 sm:px-4 py-2 text-sm font-medium text-[#6B7780] transition-all data-[state=active]:border-[#17876D] data-[state=active]:bg-[#E8F7F4] data-[state=active]:text-[#1A1F24] data-[state=active]:shadow-none lg:px-6 lg:py-2.5 lg:text-base",
-						)}
-					>
-						<Trophy size={20} color={activeTab === "your-points" ? '#000' : '#5B616D'} />
-						Your Points
-					</TabsTrigger>
-					<TabsTrigger
-						value="leaderboard"
-						className={cn(
-							"flex-1 flex-row gap-1 sm:gap-1.5 rounded-[10px] border border-transparent bg-transparent px-2 sm:px-4 py-2 text-sm font-medium text-[#6B7780] transition-all data-[state=active]:border-[#17876D] data-[state=active]:bg-[#E8F7F4] data-[state=active]:text-[#1A1F24] data-[state=active]:shadow-none lg:px-6 lg:py-2.5 lg:text-base",
-						)}
-					>
-						<Icons.badge size={20} stroke={activeTab === "leaderboard" ? '#000' : '#5B616D'} />
-						Leaderboard
-					</TabsTrigger>
-					<TabsTrigger
-						value="rewards"
-						className={cn(
-							"flex-1 flex-row gap-1 sm:gap-1.5 rounded-[10px] border border-transparent bg-transparent px-2 sm:px-4 py-2 text-sm font-medium text-[#6B7780] transition-all data-[state=active]:border-[#17876D] data-[state=active]:bg-[#E8F7F4] data-[state=active]:text-[#1A1F24] data-[state=active]:shadow-none lg:px-6 lg:py-2.5 lg:text-base",
-						)}
-					>
-						<Gift size={20} color={activeTab === "rewards" ? '#000' : '#5B616D'} />
-						Rewards
-					</TabsTrigger>
-				</TabsList>
+        <TabsList className="h-auto w-full gap-0 rounded-[14px] border border-[#E5E8EB] bg-white p-1 lg:w-fit">
+          <TabsTrigger
+            value="your-points"
+            className={cn(
+              "flex-1 flex-row gap-1 rounded-[10px] border border-transparent bg-transparent px-2 py-2 text-sm font-medium text-[#6B7780] transition-all data-[state=active]:border-[#17876D] data-[state=active]:bg-[#E8F7F4] data-[state=active]:text-[#1A1F24] data-[state=active]:shadow-none sm:gap-1.5 sm:px-4 lg:px-6 lg:py-2.5 lg:text-base",
+            )}
+          >
+            <Trophy
+              size={20}
+              color={activeTab === "your-points" ? "#000" : "#5B616D"}
+            />
+            Your Points
+          </TabsTrigger>
+          <TabsTrigger
+            value="leaderboard"
+            className={cn(
+              "flex-1 flex-row gap-1 rounded-[10px] border border-transparent bg-transparent px-2 py-2 text-sm font-medium text-[#6B7780] transition-all data-[state=active]:border-[#17876D] data-[state=active]:bg-[#E8F7F4] data-[state=active]:text-[#1A1F24] data-[state=active]:shadow-none sm:gap-1.5 sm:px-4 lg:px-6 lg:py-2.5 lg:text-base",
+            )}
+          >
+            <Icons.badge
+              size={20}
+              stroke={activeTab === "leaderboard" ? "#000" : "#5B616D"}
+            />
+            Leaderboard
+          </TabsTrigger>
+          <TabsTrigger
+            value="rewards"
+            className={cn(
+              "flex-1 flex-row gap-1 rounded-[10px] border border-transparent bg-transparent px-2 py-2 text-sm font-medium text-[#6B7780] transition-all data-[state=active]:border-[#17876D] data-[state=active]:bg-[#E8F7F4] data-[state=active]:text-[#1A1F24] data-[state=active]:shadow-none sm:gap-1.5 sm:px-4 lg:px-6 lg:py-2.5 lg:text-base",
+            )}
+          >
+            <Gift
+              size={20}
+              color={activeTab === "rewards" ? "#000" : "#5B616D"}
+            />
+            Rewards
+          </TabsTrigger>
+        </TabsList>
 
-				<TabsContent value="your-points" className="mt-0 py-6">
-					<Points userSeason1Points={{points: currentUserInfo.points, rank: currentUserInfo.rank}} userSeason2Points={{points: season2CurreUserInfo.points, rank: season2CurreUserInfo.rank}} />
+        <TabsContent value="your-points" className="mt-0 py-6">
+          <Points
+            userSeason1Points={{
+              points: currentUserInfo.points,
+              rank: currentUserInfo.rank,
+            }}
+            userSeason2Points={{
+              points: season2CurreUserInfo.points,
+              rank: season2CurreUserInfo.rank,
+            }}
+          />
         </TabsContent>
-				<TabsContent value="leaderboard" className="mt-0 py-6">
-					<Leaderboard
-						allUsers={allUsers}
-						leaderboardData={leaderboardData}
-						userCompleteInfo={userCompleteInfo}
-						season2LeaderboardData={season2LeaderboardData}
-					/>
+        <TabsContent value="leaderboard" className="mt-0 py-6">
+          <Leaderboard
+            allUsers={allUsers}
+            leaderboardData={leaderboardData}
+            userCompleteInfo={userCompleteInfo}
+            season2LeaderboardData={season2LeaderboardData}
+          />
         </TabsContent>
-				<TabsContent value="rewards" className="mt-0 py-6">
-					<Rewards
-						userCompleteInfo={userCompleteInfo}
-						isLoading={loading.initial}
-					/>
-          <hr className="border-[#b3d1c9] my-6" />
-					<p className="text-sm text-center text-[#021B1A]">Any more future rewards shall come here</p>
+        <TabsContent value="rewards" className="mt-0 py-6">
+          <Rewards
+            userCompleteInfo={userCompleteInfo}
+            isLoading={loading.initial}
+          />
+          <hr className="my-6 border-[#b3d1c9]" />
+          <p className="text-center text-sm text-[#021B1A]">
+            Any more future rewards shall come here
+          </p>
         </TabsContent>
-			</ShadCNTabs>
+      </ShadCNTabs>
     </div>
   );
 };

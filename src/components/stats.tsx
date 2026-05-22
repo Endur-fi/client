@@ -70,6 +70,7 @@ const Stats: React.FC<StatsProps> = ({
 
     if (activeTab === "btc") {
       const pathMap: Record<string, string> = {
+        strkBTC: "/strkbtc",
         LBTC: "/lbtc",
         WBTC: "/wbtc",
         tBTC: "/tbtc",
@@ -86,7 +87,7 @@ const Stats: React.FC<StatsProps> = ({
       const queryString = queryParams.toString();
       const finalPath = queryString ? `${newPath}?${queryString}` : newPath;
 
-      router.push(finalPath);
+      router.push(finalPath, { scroll: false });
     }
   };
 

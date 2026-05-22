@@ -16,7 +16,7 @@ interface CacheEntry<T> {
  */
 export function createCachedFunction<TArgs extends any[], TReturn>(
   fn: (...args: TArgs) => Promise<TReturn>,
-  ttlMs: number = 3 * 60 * 1000 // 3 minutes default
+  ttlMs: number = 3 * 60 * 1000, // 3 minutes default
 ): (...args: TArgs) => Promise<TReturn> {
   const cache = new Map<string, CacheEntry<TReturn>>();
 
@@ -63,7 +63,7 @@ export class CacheManager {
   createCachedFunction<TArgs extends any[], TReturn>(
     name: string,
     fn: (...args: TArgs) => Promise<TReturn>,
-    ttlMs: number = 3 * 60 * 1000
+    ttlMs: number = 3 * 60 * 1000,
   ): (...args: TArgs) => Promise<TReturn> {
     const cache = new Map<string, CacheEntry<TReturn>>();
     this.caches.set(name, cache);
@@ -108,4 +108,3 @@ export class CacheManager {
 
 // Global cache manager instance
 export const cacheManager = new CacheManager();
-

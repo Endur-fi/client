@@ -25,6 +25,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { MyAnalytics } from "@/lib/analytics";
+import { AnalyticsEvents } from "@/lib/analytics-events";
 import { cn, formatNumberWithCommas } from "@/lib/utils";
 
 import { type UserCompleteDetailsApiResponse } from "../check-eligibility";
@@ -77,7 +79,11 @@ export function DataTable<TData, TValue>({
 
   const handleSearchChange = React.useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
-      table.getColumn(searchKey!)?.setFilterValue(event.target.value);
+      const value = event.target.value;
+      table.getColumn(searchKey!)?.setFilterValue(value);
+      MyAnalytics.track(AnalyticsEvents.REWARDS_TABLE_SEARCH, {
+        query: value,
+      });
     },
     [searchKey, table],
   );
@@ -250,7 +256,13 @@ export function DataTable<TData, TValue>({
         <Button
           variant="outline"
           size="sm"
-          onClick={() => table.previousPage()}
+          onClick={() => {
+            table.previousPage();
+            MyAnalytics.track(AnalyticsEvents.REWARDS_TABLE_PAGINATION, {
+              direction: "previous",
+              page: table.getState().pagination.pageIndex,
+            });
+          }}
           disabled={!table.getCanPreviousPage()}
           className="lg:px-4"
         >
@@ -259,7 +271,13 @@ export function DataTable<TData, TValue>({
         <Button
           variant="outline"
           size="sm"
-          onClick={() => table.nextPage()}
+          onClick={() => {
+            table.nextPage();
+            MyAnalytics.track(AnalyticsEvents.REWARDS_TABLE_PAGINATION, {
+              direction: "next",
+              page: table.getState().pagination.pageIndex + 2,
+            });
+          }}
           disabled={!table.getCanNextPage()}
           className="lg:px-4"
         >

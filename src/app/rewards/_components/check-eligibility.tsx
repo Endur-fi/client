@@ -23,7 +23,6 @@ import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import {
   getProvider,
-  LEADERBOARD_ANALYTICS_EVENTS,
   MERKLE_CONTRACT_ADDRESS_MAINNET,
   STRK_DECIMALS,
 } from "@/constants";
@@ -31,6 +30,7 @@ import { UPDATE_USER_POINTS } from "@/constants/mutations";
 import { GET_USER_COMPLETE_DETAILS } from "@/constants/queries";
 import { toast } from "@/hooks/use-toast";
 import { MyAnalytics } from "@/lib/analytics";
+import { AnalyticsEvents } from "@/lib/analytics-events";
 import { checkSubscription, subscribeUser } from "@/lib/api";
 import apolloClient from "@/lib/apollo-client";
 import { Web3Number } from "@strkfarm/sdk";
@@ -486,7 +486,12 @@ const NotEligibleModal = React.memo<{ onClose: () => void }>(({ onClose }) => (
     </DialogHeader>
     <div className="relative !mt-3 flex w-full flex-col items-center justify-center gap-2 px-2">
       <Button
-        onClick={onClose}
+        onClick={() => {
+          MyAnalytics.track(AnalyticsEvents.REWARDS_MODAL_CLOSE, {
+            modal: "notEligible",
+          });
+          onClose();
+        }}
         className="h-12 w-full rounded-md bg-[#518176] text-white hover:bg-[#518176]/90"
       >
         Close
@@ -532,6 +537,12 @@ const TwitterShareModal = React.memo<{
             url={shareData.url}
             title={shareData.title}
             related={["endurfi", "strkfarm", "karnotxyz"]}
+            onClick={() =>
+              MyAnalytics.track(
+                AnalyticsEvents.REWARDS_CLAIM_TWITTER_SHARE_CLICK,
+                { allocation },
+              )
+            }
             style={{
               height: "44px",
               width: "100%",
@@ -543,7 +554,15 @@ const TwitterShareModal = React.memo<{
           >
             Share on X
           </TwitterShareButton>
-          <Button onClick={onClose} className={BUTTON_SECONDARY_CLASSES}>
+          <Button
+            onClick={() => {
+              MyAnalytics.track(AnalyticsEvents.REWARDS_MODAL_CLOSE, {
+                modal: "twitterShare",
+              });
+              onClose();
+            }}
+            className={BUTTON_SECONDARY_CLASSES}
+          >
             Close
           </Button>
         </div>
@@ -655,7 +674,7 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
         setSubmittedEmail(true);
       }
 
-      trackAnalyticsCallback(LEADERBOARD_ANALYTICS_EVENTS.EMAIL_SUBMITTED, {
+      trackAnalyticsCallback(AnalyticsEvents.REWARDS_EMAIL_SUBSCRIPTION, {
         userAddress: address,
         email: state.emailInput,
         isEligible,
@@ -716,7 +735,7 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
 
           if (address) {
             trackAnalyticsCallback(
-              LEADERBOARD_ANALYTICS_EVENTS.TWITTER_FOLLOW_CLICKED,
+              AnalyticsEvents.REWARDS_TWITTER_FOLLOW_CLICKED,
               {
                 userAddress: address,
               },
@@ -749,6 +768,8 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
   }, [state.isEligible, address, trackAnalyticsCallback]);
 
   const checkEligibility = React.useCallback(() => {
+    // passed deadline
+    return;
     if (!address) {
       toast({ description: "Connect your wallet first." });
       return;
@@ -759,16 +780,13 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
       return;
     }
 
-    trackAnalyticsCallback(
-      LEADERBOARD_ANALYTICS_EVENTS.ELIGIBILITY_CHECK_CLICKED,
-      {
-        userAddress: address,
-      },
-    );
+    trackAnalyticsCallback(AnalyticsEvents.REWARDS_ELIGIBILITY_CHECK_CLICKED, {
+      userAddress: address,
+    });
 
     const { allocation, isEligible } = eligibilityData;
 
-    trackAnalyticsCallback(LEADERBOARD_ANALYTICS_EVENTS.ELIGIBILITY_RESULT, {
+    trackAnalyticsCallback(AnalyticsEvents.REWARDS_ELIGIBILITY_RESULT, {
       userAddress: address,
       isEligible,
     });
@@ -790,8 +808,8 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
     setState((prev) => ({ ...prev, activeModal: null }));
   }, []);
 
-  const _goToClaim = React.useCallback(() => {
-    MyAnalytics.track(LEADERBOARD_ANALYTICS_EVENTS.TWITTER_FOLLOW_SKIPPED, {
+  const goToClaim = React.useCallback(() => {
+    MyAnalytics.track(AnalyticsEvents.REWARDS_TWITTER_FOLLOW_SKIPPED, {
       userAddress: address,
     });
     setState((prev) => ({
@@ -815,7 +833,7 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
       return;
     }
 
-    MyAnalytics.track(LEADERBOARD_ANALYTICS_EVENTS.CLICKED_CLAIM_REWARDS, {
+    MyAnalytics.track(AnalyticsEvents.REWARDS_CLICKED_CLAIM_REWARDS, {
       userAddress: address || "anonymous",
       timestamp: Date.now(),
       isWalletConnected: !!address,
@@ -850,6 +868,7 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
 
   const handleSkip = React.useCallback(() => {
     const { isEligible } = eligibilityData;
+    MyAnalytics.track(AnalyticsEvents.REWARDS_EMAIL_SKIP_CLICKED, {});
     setState((prev) => ({
       ...prev,
       activeModal: isEligible ? "claim" : "notEligible",
@@ -916,8 +935,8 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
     if (state.isEligible && state.allocation) {
       return { disabled: false, text: "Claim rewards" };
     }
-    // Default to "Check Eligibility" for initial state
-    return { disabled: false, text: "Check Eligibility" };
+    // Reward collection is closed
+    return { disabled: true, text: "Reward collection closed" };
   }, [
     state.isCheckingClaimed,
     state.hasAlreadyClaimed,
@@ -955,6 +974,11 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
       setIsWaitingForConfirmation(false);
       const allocation = userCompleteInfo?.allocation;
       if (allocation) {
+        MyAnalytics.track(AnalyticsEvents.REWARDS_CLAIM_TX_SUCCESS, {
+          userAddress: address,
+          allocation,
+          txHash: data.transaction_hash,
+        });
         toast({
           description: `🎉 Successfully claimed ${formatBalance(allocation, 2)} xSTRK rewards!`,
           duration: 5000,

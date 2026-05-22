@@ -18,6 +18,8 @@ import {
 } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
 import { isMerryChristmasAtom } from "@/store/merry.store";
+import { MyAnalytics } from "@/lib/analytics";
+import { AnalyticsEvents } from "@/lib/analytics-events";
 
 import { Icons } from "./Icons";
 import SidebarFooterMenuItems from "./sidebar-footer-menu-items";
@@ -70,7 +72,13 @@ export function AppSidebar() {
                         "block fill-[#17876D] text-[#17876D]": isPinned && open,
                       },
                     )}
-                    onClick={() => setIsPinned(!isPinned)}
+                    onClick={() => {
+                      const next = !isPinned;
+                      setIsPinned(next);
+                      MyAnalytics.track(AnalyticsEvents.SIDEBAR_PIN_TOGGLE, {
+                        pinned: next,
+                      });
+                    }}
                   />
                 </TooltipTrigger>
 

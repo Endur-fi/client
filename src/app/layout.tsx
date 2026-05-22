@@ -4,17 +4,20 @@ import React from "react";
 import Script from "next/script";
 
 import Providers from "@/components/providers";
+import { AnalyticsProvider } from "@/components/analytics-provider";
 import { Toaster } from "@/components/ui/toaster";
 
 import { AppSidebar } from "@/components/app-sidebar";
 import Footer from "@/components/footer";
 import MaxWidthWrapper from "@/components/max-width-wrapper";
 import Navbar from "@/components/navbar";
+import { PageViewWrapper } from "@/components/page-view-wrapper";
 
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Bitcoin Liquid Staking | Bitcoin Staking on Starknet | Endur",
+  title:
+    "Endur.fi | Starknet Liquid Staking (xSTRK & xyBTCs) | Earn STRK & BTC Rewards",
   description:
     "Earn BTC yield with Bitcoin liquid staking on Starknet. Stake Bitcoin, stay liquid, and access BTC LSTs through Endur’s secure staking protocol.",
   keywords: [
@@ -103,35 +106,38 @@ export default function RootLayout({
         <Analytics />
 
         <Providers>
-          <React.Suspense>
-            <div className="relative flex h-full min-h-screen w-full">
-              {/* <Image
-                src="/subtle_tree_bg.svg"
-                alt="subtle_tree_bg"
-                fill
-                className="-z-10 object-cover"
-              /> */}
+          <AnalyticsProvider>
+            <React.Suspense>
+              <div className="relative flex h-full min-h-screen w-full">
+                {/* <Image
+                  src="/subtle_tree_bg.svg"
+                  alt="subtle_tree_bg"
+                  fill
+                  className="-z-10 object-cover"
+                /> */}
 
-              <AppSidebar />
+                <AppSidebar />
 
-              <div className="flex flex-1 flex-col justify-between">
-                <MaxWidthWrapper className="flex h-full w-full flex-col items-center px-3 py-3 lg:px-7 lg:py-0">
-                  <Navbar />
-                  {children}
-                </MaxWidthWrapper>
+                <div className="flex flex-1 flex-col justify-between">
+                  <PageViewWrapper>
+                    <MaxWidthWrapper className="flex h-full w-full flex-col items-center px-3 py-3 lg:px-7 lg:py-0">
+                      <Navbar />
+                      {children}
+                    </MaxWidthWrapper>
 
-                <div className="lg:hidden">
-                  <Footer />
+                    <div className="lg:hidden">
+                      <Footer />
+                    </div>
+                  </PageViewWrapper>
                 </div>
               </div>
-            </div>
-          </React.Suspense>
+            </React.Suspense>
 
-          <Toaster />
+            <Toaster />
 
-          {/* <script
-            dangerouslySetInnerHTML={{
-              __html: `
+            <script
+              dangerouslySetInnerHTML={{
+                __html: `
                   var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
                   (function(){
                   var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
@@ -142,8 +148,9 @@ export default function RootLayout({
                   s0.parentNode.insertBefore(s1,s0);
                   })();
               `,
-            }}
-          /> */}
+              }}
+            />
+          </AnalyticsProvider>
         </Providers>
       </body>
     </html>

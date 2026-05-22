@@ -4,6 +4,7 @@ import { useAtom, useAtomValue } from "jotai";
 import { Loader } from "lucide-react";
 import * as React from "react";
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
+import { ConnectButton } from "@easyleap/sdk";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -21,6 +22,8 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart";
 import { cn, formatHumanFriendlyDateTime } from "@/lib/utils";
+import { MyAnalytics } from "@/lib/analytics";
+import { AnalyticsEvents } from "@/lib/analytics-events";
 import { userAddressAtom } from "@/store/common.store";
 import { chartFilter } from "@/store/portfolio.store";
 
@@ -141,6 +144,17 @@ export function Chart({
 
   const [offset, setOffset] = React.useState(150);
 
+  const handleRangeChange = React.useCallback(
+    (newRange: typeof timeRange) => {
+      if (newRange === timeRange) return;
+      setTimeRange(newRange);
+      MyAnalytics.track(AnalyticsEvents.PORTFOLIO_CHART_RANGE_CHANGE, {
+        range: newRange,
+      });
+    },
+    [setTimeRange, timeRange],
+  );
+
   React.useEffect(() => {
     const interval = setInterval(() => {
       const newOffset = offset - 1;
@@ -172,9 +186,7 @@ export function Chart({
                   timeRange === "7d",
               },
             )}
-            onClick={() => {
-              setTimeRange("7d");
-            }}
+            onClick={() => handleRangeChange("7d")}
           >
             7D
           </Button>
@@ -186,9 +198,7 @@ export function Chart({
                   timeRange === "30d",
               },
             )}
-            onClick={() => {
-              setTimeRange("30d");
-            }}
+            onClick={() => handleRangeChange("30d")}
           >
             1M
           </Button>
@@ -200,9 +210,7 @@ export function Chart({
                   timeRange === "90d",
               },
             )}
-            onClick={() => {
-              setTimeRange("90d");
-            }}
+            onClick={() => handleRangeChange("90d")}
           >
             3M
           </Button>
@@ -214,9 +222,7 @@ export function Chart({
                   timeRange === "180d",
               },
             )}
-            onClick={() => {
-              setTimeRange("180d");
-            }}
+            onClick={() => handleRangeChange("180d")}
           >
             6M
           </Button>
@@ -319,6 +325,9 @@ export function Chart({
                   You will be able to see your xSTRK holding history across
                   DApps
                 </p>
+                <div className="mt-3 flex justify-center">
+                  <ConnectButton className="rounded-md bg-[#17876D] px-6 py-2 font-medium text-white transition-colors hover:bg-[#17876D]" />
+                </div>
               </div>
             )}
             {address && filteredData.length === 0 && !error && (

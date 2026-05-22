@@ -108,6 +108,6 @@ html {
   }
 }
 
-/* a[href*="tawk.to/?utm_source=tawk-messenger"][href*="utm_term=687ac9c1fc7237191e99e314"] {
+a[href*="tawk.to/?utm_source=tawk-messenger"][href*="utm_term=687ac9c1fc7237191e99e314"] {
   display: none !important;
-} */
+}

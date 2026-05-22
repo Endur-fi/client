@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { useAtomValue } from "jotai";
 import { cn } from "@/lib/utils";
+import { MyAnalytics } from "@/lib/analytics";
+import { AnalyticsEvents } from "@/lib/analytics-events";
 import { Icons } from "./Icons";
 import {
   ArrowRight,
@@ -15,6 +17,7 @@ import { Button } from "./ui/button";
 import { Dialog, DialogContent } from "./ui/dialog";
 import { isVIPAtom } from "@/store/portfolio.store";
 import React from "react";
+import { useAccount } from "@starknet-react/core";
 
 interface VipFeatureItemProps {
   icon: React.ComponentType<LucideProps>;
@@ -63,66 +66,84 @@ const EliteMemberChip = () => (
 );
 
 interface VIPStatus {
-    isVIP: boolean,
-    totalValueUSD: number,
-    contacts: {
-        call: string | null,
-        telegram: string | null,
-    }
+  isVIP: boolean;
+  totalValueUSD: number;
+  contacts: {
+    call: string | null;
+    telegram: string | null;
+  };
 }
 
-const VipModal = ({ isModalOpen, setIsModalOpen, vipStatus }: { isModalOpen: boolean, setIsModalOpen: (open: boolean) => void, vipStatus: VIPStatus }) => (
-	<Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="flex flex-col items-center gap-8">
-          <div className="flex flex-col items-center gap-2">
-            <div className="flex flex-col items-center gap-1">
-              <EliteMemberChip />
-              <h3 className="text-[24px] font-bold leading-[36px] tracking-[-0.24px] text-[#1A1F24]">
-                You are an important user for us!
-              </h3>
-            </div>
-            <p className="text-[16px] leading-[24px] tracking-[0px] text-[#6B7780]">
-              Connect with our Founder over a call to know Endur better
-            </p>
-          </div>
-          <div className="flex w-full flex-col gap-3">
-            {vipStatus.contacts.call && (
-              <Button
-                className="h-auto w-full gap-2 rounded-[10px] bg-[#03624C] py-[16px] text-[16px] font-bold leading-[19.5px] tracking-[-0.13px] text-white transition-opacity hover:opacity-90 lg:w-auto lg:px-6"
-                onClick={() => {
-									window.open(vipStatus.contacts.call || "", "_blank");
-                }}
-              >
-                <Phone className="size-[16px] text-white" strokeWidth={2.5} />
-                Schedule a Call
-              </Button>
-            )}
-            {vipStatus.contacts.telegram && (
-              <Button
-                className="h-auto w-full gap-2 rounded-[10px] py-[16px] text-[16px] font-bold leading-[19.5px] tracking-[-0.13px] text-white transition-opacity hover:opacity-90 lg:w-auto lg:px-6"
-                style={{
-                  background:
-                    "linear-gradient(180deg, #38EF7D -59.65%, #11998E 100%)",
-                }}
-                onClick={() => {
-                  window.open(vipStatus.contacts.telegram || "", "_blank");
-                }}
-              >
-                <MessageCircle className="size-[16px] text-white" strokeWidth={2.5} />
-                Message on Telegram
-              </Button>
-            )}
-          </div>
-          <div className="flex flex-col items-center gap-6">
-            <div className="h-[1px] w-full bg-[#E5E8EB]" />
-            <span className="text-center text-[12px] leading-[18px] tracking-[0px] text-[#6B7780]">
-              As a valued member, you get priority
-              access to our founder for personalized guidance and exclusive
-              opportunities.
-            </span>
-          </div>
-        </DialogContent>
-      </Dialog>
+const VipModal = ({
+  isModalOpen,
+  setIsModalOpen,
+  vipStatus,
+}: {
+  isModalOpen: boolean;
+  setIsModalOpen: (open: boolean) => void;
+  vipStatus: VIPStatus;
+}) => (
+  <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+    <DialogContent className="flex flex-col items-center gap-8">
+      <div className="flex flex-col items-center gap-2">
+        <div className="flex flex-col items-center gap-1">
+          <EliteMemberChip />
+          <h3 className="text-[24px] font-bold leading-[36px] tracking-[-0.24px] text-[#1A1F24]">
+            You are an important user for us!
+          </h3>
+        </div>
+        <p className="text-[16px] leading-[24px] tracking-[0px] text-[#6B7780]">
+          Connect with our Founder over a call to know Endur better
+        </p>
+      </div>
+      <div className="flex w-full flex-col gap-3">
+        {vipStatus.contacts.call && (
+          <Button
+            className="h-auto w-full gap-2 rounded-[10px] bg-[#03624C] py-[16px] text-[16px] font-bold leading-[19.5px] tracking-[-0.13px] text-white transition-opacity hover:opacity-90 lg:w-auto lg:px-6"
+            onClick={() => {
+              MyAnalytics.track(AnalyticsEvents.VIP_CARD_SCHEDULE_CALL_CLICK, {
+                totalValueUSD: vipStatus.totalValueUSD,
+                source: "modal",
+              });
+              window.open(vipStatus.contacts.call || "", "_blank");
+            }}
+          >
+            <Phone className="size-[16px] text-white" strokeWidth={2.5} />
+            Schedule a Call
+          </Button>
+        )}
+        {vipStatus.contacts.telegram && (
+          <Button
+            className="h-auto w-full gap-2 rounded-[10px] py-[16px] text-[16px] font-bold leading-[19.5px] tracking-[-0.13px] text-white transition-opacity hover:opacity-90 lg:w-auto lg:px-6"
+            style={{
+              background:
+                "linear-gradient(180deg, #38EF7D -59.65%, #11998E 100%)",
+            }}
+            onClick={() => {
+              MyAnalytics.track(AnalyticsEvents.VIP_CARD_TELEGRAM_CLICK, {
+                totalValueUSD: vipStatus.totalValueUSD,
+                source: "modal",
+              });
+              window.open(vipStatus.contacts.telegram || "", "_blank");
+            }}
+          >
+            <MessageCircle
+              className="size-[16px] text-white"
+              strokeWidth={2.5}
+            />
+            Message on Telegram
+          </Button>
+        )}
+      </div>
+      <div className="flex flex-col items-center gap-6">
+        <div className="h-[1px] w-full bg-[#E5E8EB]" />
+        <span className="text-center text-[12px] leading-[18px] tracking-[0px] text-[#6B7780]">
+          As a valued member, you get priority access to our founder for
+          personalized guidance and exclusive opportunities.
+        </span>
+      </div>
+    </DialogContent>
+  </Dialog>
 );
 
 const VipCard = () => {
@@ -173,13 +194,23 @@ const VipCard = () => {
         style={{
           background: "linear-gradient(180deg, #38EF7D -59.65%, #11998E 100%)",
         }}
-        onClick={() => setIsModalOpen(true)}
+        onClick={() => {
+          MyAnalytics.track(AnalyticsEvents.VIP_CARD_SCHEDULE_CALL_CLICK, {
+            totalValueUSD: vipStatus.totalValueUSD,
+            source: "card",
+          });
+          setIsModalOpen(true);
+        }}
       >
         <MessageCircle className="size-[14px] text-white" strokeWidth={2.5} />
         Schedule a Call
         <ArrowRight className="size-[14px] text-white" strokeWidth={2.5} />
       </Button>
-			<VipModal isModalOpen={isModalOpen} setIsModalOpen={setIsModalOpen} vipStatus={vipStatus} />
+      <VipModal
+        isModalOpen={isModalOpen}
+        setIsModalOpen={setIsModalOpen}
+        vipStatus={vipStatus}
+      />
     </div>
   );
 };
@@ -187,28 +218,66 @@ const VipCard = () => {
 export default VipCard;
 
 export const VipNavbarChip = () => {
-	const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const vipStatus = useAtomValue(isVIPAtom);
+  const { address } = useAccount();
+
+  React.useEffect(() => {
+    if (vipStatus.isLoading) return;
+    if (typeof window === "undefined") return;
+
+    // Fire once per session for every connected user so we can measure
+    // the VIP vs non-VIP split — regardless of whether they are VIP.
+    const resolvedKey = "vip_status_resolved";
+    if (!sessionStorage.getItem(resolvedKey) && address) {
+      // check address as if not connected, then it will be null and isVIP will be false
+      MyAnalytics.track(AnalyticsEvents.VIP_STATUS_RESOLVED, {
+        isVIP: vipStatus.isVIP,
+        totalValueUSD: vipStatus.totalValueUSD,
+      });
+      sessionStorage.setItem(resolvedKey, "true");
+    }
+
+    // Track chip impression once per session for VIP users only.
+    if (!vipStatus.isVIP) return;
+    const chipKey = "vip_navbar_chip_seen";
+    if (sessionStorage.getItem(chipKey)) return;
+    MyAnalytics.track(AnalyticsEvents.VIP_NAVBAR_CHIP_VIEW, {
+      totalValueUSD: vipStatus.totalValueUSD,
+    });
+    sessionStorage.setItem(chipKey, "true");
+  }, [vipStatus.isLoading, vipStatus.isVIP, vipStatus.totalValueUSD]);
+
   if (!vipStatus.isVIP) {
     return null;
   }
+
   return (
-		<>
-			<button
-				className="relative flex aspect-square items-center gap-1 overflow-hidden rounded-full px-2 py-1.5 shadow-[0_1px_3px_rgba(0,0,0,0.1),0_1px_2px_-1px_rgba(0,0,0,0.1)] sm:aspect-auto md:gap-1.5 md:px-4 md:py-3"
-				style={{
-					background: "linear-gradient(180deg, #38EF7D -41.45%, #11998E 98.9%)",
-				}}
-				onClick={() => setIsModalOpen(true)}
-			>
-				<div className="absolute h-[200%] w-3 rotate-45 bg-[#FFFFFF] opacity-15" />
-				<div className="absolute right-[15px] hidden h-[200%] w-1 rotate-45 bg-[#FFFFFF] opacity-15 sm:block" />
-				<Icons.crown className="z-[1] size-3 md:size-4" />
-				<p className="z-[1] hidden text-xs font-semibold text-white sm:inline md:text-[14px]">
-					VIP
-				</p>
-			</button>
-			<VipModal isModalOpen={isModalOpen} setIsModalOpen={setIsModalOpen} vipStatus={vipStatus} />
-		</>
+    <>
+      <button
+        className="relative flex aspect-square items-center gap-1 overflow-hidden rounded-full px-2 py-1.5 shadow-[0_1px_3px_rgba(0,0,0,0.1),0_1px_2px_-1px_rgba(0,0,0,0.1)] sm:aspect-auto md:gap-1.5 md:px-4 md:py-3"
+        style={{
+          background: "linear-gradient(180deg, #38EF7D -41.45%, #11998E 98.9%)",
+        }}
+        onClick={() => {
+          MyAnalytics.track(AnalyticsEvents.VIP_NAVBAR_CHIP_CLICK, {
+            totalValueUSD: vipStatus.totalValueUSD,
+          });
+          setIsModalOpen(true);
+        }}
+      >
+        <div className="absolute h-[200%] w-3 rotate-45 bg-[#FFFFFF] opacity-15" />
+        <div className="absolute right-[15px] hidden h-[200%] w-1 rotate-45 bg-[#FFFFFF] opacity-15 sm:block" />
+        <Icons.crown className="z-[1] size-3 md:size-4" />
+        <p className="z-[1] hidden text-xs font-semibold text-white sm:inline md:text-[14px]">
+          VIP
+        </p>
+      </button>
+      <VipModal
+        isModalOpen={isModalOpen}
+        setIsModalOpen={setIsModalOpen}
+        vipStatus={vipStatus}
+      />
+    </>
   );
 };

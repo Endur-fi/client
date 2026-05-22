@@ -1,16 +1,16 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from "next/server";
 import {
   getAllLstTokenBalances,
   getNativeTokenBalances,
   getUSDConversionRates,
-} from '@/lib/portfolio';
+} from "@/lib/portfolio";
 
 // VIP threshold in USD
 const VIP_THRESHOLD_USD = 50000;
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { address: string } }
+  { params }: { params: { address: string } },
 ) {
   try {
     const { address } = params;
@@ -18,8 +18,8 @@ export async function GET(
     // Validate address
     if (!address) {
       return NextResponse.json(
-        { error: 'Address is required' },
-        { status: 400 }
+        { error: "Address is required" },
+        { status: 400 },
       );
     }
 
@@ -55,7 +55,7 @@ export async function GET(
 
     // Calculate LST XSTRK value across all apps
     let lstXSTRKValue = 0;
-    const xstrkData = lstBalances['XSTRK'];
+    const xstrkData = lstBalances["XSTRK"];
     if (xstrkData) {
       // Sum all protocol balances
       const totalXSTRKBalance =
@@ -80,7 +80,7 @@ export async function GET(
     let lstXTBTCValue = 0;
 
     // XWBTC
-    const xwbtcData = lstBalances['XWBTC'];
+    const xwbtcData = lstBalances["XWBTC"];
     if (xwbtcData) {
       const totalXWBTCBalance =
         BigInt(xwbtcData.endur.balance) +
@@ -93,12 +93,11 @@ export async function GET(
         BigInt(xwbtcData.nostra.balance) +
         BigInt(xwbtcData.opus.balance);
 
-      lstXWBTCValue =
-        (Number(totalXWBTCBalance) / 1e8) * conversionRates.xwbtc;
+      lstXWBTCValue = (Number(totalXWBTCBalance) / 1e8) * conversionRates.xwbtc;
     }
 
     // XLBTC
-    const xlbtcData = lstBalances['XLBTC'];
+    const xlbtcData = lstBalances["XLBTC"];
     if (xlbtcData) {
       const totalXLBTCBalance =
         BigInt(xlbtcData.endur.balance) +
@@ -111,12 +110,11 @@ export async function GET(
         BigInt(xlbtcData.nostra.balance) +
         BigInt(xlbtcData.opus.balance);
 
-      lstXLBTCValue =
-        (Number(totalXLBTCBalance) / 1e8) * conversionRates.xlbtc;
+      lstXLBTCValue = (Number(totalXLBTCBalance) / 1e8) * conversionRates.xlbtc;
     }
 
     // XSBTC
-    const xsbtcData = lstBalances['XSBTC'];
+    const xsbtcData = lstBalances["XSBTC"];
     if (xsbtcData) {
       const totalXSBTCBalance =
         BigInt(xsbtcData.endur.balance) +
@@ -134,7 +132,7 @@ export async function GET(
     }
 
     // XTBTC
-    const xtbtcData = lstBalances['XTBTC'];
+    const xtbtcData = lstBalances["XTBTC"];
     if (xtbtcData) {
       const totalXTBTCBalance =
         BigInt(xtbtcData.endur.balance) +
@@ -161,10 +159,12 @@ export async function GET(
     // Determine VIP status
     const isVIP = totalValueUSD >= VIP_THRESHOLD_USD;
 
-		const contacts = {
-			call: isVIP ? 'https://cal.com/akira-unwrap-labs/elite-access-calendar' : null,
-			telegram: isVIP ? 'https://t.me/akirabuilds' : null,
-		};
+    const contacts = {
+      call: isVIP
+        ? "https://cal.com/akira-unwrap-labs/elite-access-calendar"
+        : null,
+      telegram: isVIP ? "https://t.me/akirabuilds" : null,
+    };
 
     return NextResponse.json({
       success: true,
@@ -177,18 +177,17 @@ export async function GET(
           lstSTRK: Math.round(lstXSTRKValue * 100) / 100,
           lstBTC: Math.round(lstBTCValue * 100) / 100,
         },
-				contacts,
+        contacts,
       },
     });
   } catch (error) {
-    console.error('Error checking VIP status:', error);
+    console.error("Error checking VIP status:", error);
     return NextResponse.json(
       {
-        error: 'Failed to check VIP status',
-        message: error instanceof Error ? error.message : 'Unknown error',
+        error: "Failed to check VIP status",
+        message: error instanceof Error ? error.message : "Unknown error",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
-
