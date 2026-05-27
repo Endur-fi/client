@@ -754,7 +754,7 @@ const Unstake = () => {
       <div className="flex w-full max-w-full flex-col items-start gap-2 lg:max-w-none">
         <div className="flex w-full max-w-full flex-1 flex-col items-start lg:max-w-none">
           <Form {...form}>
-            <div className="flex w-full items-center justify-between">
+            <div className="mb-2 flex w-full items-center justify-between">
               <div>
                 <p className="text-xs text-[#6B7780]">Enter Amount</p>
               </div>

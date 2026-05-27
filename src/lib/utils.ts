@@ -115,6 +115,10 @@ export function formatBalance(
 
   // Apply subscript notation: 0.0000076 → 0.0₅76
   const fixed = numberValue.toFixed(decimals ?? 8);
+  if (Number(fixed) === 0) {
+    return "0";
+  }
+
   const [, decimalPart] = fixed.split(".");
   if (!decimalPart) return fixed;
 
@@ -122,6 +126,13 @@ export function formatBalance(
   const leadingZeros = leadingZerosMatch?.[1]?.length ?? 0;
   const significantPart =
     decimalPart.slice(leadingZeros).replace(/0+$/, "") || "0";
+
+  const reconstructed = parseFloat(
+    `0.${"0".repeat(leadingZeros)}${significantPart}`,
+  );
+  if (reconstructed === 0) {
+    return "0";
+  }
 
   return `0.0${toSubscriptDigits(leadingZeros)}${significantPart}`;
 }
