@@ -26,7 +26,6 @@ import {
   getTrovesHyperHoldings,
   type LstConfigWithAddresses,
 } from "@/lib/portfolio-rpc";
-import { getPortfolioBalance } from "@/lib/portfolio";
 import { ASSET_SYMBOL_TO_LST_TOKEN } from "@/lib/portfolio-types";
 import { STRK_DECIMALS } from "@/constants";
 

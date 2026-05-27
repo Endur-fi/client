@@ -130,17 +130,15 @@ const SidebarMenuItems = () => {
             "bg-[rgba(23,135,109,0.2)] font-bold text-[#17876d] opacity-100":
               pathname === "/portfolio",
           })}
+          onMouseEnter={() =>
+            pathname !== "/portfolio" && setTriggerPortfolioIconAnimation(true)
+          }
+          onMouseLeave={() =>
+            pathname !== "/portfolio" && setTriggerPortfolioIconAnimation(false)
+          }
         >
           <Link
             href={getInternalUrl("/portfolio", referrer)}
-            onMouseEnter={() =>
-              pathname !== "/portfolio" &&
-              setTriggerPortfolioIconAnimation(true)
-            }
-            onMouseLeave={() =>
-              pathname !== "/portfolio" &&
-              setTriggerPortfolioIconAnimation(false)
-            }
             onClick={() => {
               MyAnalytics.track(AnalyticsEvents.SIDEBAR_NAV_CLICK, {
                 destination: "portfolio",

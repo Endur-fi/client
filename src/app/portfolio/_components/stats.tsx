@@ -3,8 +3,8 @@
 import { atom, useAtomValue } from "jotai";
 import React from "react";
 
+import { BalanceWithLargeSubscript } from "@/components/balance-with-large-subscript";
 import { getLSTAssetBySymbol, getSTRKAsset } from "@/constants";
-import { formatNumberWithCommas } from "@/lib/utils";
 import {
   ASSET_SYMBOL_TO_HYPER_YIELD,
   getLstTokenKeyForAsset,
@@ -123,7 +123,7 @@ const Stats: React.FC = () => {
             Total {lstSymbol}
           </span>
           <p className="flex items-end gap-2 text-xl font-semibold leading-[1] text-black">
-            {formatNumberWithCommas(totalLst, balanceDecimals)}
+            <BalanceWithLargeSubscript value={totalLst} decimals={balanceDecimals} />
             <span className="text-sm font-normal leading-[1.2] text-muted-foreground/80">
               {totalUSD}
             </span>
@@ -135,7 +135,7 @@ const Stats: React.FC = () => {
             {lstSymbol} in Wallet
           </span>
           <p className="flex items-end gap-4 text-xl font-semibold leading-[1] text-black">
-            {formatNumberWithCommas(walletLst, balanceDecimals)}
+            <BalanceWithLargeSubscript value={walletLst} decimals={balanceDecimals} />
           </p>
         </div>
       </div>
@@ -146,7 +146,10 @@ const Stats: React.FC = () => {
             {lstSymbol} in DApps
           </span>
           <p className="flex items-end gap-4 text-xl font-semibold leading-[1] text-black">
-            {formatNumberWithCommas(Math.max(0, defiLst), balanceDecimals)}
+            <BalanceWithLargeSubscript
+              value={Math.max(0, defiLst)}
+              decimals={balanceDecimals}
+            />
           </p>
         </div>
 

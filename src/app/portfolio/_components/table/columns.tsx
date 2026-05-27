@@ -7,9 +7,9 @@ import { useAtomValue } from "jotai";
 
 import { ProtocolConfig } from "@/components/defi";
 import { IconProps, Icons } from "@/components/Icons";
+import { BalanceWithLargeSubscript } from "@/components/balance-with-large-subscript";
 import { Button } from "@/components/ui/button";
 import { getLSTAssetBySymbol, getSTRKAsset } from "@/constants";
-import { formatNumberWithCommas } from "@/lib/utils";
 import { portfolioAssetSymbolAtom } from "@/store/portfolio.store";
 
 export type SizeColumn = {
@@ -76,12 +76,14 @@ export function PortfolioDAppAmountCell({
   );
   return (
     <div className="flex gap-1.5 text-right">
-      {formatNumberWithCommas(
-        row.original.tokens[idx]?.holding?.toEtherToFixedDecimals(
-          balanceDecimals,
-        ) ?? "0",
-        balanceDecimals,
-      )}
+      <BalanceWithLargeSubscript
+        value={
+          row.original.tokens[idx]?.holding?.toEtherToFixedDecimals(
+            balanceDecimals,
+          ) ?? "0"
+        }
+        decimals={balanceDecimals}
+      />
     </div>
   );
 }

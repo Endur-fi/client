@@ -62,7 +62,8 @@ import { useTransactionHandler } from "@/hooks/use-transactions";
 import { MyAnalytics } from "@/lib/analytics";
 import { AnalyticsEvents } from "@/lib/analytics-events";
 import MyNumber from "@/lib/MyNumber";
-import { cn, formatNumberWithCommas } from "@/lib/utils";
+import { BalanceWithLargeSubscript } from "@/components/balance-with-large-subscript";
+import { cn } from "@/lib/utils";
 import LSTService from "@/services/lst";
 import { lstConfigAtom, assetPriceAtom } from "@/store/common.store";
 import {
@@ -108,7 +109,10 @@ const PLATFORMS = {
   HYPER_HYPER: "trovesHyper",
 } as const;
 
-const platformConfig = (lstConfig: LSTAssetConfig, isTrovesMaxedOut: boolean) => {
+const platformConfig = (
+  lstConfig: LSTAssetConfig,
+  isTrovesMaxedOut: boolean,
+) => {
   // Determine the correct yield key based on the LST symbol
   let yieldKey: string;
   switch (lstConfig.LST_SYMBOL) {
@@ -169,9 +173,7 @@ const Stake: React.FC = () => {
   // Wallet connection is handled by Easyleap ConnectButton.
   const lstConfig = useAtomValue(lstConfigAtom)!;
   const mode = useMode();
-  const [isLendingOpen, setIsLendingOpen] = React.useState(
-    true,
-  );
+  const [isLendingOpen, setIsLendingOpen] = React.useState(true);
   // In EVM mode, the SDK treats the passed token address as the EVM token.
   // For now only WBTC has a mapped EVM token address.
   const balanceTokenAddress =
@@ -493,9 +495,12 @@ const Stake: React.FC = () => {
 
   const sortedPlatforms = React.useMemo(() => {
     const allPlatforms = Object.values(PLATFORMS).filter((platform) => {
-      // TODO: remove this filter later on 
+      // TODO: remove this filter later on
       // Don't show Troves Hyper vault for xstrkBTC as it doesn't exist yet
-      if (lstConfig.LST_SYMBOL === "xstrkBTC" && platform === PLATFORMS.HYPER_HYPER) {
+      if (
+        lstConfig.LST_SYMBOL === "xstrkBTC" &&
+        platform === PLATFORMS.HYPER_HYPER
+      ) {
         return false;
       }
       return true;
@@ -503,7 +508,7 @@ const Stake: React.FC = () => {
     return sortPlatforms(allPlatforms, yields);
   }, [yields, lstConfig.LST_SYMBOL]);
 
-  const hasPositiveYields = React.useMemo(() => {
+  const _hasPositiveYields = React.useMemo(() => {
     return sortedPlatforms.some((platform) => {
       const config = getPlatformConfig(platform);
       if (!config) return false;
@@ -708,7 +713,7 @@ const Stake: React.FC = () => {
       <div className="flex w-full max-w-full flex-col items-start gap-2 lg:max-w-none">
         <div className="flex w-full max-w-full flex-1 flex-col items-start lg:max-w-none">
           <Form {...form}>
-            <div className="flex w-full items-center justify-between">
+            <div className="mb-2 flex w-full items-center justify-between">
               <div>
                 <p className="text-xs text-[#6B7780]">Enter Amount</p>
               </div>
@@ -719,9 +724,14 @@ const Stake: React.FC = () => {
                   Balance:
                 </span>
                 <span className="text-xs text-[#1A1F24]">
-                  {balance?.formatted
-                    ? Number(balance?.formatted).toFixed(isBTC ? 8 : 2)
-                    : "0"}{" "}
+                  {balance?.formatted ? (
+                    <BalanceWithLargeSubscript
+                      value={Number(balance.formatted)}
+                      decimals={isBTC ? 8 : 2}
+                    />
+                  ) : (
+                    "0"
+                  )}{" "}
                   {lstConfig.SYMBOL}
                 </span>
                 {balance?.formatted && assetPrice && (
@@ -930,7 +940,10 @@ const Stake: React.FC = () => {
           </p>
           <div className="flex flex-col">
             <span className="text-xs">
-              {formatNumberWithCommas(getCalculatedLSTAmount(), isBTC ? 8 : 2)}{" "}
+              <BalanceWithLargeSubscript
+                value={getCalculatedLSTAmount()}
+                decimals={isBTC ? 8 : 2}
+              />{" "}
               {lstConfig.LST_SYMBOL}
             </span>
             {assetPrice && exchangeRate.rate && (

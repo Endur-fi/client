@@ -15,7 +15,8 @@ import {
   getHoldingsKeyForProtocol,
   isProtocolAllowedForAsset,
 } from "@/lib/portfolio-types";
-import { cn, formatNumberWithCommas } from "@/lib/utils";
+import { BalanceWithLargeSubscript } from "@/components/balance-with-large-subscript";
+import { cn } from "@/lib/utils";
 import {
   DAppHoldings,
   protocolYieldsAtom,
@@ -161,7 +162,9 @@ const PortfolioPage: React.FC = () => {
                   ? maybeJson.error
                   : undefined;
             }
-          } catch {}
+          } catch {
+            // ignore non-JSON error bodies
+          }
           throw new Error(
             apiMessage ||
               `Couldn’t load holdings history (HTTP ${res.status}). Please retry.`,
@@ -366,13 +369,14 @@ const PortfolioPage: React.FC = () => {
                     <b>Your Holding:</b>
                   </span>
                   <span className="flex">
-                    {formatNumberWithCommas(
-                      card.tokens[
-                        card.tokens.findIndex((t) => t.name === lstSymbol)
-                      ].holding?.toEtherToFixedDecimals(balanceDecimals) ??
-                        "0",
-                      balanceDecimals,
-                    )}{" "}
+                    <BalanceWithLargeSubscript
+                      value={
+                        card.tokens[
+                          card.tokens.findIndex((t) => t.name === lstSymbol)
+                        ].holding?.toEtherToFixedDecimals(balanceDecimals) ?? "0"
+                      }
+                      decimals={balanceDecimals}
+                    />{" "}
                     {lstSymbol}
                   </span>
                 </div>

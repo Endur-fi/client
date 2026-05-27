@@ -4,7 +4,8 @@ import * as React from "react";
 import * as RechartsPrimitive from "recharts";
 
 import { chartConfig } from "@/app/portfolio/_components/defi-holding";
-import { cn, formatNumberWithCommas } from "@/lib/utils";
+import { BalanceWithLargeSubscript } from "@/components/balance-with-large-subscript";
+import { cn } from "@/lib/utils";
 import { type SupportedDApp } from "@/store/defi.store";
 
 // Format: { THEME_NAME: CSS_SELECTOR }
@@ -132,13 +133,13 @@ const ChartTooltipContent = React.forwardRef<
       className,
       indicator = "dot",
       hideLabel = false,
-      hideIndicator = false,
+      hideIndicator: _hideIndicator = false,
       label,
       labelFormatter,
       labelClassName,
       formatter,
-      color,
-      nameKey,
+      color: _color,
+      nameKey: _nameKey,
       labelKey,
       valueSuffix,
       valueDecimals = 2,
@@ -249,19 +250,14 @@ const ChartTooltipContent = React.forwardRef<
                       </div>
                       {item.value && (
                         <span className="font-mono font-medium tabular-nums text-foreground">
-                          {item.payload.holdings
-                            ? formatNumberWithCommas(
-                                Number(item.payload.holdings).toFixed(
-                                  valueDecimals,
-                                ),
-                                valueDecimals,
-                              )
-                            : formatNumberWithCommas(
-                                Number(
-                                  item.payload[item.name as string],
-                                ).toFixed(valueDecimals),
-                                valueDecimals,
-                              )}{" "}
+                          <BalanceWithLargeSubscript
+                            value={
+                              item.payload.holdings
+                                ? Number(item.payload.holdings)
+                                : Number(item.payload[item.name as string])
+                            }
+                            decimals={valueDecimals}
+                          />{" "}
                           {valueSuffix ?? "xSTRK"}
                         </span>
                       )}
@@ -295,16 +291,15 @@ const ChartLegendContent = React.forwardRef<
     {
       className,
       innerClassName,
-      hideIcon = false,
+      hideIcon: _hideIcon = false,
       payload,
       verticalAlign = "bottom",
-      nameKey,
       valueSuffix,
       valueDecimals = 2,
     },
     ref,
   ) => {
-    const { config } = useChart();
+    const { config: _config } = useChart();
 
     if (!payload?.length) {
       return null;
@@ -347,10 +342,10 @@ const ChartLegendContent = React.forwardRef<
 
               {item.payload?.value && (
                 <p>
-                  {formatNumberWithCommas(
-                    item.payload?.value.toFixed(valueDecimals),
-                    valueDecimals,
-                  )}{" "}
+                  <BalanceWithLargeSubscript
+                    value={item.payload?.value ?? 0}
+                    decimals={valueDecimals}
+                  />{" "}
                   {valueSuffix ?? "xSTRK"}
                 </p>
               )}

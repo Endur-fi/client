@@ -166,6 +166,7 @@ export function Chart({
     }, 10);
 
     return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- offset is intentionally excluded to avoid restarting the animation
   }, []);
 
   return (
@@ -308,7 +309,7 @@ export function Chart({
             ))}
           </AreaChart>
         </ChartContainer>
-        {(!address || filteredData.length == 0) && (
+        {(!address || filteredData.length === 0) && (
           <div className="absolute inset-0 flex items-center justify-center rounded-xl bg-white/80 backdrop-blur-sm">
             {!address && (
               <div className="gap-2 rounded-xl p-[10px] text-center">
@@ -322,7 +323,7 @@ export function Chart({
                 </div>
               </div>
             )}
-            {address && filteredData.length == 0 && !error && (
+            {address && filteredData.length === 0 && !error && (
               <div className="my-5 flex w-full items-center justify-center gap-2 p-[10px] text-center">
                 {isLoading ? (
                   <>
