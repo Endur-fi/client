@@ -26,17 +26,17 @@ export function BalanceWithLargeSubscript({
 }) {
   const text = formatBalance(value, decimals);
 
-  if (!/[\u2080-\u2089]/.test(text)) {
+  if (!(/[\u2080-\u2089]/).test(text)) {
     return <span className={className}>{text}</span>;
   }
 
   return (
     <span className={className}>
       {text.split(SUBSCRIPT_PART).map((part, i) =>
-        /[\u2080-\u2089]/.test(part) ? (
+        (/[\u2080-\u2089]/).test(part) ? (
           <span
             key={i}
-            className="align-sub text-[1em] font-semibold leading-none"
+            className="align-sub text-[1em] leading-none"
           >
             {part.replace(/[\u2080-\u2089]/g, (c) => SUBSCRIPT_TO_DIGIT[c] ?? c)}
           </span>
