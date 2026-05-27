@@ -45,6 +45,7 @@ const MessageCircleMoreIcon: React.FC<CustomIconProps> = ({
     } else {
       controls.start("normal");
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [triggerAnimation]);
 
   return (

@@ -6,7 +6,7 @@ import React from "react";
 import { ProtocolConfig } from "@/components/defi";
 import { IconProps, Icons } from "@/components/Icons";
 import { Button } from "@/components/ui/button";
-import { formatNumberWithCommas } from "@/lib/utils";
+import { BalanceWithLargeSubscript } from "@/components/balance-with-large-subscript";
 
 export type SizeColumn = {
   asset: string;
@@ -61,11 +61,14 @@ export function getPortfolioDAppName(row: { original: ProtocolConfig }) {
 export function getPortfolioDAppAmount(row: { original: ProtocolConfig }) {
   return (
     <div className="flex gap-1.5 text-right">
-      {formatNumberWithCommas(
-        row.original.tokens[
-          row.original.tokens.findIndex((t) => t.name === "xSTRK")
-        ].holding?.toEtherToFixedDecimals(2) ?? "0.00",
-      )}
+      <BalanceWithLargeSubscript
+        value={
+          row.original.tokens[
+            row.original.tokens.findIndex((t) => t.name === "xSTRK")
+          ].holding?.toEtherToFixedDecimals(2) ?? "0.00"
+        }
+        decimals={2}
+      />
     </div>
   );
 }
