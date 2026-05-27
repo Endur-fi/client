@@ -34,3 +34,16 @@ model PaymasterUsage {
   @@map("paymaster_usage")
 }
 
+model PortfolioSnapshotCache {
+  id          String   @id @default(uuid())
+  address     String   @unique
+  snapshot    Json
+  blockNumber Int?
+  fetchedAt   DateTime
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([fetchedAt])
+  @@map("portfolio_snapshot_cache")
+}
+

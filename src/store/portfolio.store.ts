@@ -1,7 +1,7 @@
 import { atom } from "jotai";
 import { atomWithQuery } from "jotai-tanstack-query";
 import axios from "axios";
-import type { PortfolioSnapshot } from "@/lib/portfolio-snapshot";
+import type { PortfolioSnapshot } from "@/lib/portfolio";
 import { userAddressAtom } from "./common.store";
 
 export const chartFilter = atom("7d");

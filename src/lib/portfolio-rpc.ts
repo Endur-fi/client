@@ -8,8 +8,11 @@ import {
   getSTRKAsset,
   type LSTAssetConfig,
 } from "@/constants";
-import { ASSET_SYMBOL_TO_LST_TOKEN } from "@/lib/portfolio-holdings-keys";
-import type { PortfolioBalance, PortfolioData } from "@/lib/portfolio-types";
+import {
+  ASSET_SYMBOL_TO_LST_TOKEN,
+  type PortfolioBalance,
+  type PortfolioData,
+} from "@/lib/portfolio-types";
 import MyNumber from "@/lib/MyNumber";
 import { getHoldings } from "@/store/lst.store";
 import { getEkuboHoldings } from "@/store/ekubo.store";
@@ -63,7 +66,7 @@ export function emptyPortfolioData(): PortfolioData {
 
 function holdingsToBalance(
   holdings: DAppHoldings,
-  decimals: number,
+  _decimals: number,
 ): PortfolioBalance {
   const raw = holdings.lstAmount.toString();
   return {
@@ -152,15 +155,9 @@ async function getNostraLendingForStrk(
   };
 }
 
-export type GraphQLPortfolioFetcher = (
-  userAddress: string,
-  lstToken: string,
-) => Promise<PortfolioData>;
-
 export async function buildPortfolioDataForLst(
   userAddress: string,
   lstConfig: LstConfigWithAddresses,
-  graphQLFallback?: GraphQLPortfolioFetcher,
   blockNumber?: BlockIdentifier,
 ): Promise<PortfolioData> {
   const decimals = lstConfig.DECIMALS;
@@ -247,31 +244,6 @@ export async function buildPortfolioDataForLst(
       blockNumber: blockId,
     });
     base.opus = holdingsToBalance(opus, decimals);
-  } else if (graphQLFallback) {
-    const lstToken =
-      ASSET_SYMBOL_TO_LST_TOKEN[lstConfig.SYMBOL] ?? lstConfig.LST_SYMBOL;
-    try {
-      const indexed = await graphQLFallback(userAddress, lstToken);
-      base.vesuCollateral = indexed.vesuCollateral;
-      base.vesuVtoken = indexed.vesuVtoken;
-      base.vesuDebt = indexed.vesuDebt;
-      base.trovesSensei = indexed.trovesSensei;
-      base.trovesEkubo = indexed.trovesEkubo;
-      base.nostra = indexed.nostra;
-      base.opus = indexed.opus;
-      if (
-        BigInt(base.ekubo.balance) === BigInt(0) &&
-        BigInt(indexed.ekubo.balance) > 0
-      ) {
-        base.ekubo = indexed.ekubo;
-      }
-      if (
-        BigInt(base.trovesHyper.balance) === BigInt(0) &&
-        BigInt(indexed.trovesHyper.balance) > 0
-      ) {
-        base.trovesHyper = indexed.trovesHyper;
-      }
-    } catch {}
   }
 
   return base;
@@ -279,7 +251,6 @@ export async function buildPortfolioDataForLst(
 
 export async function getAllLstTokenBalancesRpc(
   userAddress: string,
-  graphQLFallback?: GraphQLPortfolioFetcher,
 ): Promise<Record<string, PortfolioData>> {
   const configs = [
     getSTRKAsset(),
@@ -294,7 +265,6 @@ export async function getAllLstTokenBalancesRpc(
         const data = await buildPortfolioDataForLst(
           userAddress,
           config,
-          graphQLFallback,
         );
         return [key, data] as const;
       } catch {
@@ -313,11 +283,10 @@ export async function getAllLstTokenBalancesRpc(
 export async function getPortfolioBalanceRpc(
   userAddress: string,
   lstToken: string = "XSTRK",
-  graphQLFallback?: GraphQLPortfolioFetcher,
 ): Promise<PortfolioData> {
   const config = getLstConfigByPortfolioToken(lstToken);
   if (!config) {
     return emptyPortfolioData();
   }
-  return buildPortfolioDataForLst(userAddress, config, graphQLFallback);
+  return buildPortfolioDataForLst(userAddress, config);
 }

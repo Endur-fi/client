@@ -14,7 +14,7 @@ import MyNumber from "@/lib/MyNumber";
 import {
   getHoldingsKeyForProtocol,
   isProtocolAllowedForAsset,
-} from "@/lib/portfolio-holdings-keys";
+} from "@/lib/portfolio-types";
 import { cn, formatNumberWithCommas } from "@/lib/utils";
 import {
   DAppHoldings,
@@ -22,10 +22,7 @@ import {
   SupportedDApp,
 } from "@/store/defi.store";
 import { userAddressAtom } from "@/store/common.store";
-import {
-  chartFilter,
-  portfolioAssetSymbolAtom,
-} from "@/store/portfolio.store";
+import { chartFilter, portfolioAssetSymbolAtom } from "@/store/portfolio.store";
 
 import { Chart } from "./chart";
 import DefiHoldings from "./defi-holding";
@@ -58,6 +55,8 @@ const PortfolioPage: React.FC = () => {
   const [lastUpdated, setLastUpdated] = React.useState<Date | null>(null);
   const [isFetchError, setIsFetchError] = React.useState(false);
   const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
+  const [isFetchingHoldings, setIsFetchingHoldings] = React.useState(false);
+  const [retryNonce, setRetryNonce] = React.useState(0);
 
   const timeRange = useAtomValue(chartFilter);
   const address = useAtomValue(userAddressAtom);
@@ -65,6 +64,8 @@ const PortfolioPage: React.FC = () => {
   const lstConfig = getLSTAssetBySymbol(assetSymbol) ?? getSTRKAsset();
   const lstSymbol = lstConfig.LST_SYMBOL;
   const decimals = lstConfig.DECIMALS;
+  const isBTC = lstConfig.SYMBOL?.toLowerCase().includes("btc");
+  const balanceDecimals = isBTC ? 8 : 2;
 
   const { isPinned } = useSidebar();
   const isMobile = useIsMobile();
@@ -104,6 +105,10 @@ const PortfolioPage: React.FC = () => {
         const holdingsKey = getHoldingsKeyForProtocol(protocol);
         const holding = (latest?.[holdingsKey] as number | undefined) ?? 0;
 
+        if (!holding || holding <= 0) {
+          return null;
+        }
+
         const lstIndex = config.tokens.findIndex(
           (token) => token.name === lstSymbol,
         );
@@ -116,10 +121,12 @@ const PortfolioPage: React.FC = () => {
           apy: _yield.value,
           tokens: config.tokens.map((token) => ({ ...token })),
         };
+
         cardConfig.tokens[lstIndex].holding = MyNumber.fromEther(
           holding.toFixed(6),
           decimals,
         );
+
         return cardConfig;
       })
       .filter((config) => config !== null)
@@ -138,101 +145,96 @@ const PortfolioPage: React.FC = () => {
       if (!address) return;
 
       try {
-        setHoldings([]);
+        setIsFetchingHoldings(true);
         setIsFetchError(false);
         setErrorMessage(null);
-        const res = await fetch(
-          `/api/holdings/${address}/${timeRange.slice(0, -1)}?lstSymbol=${assetSymbol}`,
-        );
+        const url = `/api/holdings/${address}/${timeRange.slice(0, -1)}?lstSymbol=${assetSymbol}`;
+        const res = await fetch(url);
 
         if (!res.ok) {
-          throw new Error(`HTTP error! status: ${res.status}`);
-        }
-
-        const text = await res.text();
-        if (!text) {
-          throw new Error("Empty response from server");
-        }
-
-        let data;
-        try {
-          data = JSON.parse(text);
-        } catch (parseError) {
-          console.error("JSON parse error:", parseError);
-          throw new Error("Invalid JSON response from server");
-        }
-
-        if (data.error) {
-          throw new Error(data.error);
-        }
-
-        if (data) {
-          const blocks: BlockInfo[] = data.blocks;
-          const vesu: DAppHoldings[] = data.vesu;
-          const nostraLending: DAppHoldings[] = data.nostraLending;
-          const nostraDex: DAppHoldings[] = data.nostraDex;
-          const ekubo: DAppHoldings[] = data.ekubo;
-          const wallet: DAppHoldings[] = data.wallet;
-          const strkfarm: DAppHoldings[] = data.strkfarm;
-          const strkfarmEkubo: DAppHoldings[] = data.strkfarmEkubo;
-          const trovesHyper: DAppHoldings[] = data.trovesHyper ?? [];
-          const opus: DAppHoldings[] = data.opus;
-
-          setLastUpdated(new Date(data.lastUpdated));
-
-          const len = blocks.length;
-          const arrays = [
-            vesu,
-            nostraLending,
-            nostraDex,
-            ekubo,
-            wallet,
-            strkfarm,
-            strkfarmEkubo,
-            trovesHyper,
-            opus,
-          ];
-          if (arrays.some((a) => a.length !== len)) {
-            throw new Error("Invalid holdings data");
-          }
-
-          const parsed: HoldingInfo[] = blocks.map((block, idx) => ({
-            date: block.date,
-            nostraLending: serialisedMyNumberToNumber(
-              nostraLending[idx].lstAmount as any,
-            ),
-            nostraDex: serialisedMyNumberToNumber(
-              nostraDex[idx].lstAmount as any,
-            ),
-            vesu: serialisedMyNumberToNumber(vesu[idx].lstAmount as any),
-            ekubo: serialisedMyNumberToNumber(ekubo[idx].lstAmount as any),
-            endur: serialisedMyNumberToNumber(wallet[idx].lstAmount as any),
-            strkfarm: serialisedMyNumberToNumber(
-              strkfarm[idx].lstAmount as any,
-            ),
-            strkfarmEkubo: serialisedMyNumberToNumber(
-              strkfarmEkubo[idx].lstAmount as any,
-            ),
-            trovesHyper: serialisedMyNumberToNumber(
-              trovesHyper[idx]?.lstAmount as any,
-            ),
-            opus: serialisedMyNumberToNumber(opus[idx].lstAmount as any),
-          }));
-          parsed.sort(
-            (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
+          let apiMessage: string | undefined;
+          try {
+            if (res.headers.get("content-type")?.includes("application/json")) {
+              const maybeJson = await res.json();
+              apiMessage =
+                typeof maybeJson?.error === "string"
+                  ? maybeJson.error
+                  : undefined;
+            }
+          } catch {}
+          throw new Error(
+            apiMessage ||
+              `Couldn’t load holdings history (HTTP ${res.status}). Please retry.`,
           );
-          setHoldings(parsed);
         }
+
+        const data = await res.json();
+
+        if (data.error) throw new Error(data.error);
+
+        const blocks: BlockInfo[] = data.blocks;
+        const vesu: DAppHoldings[] = data.vesu;
+        const nostraLending: DAppHoldings[] = data.nostraLending;
+        const nostraDex: DAppHoldings[] = data.nostraDex;
+        const ekubo: DAppHoldings[] = data.ekubo;
+        const wallet: DAppHoldings[] = data.wallet;
+        const strkfarm: DAppHoldings[] = data.strkfarm;
+        const strkfarmEkubo: DAppHoldings[] = data.strkfarmEkubo;
+        const trovesHyper: DAppHoldings[] = data.trovesHyper ?? [];
+        const opus: DAppHoldings[] = data.opus;
+
+        setLastUpdated(new Date(data.lastUpdated));
+
+        const len = blocks.length;
+        const arrays = [
+          vesu,
+          nostraLending,
+          nostraDex,
+          ekubo,
+          wallet,
+          strkfarm,
+          strkfarmEkubo,
+          trovesHyper,
+          opus,
+        ];
+        if (arrays.some((a) => a.length !== len)) {
+          throw new Error("Invalid holdings data");
+        }
+
+        const parsed: HoldingInfo[] = blocks.map((block, idx) => ({
+          date: block.date,
+          nostraLending: serialisedMyNumberToNumber(
+            nostraLending[idx].lstAmount as any,
+          ),
+          nostraDex: serialisedMyNumberToNumber(nostraDex[idx].lstAmount as any),
+          vesu: serialisedMyNumberToNumber(vesu[idx].lstAmount as any),
+          ekubo: serialisedMyNumberToNumber(ekubo[idx].lstAmount as any),
+          endur: serialisedMyNumberToNumber(wallet[idx].lstAmount as any),
+          strkfarm: serialisedMyNumberToNumber(strkfarm[idx].lstAmount as any),
+          strkfarmEkubo: serialisedMyNumberToNumber(
+            strkfarmEkubo[idx].lstAmount as any,
+          ),
+          trovesHyper: serialisedMyNumberToNumber(
+            trovesHyper[idx]?.lstAmount as any,
+          ),
+          opus: serialisedMyNumberToNumber(opus[idx].lstAmount as any),
+        }));
+        parsed.sort(
+          (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
+        );
+        setHoldings(parsed);
       } catch (error) {
         console.error("Error fetching data:", error);
         setIsFetchError(true);
         setErrorMessage(
           error instanceof Error ? error.message : "Unknown error occurred",
         );
+      } finally {
+        setIsFetchingHoldings(false);
       }
     };
     fetchData();
-  }, [address, timeRange, assetSymbol]);
+  }, [address, timeRange, assetSymbol, retryNonce]);
 
   const summaryPieChartHoldings = React.useMemo(() => {
     const summary: HoldingInfo[] = [];
@@ -309,7 +311,13 @@ const PortfolioPage: React.FC = () => {
             chartData={summaryPieChartHoldings}
             lastUpdated={lastUpdated}
             lstSymbol={lstSymbol}
-            error={isFetchError ? errorMessage || "Failed to fetch data" : null}
+            error={
+              isFetchError && (!summaryPieChartHoldings.length || !lastUpdated)
+                ? errorMessage || "Failed to fetch data"
+                : null
+            }
+            isLoading={isFetchingHoldings}
+            onRetry={() => setRetryNonce((n) => n + 1)}
           />
         </div>
 
@@ -361,7 +369,9 @@ const PortfolioPage: React.FC = () => {
                     {formatNumberWithCommas(
                       card.tokens[
                         card.tokens.findIndex((t) => t.name === lstSymbol)
-                      ].holding?.toEtherToFixedDecimals(2) ?? "0.00",
+                      ].holding?.toEtherToFixedDecimals(balanceDecimals) ??
+                        "0",
+                      balanceDecimals,
                     )}{" "}
                     {lstSymbol}
                   </span>

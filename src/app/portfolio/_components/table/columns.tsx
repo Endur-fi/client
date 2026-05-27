@@ -69,13 +69,18 @@ export function PortfolioDAppAmountCell({
 }) {
   const assetSymbol = useAtomValue(portfolioAssetSymbolAtom);
   const lstConfig = getLSTAssetBySymbol(assetSymbol) ?? getSTRKAsset();
+  const isBTC = lstConfig.SYMBOL?.toLowerCase().includes("btc");
+  const balanceDecimals = isBTC ? 8 : 2;
   const idx = row.original.tokens.findIndex(
     (t) => t.name === lstConfig.LST_SYMBOL,
   );
   return (
     <div className="flex gap-1.5 text-right">
       {formatNumberWithCommas(
-        row.original.tokens[idx]?.holding?.toEtherToFixedDecimals(2) ?? "0.00",
+        row.original.tokens[idx]?.holding?.toEtherToFixedDecimals(
+          balanceDecimals,
+        ) ?? "0",
+        balanceDecimals,
       )}
     </div>
   );

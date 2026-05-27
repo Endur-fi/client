@@ -18,7 +18,7 @@ import { getLSTAssetBySymbol, getSTRKAsset } from "@/constants";
 import {
   getLstTokenKeyForAsset,
   portfolioDefiPieSlices,
-} from "@/lib/portfolio-ui-utils";
+} from "@/lib/portfolio-types";
 import { userAddressAtom } from "@/store/common.store";
 import {
   portfolioAssetSymbolAtom,

@@ -121,6 +121,8 @@ const ChartTooltipContent = React.forwardRef<
       nameKey?: string;
       labelKey?: string;
       chartData?: any;
+      valueSuffix?: string;
+      valueDecimals?: number;
     }
 >(
   (
@@ -138,6 +140,8 @@ const ChartTooltipContent = React.forwardRef<
       color,
       nameKey,
       labelKey,
+      valueSuffix,
+      valueDecimals = 2,
     },
     ref,
   ) => {
@@ -184,8 +188,6 @@ const ChartTooltipContent = React.forwardRef<
     }
 
     const nestLabel = payload.length === 1 && indicator !== "dot";
-
-    console.log(payload, "payloadddd");
 
     return (
       <div
@@ -249,14 +251,18 @@ const ChartTooltipContent = React.forwardRef<
                         <span className="font-mono font-medium tabular-nums text-foreground">
                           {item.payload.holdings
                             ? formatNumberWithCommas(
-                                Number(item.payload.holdings).toFixed(2),
+                                Number(item.payload.holdings).toFixed(
+                                  valueDecimals,
+                                ),
+                                valueDecimals,
                               )
                             : formatNumberWithCommas(
                                 Number(
                                   item.payload[item.name as string],
-                                ).toFixed(2),
+                                ).toFixed(valueDecimals),
+                                valueDecimals,
                               )}{" "}
-                          xSTRK
+                          {valueSuffix ?? "xSTRK"}
                         </span>
                       )}
                     </div>
@@ -281,6 +287,8 @@ const ChartLegendContent = React.forwardRef<
       hideIcon?: boolean;
       nameKey?: string;
       innerClassName?: string;
+      valueSuffix?: string;
+      valueDecimals?: number;
     }
 >(
   (
@@ -291,6 +299,8 @@ const ChartLegendContent = React.forwardRef<
       payload,
       verticalAlign = "bottom",
       nameKey,
+      valueSuffix,
+      valueDecimals = 2,
     },
     ref,
   ) => {
@@ -337,7 +347,11 @@ const ChartLegendContent = React.forwardRef<
 
               {item.payload?.value && (
                 <p>
-                  {formatNumberWithCommas(item.payload?.value.toFixed(2))} xSTRK
+                  {formatNumberWithCommas(
+                    item.payload?.value.toFixed(valueDecimals),
+                    valueDecimals,
+                  )}{" "}
+                  {valueSuffix ?? "xSTRK"}
                 </p>
               )}
             </div>

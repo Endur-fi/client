@@ -55,12 +55,18 @@ export function Chart({
   lastUpdated,
   lstSymbol = "xSTRK",
   error,
+  isLoading,
+  onRetry,
 }: {
   chartData: HoldingInfo[];
   lastUpdated: Date | null;
   lstSymbol?: string;
   error: string | null;
+  isLoading?: boolean;
+  onRetry?: () => void;
 }) {
+  const isBTC = lstSymbol.toLowerCase().includes("btc");
+  const valueDecimals = isBTC ? 8 : 2;
   const [timeRange, setTimeRange] = useAtom(chartFilter);
   const address = useAtomValue(userAddressAtom);
 
@@ -274,6 +280,8 @@ export function Chart({
                     filteredData.length === 0 ? getDummyData() : filteredData
                   }
                   indicator="dot"
+                  valueSuffix={lstSymbol}
+                  valueDecimals={valueDecimals}
                 />
               }
             />
@@ -316,8 +324,14 @@ export function Chart({
             )}
             {address && filteredData.length == 0 && !error && (
               <div className="my-5 flex w-full items-center justify-center gap-2 p-[10px] text-center">
-                Computing your wallet {lstSymbol} holding history{" "}
-                <Loader className="size-4 animate-spin text-black" />
+                {isLoading ? (
+                  <>
+                    Computing your wallet {lstSymbol} holding history{" "}
+                    <Loader className="size-4 animate-spin text-black" />
+                  </>
+                ) : (
+                  <>No holdings history yet for {lstSymbol}.</>
+                )}
               </div>
             )}
             {address && error && (
@@ -327,6 +341,17 @@ export function Chart({
                   Please try again later. If the error persists, please contact
                   us on telegram.
                 </p>
+                {onRetry && (
+                  <div className="mt-3 flex justify-center">
+                    <Button
+                      variant="outline"
+                      className="rounded-xl"
+                      onClick={onRetry}
+                    >
+                      Retry
+                    </Button>
+                  </div>
+                )}
               </div>
             )}
           </div>

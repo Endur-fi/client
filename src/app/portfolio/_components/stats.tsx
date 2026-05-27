@@ -6,10 +6,12 @@ import React from "react";
 import { getLSTAssetBySymbol, getSTRKAsset } from "@/constants";
 import { formatNumberWithCommas } from "@/lib/utils";
 import {
+  ASSET_SYMBOL_TO_HYPER_YIELD,
   getLstTokenKeyForAsset,
+  getLstUsdPrice,
   portfolioDataTotalEther,
   portfolioWalletEther,
-} from "@/lib/portfolio-ui-utils";
+} from "@/lib/portfolio-types";
 import { userEkuboxSTRKPositions } from "@/store/ekubo.store";
 import { userLSTBalanceAtom } from "@/store/lst.store";
 import { userLSTNostraBalance } from "@/store/nostra.store";
@@ -22,7 +24,6 @@ import {
   portfolioSnapshotAtom,
 } from "@/store/portfolio.store";
 import { protocolYieldsAtom } from "@/store/defi.store";
-import type { SupportedDApp } from "@/store/defi.store";
 
 export const totalXSTRKAcrossDefiHoldingsAtom = atom((get) => {
   const snapshot = get(portfolioSnapshotAtom);
@@ -50,14 +51,6 @@ export const totalXSTRKAcrossDefiHoldingsAtom = atom((get) => {
   return value;
 });
 
-const HYPER_YIELD_KEY: Record<string, SupportedDApp> = {
-  STRK: "hyperxSTRK",
-  WBTC: "hyperxWBTC",
-  tBTC: "hyperxtBTC",
-  LBTC: "hyperxLBTC",
-  solvBTC: "hyperxsBTC",
-};
-
 const Stats: React.FC = () => {
   const assetSymbol = useAtomValue(portfolioAssetSymbolAtom);
   const { data: snapshot, isLoading, error } = useAtomValue(
@@ -74,6 +67,8 @@ const Stats: React.FC = () => {
 
   const decimals = lstConfig.DECIMALS;
   const lstSymbol = lstConfig.LST_SYMBOL;
+  const isBTC = lstConfig.SYMBOL?.toLowerCase().includes("btc");
+  const balanceDecimals = isBTC ? 8 : 2;
 
   const snapshotTotal = portfolioDataTotalEther(portfolioData, decimals);
   const snapshotWallet = portfolioWalletEther(portfolioData, decimals);
@@ -97,20 +92,12 @@ const Stats: React.FC = () => {
 
   const totalUSD = React.useMemo(() => {
     if (!portfolioData || !snapshot?.conversionRates) return "";
-    const rates = snapshot.conversionRates;
-    const priceMap: Record<string, number> = {
-      XSTRK: rates.xstrk,
-      XWBTC: rates.xwbtc,
-      XLBTC: rates.xlbtc,
-      XSBTC: rates.xsbtc,
-      XTBTC: rates.xtbtc,
-    };
-    const lstPrice = priceMap[lstTokenKey] ?? rates.xstrk;
+    const lstPrice = getLstUsdPrice(lstTokenKey, snapshot.conversionRates);
     return `$${(totalLst * lstPrice).toFixed(2)}`;
   }, [portfolioData, snapshot, totalLst, lstTokenKey]);
 
   const displayApy = React.useMemo(() => {
-    const hyperKey = HYPER_YIELD_KEY[assetSymbol];
+    const hyperKey = ASSET_SYMBOL_TO_HYPER_YIELD[assetSymbol];
     if (hyperKey && yields[hyperKey]?.value) {
       return yields[hyperKey]!.value!;
     }
@@ -136,7 +123,7 @@ const Stats: React.FC = () => {
             Total {lstSymbol}
           </span>
           <p className="flex items-end gap-2 text-xl font-semibold leading-[1] text-black">
-            {formatNumberWithCommas(totalLst.toFixed(2))}
+            {formatNumberWithCommas(totalLst, balanceDecimals)}
             <span className="text-sm font-normal leading-[1.2] text-muted-foreground/80">
               {totalUSD}
             </span>
@@ -148,7 +135,7 @@ const Stats: React.FC = () => {
             {lstSymbol} in Wallet
           </span>
           <p className="flex items-end gap-4 text-xl font-semibold leading-[1] text-black">
-            {formatNumberWithCommas(walletLst.toFixed(2))}
+            {formatNumberWithCommas(walletLst, balanceDecimals)}
           </p>
         </div>
       </div>
@@ -159,7 +146,7 @@ const Stats: React.FC = () => {
             {lstSymbol} in DApps
           </span>
           <p className="flex items-end gap-4 text-xl font-semibold leading-[1] text-black">
-            {formatNumberWithCommas(Math.max(0, defiLst).toFixed(2))}
+            {formatNumberWithCommas(Math.max(0, defiLst), balanceDecimals)}
           </p>
         </div>
 

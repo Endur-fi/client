@@ -27,7 +27,7 @@ import {
   type LstConfigWithAddresses,
 } from "@/lib/portfolio-rpc";
 import { getPortfolioBalance } from "@/lib/portfolio";
-import { ASSET_SYMBOL_TO_LST_TOKEN } from "@/lib/portfolio-holdings-keys";
+import { ASSET_SYMBOL_TO_LST_TOKEN } from "@/lib/portfolio-types";
 import { STRK_DECIMALS } from "@/constants";
 
 export interface HistoricalHoldingsSeries {
@@ -242,11 +242,7 @@ async function getBtcIndexedSeries(
   const results = await Promise.all(
     blocks.map(async () => {
       try {
-        const data = await buildPortfolioDataForLst(
-          address,
-          lstConfig,
-          getPortfolioBalance,
-        );
+        const data = await buildPortfolioDataForLst(address, lstConfig);
         return data;
       } catch {
         return null;
