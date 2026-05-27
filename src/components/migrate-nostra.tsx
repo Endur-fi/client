@@ -11,7 +11,8 @@ import {
 } from "@/components/ui/dialog";
 import { NOSTRA_IXSTRK, STRK_TOKEN } from "@/constants";
 import { toast, useToast } from "@/hooks/use-toast";
-import { cn, formatBalance } from "@/lib/utils";
+import { BalanceWithLargeSubscript } from "@/components/balance-with-large-subscript";
+import { cn } from "@/lib/utils";
 import { lstConfigAtom, providerAtom } from "@/store/common.store";
 import {
   apiExchangeRateAtom,
@@ -298,7 +299,10 @@ const MigrateNostra = () => {
         <div className="mt-2 flex items-center justify-between rounded-md bg-[#E8F3F0] px-3 py-3.5 text-[#17876D]">
           <span>Current staked STRK on Nostra</span>
           <span>
-            {formatBalance(nstStrkBalance.toEtherToFixedDecimals(4), 4)}{" "}
+            <BalanceWithLargeSubscript
+              value={nstStrkBalance.toEtherToFixedDecimals(4)}
+              decimals={4}
+            />{" "}
             STRK
           </span>
         </div>
@@ -308,12 +312,20 @@ const MigrateNostra = () => {
           <div className="mt-1 flex flex-col rounded-md bg-[#E8F3F0] px-3 py-3.5 text-[#17876D]">
             <div className="flex items-center justify-between">
               <span>You will stake</span>
-              <span>{formatBalance(youWillStake, 4)} STRK</span>
+              <span>
+                <BalanceWithLargeSubscript value={youWillStake} decimals={4} /> STRK
+              </span>
             </div>
 
             <div className="mt-2 flex items-center justify-between">
               <span>xSTRK minted</span>
-              <span>{formatBalance(xSTRKAmount.toEtherToFixedDecimals(2), 2)} xSTRK</span>
+              <span>
+                <BalanceWithLargeSubscript
+                  value={xSTRKAmount.toEtherToFixedDecimals(2)}
+                  decimals={2}
+                />{" "}
+                xSTRK
+              </span>
             </div>
             <div className="mt-2 flex items-center justify-between">
               <span>

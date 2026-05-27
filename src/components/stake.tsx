@@ -62,7 +62,8 @@ import { useTransactionHandler } from "@/hooks/use-transactions";
 import { MyAnalytics } from "@/lib/analytics";
 import { AnalyticsEvents } from "@/lib/analytics-events";
 import MyNumber from "@/lib/MyNumber";
-import { cn, formatBalance } from "@/lib/utils";
+import { BalanceWithLargeSubscript } from "@/components/balance-with-large-subscript";
+import { cn } from "@/lib/utils";
 import LSTService from "@/services/lst";
 import { lstConfigAtom, assetPriceAtom } from "@/store/common.store";
 import {
@@ -723,9 +724,14 @@ const Stake: React.FC = () => {
                   Balance:
                 </span>
                 <span className="text-xs text-[#1A1F24]">
-                  {balance?.formatted
-                    ? formatBalance(Number(balance.formatted), isBTC ? 8 : 2)
-                    : "0"}{" "}
+                  {balance?.formatted ? (
+                    <BalanceWithLargeSubscript
+                      value={Number(balance.formatted)}
+                      decimals={isBTC ? 8 : 2}
+                    />
+                  ) : (
+                    "0"
+                  )}{" "}
                   {lstConfig.SYMBOL}
                 </span>
                 {balance?.formatted && assetPrice && (
@@ -934,7 +940,10 @@ const Stake: React.FC = () => {
           </p>
           <div className="flex flex-col">
             <span className="text-xs">
-              {formatBalance(getCalculatedLSTAmount(), isBTC ? 8 : 2)}{" "}
+              <BalanceWithLargeSubscript
+                value={getCalculatedLSTAmount()}
+                decimals={isBTC ? 8 : 2}
+              />{" "}
               {lstConfig.LST_SYMBOL}
             </span>
             {assetPrice && exchangeRate.rate && (

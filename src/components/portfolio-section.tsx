@@ -23,7 +23,8 @@ import {
   getLSTAssetsByCategory,
   getSTRKAsset,
 } from "@/constants";
-import { cn, formatBalance, formatNumberWithCommas } from "@/lib/utils";
+import { BalanceWithLargeSubscript } from "@/components/balance-with-large-subscript";
+import { cn, formatNumberWithCommas } from "@/lib/utils";
 import { lstStatsQueryAtom } from "@/store/lst.store";
 import { btcPriceAtom, strkPriceAtom } from "@/store/staking.store";
 import MyNumber from "@/lib/MyNumber";
@@ -310,10 +311,15 @@ const PortfolioSection: React.FC = () => {
               <div className="flex w-full flex-col gap-0.5">
                 <div className="flex w-full items-center justify-between">
                   <span className="text-left text-sm text-[#1A1F24]">
-                    {formatBalance(strkHoldings.lstAmount, 2)} xSTRK
+                    <BalanceWithLargeSubscript value={strkHoldings.lstAmount} decimals={2} />{" "}
+                    xSTRK
                   </span>
                   <span className="text-sm font-semibold text-[#1A1F24]">
-                    {formatBalance(strkHoldings.underlyingSTRK, 2)} STRK
+                    <BalanceWithLargeSubscript
+                      value={strkHoldings.underlyingSTRK}
+                      decimals={2}
+                    />{" "}
+                    STRK
                   </span>
                 </div>
                 <span className="text-left text-xs text-[#6B7780]">
@@ -333,10 +339,18 @@ const PortfolioSection: React.FC = () => {
                 {/* <span className="text-left text-sm text-[#1A1F24]">BTC</span> */}
                 <div className="flex w-full items-center justify-between">
                   <span className="text-left text-sm text-[#1A1F24]">
-                    {formatBalance(btcHoldings.totalLSTAmount, 6)} xyBTC
+                    <BalanceWithLargeSubscript
+                      value={btcHoldings.totalLSTAmount}
+                      decimals={6}
+                    />{" "}
+                    xyBTC
                   </span>
                   <span className="text-sm font-semibold text-[#1A1F24]">
-                    {formatBalance(btcHoldings.totalUnderlyingBTC, 6)} BTC
+                    <BalanceWithLargeSubscript
+                      value={btcHoldings.totalUnderlyingBTC}
+                      decimals={6}
+                    />{" "}
+                    BTC
                   </span>
                 </div>
                 <span className="text-left text-xs text-[#6B7780]">
@@ -356,7 +370,7 @@ const PortfolioSection: React.FC = () => {
                     <div className="flex items-center gap-1">
                       {getBTCLSTIcon(holding.asset.LST_SYMBOL)}
                       <span className="text-[#1A1F24]">
-                        {formatBalance(holding.lstAmount, 6)}{" "}
+                        <BalanceWithLargeSubscript value={holding.lstAmount} decimals={6} />{" "}
                         {holding.asset.LST_SYMBOL}
                       </span>
                     </div>
@@ -365,7 +379,7 @@ const PortfolioSection: React.FC = () => {
                     </span>
                   </div>
                   <span className="text-right text-[#6B7780]">
-                    {formatBalance(holding.underlyingBTC, 6)}{" "}
+                    <BalanceWithLargeSubscript value={holding.underlyingBTC} decimals={6} />{" "}
                     {holding.asset.SYMBOL}
                   </span>
                 </div>

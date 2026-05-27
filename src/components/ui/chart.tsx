@@ -4,7 +4,8 @@ import * as React from "react";
 import * as RechartsPrimitive from "recharts";
 
 import { chartConfig } from "@/app/portfolio/_components/defi-holding";
-import { cn, formatBalance } from "@/lib/utils";
+import { BalanceWithLargeSubscript } from "@/components/balance-with-large-subscript";
+import { cn } from "@/lib/utils";
 import { type SupportedDApp } from "@/store/defi.store";
 
 // Format: { THEME_NAME: CSS_SELECTOR }
@@ -247,17 +248,14 @@ const ChartTooltipContent = React.forwardRef<
                       </div>
                       {item.value && (
                         <span className="font-mono font-medium tabular-nums text-foreground">
-                          {item.payload.holdings
-                            ? formatBalance(
-                                Number(item.payload.holdings),
-                                2,
-                              )
-                            : formatBalance(
-                                Number(
-                                  item.payload[item.name as string],
-                                ),
-                                2,
-                              )}{" "}
+                          <BalanceWithLargeSubscript
+                            value={
+                              item.payload.holdings
+                                ? Number(item.payload.holdings)
+                                : Number(item.payload[item.name as string])
+                            }
+                            decimals={2}
+                          />{" "}
                           xSTRK
                         </span>
                       )}
@@ -339,7 +337,8 @@ const ChartLegendContent = React.forwardRef<
 
               {item.payload?.value && (
                 <p>
-                  {formatBalance(item.payload?.value ?? 0, 2)} xSTRK
+                  <BalanceWithLargeSubscript value={item.payload?.value ?? 0} decimals={2} />{" "}
+                  xSTRK
                 </p>
               )}
             </div>

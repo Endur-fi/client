@@ -15,7 +15,8 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { getExplorerEndpoint } from "@/constants";
-import { cn, convertFutureTimestamp, formatBalance } from "@/lib/utils";
+import { BalanceWithLargeSubscript } from "@/components/balance-with-large-subscript";
+import { cn, convertFutureTimestamp } from "@/lib/utils";
 
 // Custom component for amount cell that can use hooks
 const AmountCell: React.FC<{ amount: string; asset?: string }> = ({
@@ -23,7 +24,7 @@ const AmountCell: React.FC<{ amount: string; asset?: string }> = ({
   asset,
 }) => {
   const decimals = asset?.toLowerCase().includes("btc") ? 8 : 2;
-  return <>{formatBalance(amount, decimals)}</>;
+  return <BalanceWithLargeSubscript value={amount} decimals={decimals} />;
 };
 
 export type Status = "Success" | "Pending";

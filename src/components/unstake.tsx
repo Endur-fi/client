@@ -34,7 +34,8 @@ import { useTransactionHandler } from "@/hooks/use-transactions";
 import { MyAnalytics } from "@/lib/analytics";
 import { AnalyticsEvents } from "@/lib/analytics-events";
 import MyNumber from "@/lib/MyNumber";
-import { cn, formatBalance } from "@/lib/utils";
+import { BalanceWithLargeSubscript } from "@/components/balance-with-large-subscript";
+import { cn } from "@/lib/utils";
 import { executeAvnuSwap, getAvnuQuotes } from "@/services/avnu";
 import {
   avnuErrorAtom,
@@ -164,7 +165,8 @@ const YouWillGetSection = ({
       </p>
       <div className="flex flex-col">
         <span className="text-xs">
-          {formatBalance(amount, isBTC ? 8 : 2)} {lstConfig.SYMBOL}
+          <BalanceWithLargeSubscript value={amount} decimals={isBTC ? 8 : 2} />{" "}
+          {lstConfig.SYMBOL}
         </span>
         {usdValue !== null && usdValue !== undefined && (
           <span className="text-right text-xs text-[#6B7780]">
@@ -763,12 +765,12 @@ const Unstake = () => {
                   Balance:
                 </span>
                 <span className="text-xs text-[#1A1F24]">
-                  {formatBalance(
-                    currentLSTBalance.value.toEtherToFixedDecimals(
+                  <BalanceWithLargeSubscript
+                    value={currentLSTBalance.value.toEtherToFixedDecimals(
                       isBTC ? 8 : 2,
-                    ),
-                    isBTC ? 8 : 2,
-                  )}{" "}
+                    )}
+                    decimals={isBTC ? 8 : 2}
+                  />{" "}
                   {lstConfig.LST_SYMBOL}
                 </span>
               </div>

@@ -12,7 +12,8 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { MyAnalytics } from "@/lib/analytics";
 import { AnalyticsEvents } from "@/lib/analytics-events";
 import MyNumber from "@/lib/MyNumber";
-import { cn, formatBalance } from "@/lib/utils";
+import { BalanceWithLargeSubscript } from "@/components/balance-with-large-subscript";
+import { cn } from "@/lib/utils";
 import {
   DAppHoldings,
   protocolYieldsAtom,
@@ -334,12 +335,14 @@ const PortfolioPage: React.FC = () => {
                     <b>Your Holding:</b>
                   </span>
                   <span className="flex">
-                    {formatBalance(
-                      card.tokens[
-                        card.tokens.findIndex((t) => t.name === "xSTRK")
-                      ].holding?.toEtherToFixedDecimals(2) ?? "0.00",
-                      2,
-                    )}{" "}
+                    <BalanceWithLargeSubscript
+                      value={
+                        card.tokens[
+                          card.tokens.findIndex((t) => t.name === "xSTRK")
+                        ].holding?.toEtherToFixedDecimals(2) ?? "0.00"
+                      }
+                      decimals={2}
+                    />{" "}
                     xSTRK
                   </span>
                 </div>
