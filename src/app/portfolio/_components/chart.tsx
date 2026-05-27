@@ -70,45 +70,40 @@ export function Chart({
   const [timeRange, setTimeRange] = useAtom(chartFilter);
   const address = useAtomValue(userAddressAtom);
 
-  const filteredData = chartData.filter((item) => {
-    const date = new Date(item.date);
-    const referenceDate = new Date("2024-11-25");
-    let daysToSubtract = 90;
+  const requestedDays =
+    timeRange === "7d" ? 7 : timeRange === "30d" ? 30 : timeRange === "180d" ? 180 : 90;
 
-    if (timeRange === "30d") {
-      daysToSubtract = 30;
-    } else if (timeRange === "7d") {
-      daysToSubtract = 7;
-    }
-
-    const startDate = new Date(referenceDate);
-    startDate.setDate(startDate.getDate() - daysToSubtract);
-    return date >= startDate;
-  });
+  const availableDays = React.useMemo(() => {
+    if (chartData.length < 2) return 0;
+    const start = new Date(chartData[0]!.date).getTime();
+    const end = new Date(chartData[chartData.length - 1]!.date).getTime();
+    if (!Number.isFinite(start) || !Number.isFinite(end) || end <= start) return 0;
+    return Math.floor((end - start) / (24 * 60 * 60 * 1000)) + 1;
+  }, [chartData]);
 
   const { areaChartData, protocolOrder } = React.useMemo(() => {
-    if (filteredData.length === 0) {
+    if (chartData.length === 0) {
       return {
         areaChartData: getDummyData().map((i) => ({ ...i, cummulative: i })),
         protocolOrder: ["endur"],
       };
     }
     const protocolKeys = Object.keys(
-      filteredData[filteredData.length - 1],
+      chartData[chartData.length - 1],
     ).filter((key) => key !== "date");
     const protocolValues = protocolKeys.map((key) => {
       return {
         key,
         value: Number(
-          filteredData[filteredData.length - 1][
-            key as keyof (typeof filteredData)[0]
+          chartData[chartData.length - 1][
+            key as keyof (typeof chartData)[0]
           ],
         ),
       };
     });
     protocolValues.sort((a, b) => b.value - a.value);
 
-    const areaData = filteredData.map((item) => {
+    const areaData = chartData.map((item) => {
       const data: Record<string, number | string> = {
         date: item.date,
         nostra: 0,
@@ -137,7 +132,7 @@ export function Chart({
       areaChartData: areaData,
       protocolOrder: protocolValues.map((p) => p.key),
     };
-  }, [filteredData]);
+  }, [chartData]);
 
   function formatDate(value: string) {
     return new Date(value).toLocaleDateString("en-US", {
@@ -179,6 +174,12 @@ export function Chart({
           <CardDescription>
             Last updated:{" "}
             {lastUpdated ? formatHumanFriendlyDateTime(lastUpdated) : "-"}
+            {availableDays > 0 && availableDays < requestedDays ? (
+              <>
+                {" "}
+                · Showing {availableDays} days available
+              </>
+            ) : null}
           </CardDescription>
         </div>
         <div className="mt-3 flex w-fit overflow-hidden rounded-lg border border-[#AACBC4]/30 shadow-sm lg:ml-auto lg:mt-0">
@@ -277,9 +278,7 @@ export function Chart({
                   labelFormatter={(value) => {
                     return formatDate(value);
                   }}
-                  chartData={
-                    filteredData.length === 0 ? getDummyData() : filteredData
-                  }
+                  chartData={chartData.length === 0 ? getDummyData() : chartData}
                   indicator="dot"
                   valueSuffix={lstSymbol}
                   valueDecimals={valueDecimals}
@@ -287,7 +286,7 @@ export function Chart({
               }
             />
 
-            {protocolOrder.reverse().map((protocol, index) => (
+            {[...protocolOrder].reverse().map((protocol, index) => (
               <Area
                 dataKey={(data) =>
                   data.cummulative[protocol as keyof typeof data.cummulative]
@@ -295,7 +294,7 @@ export function Chart({
                 name={protocol}
                 type="monotone"
                 fill={
-                  filteredData.length === 0
+                  chartData.length === 0
                     ? "url(#loading)"
                     : chartConfig[protocol as keyof typeof chartConfig]
                         .fillColor
@@ -309,7 +308,13 @@ export function Chart({
             ))}
           </AreaChart>
         </ChartContainer>
-        {(!address || filteredData.length === 0) && (
+        {!!address && isLoading && (
+          <div className="pointer-events-none absolute right-3 top-3 flex items-center gap-2 rounded-md border bg-white/80 px-3 py-1.5 text-xs text-muted-foreground shadow-sm backdrop-blur-sm">
+            <Loader className="size-3.5 animate-spin text-black" />
+            Updating…
+          </div>
+        )}
+        {(!address || chartData.length === 0) && (
           <div className="absolute inset-0 flex items-center justify-center rounded-xl bg-white/80 backdrop-blur-sm">
             {!address && (
               <div className="gap-2 rounded-xl p-[10px] text-center">
@@ -323,7 +328,7 @@ export function Chart({
                 </div>
               </div>
             )}
-            {address && filteredData.length === 0 && !error && (
+            {address && chartData.length === 0 && !error && (
               <div className="my-5 flex w-full items-center justify-center gap-2 p-[10px] text-center">
                 {isLoading ? (
                   <>

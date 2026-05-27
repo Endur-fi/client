@@ -41,11 +41,20 @@ export interface HistoricalHoldingsSeries {
   opus: DAppHoldings[];
 }
 
+function isTransientRpcError(error: unknown): boolean {
+  if (!(error instanceof Error)) return false;
+  return (
+    error.message.includes("Unexpected end of JSON input") ||
+    error.message.includes("fetch failed") ||
+    error.message.includes("ECONNRESET")
+  );
+}
+
 async function retry<T extends (...args: any[]) => Promise<any>>(
   fn: T,
   args: Parameters<T>,
-  retries: number = 3,
-  delay: number = 1000,
+  retries: number = 5,
+  delay: number = 1500,
 ): Promise<ReturnType<T>> {
   let attempts = 0;
   while (attempts < retries) {
@@ -54,10 +63,33 @@ async function retry<T extends (...args: any[]) => Promise<any>>(
     } catch (error) {
       attempts++;
       if (attempts >= retries) throw error;
-      await new Promise((resolve) => setTimeout(resolve, delay));
+      const backoff = isTransientRpcError(error) ? delay * attempts : delay;
+      await new Promise((resolve) => setTimeout(resolve, backoff));
     }
   }
   throw new Error("Function failed after max retries");
+}
+
+let historicalHoldingsQueue: Promise<void> = Promise.resolve();
+
+async function mapWithConcurrency<T, R>(
+  items: T[],
+  concurrency: number,
+  mapper: (item: T, idx: number) => Promise<R>,
+): Promise<R[]> {
+  const results: R[] = new Array(items.length);
+  let nextIndex = 0;
+
+  const workers = new Array(Math.max(1, concurrency)).fill(0).map(async () => {
+    while (true) {
+      const idx = nextIndex++;
+      if (idx >= items.length) return;
+      results[idx] = await mapper(items[idx]!, idx);
+    }
+  });
+
+  await Promise.all(workers);
+  return results;
 }
 
 function portfolioBalanceToHoldings(
@@ -139,26 +171,28 @@ async function getStrkProtocolSeries(
     "vesu" | "nostraLending" | "nostraDex" | "strkfarm" | "strkfarmEkubo" | "opus"
   >
 > {
-  const vesu = await Promise.all(
-    blocks.map(async (block) => {
-      const justSupply = await retry(getVesuHoldings, [
-        { address, blockNumber: block.block },
-      ]);
-      const collateral = await retry(getVesuxSTRKCollateralWrapper(), [
-        { address, blockNumber: block.block },
-      ]);
-      return {
-        lstAmount: justSupply.lstAmount.operate(
-          "plus",
-          collateral.lstAmount.toString(),
-        ),
-        underlyingTokenAmount: justSupply.underlyingTokenAmount.operate(
-          "plus",
-          collateral.underlyingTokenAmount.toString(),
-        ),
-      };
-    }),
-  );
+  // This endpoint fans out into many RPC calls; limit concurrency to avoid
+  // intermittent truncated JSON responses ("Unexpected end of JSON input").
+  const concurrency = blocks.length >= 20 ? 1 : 3;
+
+  const vesu = await mapWithConcurrency(blocks, concurrency, async (block) => {
+    const justSupply = await retry(getVesuHoldings, [
+      { address, blockNumber: block.block },
+    ]);
+    const collateral = await retry(getVesuxSTRKCollateralWrapper(), [
+      { address, blockNumber: block.block },
+    ]);
+    return {
+      lstAmount: justSupply.lstAmount.operate(
+        "plus",
+        collateral.lstAmount.toString(),
+      ),
+      underlyingTokenAmount: justSupply.underlyingTokenAmount.operate(
+        "plus",
+        collateral.underlyingTokenAmount.toString(),
+      ),
+    };
+  });
 
   const nostraTokens = [
     N_XSTRK_CONTRACT_ADDRESS,
@@ -167,8 +201,10 @@ async function getStrkProtocolSeries(
     i_XSTRK_C_CONTRACT_ADDRESS,
   ];
 
-  const nostraLending = await Promise.all(
-    blocks.map(async (block) => {
+  const nostraLending = await mapWithConcurrency(
+    blocks,
+    concurrency,
+    async (block) => {
       const holdings = await Promise.all(
         nostraTokens.map((token) =>
           retry(getNostraHoldingsByToken, [address, token, block.block]),
@@ -181,33 +217,23 @@ async function getStrkProtocolSeries(
         ),
         underlyingTokenAmount: MyNumber.fromZero(STRK_DECIMALS),
       };
-    }),
+    },
   );
 
-  const nostraDex = await Promise.all(
-    blocks.map((block) =>
-      retry(getNostraDexHoldings, [{ address, blockNumber: block.block }]),
-    ),
+  const nostraDex = await mapWithConcurrency(blocks, concurrency, (block) =>
+    retry(getNostraDexHoldings, [{ address, blockNumber: block.block }]),
   );
 
-  const strkfarm = await Promise.all(
-    blocks.map((block) =>
-      retry(getXSTRKSenseiHoldings, [{ address, blockNumber: block.block }]),
-    ),
+  const strkfarm = await mapWithConcurrency(blocks, concurrency, (block) =>
+    retry(getXSTRKSenseiHoldings, [{ address, blockNumber: block.block }]),
   );
 
-  const strkfarmEkubo = await Promise.all(
-    blocks.map((block) =>
-      retry(getEkuboXSTRKSTRKHoldings, [
-        { address, blockNumber: block.block },
-      ]),
-    ),
+  const strkfarmEkubo = await mapWithConcurrency(blocks, concurrency, (block) =>
+    retry(getEkuboXSTRKSTRKHoldings, [{ address, blockNumber: block.block }]),
   );
 
-  const opus = await Promise.all(
-    blocks.map((block) =>
-      retry(getOpusHoldings, [{ address, blockNumber: block.block }]),
-    ),
+  const opus = await mapWithConcurrency(blocks, concurrency, (block) =>
+    retry(getOpusHoldings, [{ address, blockNumber: block.block }]),
   );
 
   return {
@@ -276,7 +302,7 @@ async function getBtcIndexedSeries(
   };
 }
 
-export async function fetchHistoricalHoldingsForAsset(
+async function fetchHistoricalHoldingsForAssetInner(
   address: string,
   assetSymbol: string,
   blocks: BlockInfo[],
@@ -309,6 +335,21 @@ export async function fetchHistoricalHoldingsForAsset(
     ekubo,
     ...indexed,
   };
+}
+
+export async function fetchHistoricalHoldingsForAsset(
+  address: string,
+  assetSymbol: string,
+  blocks: BlockInfo[],
+): Promise<HistoricalHoldingsSeries> {
+  const run = () =>
+    fetchHistoricalHoldingsForAssetInner(address, assetSymbol, blocks);
+  const result = historicalHoldingsQueue.then(run, run);
+  historicalHoldingsQueue = result.then(
+    () => undefined,
+    () => undefined,
+  );
+  return result;
 }
 
 /** xSTRK helpers for block-holdings API (legacy imports) */

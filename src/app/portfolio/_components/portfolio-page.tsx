@@ -53,11 +53,16 @@ function serialisedMyNumberToNumber(serialised: {
 
 const PortfolioPage: React.FC = () => {
   const [holdings, setHoldings] = React.useState<HoldingInfo[]>([]);
+  const [holdingsTimeRange, setHoldingsTimeRange] = React.useState<
+    string | null
+  >(null);
   const [lastUpdated, setLastUpdated] = React.useState<Date | null>(null);
   const [isFetchError, setIsFetchError] = React.useState(false);
   const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
   const [isFetchingHoldings, setIsFetchingHoldings] = React.useState(false);
   const [retryNonce, setRetryNonce] = React.useState(0);
+  const holdingsFetchSeqRef = React.useRef(0);
+  const holdingsAbortRef = React.useRef<AbortController | null>(null);
 
   const timeRange = useAtomValue(chartFilter);
   const address = useAtomValue(userAddressAtom);
@@ -146,11 +151,16 @@ const PortfolioPage: React.FC = () => {
       if (!address) return;
 
       try {
+        const fetchSeq = ++holdingsFetchSeqRef.current;
+        holdingsAbortRef.current?.abort();
+        const controller = new AbortController();
+        holdingsAbortRef.current = controller;
+
         setIsFetchingHoldings(true);
         setIsFetchError(false);
         setErrorMessage(null);
         const url = `/api/holdings/${address}/${timeRange.slice(0, -1)}?lstSymbol=${assetSymbol}`;
-        const res = await fetch(url);
+        const res = await fetch(url, { signal: controller.signal });
 
         if (!res.ok) {
           let apiMessage: string | undefined;
@@ -225,9 +235,18 @@ const PortfolioPage: React.FC = () => {
         parsed.sort(
           (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
         );
+
+        // If a newer range request started while this was in-flight, ignore this response.
+        if (fetchSeq !== holdingsFetchSeqRef.current) {
+          return;
+        }
         setHoldings(parsed);
+        setHoldingsTimeRange(timeRange);
       } catch (error) {
         console.error("Error fetching data:", error);
+        if (error instanceof DOMException && error.name === "AbortError") {
+          return;
+        }
         setIsFetchError(true);
         setErrorMessage(
           error instanceof Error ? error.message : "Unknown error occurred",
@@ -257,6 +276,14 @@ const PortfolioPage: React.FC = () => {
     });
     return summary;
   }, [holdings]);
+
+  const chartHoldings = React.useMemo(() => {
+    if (holdingsTimeRange !== timeRange) return [];
+    return summaryPieChartHoldings;
+  }, [summaryPieChartHoldings, holdingsTimeRange, timeRange]);
+
+  const chartIsLoading =
+    isFetchingHoldings || holdingsTimeRange !== timeRange;
 
   React.useEffect(() => {
     MyAnalytics.track(AnalyticsEvents.OPEN_PORTFOLIO, {});
@@ -311,15 +338,15 @@ const PortfolioPage: React.FC = () => {
         <div className="flex w-full flex-col items-start gap-5">
           <Stats />
           <Chart
-            chartData={summaryPieChartHoldings}
+            chartData={chartHoldings}
             lastUpdated={lastUpdated}
             lstSymbol={lstSymbol}
             error={
-              isFetchError && (!summaryPieChartHoldings.length || !lastUpdated)
+              isFetchError && (!chartHoldings.length || !lastUpdated)
                 ? errorMessage || "Failed to fetch data"
                 : null
             }
-            isLoading={isFetchingHoldings}
+            isLoading={chartIsLoading}
             onRetry={() => setRetryNonce((n) => n + 1)}
           />
         </div>
