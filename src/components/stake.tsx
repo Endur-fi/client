@@ -108,7 +108,10 @@ const PLATFORMS = {
   HYPER_HYPER: "trovesHyper",
 } as const;
 
-const platformConfig = (lstConfig: LSTAssetConfig, isTrovesMaxedOut: boolean) => {
+const platformConfig = (
+  lstConfig: LSTAssetConfig,
+  isTrovesMaxedOut: boolean,
+) => {
   // Determine the correct yield key based on the LST symbol
   let yieldKey: string;
   switch (lstConfig.LST_SYMBOL) {
@@ -169,9 +172,7 @@ const Stake: React.FC = () => {
   // Wallet connection is handled by Easyleap ConnectButton.
   const lstConfig = useAtomValue(lstConfigAtom)!;
   const mode = useMode();
-  const [isLendingOpen, setIsLendingOpen] = React.useState(
-    true,
-  );
+  const [isLendingOpen, setIsLendingOpen] = React.useState(true);
   // In EVM mode, the SDK treats the passed token address as the EVM token.
   // For now only WBTC has a mapped EVM token address.
   const balanceTokenAddress =
@@ -493,9 +494,12 @@ const Stake: React.FC = () => {
 
   const sortedPlatforms = React.useMemo(() => {
     const allPlatforms = Object.values(PLATFORMS).filter((platform) => {
-      // TODO: remove this filter later on 
+      // TODO: remove this filter later on
       // Don't show Troves Hyper vault for xstrkBTC as it doesn't exist yet
-      if (lstConfig.LST_SYMBOL === "xstrkBTC" && platform === PLATFORMS.HYPER_HYPER) {
+      if (
+        lstConfig.LST_SYMBOL === "xstrkBTC" &&
+        platform === PLATFORMS.HYPER_HYPER
+      ) {
         return false;
       }
       return true;
@@ -591,6 +595,30 @@ const Stake: React.FC = () => {
       },
     });
   }, [data, form, isPending]);
+
+  if (lstConfig.SYMBOL === "LBTC") {
+    return (
+      <div className="relative flex h-full w-full flex-col gap-6">
+        <Stats
+          selectedPlatform={selectedPlatform}
+          getPlatformYield={getPlatformYield}
+          mode="stake"
+        />
+        <div className="rounded-[14px] border border-amber-600 bg-amber-50 px-4 py-3 text-sm text-[#6B7780]">
+          <span className="font-semibold text-[#1A1F24]">Note: </span>
+          LBTC is discontinued, we encourage users to withdraw their staked
+          assets. Learn more:{" "}
+          <Link
+            href="https://docs.endur.fi/docs/guides/how-to-stake-and-unstake-btc"
+            target="_blank"
+            className="text-blue-600 underline"
+          >
+            here
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="relative flex h-full w-full flex-col gap-6">
