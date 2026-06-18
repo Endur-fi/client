@@ -808,16 +808,6 @@ const CheckEligibility: React.FC<CheckEligibilityProps> = ({
     setState((prev) => ({ ...prev, activeModal: null }));
   }, []);
 
-  const goToClaim = React.useCallback(() => {
-    MyAnalytics.track(AnalyticsEvents.REWARDS_TWITTER_FOLLOW_SKIPPED, {
-      userAddress: address,
-    });
-    setState((prev) => ({
-      ...prev,
-      activeModal: state.isEligible ? "claim" : "notEligible",
-    }));
-  }, [address, state.isEligible]);
-
   const handleClaim = React.useCallback(async () => {
     if (!address) return;
 
