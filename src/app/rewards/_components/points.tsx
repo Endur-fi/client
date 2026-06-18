@@ -16,7 +16,7 @@ import React, { useState, useEffect } from "react";
 const seasons = [
   {
     season: 2,
-    isActive: true,
+    isActive: false,
     startDate: new Date("2025-12-16:00:00Z"),
     endDate: new Date("2026-06-15T00:00:00Z"),
     points: 7500000,
@@ -249,7 +249,7 @@ const SeasonInfoCards = ({ season }: { season: (typeof seasons)[0] }) => {
                 points will be allocated to contributors and 30% to the users.{" "}
                 <span className="font-semibold text-[#17876D]">
                   <a
-                    className="text-[#17876D] underline"
+                    className="text-[#5B616D] underline"
                     href="https://docs.endur.fi/docs/community/endur-season-2"
                     target="_blank"
                     onClick={() =>
@@ -656,7 +656,8 @@ const Points = ({
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-4">
-        <div className="flex flex-col gap-4 rounded-[14px] bg-[#17876D26] px-4 py-1.5 lg:flex-row lg:items-center">
+        {/* POINTS SEASON 2 ENDED */}
+        {/*<div className="flex flex-col gap-4 rounded-[14px] bg-[#17876D26] px-4 py-1.5 lg:flex-row lg:items-center">
           <div className="flex flex-1 flex-row items-start gap-4 lg:items-center">
             <Image
               src="/leaderboard/announce.svg"
@@ -694,7 +695,7 @@ const Points = ({
               View Details
             </Button>
           </a>
-        </div>
+        </div> */}
         {/* Timeline & Points Allocation Boxes */}
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:gap-6">
           {seasons.map((season) => (
@@ -729,8 +730,31 @@ const Points = ({
               </h2>
             </div>
           </div>
+          <div className="flex flex-row rounded-[14px] border border-[#E5E8EB] bg-white px-4 py-3">
+            <div className="flex flex-1 flex-row items-center gap-2.5">
+              <div className="h-10 w-10 rounded-[10px] bg-[#939494] p-1.5">
+                <Trophy
+                  className="h-full w-full"
+                  color="#FFFFFF"
+                  strokeWidth={1.5}
+                />
+              </div>
+              <h3 className="text-[15px] font-medium text-[#939494]">
+                Your Season 2
+              </h3>
+            </div>
+            <div className="flex flex-col items-end">
+              <span className="text-[11px] font-medium text-[#939494]">
+                Total Points
+              </span>
+              <h2 className="text-[24px] font-semibold leading-[28px] text-[#5B616D]">
+                {formatNumberWithCommas(userSeason2Points.points, 2)}
+              </h2>
+            </div>
+          </div>
+          {/* POINTS SEASON 2 ENDED */}
           {/* season 2 points */}
-          <Season2Points
+          {/* <Season2Points
             pointsBreakdown={pointsBreakdown}
             userSeason2Points={userSeason2Points}
             weeklyEarned={breakdownData?.getUserPointsBreakdown?.weeklyEarned}
@@ -742,7 +766,7 @@ const Points = ({
                 ?.lastPointsMultiplierEndTimestamp
             }
             isLoading={breakdownLoading}
-          />
+          /> */}
         </div>
       )}
     </div>

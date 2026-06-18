@@ -408,8 +408,11 @@ const Tabs = () => {
           )}
         > */}
 
-        <div className="relative mb-2 w-full max-w-[calc(100vw-1rem)] overflow-hidden rounded-2xl shadow-[0px_5.55px_22.2px_0px_#11998E4D] lg:mb-6 lg:max-w-4xl bg-[#011a38]">
-          <a href="https://www.starknet.io/blog/strkbtc-starknets-shielded-bitcoin-with-private-transactions/" target="_blank">
+        <div className="relative mb-2 w-full max-w-[calc(100vw-1rem)] overflow-hidden rounded-2xl bg-[#011a38] shadow-[0px_5.55px_22.2px_0px_#11998E4D] lg:mb-6 lg:max-w-4xl">
+          <a
+            href="https://www.starknet.io/blog/strkbtc-starknets-shielded-bitcoin-with-private-transactions/"
+            target="_blank"
+          >
             <Image
               alt="strkBTC banner"
               src={strkBTCBanner}
@@ -653,9 +656,11 @@ const Tabs = () => {
             <div
               className={cn("flex w-full max-w-full flex-col gap-4 lg:hidden")}
             >
-              <SeasonPointsCard />
+              {/* POINTS SEASON 2 ENDED */}
+              {/* <SeasonPointsCard /> */}
               <VipCard />
-              <StakingRewardsInfo />
+              {/* POINTS SEASON 2 ENDED */}
+              {/* <StakingRewardsInfo /> */}
               <PortfolioSection />
               <FAQSection />
             </div>
@@ -673,10 +678,12 @@ const Tabs = () => {
               </p>
             </div>
 
-            <SeasonPointsCard />
+            {/* POINTS SEASON 2 ENDED */}
+            {/* <SeasonPointsCard /> */}
             <VipCard />
             <PortfolioSection />
-            <StakingRewardsInfo />
+            {/* POINTS SEASON 2 ENDED */}
+            {/* <StakingRewardsInfo /> */}
             {/* <FAQSection /> */}
           </div>
         </div>

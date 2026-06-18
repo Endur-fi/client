@@ -7,8 +7,6 @@ import {
   HelpCircle,
   OctagonAlert,
   ShieldAlert,
-  Sparkles,
-  Zap,
 } from "lucide-react";
 
 import { useSidebar } from "@/components/ui/sidebar";
@@ -1697,7 +1695,6 @@ const Defi: React.FC = () => {
             isBorrow={activeTab === "borrow"}
             maxLTV={maxLTV}
             capacity={capacity}
-            pointsMultiplier={config.pointsMultiplier}
             onActionClick={handleCTAClick}
           />
         ));
@@ -1715,7 +1712,6 @@ const Defi: React.FC = () => {
           isBorrow={activeTab === "borrow"}
           maxLTV={maxLTV}
           capacity={capacity}
-          pointsMultiplier={config.pointsMultiplier}
           onActionClick={handleCTAClick}
         />
       );
@@ -1834,14 +1830,15 @@ const Defi: React.FC = () => {
                     >
                       <div className="flex flex-col items-center gap-0.5">
                         <span>{tab.label}</span>
-                        {tab.value === "contribute-liquidity" && (
-                          <div className="flex items-center gap-1">
-                            <Zap className="h-3 w-3 text-[#D69733]" />
-                            <span className="text-xs font-medium text-[#D69733]">
-                              70% • 5.25M pts
-                            </span>
-                          </div>
-                        )}
+                        {/* POINTS SEASON 2 ENDED */}
+                        {/* {tab.value === "contribute-liquidity" && ( */}
+                        {/*   <div className="flex items-center gap-1"> */}
+                        {/*     <Zap className="h-3 w-3 text-[#D69733]" /> */}
+                        {/*     <span className="text-xs font-medium text-[#D69733]"> */}
+                        {/*       70% • 5.25M pts */}
+                        {/*     </span> */}
+                        {/*   </div> */}
+                        {/* )} */}
                       </div>
                     </TabsTrigger>
                   ))}
@@ -1900,7 +1897,7 @@ const Defi: React.FC = () => {
               {/* Borrow: header row pinned as part of the sticky header section */}
               <div className="hidden lg:block">
                 <TabsContent value="borrow" className="mt-2">
-                  <div className="grid grid-cols-4">
+                  <div className="grid grid-cols-3">
                     <div className="rounded-tl-[14px] bg-white px-6 py-2 text-left text-sm font-medium text-[#5B616D] shadow-sm">
                       Pair &amp; Pool
                     </div>
@@ -1937,12 +1934,12 @@ const Defi: React.FC = () => {
                         </TooltipProvider>
                       </div>
                     </div>
-                    <div className="bg-white px-6 py-2 text-center text-sm font-medium text-[#5B616D] shadow-sm">
+                    <div className="rounded-tr-[14px] bg-white px-6 py-2 text-center text-sm font-medium text-[#5B616D] shadow-sm">
                       Capacity
                     </div>
-                    <div className="rounded-tr-[14px] bg-white px-6 py-2 text-center text-sm font-medium text-[#5B616D] shadow-sm">
+                    {/* <div className="rounded-tr-[14px] bg-white px-6 py-2 text-center text-sm font-medium text-[#5B616D] shadow-sm">
                       Points Multiplier
-                    </div>
+                    </div> */}
                   </div>
                 </TabsContent>
               </div>
@@ -1950,19 +1947,19 @@ const Defi: React.FC = () => {
               {/* Earn: header row pinned as part of the sticky header section */}
               <div className="hidden lg:block">
                 <TabsContent value="earn" className="mt-2">
-                  <div className="grid grid-cols-4">
+                  <div className="grid grid-cols-3">
                     <div className="rounded-tl-[14px] bg-white px-6 py-2 text-left text-sm font-medium text-[#5B616D] shadow-sm">
                       Vault
                     </div>
                     <div className="bg-white px-6 py-2 text-center text-sm font-medium text-[#5B616D] shadow-sm">
                       Yield
                     </div>
-                    <div className="bg-white px-6 py-2 text-center text-sm font-medium text-[#5B616D] shadow-sm">
+                    <div className="rounded-tr-[14px] bg-white px-6 py-2 text-center text-sm font-medium text-[#5B616D] shadow-sm">
                       Capacity
                     </div>
-                    <div className="rounded-tr-[14px] bg-white px-6 py-2 text-center text-sm font-medium text-[#5B616D] shadow-sm">
+                    {/* <div className="rounded-tr-[14px] bg-white px-6 py-2 text-center text-sm font-medium text-[#5B616D] shadow-sm">
                       Points Multiplier
-                    </div>
+                    </div> */}
                   </div>
                 </TabsContent>
               </div>
@@ -1970,19 +1967,19 @@ const Defi: React.FC = () => {
               {/* Contribute liquidity: header row pinned as part of the sticky header section */}
               <div className="hidden lg:block">
                 <TabsContent value="contribute-liquidity" className="mt-2">
-                  <div className="grid grid-cols-4">
+                  <div className="grid grid-cols-3">
                     <div className="rounded-tl-[14px] bg-white px-6 py-2 text-left text-sm font-medium text-[#5B616D] shadow-sm">
                       Vault
                     </div>
                     <div className="bg-white px-6 py-2 text-center text-sm font-medium text-[#5B616D] shadow-sm">
                       Yield
                     </div>
-                    <div className="bg-white px-6 py-2 text-center text-sm font-medium text-[#5B616D] shadow-sm">
+                    <div className="rounded-tr-[14px] bg-white px-6 py-2 text-center text-sm font-medium text-[#5B616D] shadow-sm">
                       Capacity
                     </div>
-                    <div className="rounded-tr-[14px] bg-white px-6 py-2 text-center text-sm font-medium text-[#5B616D] shadow-sm">
+                    {/* <div className="rounded-tr-[14px] bg-white px-6 py-2 text-center text-sm font-medium text-[#5B616D] shadow-sm">
                       Points Multiplier
-                    </div>
+                    </div> */}
                   </div>
                 </TabsContent>
               </div>
@@ -2052,7 +2049,7 @@ const Defi: React.FC = () => {
                             return (
                               <tr key={protocol}>
                                 <td
-                                  colSpan={4}
+                                  colSpan={3}
                                   className={cn("p-0", "rounded-2xl")}
                                 >
                                   <Card
@@ -2149,7 +2146,7 @@ const Defi: React.FC = () => {
                                       </div>
 
                                       {/* Points Multiplier Column */}
-                                      <div className="flex flex-1 flex-col items-center justify-center">
+                                      {/* <div className="flex flex-1 flex-col items-center justify-center">
                                         {config.pointsMultiplier ? (
                                           <MyDottedTooltip
                                             tooltip={
@@ -2170,7 +2167,7 @@ const Defi: React.FC = () => {
                                             -
                                           </span>
                                         )}
-                                      </div>
+                                      </div> */}
                                     </div>
 
                                     {/* Bottom Section */}
@@ -2192,7 +2189,7 @@ const Defi: React.FC = () => {
                                         {/* Rewards (empty) */}
                                         {/* <div className="flex-1"></div> */}
 
-                                        <div className="flex-2 mx-auto flex w-[50%] min-w-0 items-center justify-end gap-2">
+                                        <div className="flex-2 mx-auto flex w-[50%] min-w-0 items-center justify-center gap-2">
                                           <span className="truncate text-xs text-[#1A1F24]">
                                             {config.description}
                                           </span>
@@ -2204,7 +2201,7 @@ const Defi: React.FC = () => {
                                         </div>
 
                                         {/* Description and Action Button */}
-                                        <div className="flex min-w-0 flex-1 items-center justify-end gap-2">
+                                        <div className="flex min-w-0 flex-1 items-center justify-center gap-2">
                                           {/* <span className="truncate text-xs text-[#1A1F24]">
                                             34{config.description}
                                           </span>
@@ -2239,7 +2236,7 @@ const Defi: React.FC = () => {
                         ) : (
                           <tr>
                             <td
-                              colSpan={4}
+                              colSpan={3}
                               className="px-6 py-8 text-center text-[#6B7780]"
                             >
                               No protocols found matching your filters
@@ -2328,7 +2325,7 @@ const Defi: React.FC = () => {
                               return (
                                 <tr key={protocol}>
                                   <td
-                                    colSpan={4}
+                                    colSpan={3}
                                     className={cn("p-0", "rounded-2xl")}
                                   >
                                     <Card
@@ -2481,8 +2478,9 @@ const Defi: React.FC = () => {
                                           )}
                                         </div>
 
+                                        {/* POINTS SEASON 2 ENDED */}
                                         {/* Points Multiplier Column */}
-                                        <div className="flex flex-1 flex-col items-center justify-center">
+                                        {/* <div className="flex flex-1 flex-col items-center justify-center">
                                           {config.pointsMultiplier ? (
                                             <MyDottedTooltip
                                               tooltip={
@@ -2503,7 +2501,7 @@ const Defi: React.FC = () => {
                                               -
                                             </span>
                                           )}
-                                        </div>
+                                        </div> */}
                                       </div>
 
                                       {/* Bottom Section */}
@@ -2525,7 +2523,7 @@ const Defi: React.FC = () => {
                                           {/* Rewards (empty) */}
                                           {/* <div className="flex-1"></div> */}
 
-                                          <div className="flex-2 mx-auto flex w-[50%] min-w-0 items-center justify-end gap-2">
+                                          <div className="flex-2 mx-auto flex w-[50%] min-w-0 items-center justify-center gap-2">
                                             <span className="truncate text-xs text-[#1A1F24]">
                                               {config.description}
                                             </span>
@@ -2545,7 +2543,7 @@ const Defi: React.FC = () => {
                                           </div>
 
                                           {/* Description and Action Button */}
-                                          <div className="flex min-w-0 flex-1 items-center justify-end gap-2">
+                                          <div className="flex min-w-0 flex-1 items-center justify-center gap-2">
                                             {/* <span className="truncate text-xs text-[#1A1F24]">
                                               44{config.description}
                                             </span>
@@ -2591,7 +2589,7 @@ const Defi: React.FC = () => {
                         ) : (
                           <tr>
                             <td
-                              colSpan={4}
+                              colSpan={3}
                               className="px-6 py-8 text-center text-[#6B7780]"
                             >
                               No borrow protocols available at this time
@@ -2611,7 +2609,7 @@ const Defi: React.FC = () => {
                           filteredContributorPools.map((pool) => (
                             <tr key={pool.id}>
                               <td
-                                colSpan={4}
+                                colSpan={3}
                                 className={cn("p-0", "rounded-2xl")}
                               >
                                 <Card
@@ -2701,8 +2699,9 @@ const Defi: React.FC = () => {
                                       )}
                                     </div>
 
+                                    {/* POINTS SEASON 2 ENDED */}
                                     {/* Points Multiplier Column */}
-                                    <div className="flex flex-1 flex-col items-center justify-center">
+                                    {/* <div className="flex flex-1 flex-col items-center justify-center">
                                       {pool.pointsMultiplier ? (
                                         <MyDottedTooltip
                                           tooltip={
@@ -2722,7 +2721,7 @@ const Defi: React.FC = () => {
                                           -
                                         </span>
                                       )}
-                                    </div>
+                                    </div> */}
                                   </div>
 
                                   {/* Bottom Section */}
@@ -2742,10 +2741,9 @@ const Defi: React.FC = () => {
                                       </div>
 
                                       {/* Rewards (empty) */}
-                                      <div className="flex-1"></div>
+                                      {/* <div className="flex-1"></div> */}
 
-                                      {/* Description and Action Button */}
-                                      <div className="flex min-w-0 flex-1 items-center justify-end gap-2">
+                                      <div className="flex-2 mx-auto flex w-[50%] min-w-0 items-center justify-center gap-2">
                                         <span className="truncate text-xs text-[#1A1F24]">
                                           {pool.description}
                                         </span>
@@ -2754,6 +2752,10 @@ const Defi: React.FC = () => {
                                         >
                                           <HelpCircle className="h-4 w-4 shrink-0 cursor-help text-[#6B7780]" />
                                         </MyDottedTooltip>
+                                      </div>
+
+                                      {/* Description and Action Button */}
+                                      <div className="flex min-w-0 flex-1 items-center justify-center gap-2">
                                         {pool.action && (
                                           <button
                                             onClick={() => {
@@ -2779,7 +2781,7 @@ const Defi: React.FC = () => {
                         ) : (
                           <tr>
                             <td
-                              colSpan={4}
+                              colSpan={3}
                               className="rounded-2xl bg-white px-6 py-8 text-center text-[#6B7780]"
                             >
                               No contributor pools found matching your filters
@@ -2848,7 +2850,6 @@ const Defi: React.FC = () => {
                                 }
                               : undefined
                           }
-                          pointsMultiplier={pool.pointsMultiplier}
                           action={pool.action}
                           onActionClick={handleCTAClick}
                         />

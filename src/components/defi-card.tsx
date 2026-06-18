@@ -147,14 +147,15 @@ const DefiCard: React.FC<DefiCardProps> = ({
             {protocolIcon}
           </div>
           {/* Points Multiplier */}
-          {pointsMultiplier && (
+          {/* POINTS SEASON 2 ENDED */}
+          {/* {pointsMultiplier && (
             <div className="flex w-fit items-center gap-1 rounded-lg border border-[#059669] bg-[#D1FAE5] px-2 py-1 text-sm font-semibold text-[#059669]">
               <Sparkles className="size-3.5" />
               {pointsMultiplier.min === pointsMultiplier.max
                 ? `${pointsMultiplier.min}x`
                 : `${pointsMultiplier.min}x - ${pointsMultiplier.max}x`}
             </div>
-          )}
+          )} */}
         </div>
       </div>
 
