@@ -1,6 +1,6 @@
 import Link from "next/link";
 import React from "react";
-import { Star, HelpCircle, Sparkles } from "lucide-react";
+import { Star, HelpCircle } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -56,7 +56,7 @@ const DefiCard: React.FC<DefiCardProps> = ({
   maxLTV,
   capacity,
   rewardPoints,
-  pointsMultiplier,
+  pointsMultiplier: _pointsMultiplier,
   onActionClick,
 }) => {
   // Accent colors: green for supply, yellow/orange for borrow (only if positive APY)

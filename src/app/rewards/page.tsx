@@ -568,9 +568,7 @@ const RewardsPage: React.FC = () => {
   const { isPinned } = useSidebar();
   const { address } = useAccount();
   const { connectWallet: _connectWallet } = useWalletConnection();
-  const [activeSeason, setActiveSeason] = React.useState<"season1" | "season2">(
-    "season1",
-  );
+  const [activeSeason] = React.useState<"season1" | "season2">("season1");
   const [activeTab, setActiveTab] = React.useState<
     "your-points" | "leaderboard" | "rewards"
   >("your-points");

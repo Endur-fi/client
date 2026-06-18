@@ -32,8 +32,6 @@ import Stake from "./stake";
 import PortfolioSection from "./portfolio-section";
 import { useSidebar } from "./ui/sidebar";
 import FAQSection from "./faq-section";
-import SeasonPointsCard from "./season-points-card";
-import StakingRewardsInfo from "./staking-rewards-info";
 import {
   Tabs as ShadCNTabs,
   TabsContent,

@@ -1,6 +1,4 @@
 "use client";
-import Image from "next/image";
-import { Button } from "@/components/ui/button";
 import { Icons } from "@/components/Icons";
 import { cn, formatNumber, formatNumberWithCommas } from "@/lib/utils";
 import { MyAnalytics } from "@/lib/analytics";
