@@ -597,6 +597,30 @@ const Stake: React.FC = () => {
     });
   }, [data, form, isPending]);
 
+  if (lstConfig.SYMBOL === "LBTC") {
+    return (
+      <div className="relative flex h-full w-full flex-col gap-6">
+        <Stats
+          selectedPlatform={selectedPlatform}
+          getPlatformYield={getPlatformYield}
+          mode="stake"
+        />
+        <div className="rounded-[14px] border border-amber-600 bg-amber-50 px-4 py-3 text-sm text-[#6B7780]">
+          <span className="font-semibold text-[#1A1F24]">Note: </span>
+          LBTC is discontinued, we encourage users to withdraw their staked
+          assets. Learn more:{" "}
+          <Link
+            href="https://docs.endur.fi/docs/guides/how-to-stake-and-unstake-btc"
+            target="_blank"
+            className="text-blue-600 underline"
+          >
+            here
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="relative flex h-full w-full flex-col gap-6">
       <Dialog open={showShareModal} onOpenChange={setShowShareModal}>
