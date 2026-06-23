@@ -125,6 +125,7 @@ interface ProtocolYield {
   totalSupplied?: number | null;
   isLoading: boolean;
   error?: string;
+  isDeprecated?: boolean;
 }
 
 interface VesuPoolResponse {
@@ -674,6 +675,7 @@ const trovesHyperYieldQueryAtom = atomWithQuery((get) => {
         totalSupplied: totalSupplied ?? 0,
         isLoading: false,
         error: "Failed to fetch APY",
+        isDeprecated: strategy.isDeprecated === true,
       };
     },
     refetchInterval: 60000,
@@ -716,6 +718,7 @@ const createTrovesYieldQueryAtom = (strategyId: string, queryKey: string) =>
         value: apy,
         totalSupplied: totalSupplied ?? 0,
         isLoading: false,
+        isDeprecated: strategy.isDeprecated === true,
       };
     },
     refetchInterval: 60000,
@@ -928,6 +931,7 @@ export const trovesHyperYieldAtom = atom<ProtocolStats>((get) => {
     totalSupplied: error || !data ? 0 : (data.totalSupplied ?? 0),
     error,
     isLoading: !data && !error,
+    isDeprecated: data?.isDeprecated,
   };
 });
 
@@ -942,6 +946,7 @@ const createTrovesYieldAtom = (
       totalSupplied: error || !data ? 0 : (data.totalSupplied ?? 0),
       error,
       isLoading: !data && !error,
+      isDeprecated: data?.isDeprecated,
     };
   });
 
@@ -1507,6 +1512,7 @@ export interface ProtocolStats {
   totalSupplied: number | null;
   error: Error | null;
   isLoading: boolean;
+  isDeprecated?: boolean;
 }
 
 export const protocolYieldsAtom = atom<
