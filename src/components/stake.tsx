@@ -503,6 +503,11 @@ const Stake: React.FC = () => {
       ) {
         return false;
       }
+      const config = getPlatformConfig(platform);
+      const yieldData = config ? yields[config.key] : null;
+      if (yieldData?.isDeprecated === true) {
+        return false;
+      }
       return true;
     });
     return sortPlatforms(allPlatforms, yields);
@@ -513,6 +518,7 @@ const Stake: React.FC = () => {
       const config = getPlatformConfig(platform);
       if (!config) return false;
       const yieldData = yields[config.key];
+      if (yieldData?.isDeprecated === true) return false;
 
       return !config.isMaxedOut && (yieldData?.value ?? 0) > 0;
     });
