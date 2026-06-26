@@ -610,6 +610,7 @@ const strkFarmEkuboYieldQueryAtom = atomWithQuery((get) => ({
       totalSupplied: totalSupplied ?? 0,
       isLoading,
       error: "Failed to fetch APY",
+      isDeprecated: strategy.isDeprecated === true,
     };
   },
   refetchInterval: 60000,
@@ -870,6 +871,7 @@ export const strkFarmEkuboYieldAtom = atom<ProtocolStats>((get) => {
     totalSupplied: error || !data ? 0 : (data.totalSupplied ?? 0),
     error,
     isLoading: !data && !error,
+    isDeprecated: data?.isDeprecated,
   };
 });
 
