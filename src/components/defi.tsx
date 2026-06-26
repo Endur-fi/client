@@ -1151,6 +1151,8 @@ const Defi: React.FC = () => {
     ];
 
     trovesEkuboPools.forEach((pool) => {
+      if (pool.yield?.isDeprecated === true) return;
+
       const config = createTrovesEkuboLiquidityConfig(
         pool.key,
         pool.token1,
@@ -1305,6 +1307,13 @@ const Defi: React.FC = () => {
     const yieldAtom =
       protocolYieldMap[protocol as keyof typeof protocolYieldMap];
     return yieldAtom?.value ?? yields[protocol]?.value ?? null;
+  };
+
+  const isTrovesStrategyDeprecated = (protocol: SupportedDApp): boolean => {
+    const yieldAtom =
+      protocolYieldMap[protocol as keyof typeof protocolYieldMap];
+    if (yieldAtom?.isDeprecated === true) return true;
+    return yields[protocol]?.isDeprecated === true;
   };
 
   // Asset filter mapping
@@ -1533,6 +1542,10 @@ const Defi: React.FC = () => {
         const config = configsToUse[protocol];
         if (!config) return false;
 
+        if (isTrovesStrategyDeprecated(protocol as SupportedDApp)) {
+          return false;
+        }
+
         // Filter for stables only in borrow tab
         if (activeTab === "borrow" && showStablesOnly) {
           // Check if the debt token (second token) is USDC or USDC.e
@@ -1598,6 +1611,7 @@ const Defi: React.FC = () => {
     trovesHyperxtBTCYield,
     trovesHyperxLBTCYield,
     trovesHyperxsBTCYield,
+    trovesHyperxSTRKYield,
     trovesEkuboXWBTCYield,
     trovesEkuboXtBTCYield,
     trovesEkuboXLBTCYield,
