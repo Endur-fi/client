@@ -929,7 +929,7 @@ const Unstake = () => {
 
           <div className="">
             {!address ? (
-              <ConnectButton className="w-full" />
+              <ConnectButton className="!w-full rounded-xl bg-[#17876D] py-6 text-sm font-semibold text-white hover:bg-[#17876D] disabled:bg-[#03624C4D] disabled:text-[#17876D] disabled:opacity-90" />
             ) : (
               <StyledButton
                 onClick={form.handleSubmit(onSubmit)}
@@ -991,7 +991,7 @@ const Unstake = () => {
           </div>
           <div className="">
             {!address ? (
-              <ConnectButton className="w-full" />
+              <ConnectButton className="!w-full rounded-xl bg-[#17876D] py-6 text-sm font-semibold text-white hover:bg-[#17876D] disabled:bg-[#03624C4D] disabled:text-[#17876D] disabled:opacity-90" />
             ) : (
               <StyledButton
                 onClick={handleDexSwap}

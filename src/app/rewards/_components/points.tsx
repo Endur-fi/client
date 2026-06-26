@@ -703,7 +703,7 @@ const Points = ({
       </div>
       {/* your points */}
       {!address ? (
-        <ConnectButton className="w-full border border-[#17876D] bg-['transparent'] py-6 text-[#17876D] hover:bg-[#17876D] hover:text-[#F1F7F6]" />
+        <ConnectButton className="!w-full rounded-xl border border-[#17876D] bg-['transparent'] py-6 text-[#17876D] hover:bg-[#17876D] hover:text-[#F1F7F6]" />
       ) : (
         <div className="flex flex-col gap-4">
           <div className="flex flex-row rounded-[14px] border border-[#E5E8EB] bg-white px-4 py-3">
