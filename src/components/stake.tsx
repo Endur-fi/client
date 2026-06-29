@@ -67,7 +67,7 @@ import { cn } from "@/lib/utils";
 import LSTService from "@/services/lst";
 import { lstConfigAtom, assetPriceAtom } from "@/store/common.store";
 import {
-  hyperxLBTCVaultCapacityAtom,
+  // hyperxLBTCVaultCapacityAtom,
   hyperxSTRKVaultCapacityAtom,
   hyperxsBTCVaultCapacityAtom,
   hyperxtBTCVaultCapacityAtom,
@@ -202,8 +202,8 @@ const Stake: React.FC = () => {
         return hyperxWBTCVaultCapacityAtom;
       case "xtBTC":
         return hyperxtBTCVaultCapacityAtom;
-      case "xLBTC":
-        return hyperxLBTCVaultCapacityAtom;
+      // case "xLBTC":
+      //   return hyperxLBTCVaultCapacityAtom;
       case "xsBTC":
         return hyperxsBTCVaultCapacityAtom;
       default:

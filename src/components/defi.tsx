@@ -18,23 +18,23 @@ import {
   SupportedDApp,
   vesuBTCxWBTCYieldAtom,
   vesuBTCxtBTCYieldAtom,
-  vesuBTCxLBTCYieldAtom,
+  // vesuBTCxLBTCYieldAtom,
   vesuBTCxsBTCYieldAtom,
   trovesHyperxWBTCYieldAtom,
   trovesHyperxtBTCYieldAtom,
-  trovesHyperxLBTCYieldAtom,
+  // trovesHyperxLBTCYieldAtom,
   trovesHyperxsBTCYieldAtom,
   trovesHyperxSTRKYieldAtom,
   trovesEkuboBTCxWBTCYieldAtom,
   trovesEkuboBTCxtBTCYieldAtom,
-  trovesEkuboBTCxLBTCYieldAtom,
+  // trovesEkuboBTCxLBTCYieldAtom,
   trovesEkuboBTCxsBTCYieldAtom,
   vesuBorrowPoolsAtom,
   vesuPoolsFilteredAtom,
   VesuBorrowPool,
   hyperxWBTCVaultCapacityAtom,
   hyperxtBTCVaultCapacityAtom,
-  hyperxLBTCVaultCapacityAtom,
+  // hyperxLBTCVaultCapacityAtom,
   hyperxsBTCVaultCapacityAtom,
   hyperxSTRKVaultCapacityAtom,
   vesuContributorSupplyPoolsAtom,
@@ -426,13 +426,13 @@ export const btcProtocolConfigs: Partial<
     "0x43a35c1425a0125ef8c171f1a75c6f31ef8648edcc8324b55ce1917db3f9b91", // xtBTC
     "ekuboxtBTC",
   ),
-  ekuboxLBTC: createEkuboPoolConfig(
-    { icon: <Icons.xlbtc className="size-[22px]" />, name: "xLBTC" },
-    { icon: <Icons.lbtc className="size-[22px]" />, name: "LBTC" },
-    "0x036834a40984312f7f7de8d31e3f6305b325389eaeea5b1c0664b2fb936461a4", // LBTC
-    "0x7dd3c80de9fcc5545f0cb83678826819c79619ed7992cc06ff81fc67cd2efe0", // xLBTC
-    "ekuboxLBTC",
-  ),
+  // ekuboxLBTC: createEkuboPoolConfig(
+  //   { icon: <Icons.xlbtc className="size-[22px]" />, name: "xLBTC" },
+  //   { icon: <Icons.lbtc className="size-[22px]" />, name: "LBTC" },
+  //   "0x036834a40984312f7f7de8d31e3f6305b325389eaeea5b1c0664b2fb936461a4", // LBTC
+  //   "0x7dd3c80de9fcc5545f0cb83678826819c79619ed7992cc06ff81fc67cd2efe0", // xLBTC
+  //   "ekuboxLBTC",
+  // ),
   ekuboxsBTC: createEkuboPoolConfig(
     { icon: <Icons.xsbtc className="size-[22px]" />, name: "xsBTC" },
     { icon: <Icons.solvbtc className="size-[22px]" />, name: "solvBTC" },
@@ -456,13 +456,13 @@ export const btcProtocolConfigs: Partial<
     "ekubo_cl_xtbtctbtc",
     "trovesEkuboBTCxtBTC",
   ),
-  ekuboBTCxLBTC: createTrovesEkuboLiquidityConfig(
-    "ekuboBTCxLBTC",
-    { icon: <Icons.xlbtc className="size-[22px]" />, name: "xLBTC" },
-    { icon: <Icons.lbtc className="size-[22px]" />, name: "LBTC" },
-    "ekubo_cl_xlbtclbtc",
-    "trovesEkuboBTCxLBTC",
-  ),
+  // ekuboBTCxLBTC: createTrovesEkuboLiquidityConfig(
+  //   "ekuboBTCxLBTC",
+  //   { icon: <Icons.xlbtc className="size-[22px]" />, name: "xLBTC" },
+  //   { icon: <Icons.lbtc className="size-[22px]" />, name: "LBTC" },
+  //   "ekubo_cl_xlbtclbtc",
+  //   "trovesEkuboBTCxLBTC",
+  // ),
   ekuboBTCxsBTC: createTrovesEkuboLiquidityConfig(
     "ekuboBTCxsBTC",
     { icon: <Icons.xsbtc className="size-[22px]" />, name: "xsBTC" },
@@ -496,12 +496,12 @@ export const btcProtocolConfigs: Partial<
     "hyper_xsbtc",
     "trovesHyperBTCxsBTC",
   ),
-  hyperxLBTC: createHyperVaultConfig(
-    { icon: <Icons.xlbtc className="size-[22px]" />, name: "xLBTC" },
-    "LBTC",
-    "hyper_xlbtc",
-    "trovesHyperBTCxLBTC",
-  ),
+  // hyperxLBTC: createHyperVaultConfig(
+  //   { icon: <Icons.xlbtc className="size-[22px]" />, name: "xLBTC" },
+  //   "LBTC",
+  //   "hyper_xlbtc",
+  //   "trovesHyperBTCxLBTC",
+  // ),
 
   // BTC Token Swapping on Avnu
   avnuBTCxWBTC: createAvnuSwapConfig(
@@ -518,13 +518,13 @@ export const btcProtocolConfigs: Partial<
     "0x4daa17763b286d1e59b97c283c0b8c949994c361e426a28f743c67bdfe9a32f",
     "avnuBTCxtBTC",
   ),
-  avnuBTCxLBTC: createAvnuSwapConfig(
-    { icon: <Icons.xlbtc className="size-[22px]" />, name: "xLBTC" },
-    { icon: <Icons.lbtc className="size-[22px]" />, name: "LBTC" },
-    "0x7dd3c80de9fcc5545f0cb83678826819c79619ed7992cc06ff81fc67cd2efe0",
-    "0x036834a40984312f7f7de8d31e3f6305b325389eaeea5b1c0664b2fb936461a4",
-    "avnuBTCxLBTC",
-  ),
+  // avnuBTCxLBTC: createAvnuSwapConfig(
+  //   { icon: <Icons.xlbtc className="size-[22px]" />, name: "xLBTC" },
+  //   { icon: <Icons.lbtc className="size-[22px]" />, name: "LBTC" },
+  //   "0x7dd3c80de9fcc5545f0cb83678826819c79619ed7992cc06ff81fc67cd2efe0",
+  //   "0x036834a40984312f7f7de8d31e3f6305b325389eaeea5b1c0664b2fb936461a4",
+  //   "avnuBTCxLBTC",
+  // ),
   avnuBTCxsBTC: createAvnuSwapConfig(
     { icon: <Icons.xsbtc className="size-[22px]" />, name: "xsBTC" },
     { icon: <Icons.solvbtc className="size-[22px]" />, name: "solvBTC" },
@@ -544,6 +544,17 @@ export const protocolConfigs: Partial<Record<SupportedDApp, ProtocolConfig>> = {
   ...btcProtocolConfigs,
 };
 
+const HIDDEN_DEFI_LST_ASSETS = new Set(["xLBTC"]);
+const HIDDEN_DEFI_UNDERLYING_ASSETS = new Set(["LBTC"]);
+
+// Hidden xLBTC strategies — used to filter dynamic Vesu pools from API
+const isHiddenDefiAsset = (tokenName: string): boolean =>
+  HIDDEN_DEFI_LST_ASSETS.has(tokenName) ||
+  HIDDEN_DEFI_UNDERLYING_ASSETS.has(tokenName);
+
+const configUsesHiddenDefiAsset = (config: ProtocolConfig): boolean =>
+  config.tokens.some((token) => isHiddenDefiAsset(token.name));
+
 // Categorize protocols by type
 const supplyProtocols: SupportedDApp[] = [
   "strkfarm",
@@ -552,7 +563,7 @@ const supplyProtocols: SupportedDApp[] = [
   "ekuboSTRK",
   "ekuboxWBTC",
   "ekuboxtBTC",
-  "ekuboxLBTC",
+  // "ekuboxLBTC",
   "ekuboxsBTC",
   "nostraDex",
   // "opus",
@@ -560,10 +571,10 @@ const supplyProtocols: SupportedDApp[] = [
   "hyperxWBTC",
   "hyperxtBTC",
   "hyperxsBTC",
-  "hyperxLBTC",
+  // "hyperxLBTC",
   "ekuboBTCxWBTC",
   "ekuboBTCxtBTC",
-  "ekuboBTCxLBTC",
+  // "ekuboBTCxLBTC",
   "ekuboBTCxsBTC",
   // Vesu lending pools are now dynamically added via vesuLendingConfigs
   // "avnu",
@@ -988,16 +999,16 @@ const Defi: React.FC = () => {
   // BTC yield atoms - using a map for easier access
   const [trovesHyperxWBTCYield] = useAtom(trovesHyperxWBTCYieldAtom);
   const [trovesHyperxtBTCYield] = useAtom(trovesHyperxtBTCYieldAtom);
-  const [trovesHyperxLBTCYield] = useAtom(trovesHyperxLBTCYieldAtom);
+  // const [trovesHyperxLBTCYield] = useAtom(trovesHyperxLBTCYieldAtom);
   const [trovesHyperxsBTCYield] = useAtom(trovesHyperxsBTCYieldAtom);
   const [trovesHyperxSTRKYield] = useAtom(trovesHyperxSTRKYieldAtom);
   const [trovesEkuboXWBTCYield] = useAtom(trovesEkuboBTCxWBTCYieldAtom);
   const [trovesEkuboXtBTCYield] = useAtom(trovesEkuboBTCxtBTCYieldAtom);
-  const [trovesEkuboXLBTCYield] = useAtom(trovesEkuboBTCxLBTCYieldAtom);
+  // const [trovesEkuboXLBTCYield] = useAtom(trovesEkuboBTCxLBTCYieldAtom);
   const [trovesEkuboXsBTCYield] = useAtom(trovesEkuboBTCxsBTCYieldAtom);
   const [vesuBTCxWBTCYield] = useAtom(vesuBTCxWBTCYieldAtom);
   const [vesuBTCxtBTCYield] = useAtom(vesuBTCxtBTCYieldAtom);
-  const [vesuBTCxLBTCYield] = useAtom(vesuBTCxLBTCYieldAtom);
+  // const [vesuBTCxLBTCYield] = useAtom(vesuBTCxLBTCYieldAtom);
   const [vesuBTCxsBTCYield] = useAtom(vesuBTCxsBTCYieldAtom);
   const vesuBorrowPools = useAtomValue(vesuBorrowPoolsAtom);
   const vesuPoolsFilterFn = useAtomValue(vesuPoolsFilteredAtom);
@@ -1008,7 +1019,10 @@ const Defi: React.FC = () => {
 
   // Get all Vesu pools for lending (all verified pools with LST assets)
   const vesuLendingPools = useMemo(() => {
-    return vesuPoolsFilterFn({ isVerified: true, collateralIsLST: true });
+    return vesuPoolsFilterFn({ isVerified: true, collateralIsLST: true }).filter(
+      // hidden xLBTC strategies
+      (pool) => !isHiddenDefiAsset(pool.collateralSymbol),
+    );
   }, [vesuPoolsFilterFn]);
 
   // Generate lending configs from pools
@@ -1046,6 +1060,9 @@ const Defi: React.FC = () => {
 
     // 1. Vesu supply pools from Re7 xSTRK and Re7 xBTC
     vesuContributorSupplyPools.forEach((pool) => {
+      // hidden xLBTC strategies
+      if (isHiddenDefiAsset(pool.assetSymbol)) return;
+
       const tokenIcon = getTokenIcon(pool.assetSymbol);
       const vesuUrl = process.env.NEXT_PUBLIC_VESU_URL || "http://vesu.xyz/pro";
       const vesuEarnEndpoint = `${vesuUrl}/earn`;
@@ -1122,19 +1139,19 @@ const Defi: React.FC = () => {
         yield: trovesEkuboXtBTCYield,
         strategyPath: "ekubo_cl_xtbtctbtc",
       },
-      {
-        key: "trovesEkuboBTCxLBTC",
-        token1: {
-          icon: <Icons.xlbtc className="size-[22px]" />,
-          name: "xLBTC",
-        },
-        token2: {
-          icon: <Icons.btcLogo className="size-[22px]" />,
-          name: "LBTC",
-        },
-        yield: trovesEkuboXLBTCYield,
-        strategyPath: "ekubo_cl_xlbtclbtc",
-      },
+      // {
+      //   key: "trovesEkuboBTCxLBTC",
+      //   token1: {
+      //     icon: <Icons.xlbtc className="size-[22px]" />,
+      //     name: "xLBTC",
+      //   },
+      //   token2: {
+      //     icon: <Icons.btcLogo className="size-[22px]" />,
+      //     name: "LBTC",
+      //   },
+      //   yield: trovesEkuboXLBTCYield,
+      //   strategyPath: "ekubo_cl_xlbtclbtc",
+      // },
       {
         key: "trovesEkuboBTCxsBTC",
         token1: {
@@ -1222,7 +1239,7 @@ const Defi: React.FC = () => {
     vesuContributorSupplyPools,
     trovesEkuboXWBTCYield,
     trovesEkuboXtBTCYield,
-    trovesEkuboXLBTCYield,
+    // trovesEkuboXLBTCYield,
     trovesEkuboXsBTCYield,
     ekuboYield,
   ]);
@@ -1230,7 +1247,7 @@ const Defi: React.FC = () => {
   // Vault capacity atoms
   const [hyperxWBTCVaultCapacity] = useAtom(hyperxWBTCVaultCapacityAtom);
   const [hyperxtBTCVaultCapacity] = useAtom(hyperxtBTCVaultCapacityAtom);
-  const [hyperxLBTCVaultCapacity] = useAtom(hyperxLBTCVaultCapacityAtom);
+  // const [hyperxLBTCVaultCapacity] = useAtom(hyperxLBTCVaultCapacityAtom);
   const [hyperxsBTCVaultCapacity] = useAtom(hyperxsBTCVaultCapacityAtom);
   const [hyperxSTRKVaultCapacity] = useAtom(hyperxSTRKVaultCapacityAtom);
 
@@ -1243,31 +1260,31 @@ const Defi: React.FC = () => {
     () => ({
       hyperxWBTC: trovesHyperxWBTCYield,
       hyperxtBTC: trovesHyperxtBTCYield,
-      hyperxLBTC: trovesHyperxLBTCYield,
+      // hyperxLBTC: trovesHyperxLBTCYield,
       hyperxsBTC: trovesHyperxsBTCYield,
       hyperxSTRK: trovesHyperxSTRKYield,
       ekuboBTCxWBTC: trovesEkuboXWBTCYield,
       ekuboBTCxtBTC: trovesEkuboXtBTCYield,
-      ekuboBTCxLBTC: trovesEkuboXLBTCYield,
+      // ekuboBTCxLBTC: trovesEkuboXLBTCYield,
       ekuboBTCxsBTC: trovesEkuboXsBTCYield,
       vesuBTCxWBTC: vesuBTCxWBTCYield,
       vesuBTCxtBTC: vesuBTCxtBTCYield,
-      vesuBTCxLBTC: vesuBTCxLBTCYield,
+      // vesuBTCxLBTC: vesuBTCxLBTCYield,
       vesuBTCxsBTC: vesuBTCxsBTCYield,
     }),
     [
       trovesHyperxWBTCYield,
       trovesHyperxtBTCYield,
-      trovesHyperxLBTCYield,
+      // trovesHyperxLBTCYield,
       trovesHyperxsBTCYield,
       trovesHyperxSTRKYield,
       trovesEkuboXWBTCYield,
       trovesEkuboXtBTCYield,
-      trovesEkuboXLBTCYield,
+      // trovesEkuboXLBTCYield,
       trovesEkuboXsBTCYield,
       vesuBTCxWBTCYield,
       vesuBTCxtBTCYield,
-      vesuBTCxLBTCYield,
+      // vesuBTCxLBTCYield,
       vesuBTCxsBTCYield,
     ],
   );
@@ -1276,7 +1293,7 @@ const Defi: React.FC = () => {
     () => ({
       hyperxWBTC: hyperxWBTCVaultCapacity,
       hyperxtBTC: hyperxtBTCVaultCapacity,
-      hyperxLBTC: hyperxLBTCVaultCapacity,
+      // hyperxLBTC: hyperxLBTCVaultCapacity,
       hyperxsBTC: hyperxsBTCVaultCapacity,
       hyperxSTRK: hyperxSTRKVaultCapacity,
       trovesHyper: hyperxSTRKVaultCapacity,
@@ -1284,7 +1301,7 @@ const Defi: React.FC = () => {
     [
       hyperxWBTCVaultCapacity,
       hyperxtBTCVaultCapacity,
-      hyperxLBTCVaultCapacity,
+      // hyperxLBTCVaultCapacity,
       hyperxsBTCVaultCapacity,
       hyperxSTRKVaultCapacity,
     ],
@@ -1356,6 +1373,11 @@ const Defi: React.FC = () => {
   // Filter contributor pools based on selected filters
   const filteredContributorPools = useMemo(() => {
     return contributorPools.filter((pool) => {
+      // hidden xLBTC strategies
+      if (pool.tokens.some((token) => isHiddenDefiAsset(token.name))) {
+        return false;
+      }
+
       // Asset filter
       if (selectedAsset !== "all") {
         const allowedNames = assetFilterMap[selectedAsset];
@@ -1390,7 +1412,10 @@ const Defi: React.FC = () => {
     const configs: Record<string, ProtocolConfig> = {};
     const vesuUrl = process.env.NEXT_PUBLIC_VESU_URL || "http://vesu.xyz/pro";
     const vesuBorrowEndpoint = `${vesuUrl}/borrow`;
-    vesuBorrowPools.forEach((pool, index) => {
+    vesuBorrowPools
+      // hidden xLBTC strategies
+      .filter((pool) => !isHiddenDefiAsset(pool.collateralSymbol))
+      .forEach((pool, index) => {
       const key = `vesuBorrow_${pool.collateralSymbol}_${pool.debtSymbol}_${index}`;
       const isDebtUSDC = pool.debtSymbol === "USDC";
       configs[key] = {
@@ -1462,7 +1487,7 @@ const Defi: React.FC = () => {
     "fibrous",
     "avnuBTCxWBTC",
     "avnuBTCxtBTC",
-    "avnuBTCxLBTC",
+    // "avnuBTCxLBTC",
     "avnuBTCxsBTC",
   ]);
 
@@ -1471,7 +1496,7 @@ const Defi: React.FC = () => {
     "vesu",
     "ekuboBTCxWBTC",
     "ekuboBTCxtBTC",
-    "ekuboBTCxLBTC",
+    // "ekuboBTCxLBTC",
     "ekuboBTCxsBTC",
     "strkfarmEkubo",
   ]);
@@ -1546,6 +1571,11 @@ const Defi: React.FC = () => {
           return false;
         }
 
+        if (configUsesHiddenDefiAsset(config)) {
+          // hidden xLBTC strategies
+          return false;
+        }
+
         // Filter for stables only in borrow tab
         if (activeTab === "borrow" && showStablesOnly) {
           // Check if the debt token (second token) is USDC or USDC.e
@@ -1609,16 +1639,16 @@ const Defi: React.FC = () => {
     yields,
     trovesHyperxWBTCYield,
     trovesHyperxtBTCYield,
-    trovesHyperxLBTCYield,
+    // trovesHyperxLBTCYield,
     trovesHyperxsBTCYield,
     trovesHyperxSTRKYield,
     trovesEkuboXWBTCYield,
     trovesEkuboXtBTCYield,
-    trovesEkuboXLBTCYield,
+    // trovesEkuboXLBTCYield,
     trovesEkuboXsBTCYield,
     vesuBTCxWBTCYield,
     vesuBTCxtBTCYield,
-    vesuBTCxLBTCYield,
+    // vesuBTCxLBTCYield,
     vesuBTCxsBTCYield,
     borrowProtocolKeys,
     lendingProtocolKeys,
@@ -1736,7 +1766,7 @@ const Defi: React.FC = () => {
     "all",
     "xSTRK",
     "xtBTC",
-    "xLBTC",
+    // "xLBTC",
     "xWBTC",
     "xsBTC",
   ];

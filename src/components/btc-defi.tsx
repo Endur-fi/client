@@ -10,11 +10,11 @@ import {
   SupportedDApp,
   trovesHyperxWBTCYieldAtom,
   trovesHyperxtBTCYieldAtom,
-  trovesHyperxLBTCYieldAtom,
+  // trovesHyperxLBTCYieldAtom,
   trovesHyperxsBTCYieldAtom,
   trovesEkuboBTCxWBTCYieldAtom,
   trovesEkuboBTCxtBTCYieldAtom,
-  trovesEkuboBTCxLBTCYieldAtom,
+  // trovesEkuboBTCxLBTCYieldAtom,
   trovesEkuboBTCxsBTCYieldAtom,
 } from "@/store/defi.store";
 import { useAtom } from "jotai";
@@ -95,33 +95,33 @@ export const btcProtocolConfigs: Partial<
       },
     },
   },
-  ekuboBTCxLBTC: {
-    tokens: [
-      { icon: <Icons.btcLogo className="size-[22px]" />, name: "xLBTC" },
-      { icon: <Icons.btcLogo className="size-[22px]" />, name: "LBTC" },
-    ],
-    protocolIcon: <Icons.trovesLogoLight className="rounded-full" />,
-    protocolName: "Troves",
-    badges: [
-      {
-        type: "Automated Liquidity Pool",
-        color: "bg-[#E9F3F0] text-[#17876D]",
-      },
-    ],
-    description:
-      "Auto-managed liquidity vault for Ekubo's xLBTC/LBTC pool. Rebalances range and compounds fees and rewards automatically.",
-    action: {
-      type: "pool",
-      link: "https://app.troves.fi/strategy/ekubo_cl_xlbtclbtc",
-      buttonText: "Add Liquidity",
-      onClick: () => {
-        MyAnalytics.track(AnalyticsEvents.OPPORTUNITIES, {
-          protocol: "trovesEkuboBTCxLBTC",
-          buttonText: "Add Liquidity",
-        });
-      },
-    },
-  },
+  // ekuboBTCxLBTC: {
+  //   tokens: [
+  //     { icon: <Icons.btcLogo className="size-[22px]" />, name: "xLBTC" },
+  //     { icon: <Icons.btcLogo className="size-[22px]" />, name: "LBTC" },
+  //   ],
+  //   protocolIcon: <Icons.trovesLogoLight className="rounded-full" />,
+  //   protocolName: "Troves",
+  //   badges: [
+  //     {
+  //       type: "Automated Liquidity Pool",
+  //       color: "bg-[#E9F3F0] text-[#17876D]",
+  //     },
+  //   ],
+  //   description:
+  //     "Auto-managed liquidity vault for Ekubo's xLBTC/LBTC pool. Rebalances range and compounds fees and rewards automatically.",
+  //   action: {
+  //     type: "pool",
+  //     link: "https://app.troves.fi/strategy/ekubo_cl_xlbtclbtc",
+  //     buttonText: "Add Liquidity",
+  //     onClick: () => {
+  //       MyAnalytics.track(AnalyticsEvents.OPPORTUNITIES, {
+  //         protocol: "trovesEkuboBTCxLBTC",
+  //         buttonText: "Add Liquidity",
+  //       });
+  //     },
+  //   },
+  // },
   ekuboBTCxsBTC: {
     tokens: [
       { icon: <Icons.btcLogo className="size-[22px]" />, name: "xsBTC" },
@@ -228,32 +228,32 @@ export const btcProtocolConfigs: Partial<
       },
     },
   },
-  hyperxLBTC: {
-    tokens: [
-      { icon: <Icons.btcLogo className="size-[22px]" />, name: "xLBTC" },
-    ],
-    protocolIcon: <Icons.trovesLogoLight className="rounded-full" />,
-    protocolName: "Troves",
-    badges: [
-      {
-        type: "Hyper Vault",
-        color: "bg-[#E9F3F0] text-[#17876D]",
-      },
-    ],
-    description:
-      "Automated hyper vault strategy for xLBTC. Maximizes yield through advanced DeFi strategies and auto-compounding.",
-    action: {
-      type: "vault",
-      link: "https://app.troves.fi/strategy/hyper_xlbtc",
-      buttonText: "Invest",
-      onClick: () => {
-        MyAnalytics.track(AnalyticsEvents.OPPORTUNITIES, {
-          protocol: "trovesHyperBTCxLBTC",
-          buttonText: "Invest",
-        });
-      },
-    },
-  },
+  // hyperxLBTC: {
+  //   tokens: [
+  //     { icon: <Icons.btcLogo className="size-[22px]" />, name: "xLBTC" },
+  //   ],
+  //   protocolIcon: <Icons.trovesLogoLight className="rounded-full" />,
+  //   protocolName: "Troves",
+  //   badges: [
+  //     {
+  //       type: "Hyper Vault",
+  //       color: "bg-[#E9F3F0] text-[#17876D]",
+  //     },
+  //   ],
+  //   description:
+  //     "Automated hyper vault strategy for xLBTC. Maximizes yield through advanced DeFi strategies and auto-compounding.",
+  //   action: {
+  //     type: "vault",
+  //     link: "https://app.troves.fi/strategy/hyper_xlbtc",
+  //     buttonText: "Invest",
+  //     onClick: () => {
+  //       MyAnalytics.track(AnalyticsEvents.OPPORTUNITIES, {
+  //         protocol: "trovesHyperBTCxLBTC",
+  //         buttonText: "Invest",
+  //       });
+  //     },
+  //   },
+  // },
   // BTC Token Swapping on Avnu
   avnuBTCxWBTC: {
     tokens: [
@@ -297,27 +297,27 @@ export const btcProtocolConfigs: Partial<
       },
     },
   },
-  avnuBTCxLBTC: {
-    tokens: [
-      { icon: <Icons.btcLogo className="size-[22px]" />, name: "xLBTC" },
-      { icon: <Icons.btcLogo className="size-[22px]" />, name: "LBTC" },
-    ],
-    protocolIcon: <Icons.avnuLogo className="rounded-full border" />,
-    protocolName: "Avnu",
-    badges: [{ type: "DEX Aggregator", color: "bg-[#F3E8FF] text-[#9333EA]" }],
-    description: "Swap xLBTC for LBTC on Avnu DEX aggregator",
-    action: {
-      type: "swap",
-      link: "https://app.avnu.fi/en?mode=simple&tokenFrom=0x7dd3c80de9fcc5545f0cb83678826819c79619ed7992cc06ff81fc67cd2efe0&tokenTo=0x036834a40984312f7f7de8d31e3f6305b325389eaeea5b1c0664b2fb936461a4&amount=100",
-      buttonText: "Swap Tokens",
-      onClick: () => {
-        MyAnalytics.track(AnalyticsEvents.OPPORTUNITIES, {
-          protocol: "avnuBTCxLBTC",
-          buttonText: "Swap Tokens",
-        });
-      },
-    },
-  },
+  // avnuBTCxLBTC: {
+  //   tokens: [
+  //     { icon: <Icons.btcLogo className="size-[22px]" />, name: "xLBTC" },
+  //     { icon: <Icons.btcLogo className="size-[22px]" />, name: "LBTC" },
+  //   ],
+  //   protocolIcon: <Icons.avnuLogo className="rounded-full border" />,
+  //   protocolName: "Avnu",
+  //   badges: [{ type: "DEX Aggregator", color: "bg-[#F3E8FF] text-[#9333EA]" }],
+  //   description: "Swap xLBTC for LBTC on Avnu DEX aggregator",
+  //   action: {
+  //     type: "swap",
+  //     link: "https://app.avnu.fi/en?mode=simple&tokenFrom=0x7dd3c80de9fcc5545f0cb83678826819c79619ed7992cc06ff81fc67cd2efe0&tokenTo=0x036834a40984312f7f7de8d31e3f6305b325389eaeea5b1c0664b2fb936461a4&amount=100",
+  //     buttonText: "Swap Tokens",
+  //     onClick: () => {
+  //       MyAnalytics.track(AnalyticsEvents.OPPORTUNITIES, {
+  //         protocol: "avnuBTCxLBTC",
+  //         buttonText: "Swap Tokens",
+  //       });
+  //     },
+  //   },
+  // },
   avnuBTCxsBTC: {
     tokens: [
       { icon: <Icons.btcLogo className="size-[22px]" />, name: "xsBTC" },
@@ -380,26 +380,26 @@ export const btcProtocolConfigs: Partial<
       },
     },
   },
-  vesuBTCxLBTC: {
-    tokens: [
-      { icon: <Icons.btcLogo className="size-[22px]" />, name: "xLBTC" },
-    ],
-    protocolIcon: <Icons.vesuLogo className="rounded-full" />,
-    protocolName: "Vesu",
-    badges: [{ type: "Lending Pool", color: "bg-[#E8F4FD] text-[#1E40AF]" }],
-    description: "Lend and borrow against xLBTC on Vesu",
-    action: {
-      type: "lend",
-      link: "http://vesu.xyz/earn?onlyV2Markets=true&includeIsolatedMarkets=true",
-      buttonText: "Lend & Borrow",
-      onClick: () => {
-        MyAnalytics.track(AnalyticsEvents.OPPORTUNITIES, {
-          protocol: "vesuBTCxLBTC",
-          buttonText: "Lend & Borrow",
-        });
-      },
-    },
-  },
+  // vesuBTCxLBTC: {
+  //   tokens: [
+  //     { icon: <Icons.btcLogo className="size-[22px]" />, name: "xLBTC" },
+  //   ],
+  //   protocolIcon: <Icons.vesuLogo className="rounded-full" />,
+  //   protocolName: "Vesu",
+  //   badges: [{ type: "Lending Pool", color: "bg-[#E8F4FD] text-[#1E40AF]" }],
+  //   description: "Lend and borrow against xLBTC on Vesu",
+  //   action: {
+  //     type: "lend",
+  //     link: "http://vesu.xyz/earn?onlyV2Markets=true&includeIsolatedMarkets=true",
+  //     buttonText: "Lend & Borrow",
+  //     onClick: () => {
+  //       MyAnalytics.track(AnalyticsEvents.OPPORTUNITIES, {
+  //         protocol: "vesuBTCxLBTC",
+  //         buttonText: "Lend & Borrow",
+  //       });
+  //     },
+  //   },
+  // },
   vesuBTCxsBTC: {
     tokens: [
       { icon: <Icons.btcLogo className="size-[22px]" />, name: "xsBTC" },
@@ -428,13 +428,13 @@ const BtcDefi: React.FC = () => {
   // Troves Hyper Vault yields
   const [trovesHyperxWBTCYield] = useAtom(trovesHyperxWBTCYieldAtom);
   const [trovesHyperxtBTCYield] = useAtom(trovesHyperxtBTCYieldAtom);
-  const [trovesHyperxLBTCYield] = useAtom(trovesHyperxLBTCYieldAtom);
+  // const [trovesHyperxLBTCYield] = useAtom(trovesHyperxLBTCYieldAtom);
   const [trovesHyperxsBTCYield] = useAtom(trovesHyperxsBTCYieldAtom);
 
   // Troves Ekubo yields
   const [trovesEkuboXWBTCYield] = useAtom(trovesEkuboBTCxWBTCYieldAtom);
   const [trovesEkuboXtBTCYield] = useAtom(trovesEkuboBTCxtBTCYieldAtom);
-  const [trovesEkuboXLBTCYield] = useAtom(trovesEkuboBTCxLBTCYieldAtom);
+  // const [trovesEkuboXLBTCYield] = useAtom(trovesEkuboBTCxLBTCYieldAtom);
   const [trovesEkuboXsBTCYield] = useAtom(trovesEkuboBTCxsBTCYieldAtom);
 
   const sortedProtocols = useMemo(() => {
@@ -448,26 +448,26 @@ const BtcDefi: React.FC = () => {
           yieldA = trovesHyperxWBTCYield?.value ?? -Infinity;
         else if (a === "hyperxtBTC")
           yieldA = trovesHyperxtBTCYield?.value ?? -Infinity;
-        else if (a === "hyperxLBTC")
-          yieldA = trovesHyperxLBTCYield?.value ?? -Infinity;
+        // else if (a === "hyperxLBTC")
+        //   yieldA = trovesHyperxLBTCYield?.value ?? -Infinity;
         else if (a === "hyperxsBTC")
           yieldA = trovesHyperxsBTCYield?.value ?? -Infinity;
         else if (a === "ekuboBTCxWBTC")
           yieldA = trovesEkuboXWBTCYield?.value ?? -Infinity;
         else if (a === "ekuboBTCxtBTC")
           yieldA = trovesEkuboXtBTCYield?.value ?? -Infinity;
-        else if (a === "ekuboBTCxLBTC")
-          yieldA = trovesEkuboXLBTCYield?.value ?? -Infinity;
+        // else if (a === "ekuboBTCxLBTC")
+        //   yieldA = trovesEkuboXLBTCYield?.value ?? -Infinity;
         else if (a === "ekuboBTCxsBTC")
           yieldA = trovesEkuboXsBTCYield?.value ?? -Infinity;
         else if (
           a === "avnuBTCxWBTC" ||
           a === "avnuBTCxtBTC" ||
-          a === "avnuBTCxLBTC" ||
+          // a === "avnuBTCxLBTC" ||
           a === "avnuBTCxsBTC" ||
           a === "vesuBTCxWBTC" ||
           a === "vesuBTCxtBTC" ||
-          a === "vesuBTCxLBTC" ||
+          // a === "vesuBTCxLBTC" ||
           a === "vesuBTCxsBTC"
         )
           yieldA = -Infinity; // Avnu and Vesu strategies don't have yield data yet
@@ -477,26 +477,26 @@ const BtcDefi: React.FC = () => {
           yieldB = trovesHyperxWBTCYield?.value ?? -Infinity;
         else if (b === "hyperxtBTC")
           yieldB = trovesHyperxtBTCYield?.value ?? -Infinity;
-        else if (b === "hyperxLBTC")
-          yieldB = trovesHyperxLBTCYield?.value ?? -Infinity;
+        // else if (b === "hyperxLBTC")
+        //   yieldB = trovesHyperxLBTCYield?.value ?? -Infinity;
         else if (b === "hyperxsBTC")
           yieldB = trovesHyperxsBTCYield?.value ?? -Infinity;
         else if (b === "ekuboBTCxWBTC")
           yieldB = trovesEkuboXWBTCYield?.value ?? -Infinity;
         else if (b === "ekuboBTCxtBTC")
           yieldB = trovesEkuboXtBTCYield?.value ?? -Infinity;
-        else if (b === "ekuboBTCxLBTC")
-          yieldB = trovesEkuboXLBTCYield?.value ?? -Infinity;
+        // else if (b === "ekuboBTCxLBTC")
+        //   yieldB = trovesEkuboXLBTCYield?.value ?? -Infinity;
         else if (b === "ekuboBTCxsBTC")
           yieldB = trovesEkuboXsBTCYield?.value ?? -Infinity;
         else if (
           b === "avnuBTCxWBTC" ||
           b === "avnuBTCxtBTC" ||
-          b === "avnuBTCxLBTC" ||
+          // b === "avnuBTCxLBTC" ||
           b === "avnuBTCxsBTC" ||
           b === "vesuBTCxWBTC" ||
           b === "vesuBTCxtBTC" ||
-          b === "vesuBTCxLBTC" ||
+          // b === "vesuBTCxLBTC" ||
           b === "vesuBTCxsBTC"
         )
           yieldB = -Infinity; // Avnu strategies don't have yield data yet
@@ -508,11 +508,11 @@ const BtcDefi: React.FC = () => {
   }, [
     trovesHyperxWBTCYield,
     trovesHyperxtBTCYield,
-    trovesHyperxLBTCYield,
+    // trovesHyperxLBTCYield,
     trovesHyperxsBTCYield,
     trovesEkuboXWBTCYield,
     trovesEkuboXtBTCYield,
-    trovesEkuboXLBTCYield,
+    // trovesEkuboXLBTCYield,
     trovesEkuboXsBTCYield,
   ]);
 
@@ -567,12 +567,12 @@ const BtcDefi: React.FC = () => {
                 error: trovesHyperxtBTCYield?.error ?? null,
                 isLoading: trovesHyperxtBTCYield?.isLoading ?? false,
               };
-            } else if (protocol === "hyperxLBTC") {
-              yieldData = {
-                value: trovesHyperxLBTCYield?.value ?? null,
-                error: trovesHyperxLBTCYield?.error ?? null,
-                isLoading: trovesHyperxLBTCYield?.isLoading ?? false,
-              };
+            // } else if (protocol === "hyperxLBTC") {
+            //   yieldData = {
+            //     value: trovesHyperxLBTCYield?.value ?? null,
+            //     error: trovesHyperxLBTCYield?.error ?? null,
+            //     isLoading: trovesHyperxLBTCYield?.isLoading ?? false,
+            //   };
             } else if (protocol === "hyperxsBTC") {
               yieldData = {
                 value: trovesHyperxsBTCYield?.value ?? null,
@@ -591,12 +591,12 @@ const BtcDefi: React.FC = () => {
                 error: trovesEkuboXtBTCYield?.error ?? null,
                 isLoading: trovesEkuboXtBTCYield?.isLoading ?? false,
               };
-            } else if (protocol === "ekuboBTCxLBTC") {
-              yieldData = {
-                value: trovesEkuboXLBTCYield?.value ?? null,
-                error: trovesEkuboXLBTCYield?.error ?? null,
-                isLoading: trovesEkuboXLBTCYield?.isLoading ?? false,
-              };
+            // } else if (protocol === "ekuboBTCxLBTC") {
+            //   yieldData = {
+            //     value: trovesEkuboXLBTCYield?.value ?? null,
+            //     error: trovesEkuboXLBTCYield?.error ?? null,
+            //     isLoading: trovesEkuboXLBTCYield?.isLoading ?? false,
+            //   };
             } else if (protocol === "ekuboBTCxsBTC") {
               yieldData = {
                 value: trovesEkuboXsBTCYield?.value ?? null,
