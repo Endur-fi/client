@@ -122,6 +122,8 @@ const ChartTooltipContent = React.forwardRef<
       nameKey?: string;
       labelKey?: string;
       chartData?: any;
+      valueSuffix?: string;
+      valueDecimals?: number;
     }
 >(
   (
@@ -139,6 +141,8 @@ const ChartTooltipContent = React.forwardRef<
       color: _color,
       nameKey: _nameKey,
       labelKey,
+      valueSuffix,
+      valueDecimals = 2,
     },
     ref,
   ) => {
@@ -185,8 +189,6 @@ const ChartTooltipContent = React.forwardRef<
     }
 
     const nestLabel = payload.length === 1 && indicator !== "dot";
-
-    console.log(payload, "payloadddd");
 
     return (
       <div
@@ -254,9 +256,9 @@ const ChartTooltipContent = React.forwardRef<
                                 ? Number(item.payload.holdings)
                                 : Number(item.payload[item.name as string])
                             }
-                            decimals={2}
+                            decimals={valueDecimals}
                           />{" "}
-                          xSTRK
+                          {valueSuffix ?? "xSTRK"}
                         </span>
                       )}
                     </div>
@@ -281,6 +283,8 @@ const ChartLegendContent = React.forwardRef<
       hideIcon?: boolean;
       nameKey?: string;
       innerClassName?: string;
+      valueSuffix?: string;
+      valueDecimals?: number;
     }
 >(
   (
@@ -290,7 +294,8 @@ const ChartLegendContent = React.forwardRef<
       hideIcon: _hideIcon = false,
       payload,
       verticalAlign = "bottom",
-      nameKey: _nameKey,
+      valueSuffix,
+      valueDecimals = 2,
     },
     ref,
   ) => {
@@ -337,8 +342,11 @@ const ChartLegendContent = React.forwardRef<
 
               {item.payload?.value && (
                 <p>
-                  <BalanceWithLargeSubscript value={item.payload?.value ?? 0} decimals={2} />{" "}
-                  xSTRK
+                  <BalanceWithLargeSubscript
+                    value={item.payload?.value ?? 0}
+                    decimals={valueDecimals}
+                  />{" "}
+                  {valueSuffix ?? "xSTRK"}
                 </p>
               )}
             </div>

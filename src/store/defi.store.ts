@@ -667,9 +667,9 @@ const trovesHyperYieldQueryAtom = atomWithQuery((get) => {
 
       const isSTRK = lstConfig!.SYMBOL === "STRK";
 
-      const apy = isSTRK
-        ? strategy.apy - strkBaseApy
-        : strategy.apy - btcBaseApy;
+      const strategyApy = typeof strategy?.apy === "number" ? strategy.apy : 0;
+      const baseApy = isSTRK ? strkBaseApy : btcBaseApy;
+      const apy = Math.max(0, strategyApy - baseApy);
 
       return {
         value: apy * 100,

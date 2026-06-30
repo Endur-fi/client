@@ -1,9 +1,47 @@
 import { atom } from "jotai";
 import { atomWithQuery } from "jotai-tanstack-query";
 import axios from "axios";
+import type { PortfolioSnapshot } from "@/lib/portfolio";
 import { userAddressAtom } from "./common.store";
 
 export const chartFilter = atom("7d");
+
+export const portfolioAssetSymbolAtom = atom<string>("STRK");
+
+const portfolioSnapshotQueryAtom = atomWithQuery((get) => {
+  const address = get(userAddressAtom);
+
+  return {
+    queryKey: ["portfolioSnapshot", address],
+    queryFn: async (): Promise<PortfolioSnapshot | null> => {
+      if (!address) return null;
+      try {
+        const res = await axios.get<{
+          success: boolean;
+          data: PortfolioSnapshot;
+        }>(`/api/portfolio/snapshot/${address}`);
+        if (res.data.success && res.data.data) {
+          return res.data.data;
+        }
+        return null;
+      } catch {
+        return null;
+      }
+    },
+    enabled: !!address,
+    staleTime: 2 * 60 * 1000,
+    gcTime: 5 * 60 * 1000,
+  };
+});
+
+export const portfolioSnapshotAtom = atom((get) => {
+  const { data, error, isPending } = get(portfolioSnapshotQueryAtom);
+  return {
+    data: data ?? null,
+    error: error?.message ?? null,
+    isLoading: isPending,
+  };
+});
 
 interface VIPStatus {
   isVIP: boolean;
@@ -49,8 +87,8 @@ const isVIPQueryAtom = atomWithQuery((get) => {
       }
     },
     enabled: !!address,
-    staleTime: 2 * 60 * 1000, // 2 minutes - matches cache TTL
-    gcTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 2 * 60 * 1000,
+    gcTime: 5 * 60 * 1000,
   };
 });
 

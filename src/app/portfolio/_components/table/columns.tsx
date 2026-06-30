@@ -3,10 +3,14 @@
 import { ColumnDef, Row } from "@tanstack/react-table";
 import React from "react";
 
+import { useAtomValue } from "jotai";
+
 import { ProtocolConfig } from "@/components/defi";
 import { IconProps, Icons } from "@/components/Icons";
-import { Button } from "@/components/ui/button";
 import { BalanceWithLargeSubscript } from "@/components/balance-with-large-subscript";
+import { Button } from "@/components/ui/button";
+import { getLSTAssetBySymbol, getSTRKAsset } from "@/constants";
+import { portfolioAssetSymbolAtom } from "@/store/portfolio.store";
 
 export type SizeColumn = {
   asset: string;
@@ -58,19 +62,34 @@ export function getPortfolioDAppName(row: { original: ProtocolConfig }) {
   );
 }
 
-export function getPortfolioDAppAmount(row: { original: ProtocolConfig }) {
+export function PortfolioDAppAmountCell({
+  row,
+}: {
+  row: { original: ProtocolConfig };
+}) {
+  const assetSymbol = useAtomValue(portfolioAssetSymbolAtom);
+  const lstConfig = getLSTAssetBySymbol(assetSymbol) ?? getSTRKAsset();
+  const isBTC = lstConfig.SYMBOL?.toLowerCase().includes("btc");
+  const balanceDecimals = isBTC ? 8 : 2;
+  const idx = row.original.tokens.findIndex(
+    (t) => t.name === lstConfig.LST_SYMBOL,
+  );
   return (
     <div className="flex gap-1.5 text-right">
       <BalanceWithLargeSubscript
         value={
-          row.original.tokens[
-            row.original.tokens.findIndex((t) => t.name === "xSTRK")
-          ].holding?.toEtherToFixedDecimals(2) ?? "0.00"
+          row.original.tokens[idx]?.holding?.toEtherToFixedDecimals(
+            balanceDecimals,
+          ) ?? "0"
         }
-        decimals={2}
+        decimals={balanceDecimals}
       />
     </div>
   );
+}
+
+export function getPortfolioDAppAmount(row: { original: ProtocolConfig }) {
+  return <PortfolioDAppAmountCell row={row} />;
 }
 
 export function getPortfolioDAppAPY(row: { original: ProtocolConfig }) {
@@ -107,7 +126,10 @@ export function getProtocolType(protocolName: string) {
   }
 }
 
-export const columns: ColumnDef<ProtocolConfig>[] = [
+export function createPortfolioColumns(
+  lstSymbol: string,
+): ColumnDef<ProtocolConfig>[] {
+  return [
   {
     accessorKey: "asset",
     header: "Asset",
@@ -146,14 +168,6 @@ export const columns: ColumnDef<ProtocolConfig>[] = [
       const hasDexLendOptions = dexLendOptions.length > 0;
       const hasDappOptions = dappOptions.length > 0;
 
-      console.log("filterValues", {
-        hasDexLendOptions,
-        hasDappOptions,
-        dexLendOptions: dexLendOptions.includes(dappType!),
-        dappOptions: dappOptions.includes(dappName.split(" ")[0]),
-        dappName,
-        dappType,
-      });
       if (hasDexLendOptions && hasDappOptions) {
         return (
           dexLendOptions.includes(dappType!) &&
@@ -174,8 +188,8 @@ export const columns: ColumnDef<ProtocolConfig>[] = [
   },
   {
     accessorKey: "amount",
-    header: "Amount in xSTRK",
-    cell: ({ row }) => getPortfolioDAppAmount(row),
+    header: `Amount in ${lstSymbol}`,
+    cell: ({ row }) => <PortfolioDAppAmountCell row={row} />,
   },
   {
     accessorKey: "apy",
@@ -187,4 +201,7 @@ export const columns: ColumnDef<ProtocolConfig>[] = [
     header: "Action",
     cell: ({ row }) => getPortfolioDAppAction(row),
   },
-];
+  ];
+}
+
+export const columns = createPortfolioColumns("xSTRK");

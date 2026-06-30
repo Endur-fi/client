@@ -53,66 +53,65 @@ function getDummyData() {
 export function Chart({
   chartData,
   lastUpdated,
+  lstSymbol = "xSTRK",
   error,
+  isLoading,
+  onRetry,
 }: {
   chartData: HoldingInfo[];
   lastUpdated: Date | null;
+  lstSymbol?: string;
   error: string | null;
+  isLoading?: boolean;
+  onRetry?: () => void;
 }) {
+  const isBTC = lstSymbol.toLowerCase().includes("btc");
+  const valueDecimals = isBTC ? 8 : 2;
   const [timeRange, setTimeRange] = useAtom(chartFilter);
   const address = useAtomValue(userAddressAtom);
 
-  const filteredData = chartData.filter((item) => {
-    const date = new Date(item.date);
-    const referenceDate = new Date("2024-11-25");
-    let daysToSubtract = 90;
+  const requestedDays =
+    timeRange === "7d" ? 7 : timeRange === "30d" ? 30 : timeRange === "180d" ? 180 : 90;
 
-    if (timeRange === "30d") {
-      daysToSubtract = 30;
-    } else if (timeRange === "7d") {
-      daysToSubtract = 7;
-    }
-
-    const startDate = new Date(referenceDate);
-    startDate.setDate(startDate.getDate() - daysToSubtract);
-    return date >= startDate;
-  });
+  const availableDays = React.useMemo(() => {
+    if (chartData.length < 2) return 0;
+    const start = new Date(chartData[0]!.date).getTime();
+    const end = new Date(chartData[chartData.length - 1]!.date).getTime();
+    if (!Number.isFinite(start) || !Number.isFinite(end) || end <= start) return 0;
+    return Math.floor((end - start) / (24 * 60 * 60 * 1000)) + 1;
+  }, [chartData]);
 
   const { areaChartData, protocolOrder } = React.useMemo(() => {
-    if (filteredData.length === 0) {
+    if (chartData.length === 0) {
       return {
         areaChartData: getDummyData().map((i) => ({ ...i, cummulative: i })),
         protocolOrder: ["endur"],
       };
     }
-    // sort protocol key with highest value as on latest date
     const protocolKeys = Object.keys(
-      filteredData[filteredData.length - 1],
+      chartData[chartData.length - 1],
     ).filter((key) => key !== "date");
     const protocolValues = protocolKeys.map((key) => {
       return {
         key,
         value: Number(
-          filteredData[filteredData.length - 1][
-            key as keyof (typeof filteredData)[0]
+          chartData[chartData.length - 1][
+            key as keyof (typeof chartData)[0]
           ],
         ),
       };
     });
     protocolValues.sort((a, b) => b.value - a.value);
 
-    // taking protocol ordered by highest value,
-    // sum the values to lower value protocols
-    // to create a stacked area chart
-    const areaData = filteredData.map((item) => {
-      // ADD_DAPP_HERE
-      const data: (typeof filteredData)[0] = {
+    const areaData = chartData.map((item) => {
+      const data: Record<string, number | string> = {
         date: item.date,
-        nostraLending: 0,
-        nostraDex: 0,
+        nostra: 0,
         ekubo: 0,
         vesu: 0,
         endur: 0,
+        strkfarm: 0,
+        trovesHyper: 0,
         opus: 0,
       };
       let sum = 0;
@@ -133,7 +132,7 @@ export function Chart({
       areaChartData: areaData,
       protocolOrder: protocolValues.map((p) => p.key),
     };
-  }, [filteredData]);
+  }, [chartData]);
 
   function formatDate(value: string) {
     return new Date(value).toLocaleDateString("en-US", {
@@ -161,26 +160,32 @@ export function Chart({
       setOffset(newOffset <= 5 ? 150 : newOffset);
     }, 10);
 
-    return () => clearInterval(interval); // Cleanup on unmount
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- offset is intentionally excluded to avoid re-running animation
+    return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- offset is intentionally excluded to avoid restarting the animation
   }, []);
 
   return (
-    <Card className="w-full shadow-none">
+    <Card className="w-full overflow-hidden rounded-xl border border-[#AACBC4]/30 shadow-none">
       <CardHeader className="flex items-center gap-2 space-y-0 py-5 pb-2 sm:flex-row">
         <div className="grid flex-1 gap-1 text-center sm:text-left">
           <CardTitle className="text-sm lg:text-base">
-            Your xSTRK holdings over time
+            Your {lstSymbol} holdings over time
           </CardTitle>
           <CardDescription>
             Last updated:{" "}
             {lastUpdated ? formatHumanFriendlyDateTime(lastUpdated) : "-"}
+            {availableDays > 0 && availableDays < requestedDays ? (
+              <>
+                {" "}
+                Showing {availableDays} days available
+              </>
+            ) : null}
           </CardDescription>
         </div>
-        <div className="mt-3 flex w-fit rounded-md border shadow-sm lg:ml-auto lg:mt-0">
+        <div className="mt-3 flex w-fit overflow-hidden rounded-lg border border-[#AACBC4]/30 shadow-sm lg:ml-auto lg:mt-0">
           <Button
             className={cn(
-              "flex h-7 w-10 items-center justify-center rounded-none rounded-l-[5px] border-r bg-transparent py-0 text-xs text-black text-muted-foreground shadow-none transition-all ease-linear hover:bg-transparent hover:text-black",
+              "flex h-7 w-10 items-center justify-center rounded-none border-r bg-transparent py-0 text-xs text-black text-muted-foreground shadow-none transition-all ease-linear hover:bg-transparent hover:text-black",
               {
                 "bg-border/60 text-black hover:bg-border/60":
                   timeRange === "7d",
@@ -216,7 +221,7 @@ export function Chart({
           </Button>
           <Button
             className={cn(
-              "flex h-7 w-10 items-center justify-center rounded-none rounded-r-[5px] border-0 bg-transparent py-0 text-xs text-black text-muted-foreground shadow-none transition-all ease-linear hover:bg-transparent hover:text-black",
+              "flex h-7 w-10 items-center justify-center rounded-none border-0 bg-transparent py-0 text-xs text-black text-muted-foreground shadow-none transition-all ease-linear hover:bg-transparent hover:text-black",
               {
                 "bg-border/60 text-black hover:bg-border/60":
                   timeRange === "180d",
@@ -234,15 +239,7 @@ export function Chart({
           config={chartConfig}
           className="aspect-auto h-[400px] w-full sm:h-[250px]"
         >
-          {/* <AreaChart data={filteredData}> */}
-          <AreaChart
-            accessibilityLayer
-            data={areaChartData}
-            // margin={{
-            //   left: 12,
-            //   right: 12,
-            // }}
-          >
+          <AreaChart accessibilityLayer data={areaChartData}>
             <ChartLegend
               content={<ChartLegendContent innerClassName="w-fit" />}
               className="relative mx-auto mt-4 flex w-fit flex-row items-center gap-4 rounded-lg border px-4 py-2"
@@ -254,10 +251,6 @@ export function Chart({
 
             <XAxis
               dataKey="date"
-              // tickLine={false}
-              // axisLine={true}
-              // tickMargin={8}
-              // minTickGap={32}
               tickFormatter={(value) => {
                 return formatDate(value);
               }}
@@ -285,15 +278,15 @@ export function Chart({
                   labelFormatter={(value) => {
                     return formatDate(value);
                   }}
-                  chartData={
-                    filteredData.length === 0 ? getDummyData() : filteredData
-                  }
+                  chartData={chartData.length === 0 ? getDummyData() : chartData}
                   indicator="dot"
+                  valueSuffix={lstSymbol}
+                  valueDecimals={valueDecimals}
                 />
               }
             />
 
-            {protocolOrder.reverse().map((protocol, index) => (
+            {[...protocolOrder].reverse().map((protocol, index) => (
               <Area
                 dataKey={(data) =>
                   data.cummulative[protocol as keyof typeof data.cummulative]
@@ -301,7 +294,7 @@ export function Chart({
                 name={protocol}
                 type="monotone"
                 fill={
-                  filteredData.length === 0
+                  chartData.length === 0
                     ? "url(#loading)"
                     : chartConfig[protocol as keyof typeof chartConfig]
                         .fillColor
@@ -314,26 +307,37 @@ export function Chart({
               />
             ))}
           </AreaChart>
-          {/* </AreaChart> */}
         </ChartContainer>
-        {(!address || filteredData.length === 0) && (
-          <div className="absolute inset-0 flex items-center justify-center bg-white/80 backdrop-blur-sm">
+        {!!address && isLoading && (
+          <div className="pointer-events-none absolute right-3 top-3 flex items-center gap-2 rounded-md border bg-white/80 px-3 py-1.5 text-xs text-muted-foreground shadow-sm backdrop-blur-sm">
+            <Loader className="size-3.5 animate-spin text-black" />
+            Updating...
+          </div>
+        )}
+        {(!address || chartData.length === 0) && (
+          <div className="absolute inset-0 flex items-center justify-center rounded-xl bg-white/80 backdrop-blur-sm">
             {!address && (
-              <div className="gap-2 p-[10px] text-center">
+              <div className="gap-2 rounded-xl p-[10px] text-center">
                 <b className="w-full">Connect Wallet</b>
                 <p className="text-[13px]">
-                  You will be able to see your xSTRK holding history across
+                  You will be able to see your {lstSymbol} holding history across
                   DApps
                 </p>
                 <div className="mt-3 flex justify-center">
-                  <ConnectButton className="rounded-md bg-[#17876D] px-6 py-2 font-medium text-white transition-colors hover:bg-[#17876D]" />
+                  <ConnectButton className="rounded-xl bg-[#17876D] px-6 py-2 font-medium text-white transition-colors hover:bg-[#17876D]" />
                 </div>
               </div>
             )}
-            {address && filteredData.length === 0 && !error && (
+            {address && chartData.length === 0 && !error && (
               <div className="my-5 flex w-full items-center justify-center gap-2 p-[10px] text-center">
-                Computing your wallet xSTRK holding history{" "}
-                <Loader className="size-4 animate-spin text-black" />
+                {isLoading ? (
+                  <>
+                    Computing your wallet {lstSymbol} holding history{" "}
+                    <Loader className="size-4 animate-spin text-black" />
+                  </>
+                ) : (
+                  <>No holdings history yet for {lstSymbol}.</>
+                )}
               </div>
             )}
             {address && error && (
@@ -343,6 +347,17 @@ export function Chart({
                   Please try again later. If the error persists, please contact
                   us on telegram.
                 </p>
+                {onRetry && (
+                  <div className="mt-3 flex justify-center">
+                    <Button
+                      variant="outline"
+                      className="rounded-xl"
+                      onClick={onRetry}
+                    >
+                      Retry
+                    </Button>
+                  </div>
+                )}
               </div>
             )}
           </div>

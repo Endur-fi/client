@@ -1,9 +1,29 @@
 import { gql } from "@apollo/client";
 import { Contract, RpcProvider, CairoCustomEnum } from "starknet";
 import { pointsApolloClient } from "@/lib/apollo-client";
-import { getProvider } from "@/constants";
+import { getPortfolioProvider, getProvider } from "@/constants";
 import erc4626Abi from "@/abi/erc4626.abi.json";
 import pragmaOracleAbi from "@/abi/pragma-oracle.abi.json";
+import {
+  getAllLstTokenBalancesRpc as getAllLstTokenBalancesRpcImpl,
+  getPortfolioBalanceRpc as getPortfolioBalanceRpcImpl,
+} from "@/lib/portfolio-rpc";
+import {
+  DEFAULT_USD_CONVERSION_RATES,
+  PORTFOLIO_LST_TOKEN_KEYS,
+  portfolioLstUsdValue,
+  type NativeTokenBalances,
+  type PortfolioData,
+  type UsdConversionRates,
+} from "@/lib/portfolio-types";
+
+export type {
+  NativeTokenBalances,
+  PoolBreakdown,
+  PortfolioBalance,
+  PortfolioData,
+  UsdConversionRates,
+} from "@/lib/portfolio-types";
 
 // Token addresses from constants
 const STRK_TOKEN_ADDRESS =
@@ -16,6 +36,8 @@ const LBTC_TOKEN_ADDRESS =
   "0x036834a40984312f7f7de8d31e3f6305b325389eaeea5b1c0664b2fb936461a4";
 const TBTC_TOKEN_ADDRESS =
   "0x04daa17763b286d1e59b97c283c0b8c949994c361e426a28f743c67bdfe9a32f";
+const STRKBTC_TOKEN_ADDRESS =
+  "0x0787150e306e6eae6e3f79dea881770e8bbff2c1b8eb490f969669ee945b3135";
 
 // LST token addresses
 const XSTRK_TOKEN_ADDRESS =
@@ -28,45 +50,12 @@ const XSBTC_TOKEN_ADDRESS =
   "0x580f3dc564a7b82f21d40d404b3842d490ae7205e6ac07b1b7af2b4a5183dc9";
 const XTBTC_TOKEN_ADDRESS =
   "0x43a35c1425a0125ef8c171f1a75c6f31ef8648edcc8324b55ce1917db3f9b91";
+const XSTRKBTC_TOKEN_ADDRESS =
+  "0x047751b3532fABCa89B0f2E35cA1cB45e5A7b11d5e3D3663dfA1F4406b45FD88";
 
 // Pragma Oracle address
 const PRAGMA_ORACLE_ADDRESS =
   "0x02a85BD616F912537c50A49a4076db02c00b29b2cdc8a197Ce92ed1837fa875B";
-
-export interface PoolBreakdown {
-  poolId: string;
-  balance: string;
-  balanceInXstrk: string;
-}
-
-export interface PortfolioBalance {
-  balance: string;
-  balanceInXstrk: string;
-  breakdown?: PoolBreakdown[];
-}
-
-export interface NativeTokenBalances {
-  strk: string;
-  wbtc: string;
-  sbtc: string;
-  lbtc: string;
-  tbtc: string;
-}
-
-export interface PortfolioData {
-  blockNumber: number;
-  timestamp: number;
-  endur: PortfolioBalance;
-  ekubo: PortfolioBalance;
-  vesuCollateral: PortfolioBalance;
-  vesuVtoken: PortfolioBalance;
-  vesuDebt: PortfolioBalance;
-  trovesSensei: PortfolioBalance;
-  trovesHyper: PortfolioBalance;
-  trovesEkubo: PortfolioBalance;
-  nostra: PortfolioBalance;
-  opus: PortfolioBalance;
-}
 
 /**
  * Fetches portfolio balance data for a given address and LST token (uncached)
@@ -158,14 +147,14 @@ async function getPortfolioBalanceUncached(
 }
 
 /**
- * Fetches portfolio balance data for all LST tokens (XSTRK, XWBTC, XLBTC, XSBTC, XTBTC) for a given address (uncached)
+ * Fetches portfolio balance data for all LST tokens for a given address (uncached)
  * @param userAddress - The user's wallet address
  * @returns Promise resolving to a record mapping LST token names to their PortfolioData
  */
 async function getAllLstTokenBalancesUncached(
   userAddress: string,
 ): Promise<Record<string, PortfolioData>> {
-  const lstTokens = ["XSTRK", "XWBTC", "XLBTC", "XSBTC", "XTBTC"];
+  const lstTokens = [...PORTFOLIO_LST_TOKEN_KEYS];
 
   // Fetch all portfolio balances in parallel
   const portfolioDataPromises = lstTokens.map((lstToken) =>
@@ -210,14 +199,21 @@ async function getNativeTokenBalancesUncached(
 ): Promise<NativeTokenBalances> {
   try {
     // Get all token balances (STRK and BTC tokens are all ERC20 - use balance_of)
-    const [strkBalance, wbtcBalance, sbtcBalance, lbtcBalance, tbtcBalance] =
-      await Promise.all([
-        getTokenBalance(userAddress, STRK_TOKEN_ADDRESS),
-        getTokenBalance(userAddress, WBTC_TOKEN_ADDRESS),
-        getTokenBalance(userAddress, SBTC_TOKEN_ADDRESS),
-        getTokenBalance(userAddress, LBTC_TOKEN_ADDRESS),
-        getTokenBalance(userAddress, TBTC_TOKEN_ADDRESS),
-      ]);
+    const [
+      strkBalance,
+      wbtcBalance,
+      sbtcBalance,
+      lbtcBalance,
+      tbtcBalance,
+      strkbtcBalance,
+    ] = await Promise.all([
+      getTokenBalance(userAddress, STRK_TOKEN_ADDRESS),
+      getTokenBalance(userAddress, WBTC_TOKEN_ADDRESS),
+      getTokenBalance(userAddress, SBTC_TOKEN_ADDRESS),
+      getTokenBalance(userAddress, LBTC_TOKEN_ADDRESS),
+      getTokenBalance(userAddress, TBTC_TOKEN_ADDRESS),
+      getTokenBalance(userAddress, STRKBTC_TOKEN_ADDRESS),
+    ]);
 
     return {
       strk: strkBalance,
@@ -225,6 +221,7 @@ async function getNativeTokenBalancesUncached(
       sbtc: sbtcBalance,
       lbtc: lbtcBalance,
       tbtc: tbtcBalance,
+      strkbtc: strkbtcBalance,
     };
   } catch (error) {
     console.error("Error fetching native token balances:", error);
@@ -235,6 +232,7 @@ async function getNativeTokenBalancesUncached(
       sbtc: "0",
       lbtc: "0",
       tbtc: "0",
+      strkbtc: "0",
     };
   }
 }
@@ -327,47 +325,49 @@ async function getPriceFromOracle(
  * Get USD conversion rates for tokens
  * Returns rates as numbers (price in USD)
  */
-async function getUSDConversionRatesUncached(): Promise<{
-  strk: number;
-  btc: number;
-  xstrk: number;
-  xwbtc: number;
-  xlbtc: number;
-  xsbtc: number;
-  xtbtc: number;
-}> {
-  const provider = getProvider();
+async function getUSDConversionRatesUncached(): Promise<UsdConversionRates> {
+  try {
+    const provider = getProvider();
 
-  // Get base prices from Oracle
-  const [strkPrice, btcPrice] = await Promise.all([
-    getPriceFromOracle("STRK/USD", provider),
-    getPriceFromOracle("BTC/USD", provider),
-  ]);
+    // Get base prices from Oracle
+    const [strkPrice, btcPrice] = await Promise.all([
+      getPriceFromOracle("STRK/USD", provider),
+      getPriceFromOracle("BTC/USD", provider),
+    ]);
 
-  // Calculate USD rates for base tokens
-  const strkRate = Number(strkPrice.price) / 10 ** Number(strkPrice.decimals);
-  const btcRate = Number(btcPrice.price) / 10 ** Number(btcPrice.decimals);
+    const strkRate = Number(strkPrice.price) / 10 ** Number(strkPrice.decimals);
+    const btcRate = Number(btcPrice.price) / 10 ** Number(btcPrice.decimals);
 
-  // For LST tokens, we need to get total_assets and total_supply to calculate exchange rate
-  // Then multiply by base token rate
-  const [xstrkRate, xwbtcRate, xlbtcRate, xsbtcRate, xtbtcRate] =
-    await Promise.all([
+    const [
+      xstrkRate,
+      xwbtcRate,
+      xlbtcRate,
+      xsbtcRate,
+      xtbtcRate,
+      xstrkbtcRate,
+    ] = await Promise.all([
       calculateLSTRate(XSTRK_TOKEN_ADDRESS, strkRate, provider),
       calculateLSTRate(XWBTC_TOKEN_ADDRESS, btcRate, provider),
       calculateLSTRate(XLBTC_TOKEN_ADDRESS, btcRate, provider),
       calculateLSTRate(XSBTC_TOKEN_ADDRESS, btcRate, provider),
       calculateLSTRate(XTBTC_TOKEN_ADDRESS, btcRate, provider),
+      calculateLSTRate(XSTRKBTC_TOKEN_ADDRESS, btcRate, provider),
     ]);
 
-  return {
-    strk: strkRate,
-    btc: btcRate,
-    xstrk: xstrkRate,
-    xwbtc: xwbtcRate,
-    xlbtc: xlbtcRate,
-    xsbtc: xsbtcRate,
-    xtbtc: xtbtcRate,
-  };
+    return {
+      strk: strkRate,
+      btc: btcRate,
+      xstrk: xstrkRate,
+      xwbtc: xwbtcRate,
+      xlbtc: xlbtcRate,
+      xsbtc: xsbtcRate,
+      xtbtc: xtbtcRate,
+      xstrkbtc: xstrkbtcRate,
+    };
+  } catch (error) {
+    console.error("Error fetching USD conversion rates:", error);
+    return { ...DEFAULT_USD_CONVERSION_RATES };
+  }
 }
 
 /**
@@ -451,6 +451,17 @@ export const getUSDConversionRates = getUSDConversionRatesUncached;
 export const getPortfolioBalance = getPortfolioBalanceUncached;
 export const getAllLstTokenBalances = getAllLstTokenBalancesUncached;
 export const getNativeTokenBalances = getNativeTokenBalancesUncached;
+
+export async function getAllLstTokenBalancesRpc(userAddress: string) {
+  return getAllLstTokenBalancesRpcImpl(userAddress);
+}
+
+export async function getPortfolioBalanceRpc(
+  userAddress: string,
+  lstToken: string = "XSTRK",
+) {
+  return getPortfolioBalanceRpcImpl(userAddress, lstToken);
+}
 
 // Types for points response
 export interface RawAndXstrk {
@@ -550,6 +561,14 @@ export interface AllLstPointsResponse {
     nostra: RawAndXstrk;
     opus: RawAndXstrk;
   };
+  XSTRKBTC: {
+    endur: RawAndXstrk;
+    ekubo: RawAndXstrk;
+    vesu: VesuPoints;
+    troves: TrovesPoints;
+    nostra: RawAndXstrk;
+    opus: RawAndXstrk;
+  };
 }
 
 /**
@@ -560,7 +579,7 @@ export interface AllLstPointsResponse {
 export async function getAllLstPoints(
   blockNumber: number | "latest",
 ): Promise<AllLstPointsResponse> {
-  const lstTokens = ["XSTRK", "XWBTC", "XLBTC", "XSBTC", "XTBTC"];
+  const lstTokens = [...PORTFOLIO_LST_TOKEN_KEYS];
 
   // Convert "latest" to null for GraphQL query
   const graphqlBlockNumber = blockNumber === "latest" ? null : blockNumber;
@@ -736,5 +755,83 @@ export async function getAllLstPoints(
     XLBTC: byToken.XLBTC,
     XSBTC: byToken.XSBTC,
     XTBTC: byToken.XTBTC,
+    XSTRKBTC: byToken.XSTRKBTC,
+  };
+}
+
+export interface PortfolioSnapshot {
+  lastUpdated: string;
+  blockNumber: number;
+  nativeBalances: NativeTokenBalances;
+  conversionRates: Awaited<ReturnType<typeof getUSDConversionRates>>;
+  byLst: Record<string, PortfolioData>;
+  totals: {
+    usd: number;
+    byCategory: { STRK: number; BTC: number };
+  };
+}
+
+function lstUsdValue(
+  data: PortfolioData,
+  lstToken: string,
+  rates: UsdConversionRates,
+): number {
+  return portfolioLstUsdValue(data, lstToken, rates);
+}
+
+export async function buildPortfolioSnapshot(
+  userAddress: string,
+): Promise<PortfolioSnapshot> {
+  const [byLst, nativeBalances, conversionRates] = await Promise.all([
+    getAllLstTokenBalancesRpc(userAddress),
+    getNativeTokenBalances(userAddress),
+    getUSDConversionRates(),
+  ]);
+
+  let blockNumber = 0;
+  try {
+    const block = await getPortfolioProvider().getBlock("latest");
+    blockNumber = block.block_number;
+  } catch {
+    // ignore block fetch errors; blockNumber stays 0
+  }
+
+  let lstStrkUsd = 0;
+  let lstBtcUsd = 0;
+
+  for (const [lstToken, data] of Object.entries(byLst)) {
+    const usd = lstUsdValue(data, lstToken, conversionRates);
+    if (lstToken === "XSTRK") {
+      lstStrkUsd += usd;
+    } else {
+      lstBtcUsd += usd;
+    }
+  }
+
+  const nativeStrkUsd =
+    (Number(nativeBalances.strk) / 1e18) * conversionRates.strk;
+  const nativeBtcUsd =
+    (Number(nativeBalances.wbtc) / 1e8 +
+      Number(nativeBalances.lbtc) / 1e8 +
+      Number(nativeBalances.sbtc) / 1e18 +
+      Number(nativeBalances.tbtc) / 1e18 +
+      Number(nativeBalances.strkbtc) / 1e8) *
+    conversionRates.btc;
+
+  const totalUsd = nativeStrkUsd + nativeBtcUsd + lstStrkUsd + lstBtcUsd;
+
+  return {
+    lastUpdated: new Date().toISOString(),
+    blockNumber,
+    nativeBalances,
+    conversionRates,
+    byLst,
+    totals: {
+      usd: Math.round(totalUsd * 100) / 100,
+      byCategory: {
+        STRK: Math.round((nativeStrkUsd + lstStrkUsd) * 100) / 100,
+        BTC: Math.round((nativeBtcUsd + lstBtcUsd) * 100) / 100,
+      },
+    },
   };
 }

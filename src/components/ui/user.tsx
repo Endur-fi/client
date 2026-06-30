@@ -8,25 +8,41 @@ import { cn } from "@/lib/utils";
 
 import { CustomIconProps } from "./twitter";
 
-const pathVariant: Variants = {
-  normal: { pathLength: 1, opacity: 1, pathOffset: 0 },
+const headVariants: Variants = {
+  normal: {
+    scale: 1,
+    opacity: 1,
+    transition: {
+      type: "spring",
+      stiffness: 150,
+      damping: 15,
+    },
+  },
   animate: {
-    pathLength: [0, 1],
+    scale: [0.5, 1],
     opacity: [0, 1],
-    pathOffset: [1, 0],
+    transition: {
+      type: "spring",
+      stiffness: 150,
+      damping: 15,
+    },
   },
 };
 
-const circleVariant: Variants = {
+const bodyVariants: Variants = {
   normal: {
     pathLength: 1,
-    pathOffset: 0,
-    scale: 1,
+    opacity: 1,
+    transition: { duration: 0.3 },
   },
   animate: {
     pathLength: [0, 1],
-    pathOffset: [1, 0],
-    scale: [0.5, 1],
+    opacity: [0, 1],
+    transition: {
+      delay: 0.15,
+      duration: 0.4,
+      opacity: { duration: 0.15, delay: 0.1 },
+    },
   },
 };
 
@@ -49,7 +65,7 @@ const UserIcon: React.FC<CustomIconProps> = ({
   return (
     <div
       className={cn(
-        "flex cursor-pointer select-none items-center justify-center rounded-md",
+        "flex shrink-0 cursor-pointer select-none items-center justify-center rounded-md",
         className,
       )}
       onMouseEnter={() => asIcon && controls.start("animate")}
@@ -71,16 +87,12 @@ const UserIcon: React.FC<CustomIconProps> = ({
           cy="8"
           r="5"
           animate={controls}
-          variants={circleVariant}
+          variants={headVariants}
+          style={{ transformOrigin: "12px 8px" }}
         />
-
         <motion.path
           d="M20 21a8 8 0 0 0-16 0"
-          variants={pathVariant}
-          transition={{
-            delay: 0.2,
-            duration: 0.4,
-          }}
+          variants={bodyVariants}
           animate={controls}
         />
       </svg>

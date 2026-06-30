@@ -87,7 +87,7 @@ export function DataTable<TData, TValue>({
         </div>
       )}
 
-      <div className="rounded-r-x rounded-l-xl">
+      <div className="overflow-hidden rounded-xl border border-[#AACBC4]/30">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -128,7 +128,11 @@ export function DataTable<TData, TValue>({
 
           <TableBody>
             {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row, idx) => (
+              table.getRowModel().rows.map((row, idx) => {
+                const isLastRow =
+                  idx === table.getRowModel().rows.length - 1;
+                const lastCol = row.getVisibleCells().length - 1;
+                return (
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
@@ -140,6 +144,8 @@ export function DataTable<TData, TValue>({
                     <TableCell
                       className={cn("px-8", {
                         "pl-16": i === 2,
+                        "rounded-bl-2xl": isLastRow && i === 0,
+                        "rounded-br-2xl": isLastRow && i === lastCol,
                       })}
                       key={cell.id}
                     >
@@ -150,7 +156,8 @@ export function DataTable<TData, TValue>({
                     </TableCell>
                   ))}
                 </TableRow>
-              ))
+              );
+              })
             ) : (
               <TableRow>
                 <TableCell

@@ -39,10 +39,13 @@ Decimal.set({ precision: 78 });
 export const getEkuboHoldings: DAppHoldingsFn = async ({
   address,
   blockNumber,
+  lstAddress,
 }: {
   address: string;
   blockNumber?: BlockIdentifier;
+  lstAddress?: string;
 }) => {
+  const filterLstAddress = (lstAddress ?? XSTRK_ADDRESS).toLowerCase();
   let xSTRKAmount = MyNumber.fromEther("0", 18);
   let STRKAmount = MyNumber.fromEther("0", 18);
 
@@ -90,8 +93,8 @@ export const getEkuboHoldings: DAppHoldingsFn = async ({
   if (res?.data) {
     const filteredData = res?.data?.filter(
       (position: any) =>
-        position.pool_key.token0 === XSTRK_ADDRESS ||
-        position.pool_key.token1 === XSTRK_ADDRESS,
+        position.pool_key.token0?.toLowerCase() === filterLstAddress ||
+        position.pool_key.token1?.toLowerCase() === filterLstAddress,
     );
 
     if (filteredData) {

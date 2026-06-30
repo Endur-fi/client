@@ -14,6 +14,7 @@ import { ChartSplineIcon } from "./ui/chart-spline";
 import { FlameIcon } from "./ui/flame";
 import { GaugeIcon } from "./ui/gauge";
 import { HandCoinsIcon } from "./ui/hand-coins";
+import { UserIcon } from "./ui/user";
 import { SidebarMenuButton, SidebarMenuItem, useSidebar } from "./ui/sidebar";
 import { NativeStakingWarningDialog } from "./native-staking-warning-dialog";
 
@@ -26,7 +27,7 @@ const SidebarMenuItems = () => {
     React.useState(false);
   const [triggerDashboardIconAnimation, setTriggerDashboardIconAnimation] =
     React.useState(false);
-  const [_triggerPortfolioIconAnimation, _setTriggerPortfolioIconAnimation] =
+  const [triggerPortfolioIconAnimation, setTriggerPortfolioIconAnimation] =
     React.useState(false);
   const [triggerLeaderboardIconAnimation, setTriggerLeaderboardIconAnimation] =
     React.useState(false);
@@ -122,9 +123,7 @@ const SidebarMenuItems = () => {
         </SidebarMenuButton>
       </SidebarMenuItem>
 
-      {/* Portfolio */}
-      {/* TODO: Add link to portfolio page */}
-      {/* <SidebarMenuItem>
+      <SidebarMenuItem>
         <SidebarMenuButton
           asChild
           className={cn("opacity-70 transition-all hover:opacity-100", {
@@ -132,24 +131,29 @@ const SidebarMenuItems = () => {
               pathname === "/portfolio",
           })}
           onMouseEnter={() =>
-            pathname !== "/portfolio" && _setTriggerPortfolioIconAnimation(true)
+            pathname !== "/portfolio" && setTriggerPortfolioIconAnimation(true)
           }
           onMouseLeave={() =>
-            pathname !== "/portfolio" && _setTriggerPortfolioIconAnimation(false)
+            pathname !== "/portfolio" && setTriggerPortfolioIconAnimation(false)
           }
         >
           <Link
-            href="/portfolio"
+            href={getInternalUrl("/portfolio", referrer)}
+            onClick={() => {
+              MyAnalytics.track(AnalyticsEvents.SIDEBAR_NAV_CLICK, {
+                destination: "portfolio",
+              });
+            }}
             className="flex cursor-pointer flex-row items-center gap-2 text-nowrap rounded-[12px] text-base font-semibold text-[#03624C] transition-all"
           >
             <UserIcon
-              triggerAnimation={_triggerPortfolioIconAnimation}
+              triggerAnimation={triggerPortfolioIconAnimation}
               className="-ml-0.5 size-5"
             />
             {open && "Portfolio"}
           </Link>
         </SidebarMenuButton>
-      </SidebarMenuItem> */}
+      </SidebarMenuItem>
 
       {/* Leaderboard */}
       <SidebarMenuItem>

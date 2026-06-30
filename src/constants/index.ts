@@ -365,6 +365,20 @@ export function getProvider() {
   });
 }
 
+export function getPortfolioProvider() {
+  const portfolioRpc = process.env.NEXT_PUBLIC_PORTFOLIO_RPC?.trim();
+  const rpcUrl =
+    portfolioRpc ||
+    process.env.RPC_URL ||
+    process.env.NEXT_PUBLIC_RPC_URL ||
+    "https://starknet-mainnet.public.blastapi.io";
+
+  return new RpcProvider({
+    nodeUrl: rpcUrl,
+    blockIdentifier: BlockTag.LATEST,
+  });
+}
+
 export const ALPHA = 0.25;
 
 export const LINKS = {

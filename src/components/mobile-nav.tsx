@@ -16,6 +16,7 @@ import { FlameIcon } from "./ui/flame";
 import { GaugeIcon } from "./ui/gauge";
 import { MenuIcon } from "./ui/menu";
 import { HandCoinsIcon } from "./ui/hand-coins";
+import { UserIcon } from "./ui/user";
 import { ChartColumnDecreasingIcon } from "./ui/chart-column-decreasing";
 import { NativeStakingWarningDialog } from "./native-staking-warning-dialog";
 
@@ -153,6 +154,17 @@ const MobileNav = () => {
                 onClick={() => handleNavClick("DeFi Opportunities", "/defi")}
               >
                 DeFi Opportunities
+              </NavLink>
+
+              <NavLink
+                href={getInternalUrl("/portfolio", referrer)}
+                icon={
+                  <UserIcon asIcon className="-ml-0.5 size-5" />
+                }
+                isActive={pathname === "/portfolio"}
+                onClick={() => handleNavClick("Portfolio", "/portfolio")}
+              >
+                Portfolio
               </NavLink>
 
               <NavLink

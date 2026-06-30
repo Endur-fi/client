@@ -154,7 +154,14 @@ const PortfolioSection: React.FC = () => {
         balance,
       };
     });
-  }, [wbtcBalance, tbtcBalance, lbtcBalance, solvbtcBalance, btcAssets]);
+  }, [
+    strkBtcBalance.data?.value,
+    wbtcBalance,
+    tbtcBalance,
+    lbtcBalance,
+    solvbtcBalance,
+    btcAssets,
+  ]);
 
   const btcHoldings = React.useMemo(() => {
     const holdings = btcLSTBalances
@@ -279,7 +286,8 @@ const PortfolioSection: React.FC = () => {
     };
 
     fetchSeason2Points();
-  }, [address, pointsApolloClient]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- pointsApolloClient is stable
+  }, [address]);
 
   return (
     <div
