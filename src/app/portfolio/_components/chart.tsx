@@ -177,7 +177,7 @@ export function Chart({
             {availableDays > 0 && availableDays < requestedDays ? (
               <>
                 {" "}
-                · Showing {availableDays} days available
+                Showing {availableDays} days available
               </>
             ) : null}
           </CardDescription>
@@ -311,7 +311,7 @@ export function Chart({
         {!!address && isLoading && (
           <div className="pointer-events-none absolute right-3 top-3 flex items-center gap-2 rounded-md border bg-white/80 px-3 py-1.5 text-xs text-muted-foreground shadow-sm backdrop-blur-sm">
             <Loader className="size-3.5 animate-spin text-black" />
-            Updating…
+            Updating...
           </div>
         )}
         {(!address || chartData.length === 0) && (

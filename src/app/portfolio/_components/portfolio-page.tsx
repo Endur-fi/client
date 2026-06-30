@@ -177,7 +177,7 @@ const PortfolioPage: React.FC = () => {
           }
           throw new Error(
             apiMessage ||
-              `Couldn’t load holdings history (HTTP ${res.status}). Please retry.`,
+              `Couldn't load holdings history (HTTP ${res.status}). Please retry.`,
           );
         }
 

@@ -423,7 +423,7 @@ const Unstake = () => {
       setAvnuLoading(true);
       try {
         const quotes = await getAvnuQuotes(
-          lstConfig.LST_SYMBOL == "xSTRK" ? "1000" : "0.001",
+          lstConfig.LST_SYMBOL === "xSTRK" ? "1000" : "0.001",
           "0x0",
           lstConfig.LST_ADDRESS,
           lstConfig.ASSET_ADDRESS,

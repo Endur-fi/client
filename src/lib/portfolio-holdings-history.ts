@@ -26,7 +26,6 @@ import {
   getTrovesHyperHoldings,
   type LstConfigWithAddresses,
 } from "@/lib/portfolio-rpc";
-import { ASSET_SYMBOL_TO_LST_TOKEN } from "@/lib/portfolio-types";
 import { STRK_DECIMALS } from "@/constants";
 
 export interface HistoricalHoldingsSeries {
@@ -81,10 +80,10 @@ async function mapWithConcurrency<T, R>(
   let nextIndex = 0;
 
   const workers = new Array(Math.max(1, concurrency)).fill(0).map(async () => {
-    while (true) {
-      const idx = nextIndex++;
-      if (idx >= items.length) return;
+    let idx = nextIndex++;
+    while (idx < items.length) {
       results[idx] = await mapper(items[idx]!, idx);
+      idx = nextIndex++;
     }
   });
 
@@ -220,19 +219,19 @@ async function getStrkProtocolSeries(
     },
   );
 
-  const nostraDex = await mapWithConcurrency(blocks, concurrency, (block) =>
+  const nostraDex = await mapWithConcurrency(blocks, concurrency, async (block) =>
     retry(getNostraDexHoldings, [{ address, blockNumber: block.block }]),
   );
 
-  const strkfarm = await mapWithConcurrency(blocks, concurrency, (block) =>
+  const strkfarm = await mapWithConcurrency(blocks, concurrency, async (block) =>
     retry(getXSTRKSenseiHoldings, [{ address, blockNumber: block.block }]),
   );
 
-  const strkfarmEkubo = await mapWithConcurrency(blocks, concurrency, (block) =>
+  const strkfarmEkubo = await mapWithConcurrency(blocks, concurrency, async (block) =>
     retry(getEkuboXSTRKSTRKHoldings, [{ address, blockNumber: block.block }]),
   );
 
-  const opus = await mapWithConcurrency(blocks, concurrency, (block) =>
+  const opus = await mapWithConcurrency(blocks, concurrency, async (block) =>
     retry(getOpusHoldings, [{ address, blockNumber: block.block }]),
   );
 
@@ -256,8 +255,6 @@ async function getBtcIndexedSeries(
     "vesu" | "nostraLending" | "nostraDex" | "strkfarm" | "strkfarmEkubo" | "opus"
   >
 > {
-  const lstToken =
-    ASSET_SYMBOL_TO_LST_TOKEN[lstConfig.SYMBOL] ?? lstConfig.LST_SYMBOL;
   const decimals = lstConfig.DECIMALS;
   const zero = () => ({
     lstAmount: MyNumber.fromZero(decimals),

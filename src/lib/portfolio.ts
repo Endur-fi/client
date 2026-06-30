@@ -792,7 +792,9 @@ export async function buildPortfolioSnapshot(
   try {
     const block = await getPortfolioProvider().getBlock("latest");
     blockNumber = block.block_number;
-  } catch {}
+  } catch {
+    // ignore block fetch errors; blockNumber stays 0
+  }
 
   let lstStrkUsd = 0;
   let lstBtcUsd = 0;

@@ -3,17 +3,12 @@
 import { cn } from "@/lib/utils";
 import type { Variants } from "motion/react";
 import { motion, useAnimation } from "motion/react";
-import type { HTMLAttributes } from "react";
 import React from "react";
 import { CustomIconProps } from "./twitter";
 
 export interface ChartSplineIconHandle {
   startAnimation: () => void;
   stopAnimation: () => void;
-}
-
-interface ChartSplineIconProps extends HTMLAttributes<HTMLDivElement> {
-  size?: number;
 }
 
 const variants: Variants = {

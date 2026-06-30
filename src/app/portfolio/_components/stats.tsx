@@ -110,7 +110,7 @@ const Stats: React.FC = () => {
   if (isLoading) {
     return (
       <div className="flex h-fit w-full items-center justify-center rounded-xl border border-[#AACBC4]/30 bg-white p-8 font-poppins text-sm text-muted-foreground">
-        Loading portfolio…
+        Loading portfolio...
       </div>
     );
   }
