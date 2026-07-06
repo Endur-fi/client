@@ -875,11 +875,18 @@ const Stake: React.FC = () => {
           isOpen={isShieldAndStakeOpen}
           onOpenChange={setIsShieldAndStakeOpen}
           isSelected={isShieldAndStakeSelected}
-          onSelectedChange={setIsShieldAndStakeSelected}
+          onSelectedChange={(selected) => {
+            setIsShieldAndStakeSelected(selected);
+            if (selected) {
+              setSelectedPlatform("none");
+            }
+          }}
         />
       )}
 
-      {sortedPlatforms.length > 0 && balanceMode !== BalanceMode.SHIELDED && (
+      {sortedPlatforms.length > 0 &&
+        balanceMode !== BalanceMode.SHIELDED &&
+        !isShieldAndStakeSelected && (
         <div className="">
           <Collapsible
             open={isLendingOpen}
