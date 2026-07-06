@@ -65,6 +65,7 @@ import MyNumber from "@/lib/MyNumber";
 import { cn, formatNumberWithCommas } from "@/lib/utils";
 import LSTService from "@/services/lst";
 import { lstConfigAtom, assetPriceAtom } from "@/store/common.store";
+import { balanceModeAtom, BalanceMode } from "@/store/balance-mode.store";
 import {
   hyperxLBTCVaultCapacityAtom,
   hyperxSTRKVaultCapacityAtom,
@@ -79,7 +80,11 @@ import { tabsAtom } from "@/store/merry.store";
 import { snAPYAtom } from "@/store/staking.store";
 
 import { Icons } from "./Icons";
+import {
+  BalanceModeToggle,
+} from "./balance-mode-toggle";
 import { PlatformCard } from "./platform-card";
+import { ShieldAndStakeBanner } from "./shield-and-stake-banner";
 import Stats from "./stats";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -162,6 +167,7 @@ const Stake: React.FC = () => {
   const [showMaxedOutModal, setShowMaxedOutModal] = React.useState(false);
   const [selectedPlatform, setSelectedPlatform] =
     React.useState<Platform>("none");
+  const balanceMode = useAtomValue(balanceModeAtom);
 
   const searchParams = useSearchParams();
 
@@ -172,6 +178,9 @@ const Stake: React.FC = () => {
   const [isLendingOpen, setIsLendingOpen] = React.useState(
     true,
   );
+  const [isShieldAndStakeOpen, setIsShieldAndStakeOpen] = React.useState(true);
+  const [isShieldAndStakeSelected, setIsShieldAndStakeSelected] =
+    React.useState(false);
   // In EVM mode, the SDK treats the passed token address as the EVM token.
   // For now only WBTC has a mapped EVM token address.
   const balanceTokenAddress =
@@ -191,6 +200,19 @@ const Stake: React.FC = () => {
   const referrer = searchParams.get("referrer");
 
   const isBTC = lstConfig.SYMBOL?.toLowerCase().includes("btc");
+
+  React.useEffect(() => {
+    if (balanceMode !== BalanceMode.UNSHIELDED) {
+      setIsShieldAndStakeSelected(false);
+    }
+  }, [balanceMode]);
+
+  const displayBalanceAmount =
+    balanceMode === BalanceMode.UNSHIELDED
+      ? balance?.formatted
+        ? Number(balance.formatted)
+        : 0
+      : 5;
 
   const trovesCapacityAtom = React.useMemo(() => {
     switch (lstConfig.LST_SYMBOL) {
@@ -711,6 +733,14 @@ const Stake: React.FC = () => {
         mode="stake"
       />
 
+      <BalanceModeToggle
+        onChange={(mode) => {
+          if (mode === BalanceMode.SHIELDED) {
+            setSelectedPlatform("none");
+          }
+        }}
+      />
+
       <div className="flex w-full max-w-full flex-col items-start gap-2 lg:max-w-none">
         <div className="flex w-full max-w-full flex-1 flex-col items-start lg:max-w-none">
           <Form {...form}>
@@ -722,19 +752,21 @@ const Stake: React.FC = () => {
               <div className="flex items-center gap-1">
                 <Icons.wallet className="size-3" />
                 <span className="hidden text-xs text-[#6B7780] md:block">
-                  Balance:
+                  {balanceMode === BalanceMode.UNSHIELDED
+                    ? "Unshielded Bal"
+                    : "Shielded Bal"}
+                  :
                 </span>
                 <span className="text-xs text-[#1A1F24]">
-                  {balance?.formatted
-                    ? Number(balance?.formatted).toFixed(isBTC ? 8 : 2)
-                    : "0"}{" "}
+                  {displayBalanceAmount.toFixed(isBTC ? 8 : 2)}{" "}
                   {lstConfig.SYMBOL}
                 </span>
-                {balance?.formatted && assetPrice && (
-                  <span className="text-xs text-[#6B7780]">
-                    | ${(Number(balance.formatted) * assetPrice).toFixed(2)}
-                  </span>
-                )}
+                {assetPrice &&
+                  (balanceMode === BalanceMode.SHIELDED || balance?.formatted) && (
+                    <span className="text-xs text-[#6B7780]">
+                      | ${(displayBalanceAmount * assetPrice).toFixed(2)}
+                    </span>
+                  )}
               </div>
             </div>
             <form onSubmit={form.handleSubmit(onSubmit)} className="w-full">
@@ -838,7 +870,16 @@ const Stake: React.FC = () => {
         </div>
       </div>
 
-      {sortedPlatforms.length > 0 && (
+      {balanceMode === BalanceMode.UNSHIELDED && (
+        <ShieldAndStakeBanner
+          isOpen={isShieldAndStakeOpen}
+          onOpenChange={setIsShieldAndStakeOpen}
+          isSelected={isShieldAndStakeSelected}
+          onSelectedChange={setIsShieldAndStakeSelected}
+        />
+      )}
+
+      {sortedPlatforms.length > 0 && balanceMode !== BalanceMode.SHIELDED && (
         <div className="">
           <Collapsible
             open={isLendingOpen}

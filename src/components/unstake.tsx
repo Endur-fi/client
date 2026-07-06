@@ -48,10 +48,12 @@ import {
 } from "@/store/lst.store";
 
 import { Icons } from "./Icons";
+import { BalanceModeToggle } from "./balance-mode-toggle";
 import Stats from "./stats";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { assetPriceAtom, lstConfigAtom } from "@/store/common.store";
+import { balanceModeAtom, BalanceMode } from "@/store/balance-mode.store";
 import { Web3Number } from "@strkfarm/sdk";
 
 const formSchema = z.object({
@@ -316,6 +318,7 @@ const UnstakeOptionCard = ({
 
 const Unstake = () => {
   const [txnDapp, setTxnDapp] = React.useState<"endur" | "dex">("dex");
+  const balanceMode = useAtomValue(balanceModeAtom);
 
   // EasyLeap: address + Starknet tx sending (Starknet mode)
   const { starknetAddress: address } = useAccount();
@@ -333,6 +336,13 @@ const Unstake = () => {
   const lstConfig = useAtomValue(lstConfigAtom)!;
   const { data: assetPrice } = useAtomValue(assetPriceAtom);
   const isBTC = lstConfig.SYMBOL?.toLowerCase().includes("btc");
+
+  const displayBalanceAmount =
+    balanceMode === BalanceMode.UNSHIELDED
+      ? Number(
+          currentLSTBalance.value.toEtherToFixedDecimals(isBTC ? 8 : 2),
+        )
+      : 5;
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -400,6 +410,12 @@ const Unstake = () => {
   const waitingTime = React.useMemo(() => {
     return "~7 days";
   }, [queueState.value, form.watch("unstakeAmount")]);
+
+  React.useEffect(() => {
+    if (balanceMode === BalanceMode.SHIELDED && txnDapp === "endur") {
+      setTxnDapp("dex");
+    }
+  }, [balanceMode, txnDapp]);
 
   React.useEffect(() => {
     // DEX flow manages its own success/error toasts and does not produce a stable
@@ -749,6 +765,8 @@ const Unstake = () => {
     <div className="relative flex h-full w-full flex-col gap-6">
       <Stats mode="unstake" />
 
+      <BalanceModeToggle />
+
       <div className="flex w-full max-w-full flex-col items-start gap-2 lg:max-w-none">
         <div className="flex w-full max-w-full flex-1 flex-col items-start lg:max-w-none">
           <Form {...form}>
@@ -760,14 +778,13 @@ const Unstake = () => {
               <div className="flex items-center gap-1">
                 <Icons.wallet className="size-3" />
                 <span className="hidden text-xs text-[#6B7780] md:block">
-                  Balance:
+                  {balanceMode === BalanceMode.UNSHIELDED
+                    ? "Unshielded Bal"
+                    : "Shielded Bal"}
+                  :
                 </span>
                 <span className="text-xs text-[#1A1F24]">
-                  {Number(
-                    currentLSTBalance.value.toEtherToFixedDecimals(
-                      isBTC ? 8 : 2,
-                    ),
-                  ).toFixed(isBTC ? 8 : 2)}{" "}
+                  {displayBalanceAmount.toFixed(isBTC ? 8 : 2)}{" "}
                   {lstConfig.LST_SYMBOL}
                 </span>
               </div>
@@ -883,16 +900,18 @@ const Unstake = () => {
         }
       >
         <TabsList className="flex h-full flex-col items-center justify-between gap-3 bg-transparent">
-          <UnstakeOptionCard
-            isActive={txnDapp === "endur"}
-            title="Use Endur"
-            logo={<Icons.endurLogo className="size-6" />}
-            rate={exRate.rate}
-            waitingTime={waitingTime}
-            isBestRate={getBetterRate() === "endur"}
-            isRecommended={getBetterRate() === "endur"}
-            percentDiff={null}
-          />
+          {balanceMode !== BalanceMode.SHIELDED && (
+            <UnstakeOptionCard
+              isActive={txnDapp === "endur"}
+              title="Use Endur"
+              logo={<Icons.endurLogo className="size-6" />}
+              rate={exRate.rate}
+              waitingTime={waitingTime}
+              isBestRate={getBetterRate() === "endur"}
+              isRecommended={getBetterRate() === "endur"}
+              percentDiff={null}
+            />
+          )}
 
           {isMainnet() && (
             <UnstakeOptionCard
