@@ -58,9 +58,13 @@ const DialogContent = React.forwardRef<
       >
         {children}
         {!hideCloseIcon && (
-          <DialogPrimitive.Close className="absolute right-5 top-5 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-0 focus:ring-offset-0 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
+          <DialogPrimitive.Close
+            className={cn(
+              "absolute right-3 top-3 z-[100] flex size-10 items-center justify-center rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-0 focus:ring-offset-0 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground",
+            )}
+          >
             <Icons.cross
-              className={cn("size-2 text-[#075A5A]", closeIconClassName)}
+              className={cn("size-3.5 shrink-0 text-[#075A5A]", closeIconClassName)}
             />
             <span className="sr-only">Close</span>
           </DialogPrimitive.Close>
