@@ -9,10 +9,11 @@ import {
   useBalance,
   useMode,
   useSendTransaction,
+  useStrk20Balance,
 } from "@easyleap/sdk";
 
 import { useAtomValue } from "jotai";
-import { AlertCircleIcon, ChevronDown, Info } from "lucide-react";
+import { AlertCircleIcon, ChevronDown, Info, RotateCw } from "lucide-react";
 import { Figtree } from "next/font/google";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -189,6 +190,38 @@ const Stake: React.FC = () => {
       : lstConfig.ASSET_ADDRESS;
 
   const { data: balance } = useBalance(balanceTokenAddress as `0x${string}`);
+
+  const {
+    data: shieldedBalance,
+    getBalance: getShieldedBalance,
+    isPending: isShieldedBalancePending,
+    reset: resetShieldedBalance,
+  } = useStrk20Balance(lstConfig.ASSET_ADDRESS as `0x${string}`, {
+    decimals: lstConfig.DECIMALS,
+  });
+
+  const hasFetchedShieldedBalance = React.useRef(false);
+
+  // Reset cached shielded balance whenever the wallet changes so stale data
+  // from the previous account is never shown.
+  React.useEffect(() => {
+    if (!address) return;
+    resetShieldedBalance();
+    if (balanceMode === BalanceMode.SHIELDED) {
+      getShieldedBalance(); // Fetch the shielded balance for the new account
+      hasFetchedShieldedBalance.current = true;
+      return;
+    }
+    hasFetchedShieldedBalance.current = false;
+  }, [address]);
+
+  React.useEffect(() => {
+    if (balanceMode === BalanceMode.SHIELDED && !hasFetchedShieldedBalance.current) {
+      hasFetchedShieldedBalance.current = true;
+      getShieldedBalance();
+    }
+  }, [balanceMode]);
+
   const { data: assetPrice } = useAtomValue(assetPriceAtom);
 
   const exchangeRate = useAtomValue(apiExchangeRateAtom);
@@ -212,7 +245,9 @@ const Stake: React.FC = () => {
       ? balance?.formatted
         ? Number(balance.formatted)
         : 0
-      : 5;
+      : shieldedBalance?.formatted
+        ? Number(shieldedBalance.formatted)
+        : 0;
 
   const trovesCapacityAtom = React.useMemo(() => {
     switch (lstConfig.LST_SYMBOL) {
@@ -276,14 +311,19 @@ const Stake: React.FC = () => {
       });
     }
 
-    if (balance && percentage === 100) {
+    const activeFormatted =
+      balanceMode === BalanceMode.SHIELDED
+        ? shieldedBalance?.formatted
+        : balance?.formatted;
+
+    if (activeFormatted && percentage === 100) {
       // For BTC tokens, use the full balance since they're often less than 1
       // For other tokens, reserve 1 unit for gas fees
       if (isBTC) {
         // Always use 18 decimal precision
-        form.setValue("stakeAmount", Number(balance?.formatted).toFixed(18));
+        form.setValue("stakeAmount", Number(activeFormatted).toFixed(18));
       } else {
-        if (Number(balance?.formatted) < 1) {
+        if (Number(activeFormatted) < 1) {
           form.setValue("stakeAmount", "0");
           form.clearErrors("stakeAmount");
           return;
@@ -291,15 +331,15 @@ const Stake: React.FC = () => {
 
         form.setValue(
           "stakeAmount",
-          (Number(balance?.formatted) - 1).toFixed(6),
+          (Number(activeFormatted) - 1).toFixed(6),
         );
       }
       form.clearErrors("stakeAmount");
       return;
     }
 
-    if (balance) {
-      const calculatedAmount = (Number(balance?.formatted) * percentage) / 100;
+    if (activeFormatted) {
+      const calculatedAmount = (Number(activeFormatted) * percentage) / 100;
       // Always use 18 decimal precision
       form.setValue("stakeAmount", calculatedAmount.toFixed(18));
       form.clearErrors("stakeAmount");
@@ -365,14 +405,19 @@ const Stake: React.FC = () => {
       });
     }
 
-    if (stakeAmount > Number(balance?.formatted)) {
+    const activeBalance =
+      balanceMode === BalanceMode.SHIELDED
+        ? shieldedBalance?.formatted
+        : balance?.formatted;
+
+    if (stakeAmount > Number(activeBalance)) {
       return toast({
         description: (
           <div className="flex items-center gap-2">
             <Info className="size-5" />
-            Insufficient balance
+            Insufficient {balanceMode === BalanceMode.SHIELDED ? "shielded" : ""} balance
             <br />
-            {stakeAmount} {">"} Available {Number(balance?.formatted)}
+            {stakeAmount} {">"} Available {Number(activeBalance)}
           </div>
         ),
       });
@@ -762,11 +807,29 @@ const Stake: React.FC = () => {
                   {lstConfig.SYMBOL}
                 </span>
                 {assetPrice &&
-                  (balanceMode === BalanceMode.SHIELDED || balance?.formatted) && (
+                  (balanceMode === BalanceMode.SHIELDED
+                    ? shieldedBalance?.formatted
+                    : balance?.formatted) && (
                     <span className="text-xs text-[#6B7780]">
                       | ${(displayBalanceAmount * assetPrice).toFixed(2)}
                     </span>
                   )}
+                {balanceMode === BalanceMode.SHIELDED && (
+                  <button
+                    type="button"
+                    onClick={getShieldedBalance}
+                    disabled={isShieldedBalancePending}
+                    className="ml-0.5 text-[#6B7780] transition-colors hover:text-[#1A1F24] disabled:cursor-not-allowed disabled:opacity-50"
+                    aria-label="Refresh shielded balance"
+                  >
+                    <RotateCw
+                      className={cn(
+                        "size-3",
+                        isShieldedBalancePending && "animate-spin",
+                      )}
+                    />
+                  </button>
+                )}
               </div>
             </div>
             <form onSubmit={form.handleSubmit(onSubmit)} className="w-full">

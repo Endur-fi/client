@@ -3,14 +3,19 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useAtom, useAtomValue } from "jotai";
-import { Info } from "lucide-react";
+import { Info, RotateCw } from "lucide-react";
 import React from "react";
 import { useForm } from "react-hook-form";
 import { Contract } from "starknet";
 
 import * as z from "zod";
 
-import { ConnectButton, useAccount, useSendTransaction } from "@easyleap/sdk";
+import {
+  ConnectButton,
+  useAccount,
+  useSendTransaction,
+  useStrk20Balance,
+} from "@easyleap/sdk";
 
 import erc4626Abi from "@/abi/erc4626.abi.json";
 import {
@@ -337,12 +342,45 @@ const Unstake = () => {
   const { data: assetPrice } = useAtomValue(assetPriceAtom);
   const isBTC = lstConfig.SYMBOL?.toLowerCase().includes("btc");
 
+  const {
+    data: shieldedBalance,
+    getBalance: getShieldedBalance,
+    isPending: isShieldedBalancePending,
+    reset: resetShieldedBalance,
+  } = useStrk20Balance(lstConfig.LST_ADDRESS as `0x${string}`, {
+    decimals: lstConfig.DECIMALS,
+  });
+
+  const hasFetchedShieldedBalance = React.useRef(false);
+
+  // Reset cached shielded balance whenever the wallet changes so stale data
+  // from the previous account is never shown.
+  React.useEffect(() => {
+    if (!address) return;
+    resetShieldedBalance();
+    if (balanceMode === BalanceMode.SHIELDED) {
+      getShieldedBalance();
+      hasFetchedShieldedBalance.current = true;
+      return;
+    }
+    hasFetchedShieldedBalance.current = false;
+  }, [address]);
+
+  React.useEffect(() => {
+    if (balanceMode === BalanceMode.SHIELDED && !hasFetchedShieldedBalance.current) {
+      hasFetchedShieldedBalance.current = true;
+      getShieldedBalance();
+    }
+  }, [balanceMode]);
+
   const displayBalanceAmount =
     balanceMode === BalanceMode.UNSHIELDED
       ? Number(
           currentLSTBalance.value.toEtherToFixedDecimals(isBTC ? 8 : 2),
         )
-      : 5;
+      : shieldedBalance?.formatted
+        ? Number(shieldedBalance.formatted)
+        : 0;
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -507,27 +545,30 @@ const Unstake = () => {
       });
     }
 
+    const activeFormatted =
+      balanceMode === BalanceMode.SHIELDED
+        ? shieldedBalance?.formatted
+        : Web3Number.fromWei(
+            currentLSTBalance.value.toString(),
+            currentLSTBalance.value.decimals,
+          ).toFixed(18);
+
+    if (!activeFormatted || Number(activeFormatted) === 0) {
+      return;
+    }
+
     let displayAmount = "";
     let unstakeAmount = "";
     // to reduce some dust
     const ONE_WEI = Web3Number.fromWei(9999999, 18);
-    const balance = new Web3Number(
-      Web3Number.fromWei(
-        currentLSTBalance.value.toString(),
-        currentLSTBalance.value.decimals,
-      ).toFixed(18),
-      18,
-    );
+    const balance = new Web3Number(activeFormatted, 18);
     const available = balance.minus(ONE_WEI);
 
     // exact balance will be used for unstake amount only when percentage is 100
     // for other percentages, we are still rounding up to 8/2 decimals precision
-    if (Number(currentLSTBalance.value.toEtherToFixedDecimals(8)) === 0) {
-      return;
-    }
     if (percentage === 100) {
       // Round down to prevent exceeding balance
-      displayAmount = currentLSTBalance.value.toEtherToFixedDecimals(8);
+      displayAmount = Number(activeFormatted).toFixed(isBTC ? 8 : 6);
       // always 18 ok
       unstakeAmount = available.toFixed(18);
     } else {
@@ -675,18 +716,25 @@ const Unstake = () => {
         ),
       });
     }
-    const balance = Web3Number.fromWei(
-      currentLSTBalance.value.toString(),
-      currentLSTBalance.value.decimals,
-    );
-    if (balance.lessThan(values.unstakeAmount)) {
+    const activeBalance =
+      balanceMode === BalanceMode.SHIELDED
+        ? shieldedBalance?.formatted
+        : Web3Number.fromWei(
+            currentLSTBalance.value.toString(),
+            currentLSTBalance.value.decimals,
+          ).toFixed(18);
+
+    if (Number(values.unstakeAmount) > Number(activeBalance)) {
       return toast({
         description: (
           <div className="flex items-center gap-2">
             <Info className="size-5" />
-            Insufficient {lstConfig.LST_SYMBOL} balance
+            Insufficient{" "}
+            {balanceMode === BalanceMode.SHIELDED ? "shielded " : ""}
+            {lstConfig.LST_SYMBOL} balance
             <br />
-            {Number(values.unstakeAmount)} {">"} Available {balance.toString()}
+            {Number(values.unstakeAmount)} {">"} Available{" "}
+            {Number(activeBalance)}
           </div>
         ),
       });
@@ -734,6 +782,22 @@ const Unstake = () => {
                   {displayBalanceAmount.toFixed(isBTC ? 8 : 2)}{" "}
                   {lstConfig.LST_SYMBOL}
                 </span>
+                {balanceMode === BalanceMode.SHIELDED && (
+                  <button
+                    type="button"
+                    onClick={getShieldedBalance}
+                    disabled={isShieldedBalancePending}
+                    className="ml-0.5 text-[#6B7780] transition-colors hover:text-[#1A1F24] disabled:cursor-not-allowed disabled:opacity-50"
+                    aria-label="Refresh shielded balance"
+                  >
+                    <RotateCw
+                      className={cn(
+                        "size-3",
+                        isShieldedBalancePending && "animate-spin",
+                      )}
+                    />
+                  </button>
+                )}
               </div>
             </div>
             <form onSubmit={form.handleSubmit(onSubmit)} className="w-full">
