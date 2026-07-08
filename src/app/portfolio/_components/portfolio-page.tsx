@@ -1,6 +1,6 @@
 "use client";
 
-import { useAccount } from "@starknet-react/core";
+import { useAccount } from "@starknetfoundation/starknet-start-react";
 import { useAtomValue } from "jotai";
 import React from "react";
 

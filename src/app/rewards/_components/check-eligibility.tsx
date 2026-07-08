@@ -1,6 +1,6 @@
 /* eslint-disable no-spaced-func */
 
-import { useAccount, useSendTransaction } from "@starknet-react/core";
+import { useAccount, useSendTransaction } from "@starknetfoundation/starknet-start-react";
 import { Gift, Loader2 } from "lucide-react";
 import { Figtree } from "next/font/google";
 import Image from "next/image";

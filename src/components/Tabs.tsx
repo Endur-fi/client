@@ -6,7 +6,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useRouter, usePathname } from "next/navigation";
 import React from "react";
-import { useAccount } from "@starknet-react/core";
+import { useAccount } from "@starknetfoundation/starknet-start-react";
 
 import { Icons } from "@/components/Icons";
 import {
@@ -87,7 +87,7 @@ const Tabs = () => {
   const { address } = useAccount();
 
   const { isPinned } = useSidebar();
-  const { connectWallet } = useWalletConnection();
+  const { connectWallet: _connectWallet } = useWalletConnection();
 
   const referrer = searchParams.get("referrer");
   const tabParam = searchParams.get("tab");

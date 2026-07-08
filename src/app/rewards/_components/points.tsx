@@ -6,7 +6,7 @@ import { cn, formatNumber, formatNumberWithCommas } from "@/lib/utils";
 import { MyAnalytics } from "@/lib/analytics";
 import { AnalyticsEvents } from "@/lib/analytics-events";
 import { Calendar, Clock, Flame, TrendingUp, Trophy } from "lucide-react";
-import { useAccount } from "@starknet-react/core";
+import { useAccount } from "@starknetfoundation/starknet-start-react";
 import { ConnectButton } from "@easyleap/sdk";
 import { useQuery } from "@apollo/client";
 import { GET_USER_POINTS_BREAKDOWN } from "@/constants/queries";

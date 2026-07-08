@@ -2,12 +2,11 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useAccount as useAccountSn } from "@starknet-react/core";
 import { useAtom, useAtomValue } from "jotai";
 import { Info } from "lucide-react";
 import React from "react";
 import { useForm } from "react-hook-form";
-import { AccountInterface, Contract } from "starknet";
+import { Contract } from "starknet";
 
 import * as z from "zod";
 
@@ -35,7 +34,7 @@ import { MyAnalytics } from "@/lib/analytics";
 import { AnalyticsEvents } from "@/lib/analytics-events";
 import MyNumber from "@/lib/MyNumber";
 import { cn, formatNumberWithCommas } from "@/lib/utils";
-import { executeAvnuSwap, getAvnuQuotes } from "@/services/avnu";
+import { getAvnuQuotes } from "@/services/avnu";
 import {
   avnuErrorAtom,
   avnuLoadingAtom,
@@ -322,8 +321,9 @@ const Unstake = () => {
 
   // EasyLeap: address + Starknet tx sending (Starknet mode)
   const { starknetAddress: address } = useAccount();
-  // Starknet-react: provides the Starknet account object required by Avnu.
-  const { account } = useAccountSn();
+  // TODO: starknet-start-react no longer exposes `account` on useAccount.
+  // Re-enable extension-wallet Avnu swaps once an AccountInterface source exists.
+  // const { account } = useAccountSn();
   // Wallet connection is handled by Easyleap ConnectButton.
 
   const [avnuQuote, setAvnuQuote] = useAtom(avnuQuoteAtom);
@@ -554,66 +554,6 @@ const Unstake = () => {
   const handleDexSwap = async () => {
     if (!address || !avnuQuote) return;
 
-    // Privy path: starknet-react account is not available for embedded wallets.
-    if (!account) {
-      setAvnuLoading(true);
-      try {
-        const quoteId = (avnuQuote as any)?.quoteId as string | undefined;
-        if (!quoteId) throw new Error("Missing Avnu quoteId");
-
-        const { fetchBuildExecuteTransaction } = await import("@avnu/avnu-sdk");
-        const built = await fetchBuildExecuteTransaction(quoteId, address);
-
-        const normalizedCalls = Array.isArray((built as any)?.calls)
-          ? (built as any).calls.map((c: any) => {
-              // AVNU may return calls in { to, selector, calldata } shape
-              const contractAddress = c?.contractAddress ?? c?.to;
-              const entrypoint = c?.entrypoint ?? c?.selector;
-              const calldata = c?.calldata ?? [];
-              return { contractAddress, entrypoint, calldata };
-            })
-          : [];
-
-        await sendAsync({ calls: normalizedCalls });
-
-        toast({
-          itemID: "unstake",
-          variant: "complete",
-          duration: 3000,
-          description: (
-            <div className="flex items-center gap-2 border-none">
-              <Icons.toastSuccess />
-              <div className="flex flex-col items-start gap-2 text-sm font-medium text-[#3F6870]">
-                <span className="text-[18px] font-semibold text-[#075A5A]">
-                  Success 🎉
-                </span>
-                Unstaked {form.getValues("unstakeAmount")} {lstConfig.SYMBOL}{" "}
-                via Avnu
-              </div>
-            </div>
-          ),
-        });
-        form.reset();
-        return;
-      } catch (e: any) {
-        toast({
-          itemID: "unstake",
-          description: (
-            <div className="flex gap-2 text-red-500">
-              <Info className="mt-0.5 size-5 flex-shrink-0" />
-              <div className="max-h-32 flex-1 space-y-1 overflow-y-auto">
-                <div className="font-semibold">{e?.name ?? "Error"}</div>
-                <div className="text-sm">{e?.message ?? String(e)}</div>
-              </div>
-            </div>
-          ),
-        });
-        return;
-      } finally {
-        setAvnuLoading(false);
-      }
-    }
-
     MyAnalytics.track(AnalyticsEvents.UNSTAKE_CLICK, {
       address,
       amount: Number(form.getValues("unstakeAmount")),
@@ -622,63 +562,70 @@ const Unstake = () => {
 
     setAvnuLoading(true);
     try {
-      await executeAvnuSwap(
-        account as AccountInterface,
-        avnuQuote,
-        () => {
-          MyAnalytics.track(AnalyticsEvents.UNSTAKE_TX_SUCCESSFUL, {
-            address,
-            amount: Number(form.getValues("unstakeAmount")),
-            asset: lstConfig.SYMBOL,
-            method: "dex",
-          });
-          toast({
-            itemID: "unstake",
-            variant: "complete",
-            duration: 3000,
-            description: (
-              <div className="flex items-center gap-2 border-none">
-                <Icons.toastSuccess />
-                <div className="flex flex-col items-start gap-2 text-sm font-medium text-[#3F6870]">
-                  <span className="text-[18px] font-semibold text-[#075A5A]">
-                    Success 🎉
-                  </span>
-                  Unstaked {form.getValues("unstakeAmount")} {lstConfig.SYMBOL}{" "}
-                  via Avnu
-                </div>
-              </div>
-            ),
-          });
-          form.reset();
-        },
-        (error) => {
-          MyAnalytics.track(AnalyticsEvents.UNSTAKE_TX_REJECTED, {
-            address,
-            amount: Number(form.getValues("unstakeAmount")),
-            asset: lstConfig.SYMBOL,
-            method: "dex",
-            errorName: error.name,
-            errorMessage: error.message,
-          });
-          toast({
-            itemID: "unstake",
-            description: (
-              <div className="flex gap-2 text-red-500">
-                <Info className="mt-0.5 size-5 flex-shrink-0" />
-                <div className="max-h-32 flex-1 space-y-1 overflow-y-auto">
-                  <div className="font-semibold">{error.name}</div>
-                  <div className="text-sm">{error.message}</div>
-                </div>
-              </div>
-            ),
-          });
-        },
-      );
-    } catch (error) {
-      console.error("AVNU DEX Swap error", error);
+      const quoteId = (avnuQuote as any)?.quoteId as string | undefined;
+      if (!quoteId) throw new Error("Missing Avnu quoteId");
+
+      const { fetchBuildExecuteTransaction } = await import("@avnu/avnu-sdk");
+      const built = await fetchBuildExecuteTransaction(quoteId, address);
+
+      const normalizedCalls = Array.isArray((built as any)?.calls)
+        ? (built as any).calls.map((c: any) => {
+            const contractAddress = c?.contractAddress ?? c?.to;
+            const entrypoint = c?.entrypoint ?? c?.selector;
+            const calldata = c?.calldata ?? [];
+            return { contractAddress, entrypoint, calldata };
+          })
+        : [];
+
+      await sendAsync({ calls: normalizedCalls });
+
+      toast({
+        itemID: "unstake",
+        variant: "complete",
+        duration: 3000,
+        description: (
+          <div className="flex items-center gap-2 border-none">
+            <Icons.toastSuccess />
+            <div className="flex flex-col items-start gap-2 text-sm font-medium text-[#3F6870]">
+              <span className="text-[18px] font-semibold text-[#075A5A]">
+                Success 🎉
+              </span>
+              Unstaked {form.getValues("unstakeAmount")} {lstConfig.SYMBOL}{" "}
+              via Avnu
+            </div>
+          </div>
+        ),
+      });
+      form.reset();
+    } catch (e: any) {
+      toast({
+        itemID: "unstake",
+        description: (
+          <div className="flex gap-2 text-red-500">
+            <Info className="mt-0.5 size-5 flex-shrink-0" />
+            <div className="max-h-32 flex-1 space-y-1 overflow-y-auto">
+              <div className="font-semibold">{e?.name ?? "Error"}</div>
+              <div className="text-sm">{e?.message ?? String(e)}</div>
+            </div>
+          </div>
+        ),
+      });
     } finally {
       setAvnuLoading(false);
     }
+
+    /*
+    // Extension-wallet Avnu path (requires AccountInterface from useAccount).
+    if (!account) {
+      ...
+    }
+
+    await executeAvnuSwap(
+      account as AccountInterface,
+      avnuQuote,
+      ...
+    );
+    */
   };
 
   const getBetterRate = () => {
