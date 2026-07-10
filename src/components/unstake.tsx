@@ -3,7 +3,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useAtom, useAtomValue } from "jotai";
-import { Info, RotateCw } from "lucide-react";
+import { Eye, Info, RotateCw } from "lucide-react";
 import React from "react";
 import { useForm } from "react-hook-form";
 import { Contract } from "starknet";
@@ -38,7 +38,7 @@ import { useTransactionHandler } from "@/hooks/use-transactions";
 import { MyAnalytics } from "@/lib/analytics";
 import { AnalyticsEvents } from "@/lib/analytics-events";
 import MyNumber from "@/lib/MyNumber";
-import { cn, formatNumberWithCommas } from "@/lib/utils";
+import { cn, formatNumberWithCommas, standariseAddress } from "@/lib/utils";
 import { getAvnuQuotes } from "@/services/avnu";
 import {
   avnuErrorAtom,
@@ -347,31 +347,20 @@ const Unstake = () => {
     getBalance: getShieldedBalance,
     isPending: isShieldedBalancePending,
     reset: resetShieldedBalance,
-  } = useStrk20Balance(lstConfig.LST_ADDRESS as `0x${string}`, {
-    decimals: lstConfig.DECIMALS,
-  });
+  } = useStrk20Balance(
+    standariseAddress(lstConfig.LST_ADDRESS) as `0x${string}`,
+    {
+      decimals: lstConfig.DECIMALS,
+    },
+  );
 
-  const hasFetchedShieldedBalance = React.useRef(false);
+  const isShieldedBalanceVisible = Boolean(shieldedBalance?.formatted);
 
-  // Reset cached shielded balance whenever the wallet changes so stale data
-  // from the previous account is never shown.
+  // Reset cached shielded balance when the wallet or asset changes so stale
+  // data from a previous account or token is never shown.
   React.useEffect(() => {
-    if (!address) return;
     resetShieldedBalance();
-    if (balanceMode === BalanceMode.SHIELDED) {
-      getShieldedBalance();
-      hasFetchedShieldedBalance.current = true;
-      return;
-    }
-    hasFetchedShieldedBalance.current = false;
-  }, [address]);
-
-  React.useEffect(() => {
-    if (balanceMode === BalanceMode.SHIELDED && !hasFetchedShieldedBalance.current) {
-      hasFetchedShieldedBalance.current = true;
-      getShieldedBalance();
-    }
-  }, [balanceMode]);
+  }, [address, lstConfig.LST_ADDRESS]);
 
   const displayBalanceAmount =
     balanceMode === BalanceMode.UNSHIELDED
@@ -778,25 +767,50 @@ const Unstake = () => {
                     : "Shielded Bal"}
                   :
                 </span>
-                <span className="text-xs text-[#1A1F24]">
-                  {displayBalanceAmount.toFixed(isBTC ? 8 : 2)}{" "}
-                  {lstConfig.LST_SYMBOL}
-                </span>
-                {balanceMode === BalanceMode.SHIELDED && (
-                  <button
-                    type="button"
-                    onClick={getShieldedBalance}
-                    disabled={isShieldedBalancePending}
-                    className="ml-0.5 text-[#6B7780] transition-colors hover:text-[#1A1F24] disabled:cursor-not-allowed disabled:opacity-50"
-                    aria-label="Refresh shielded balance"
-                  >
-                    <RotateCw
-                      className={cn(
-                        "size-3",
-                        isShieldedBalancePending && "animate-spin",
-                      )}
-                    />
-                  </button>
+                {balanceMode === BalanceMode.SHIELDED &&
+                !isShieldedBalanceVisible ? (
+                  <>
+                    <span className="text-xs text-[#1A1F24]">
+                      **** {lstConfig.LST_SYMBOL}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={getShieldedBalance}
+                      disabled={isShieldedBalancePending}
+                      className="ml-0.5 text-[#6B7780] transition-colors hover:text-[#1A1F24] disabled:cursor-not-allowed disabled:opacity-50"
+                      aria-label="Reveal shielded balance"
+                    >
+                      <Eye
+                        className={cn(
+                          "size-3",
+                          isShieldedBalancePending && "animate-pulse",
+                        )}
+                      />
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <span className="text-xs text-[#1A1F24]">
+                      {displayBalanceAmount.toFixed(isBTC ? 8 : 2)}{" "}
+                      {lstConfig.LST_SYMBOL}
+                    </span>
+                    {balanceMode === BalanceMode.SHIELDED && (
+                      <button
+                        type="button"
+                        onClick={getShieldedBalance}
+                        disabled={isShieldedBalancePending}
+                        className="ml-0.5 text-[#6B7780] transition-colors hover:text-[#1A1F24] disabled:cursor-not-allowed disabled:opacity-50"
+                        aria-label="Refresh shielded balance"
+                      >
+                        <RotateCw
+                          className={cn(
+                            "size-3",
+                            isShieldedBalancePending && "animate-spin",
+                          )}
+                        />
+                      </button>
+                    )}
+                  </>
                 )}
               </div>
             </div>
