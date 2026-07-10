@@ -708,7 +708,7 @@ const PortfolioSection: React.FC = () => {
               <div className="mt-3 space-y-4 rounded-lg bg-[#F5F7F8] p-3 lg:ml-[20px]">
                 {btcHoldings.holdings.map((holding) => (
                   <div key={holding.asset.SYMBOL} className="space-y-2">
-                    <div className="flex items-start justify-between gap-3 text-xs">
+                    <div className="flex items-start justify-between gap-3 text-xs mb-2">
                       <div className="flex flex-col gap-0.5">
                         <div className="flex items-center gap-1">
                           {getBTCLSTIcon(holding.asset.LST_SYMBOL)}
