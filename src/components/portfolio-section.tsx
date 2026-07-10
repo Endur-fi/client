@@ -6,6 +6,7 @@ import {
   useAccount,
   useBalance,
   useMode,
+  useStrk20Balance,
 } from "@easyleap/sdk";
 import React from "react";
 import { ChevronDown, Eye, EyeOff, Info, RotateCw } from "lucide-react";
@@ -28,7 +29,7 @@ import {
   getLSTAssetsByCategory,
   getSTRKAsset,
 } from "@/constants";
-import { cn, formatNumberWithCommas } from "@/lib/utils";
+import { cn, formatNumberWithCommas, standariseAddress } from "@/lib/utils";
 import { lstStatsQueryAtom } from "@/store/lst.store";
 import { btcPriceAtom, strkPriceAtom } from "@/store/staking.store";
 import MyNumber from "@/lib/MyNumber";
@@ -59,33 +60,29 @@ const getBTCLSTIcon = (lstSymbol: string) => {
 
 type PrivacyBalanceType = "shielded" | "unshielded";
 
+type ShieldedBalanceState = {
+  getBalance: () => void;
+  isPending: boolean;
+  isVisible: boolean;
+  amount: number;
+  decimals: number;
+};
+
 const PortfolioSection: React.FC = () => {
   const { starknetAddress: address } = useAccount();
   const mode = useMode();
   const strkLSTConfig = getSTRKAsset();
   const btcAssets = getLSTAssetsByCategory("BTC");
 
+  const strkBtcAsset = btcAssets.find((asset) => asset.SYMBOL === "strkBTC");
+  const wbtcAsset = btcAssets.find((asset) => asset.SYMBOL === "WBTC");
+  const tbtcAsset = btcAssets.find((asset) => asset.SYMBOL === "tBTC");
+  const lbtcAsset = btcAssets.find((asset) => asset.SYMBOL === "LBTC");
+  const solvbtcAsset = btcAssets.find((asset) => asset.SYMBOL === "solvBTC");
+
   // xSTRK / xyBTC row dropdowns showing shielded + unshielded balances
   const [isStrkExpanded, setIsStrkExpanded] = React.useState(false);
   const [isBtcExpanded, setIsBtcExpanded] = React.useState(false);
-
-  // TODO: wire up real shielded/unshielded balance fetching per token once
-  // the data source is decided. For now each row just exposes a manual
-  // fetch button and shows a placeholder value.
-  const [fetchingPrivacyBalance, setFetchingPrivacyBalance] = React.useState<
-    Record<string, boolean>
-  >({});
-
-  const handleFetchPrivacyBalance = (
-    assetSymbol: string,
-    type: PrivacyBalanceType,
-  ) => {
-    const key = `${assetSymbol}-${type}`;
-    setFetchingPrivacyBalance((prev) => ({ ...prev, [key]: true }));
-    window.setTimeout(() => {
-      setFetchingPrivacyBalance((prev) => ({ ...prev, [key]: false }));
-    }, 600);
-  };
 
   // Get STRK LST balance
   const strkLSTBalanceData = useBalance(
@@ -113,6 +110,118 @@ const PortfolioSection: React.FC = () => {
     btcAssets.find((a) => a.SYMBOL === "solvBTC")?.LST_ADDRESS as `0x${string}`,
   );
 
+  const xstrkShieldedBalance = useStrk20Balance(
+    standariseAddress(strkLSTConfig.LST_ADDRESS) as `0x${string}`,
+    { decimals: strkLSTConfig.DECIMALS },
+  );
+  const strkBtcShieldedBalance = useStrk20Balance(
+    standariseAddress(strkBtcAsset?.LST_ADDRESS ?? "0x0") as `0x${string}`,
+    { decimals: strkBtcAsset?.DECIMALS ?? 8 },
+  );
+  const wbtcShieldedBalance = useStrk20Balance(
+    standariseAddress(wbtcAsset?.LST_ADDRESS ?? "0x0") as `0x${string}`,
+    { decimals: wbtcAsset?.DECIMALS ?? 8 },
+  );
+  const tbtcShieldedBalance = useStrk20Balance(
+    standariseAddress(tbtcAsset?.LST_ADDRESS ?? "0x0") as `0x${string}`,
+    { decimals: tbtcAsset?.DECIMALS ?? 18 },
+  );
+  const lbtcShieldedBalance = useStrk20Balance(
+    standariseAddress(lbtcAsset?.LST_ADDRESS ?? "0x0") as `0x${string}`,
+    { decimals: lbtcAsset?.DECIMALS ?? 8 },
+  );
+  const solvbtcShieldedBalance = useStrk20Balance(
+    standariseAddress(solvbtcAsset?.LST_ADDRESS ?? "0x0") as `0x${string}`,
+    { decimals: solvbtcAsset?.DECIMALS ?? 18 },
+  );
+
+  React.useEffect(() => {
+    if (!address) return;
+    xstrkShieldedBalance.reset();
+    strkBtcShieldedBalance.reset();
+    wbtcShieldedBalance.reset();
+    tbtcShieldedBalance.reset();
+    lbtcShieldedBalance.reset();
+    solvbtcShieldedBalance.reset();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- reset on wallet change only
+  }, [address]);
+
+  const getShieldedBalanceState = (
+    hook: ReturnType<typeof useStrk20Balance>,
+    decimals: number,
+  ): ShieldedBalanceState => ({
+    getBalance: hook.getBalance,
+    isPending: hook.isPending,
+    isVisible: Boolean(hook.data?.formatted),
+    amount: hook.data?.formatted ? Number(hook.data.formatted) : 0,
+    decimals,
+  });
+
+  const shieldedBalancesByAssetSymbol = React.useMemo<
+    Record<string, ShieldedBalanceState>
+  >(
+    () => ({
+      STRK: getShieldedBalanceState(
+        xstrkShieldedBalance,
+        strkLSTConfig.DECIMALS,
+      ),
+      ...(strkBtcAsset
+        ? {
+            strkBTC: getShieldedBalanceState(
+              strkBtcShieldedBalance,
+              strkBtcAsset.DECIMALS,
+            ),
+          }
+        : {}),
+      ...(wbtcAsset
+        ? {
+            WBTC: getShieldedBalanceState(
+              wbtcShieldedBalance,
+              wbtcAsset.DECIMALS,
+            ),
+          }
+        : {}),
+      ...(tbtcAsset
+        ? {
+            tBTC: getShieldedBalanceState(
+              tbtcShieldedBalance,
+              tbtcAsset.DECIMALS,
+            ),
+          }
+        : {}),
+      ...(lbtcAsset
+        ? {
+            LBTC: getShieldedBalanceState(
+              lbtcShieldedBalance,
+              lbtcAsset.DECIMALS,
+            ),
+          }
+        : {}),
+      ...(solvbtcAsset
+        ? {
+            solvBTC: getShieldedBalanceState(
+              solvbtcShieldedBalance,
+              solvbtcAsset.DECIMALS,
+            ),
+          }
+        : {}),
+    }),
+    [
+      lbtcAsset,
+      lbtcShieldedBalance,
+      solvbtcAsset,
+      solvbtcShieldedBalance,
+      strkBtcAsset,
+      strkBtcShieldedBalance,
+      strkLSTConfig.DECIMALS,
+      tbtcAsset,
+      tbtcShieldedBalance,
+      wbtcAsset,
+      wbtcShieldedBalance,
+      xstrkShieldedBalance,
+    ],
+  );
+
   // Get prices and stats
   const strkPrice = useAtomValue(strkPriceAtom);
   const btcPrice = useAtomValue(btcPriceAtom);
@@ -120,23 +229,33 @@ const PortfolioSection: React.FC = () => {
 
   // Calculate STRK holdings
   const strkHoldings = React.useMemo(() => {
-    if (
+    const unshieldedLstAmount =
       !strkLSTBalanceData.data?.value ||
       strkLSTBalanceData.data.value === BigInt(0)
-    ) {
+        ? 0
+        : Number(
+            new MyNumber(
+              strkLSTBalanceData.data.value.toString(),
+              strkLSTConfig.DECIMALS,
+            ).toEtherStr(),
+          );
+
+    const strkShielded = shieldedBalancesByAssetSymbol.STRK;
+    const shieldedLstAmount =
+      strkShielded?.isVisible && strkShielded.amount > 0
+        ? strkShielded.amount
+        : 0;
+    const lstAmount = unshieldedLstAmount + shieldedLstAmount;
+
+    if (lstAmount === 0) {
       return {
         lstAmount: 0,
         underlyingSTRK: 0,
         usdValue: 0,
+        unshieldedLstAmount: 0,
+        unshieldedUsdValue: 0,
       };
     }
-
-    const lstAmount = Number(
-      new MyNumber(
-        strkLSTBalanceData.data.value.toString(),
-        strkLSTConfig.DECIMALS,
-      ).toEtherStr(),
-    );
 
     const strkStat = lstStats.data?.find(
       (stat) =>
@@ -146,13 +265,25 @@ const PortfolioSection: React.FC = () => {
     const exchangeRate = strkStat?.exchangeRate || 0;
     const underlyingSTRK = lstAmount * exchangeRate;
     const usdValue = strkPrice ? underlyingSTRK * strkPrice : 0;
+    const unshieldedUnderlyingSTRK = unshieldedLstAmount * exchangeRate;
+    const unshieldedUsdValue = strkPrice
+      ? unshieldedUnderlyingSTRK * strkPrice
+      : 0;
 
     return {
       lstAmount,
       underlyingSTRK,
       usdValue,
+      unshieldedLstAmount,
+      unshieldedUsdValue,
     };
-  }, [strkLSTBalanceData, strkLSTConfig, lstStats, strkPrice]);
+  }, [
+    shieldedBalancesByAssetSymbol.STRK,
+    strkLSTBalanceData,
+    strkLSTConfig,
+    lstStats,
+    strkPrice,
+  ]);
 
   // Calculate BTC holdings
   const btcLSTBalances = React.useMemo(() => {
@@ -186,11 +317,21 @@ const PortfolioSection: React.FC = () => {
 
   const btcHoldings = React.useMemo(() => {
     const holdings = btcLSTBalances
-      .filter(({ balance }) => balance > 0)
+      .filter(({ balance, asset }) => {
+        const shielded = shieldedBalancesByAssetSymbol[asset.SYMBOL];
+        const hasShielded =
+          shielded?.isVisible && (shielded.amount ?? 0) > 0;
+        return balance > 0 || hasShielded;
+      })
       .map(({ balance, asset }) => {
-        const lstAmount = Number(
+        const unshieldedLstAmount = Number(
           new MyNumber(balance.toString(), asset.DECIMALS).toEtherStr(),
         );
+        const shielded = shieldedBalancesByAssetSymbol[asset.SYMBOL];
+        const shieldedLstAmount =
+          shielded?.isVisible && shielded.amount > 0 ? shielded.amount : 0;
+        const lstAmount = unshieldedLstAmount + shieldedLstAmount;
+
         const lstStat = lstStats.data?.find(
           (stat) =>
             stat.lstAddress?.toLowerCase() === asset.LST_ADDRESS?.toLowerCase(),
@@ -204,6 +345,12 @@ const PortfolioSection: React.FC = () => {
           lstAmount,
           underlyingBTC,
           usdValue,
+          unshieldedLstAmount,
+          unshieldedUsdValue: btcPrice
+            ? unshieldedLstAmount *
+              (lstStat?.exchangeRate || 1) *
+              btcPrice
+            : 0,
         };
       });
 
@@ -220,7 +367,7 @@ const PortfolioSection: React.FC = () => {
       totalUnderlyingBTC,
       totalUsd,
     };
-  }, [btcLSTBalances, btcPrice, lstStats]);
+  }, [btcLSTBalances, btcPrice, lstStats, shieldedBalancesByAssetSymbol]);
 
   // Calculate total value staked
   const totalValueStaked = React.useMemo(() => {
@@ -308,22 +455,44 @@ const PortfolioSection: React.FC = () => {
     fetchSeason2Points();
   }, [address, pointsApolloClient]);
 
+  const getShieldedUsdValue = (
+    lstAmount: number,
+    fallbackExchangeRate: number,
+    price: number | undefined,
+    lstAddress: string,
+  ) => {
+    const lstStat = lstStats.data?.find(
+      (stat) => stat.lstAddress?.toLowerCase() === lstAddress.toLowerCase(),
+    );
+    const exchangeRate = lstStat?.exchangeRate ?? fallbackExchangeRate;
+    const underlying = lstAmount * exchangeRate;
+    return price ? underlying * price : 0;
+  };
+
   const renderPrivacyBalanceRow = (
     assetSymbol: string,
     lstSymbol: string,
     type: PrivacyBalanceType,
-    unshieldedValue?: { amount: number; usdValue: number; decimals?: number },
+    options?: {
+      unshieldedValue?: { amount: number; usdValue: number; decimals?: number };
+      lstAddress?: string;
+      fallbackExchangeRate?: number;
+      price?: number;
+      displayDecimals?: number;
+    },
   ) => {
     const key = `${assetSymbol}-${type}`;
-    const isFetching = fetchingPrivacyBalance[key];
     const isShielded = type === "shielded";
+    const shieldedBalance = shieldedBalancesByAssetSymbol[assetSymbol];
+    const displayDecimals =
+      options?.displayDecimals ?? options?.unshieldedValue?.decimals ?? 2;
 
     return (
       <div
         key={key}
         className="flex items-start justify-between gap-3 text-xs"
       >
-        <div className="flex gap-1.5">
+        <div className="flex shrink-0 gap-1.5">
           {isShielded ? (
             <EyeOff className="h-4 w-4 shrink-0 text-[#0D5F4E]" />
           ) : (
@@ -332,38 +501,100 @@ const PortfolioSection: React.FC = () => {
           <span className={isShielded ? "text-[#0D5F4E]" : "text-[#6B7780]"}>
             {isShielded ? "Shielded" : "Unshielded"}
           </span>
-          {/* Unshielded balance is already known from the wallet-held LST
-              balance, so only Shielded needs a manual fetch for now. */}
-          {isShielded && (
-            <button
-              type="button"
-              onClick={() => handleFetchPrivacyBalance(assetSymbol, type)}
-              disabled={isFetching}
-              className="text-[#6B7780] transition-colors hover:text-[#1A1F24] disabled:cursor-not-allowed disabled:opacity-50"
-              aria-label={`Fetch ${type} balance for ${lstSymbol}`}
-            >
-              <RotateCw
-                className={cn("h-3 w-3", isFetching && "animate-spin")}
-              />
-            </button>
-          )}
         </div>
         {isShielded ? (
-          <div className="flex flex-col items-end gap-0.5">
-            <span className="text-[#1A1F24]">-- {lstSymbol}</span>
-            <span className="text-[#6B7780]">$--</span>
+          <div className="flex min-w-0 max-w-[65%] flex-col items-end gap-0.5">
+            {!shieldedBalance?.isVisible ? (
+              <span className="flex items-center gap-1 text-[#1A1F24]">
+                <span
+                  role="button"
+                  tabIndex={0}
+                  onClick={shieldedBalance?.getBalance}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.preventDefault();
+                      shieldedBalance?.getBalance();
+                    }
+                  }}
+                  aria-label={`Reveal shielded balance for ${lstSymbol}`}
+                  aria-disabled={shieldedBalance?.isPending}
+                  className={cn(
+                    "shrink-0 text-[#6B7780] transition-colors hover:text-[#1A1F24]",
+                    shieldedBalance?.isPending &&
+                      "cursor-not-allowed opacity-50",
+                  )}
+                >
+                  <Eye
+                    className={cn(
+                      "h-3 w-3",
+                      shieldedBalance?.isPending && "animate-pulse",
+                    )}
+                  />
+                </span>
+                **** {lstSymbol}
+              </span>
+            ) : (
+              <>
+                <span className="flex max-w-full items-center justify-end gap-1 text-[#1A1F24]">
+                  <span
+                    role="button"
+                    tabIndex={0}
+                    onClick={shieldedBalance.getBalance}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        shieldedBalance.getBalance();
+                      }
+                    }}
+                    aria-label={`Refresh shielded balance for ${lstSymbol}`}
+                    aria-disabled={shieldedBalance.isPending}
+                    className={cn(
+                      "shrink-0 text-[#6B7780] transition-colors hover:text-[#1A1F24]",
+                      shieldedBalance.isPending &&
+                        "cursor-not-allowed opacity-50",
+                    )}
+                  >
+                    <RotateCw
+                      className={cn(
+                        "h-3 w-3",
+                        shieldedBalance.isPending && "animate-spin",
+                      )}
+                    />
+                  </span>
+                  <span className="truncate">
+                    {formatNumberWithCommas(
+                      shieldedBalance.amount,
+                      displayDecimals,
+                    )}{" "}
+                    {lstSymbol}
+                  </span>
+                </span>
+                <span className="max-w-full truncate text-right text-[#6B7780]">
+                  $
+                  {formatNumberWithCommas(
+                    getShieldedUsdValue(
+                      shieldedBalance.amount,
+                      options?.fallbackExchangeRate ?? 1,
+                      options?.price,
+                      options?.lstAddress ?? "",
+                    ),
+                    2,
+                  )}
+                </span>
+              </>
+            )}
           </div>
         ) : (
-          <div className="flex flex-col items-end gap-0.5">
-            <span className="text-[#1A1F24]">
+          <div className="flex min-w-0 max-w-[65%] flex-col items-end gap-0.5">
+            <span className="max-w-full truncate text-right text-[#1A1F24]">
               {formatNumberWithCommas(
-                unshieldedValue?.amount ?? 0,
-                unshieldedValue?.decimals ?? 2,
+                options?.unshieldedValue?.amount ?? 0,
+                displayDecimals,
               )}{" "}
               {lstSymbol}
             </span>
-            <span className="text-[#6B7780]">
-              ${formatNumberWithCommas(unshieldedValue?.usdValue ?? 0, 2)}
+            <span className="max-w-full truncate text-right text-[#6B7780]">
+              ${formatNumberWithCommas(options?.unshieldedValue?.usdValue ?? 0, 2)}
             </span>
           </div>
         )}
@@ -423,11 +654,18 @@ const PortfolioSection: React.FC = () => {
           </CollapsibleTrigger>
           <CollapsibleContent>
             <div className="mt-3 space-y-3 lg:ml-[52px]">
-              {renderPrivacyBalanceRow("STRK", "xSTRK", "shielded")}
+              {renderPrivacyBalanceRow("STRK", "xSTRK", "shielded", {
+                lstAddress: strkLSTConfig.LST_ADDRESS,
+                fallbackExchangeRate: 0,
+                price: strkPrice,
+                displayDecimals: 2,
+              })}
               {renderPrivacyBalanceRow("STRK", "xSTRK", "unshielded", {
-                amount: strkHoldings.lstAmount,
-                usdValue: strkHoldings.usdValue,
-                decimals: 2,
+                unshieldedValue: {
+                  amount: strkHoldings.unshieldedLstAmount,
+                  usdValue: strkHoldings.unshieldedUsdValue,
+                  decimals: 2,
+                },
               })}
             </div>
           </CollapsibleContent>
@@ -493,15 +731,23 @@ const PortfolioSection: React.FC = () => {
                         holding.asset.SYMBOL,
                         holding.asset.LST_SYMBOL,
                         "shielded",
+                        {
+                          lstAddress: holding.asset.LST_ADDRESS,
+                          fallbackExchangeRate: 1,
+                          price: btcPrice,
+                          displayDecimals: 6,
+                        },
                       )}
                       {renderPrivacyBalanceRow(
                         holding.asset.SYMBOL,
                         holding.asset.LST_SYMBOL,
                         "unshielded",
                         {
-                          amount: holding.lstAmount,
-                          usdValue: holding.usdValue,
-                          decimals: 6,
+                          unshieldedValue: {
+                            amount: holding.unshieldedLstAmount,
+                            usdValue: holding.unshieldedUsdValue,
+                            decimals: 6,
+                          },
                         },
                       )}
                     </div>
