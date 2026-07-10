@@ -8,10 +8,15 @@ import {
   useMode,
 } from "@easyleap/sdk";
 import React from "react";
-import { Info } from "lucide-react";
+import { ChevronDown, Eye, EyeOff, Info, RotateCw } from "lucide-react";
 
 import { Icons } from "./Icons";
 
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "./ui/collapsible";
 import {
   Tooltip,
   TooltipContent,
@@ -52,11 +57,35 @@ const getBTCLSTIcon = (lstSymbol: string) => {
   }
 };
 
+type PrivacyBalanceType = "shielded" | "unshielded";
+
 const PortfolioSection: React.FC = () => {
   const { starknetAddress: address } = useAccount();
   const mode = useMode();
   const strkLSTConfig = getSTRKAsset();
   const btcAssets = getLSTAssetsByCategory("BTC");
+
+  // xSTRK / xyBTC row dropdowns showing shielded + unshielded balances
+  const [isStrkExpanded, setIsStrkExpanded] = React.useState(false);
+  const [isBtcExpanded, setIsBtcExpanded] = React.useState(false);
+
+  // TODO: wire up real shielded/unshielded balance fetching per token once
+  // the data source is decided. For now each row just exposes a manual
+  // fetch button and shows a placeholder value.
+  const [fetchingPrivacyBalance, setFetchingPrivacyBalance] = React.useState<
+    Record<string, boolean>
+  >({});
+
+  const handleFetchPrivacyBalance = (
+    assetSymbol: string,
+    type: PrivacyBalanceType,
+  ) => {
+    const key = `${assetSymbol}-${type}`;
+    setFetchingPrivacyBalance((prev) => ({ ...prev, [key]: true }));
+    window.setTimeout(() => {
+      setFetchingPrivacyBalance((prev) => ({ ...prev, [key]: false }));
+    }, 600);
+  };
 
   // Get STRK LST balance
   const strkLSTBalanceData = useBalance(
@@ -279,6 +308,69 @@ const PortfolioSection: React.FC = () => {
     fetchSeason2Points();
   }, [address, pointsApolloClient]);
 
+  const renderPrivacyBalanceRow = (
+    assetSymbol: string,
+    lstSymbol: string,
+    type: PrivacyBalanceType,
+    unshieldedValue?: { amount: number; usdValue: number; decimals?: number },
+  ) => {
+    const key = `${assetSymbol}-${type}`;
+    const isFetching = fetchingPrivacyBalance[key];
+    const isShielded = type === "shielded";
+
+    return (
+      <div
+        key={key}
+        className="flex items-start justify-between gap-3 text-xs"
+      >
+        <div className="flex gap-1.5">
+          {isShielded ? (
+            <EyeOff className="h-4 w-4 shrink-0 text-[#0D5F4E]" />
+          ) : (
+            <Eye className="h-4 w-4 shrink-0 text-[#6B7780]" />
+          )}
+          <span className={isShielded ? "text-[#0D5F4E]" : "text-[#6B7780]"}>
+            {isShielded ? "Shielded" : "Unshielded"}
+          </span>
+          {/* Unshielded balance is already known from the wallet-held LST
+              balance, so only Shielded needs a manual fetch for now. */}
+          {isShielded && (
+            <button
+              type="button"
+              onClick={() => handleFetchPrivacyBalance(assetSymbol, type)}
+              disabled={isFetching}
+              className="text-[#6B7780] transition-colors hover:text-[#1A1F24] disabled:cursor-not-allowed disabled:opacity-50"
+              aria-label={`Fetch ${type} balance for ${lstSymbol}`}
+            >
+              <RotateCw
+                className={cn("h-3 w-3", isFetching && "animate-spin")}
+              />
+            </button>
+          )}
+        </div>
+        {isShielded ? (
+          <div className="flex flex-col items-end gap-0.5">
+            <span className="text-[#1A1F24]">-- {lstSymbol}</span>
+            <span className="text-[#6B7780]">$--</span>
+          </div>
+        ) : (
+          <div className="flex flex-col items-end gap-0.5">
+            <span className="text-[#1A1F24]">
+              {formatNumberWithCommas(
+                unshieldedValue?.amount ?? 0,
+                unshieldedValue?.decimals ?? 2,
+              )}{" "}
+              {lstSymbol}
+            </span>
+            <span className="text-[#6B7780]">
+              ${formatNumberWithCommas(unshieldedValue?.usdValue ?? 0, 2)}
+            </span>
+          </div>
+        )}
+      </div>
+    );
+  };
+
   return (
     <div
       className={cn(
@@ -302,8 +394,12 @@ const PortfolioSection: React.FC = () => {
         </div>
 
         {/* xSTRK Holdings */}
-        <div className="rounded-xl px-0 py-1 lg:px-0 lg:py-0">
-          <div className="flex w-full items-start gap-3">
+        <Collapsible
+          open={isStrkExpanded}
+          onOpenChange={setIsStrkExpanded}
+          className="rounded-xl px-0 py-1 lg:px-0 lg:py-0"
+        >
+          <CollapsibleTrigger className="group flex w-full items-start gap-3 text-left">
             <Icons.strkLogo className="h-10 w-10 shrink-0" />
             <div className="flex flex-1 items-start justify-between">
               <div className="flex w-full flex-col gap-0.5">
@@ -311,70 +407,110 @@ const PortfolioSection: React.FC = () => {
                   <span className="text-left text-sm text-[#1A1F24]">
                     {formatNumberWithCommas(strkHoldings.lstAmount, 2)} xSTRK
                   </span>
-                  <span className="text-sm font-semibold text-[#1A1F24]">
-                    {formatNumberWithCommas(strkHoldings.underlyingSTRK, 2)}{" "}
-                    STRK
-                  </span>
+                  <div className="flex items-center gap-1">
+                    <span className="text-sm font-semibold text-[#1A1F24]">
+                      {formatNumberWithCommas(strkHoldings.underlyingSTRK, 2)}{" "}
+                      STRK
+                    </span>
+                    <ChevronDown className="h-4 w-4 shrink-0 text-[#6B7780] transition-transform duration-200 group-data-[state=open]:rotate-180" />
+                  </div>
                 </div>
                 <span className="text-left text-xs text-[#6B7780]">
                   ${formatNumberWithCommas(strkHoldings.usdValue, 2)}
                 </span>
               </div>
             </div>
-          </div>
-        </div>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <div className="mt-3 space-y-3 lg:ml-[52px]">
+              {renderPrivacyBalanceRow("STRK", "xSTRK", "shielded")}
+              {renderPrivacyBalanceRow("STRK", "xSTRK", "unshielded", {
+                amount: strkHoldings.lstAmount,
+                usdValue: strkHoldings.usdValue,
+                decimals: 2,
+              })}
+            </div>
+          </CollapsibleContent>
+        </Collapsible>
 
         {/* BTC Holdings */}
-        <div className="rounded-xl px-0 py-1 lg:px-0 lg:py-0">
-          <div className="flex w-full items-start gap-3">
+        <Collapsible
+          open={isBtcExpanded}
+          onOpenChange={setIsBtcExpanded}
+          className="rounded-xl px-0 py-1 lg:px-0 lg:py-0"
+        >
+          <CollapsibleTrigger className="group flex w-full items-start gap-3 text-left">
             <Icons.btcLogo className="h-10 w-10 shrink-0" />
             <div className="flex flex-1 items-start justify-between">
               <div className="flex w-full flex-col gap-0.5">
-                {/* <span className="text-left text-sm text-[#1A1F24]">BTC</span> */}
                 <div className="flex w-full items-center justify-between">
                   <span className="text-left text-sm text-[#1A1F24]">
                     {formatNumberWithCommas(btcHoldings.totalLSTAmount, 6)}{" "}
                     xyBTC
                   </span>
-                  <span className="text-sm font-semibold text-[#1A1F24]">
-                    {formatNumberWithCommas(btcHoldings.totalUnderlyingBTC, 6)}{" "}
-                    BTC
-                  </span>
+                  <div className="flex items-center gap-1">
+                    <span className="text-sm font-semibold text-[#1A1F24]">
+                      {formatNumberWithCommas(
+                        btcHoldings.totalUnderlyingBTC,
+                        6,
+                      )}{" "}
+                      BTC
+                    </span>
+                    <ChevronDown className="h-4 w-4 shrink-0 text-[#6B7780] transition-transform duration-200 group-data-[state=open]:rotate-180" />
+                  </div>
                 </div>
                 <span className="text-left text-xs text-[#6B7780]">
                   ${formatNumberWithCommas(btcHoldings.totalUsd, 2)}
                 </span>
               </div>
             </div>
-          </div>
+          </CollapsibleTrigger>
           {btcHoldings.holdings.length > 0 && (
-            <div className="mt-3 space-y-3 rounded-lg bg-[#F5F7F8] p-3 lg:ml-[20px]">
-              {btcHoldings.holdings.map((holding) => (
-                <div
-                  key={holding.asset.SYMBOL}
-                  className="flex items-start justify-between gap-3 text-xs"
-                >
-                  <div className="flex flex-col gap-0.5">
-                    <div className="flex items-center gap-1">
-                      {getBTCLSTIcon(holding.asset.LST_SYMBOL)}
-                      <span className="text-[#1A1F24]">
-                        {formatNumberWithCommas(holding.lstAmount, 6)}{" "}
-                        {holding.asset.LST_SYMBOL}
+            <CollapsibleContent>
+              <div className="mt-3 space-y-4 rounded-lg bg-[#F5F7F8] p-3 lg:ml-[20px]">
+                {btcHoldings.holdings.map((holding) => (
+                  <div key={holding.asset.SYMBOL} className="space-y-2">
+                    <div className="flex items-start justify-between gap-3 text-xs">
+                      <div className="flex flex-col gap-0.5">
+                        <div className="flex items-center gap-1">
+                          {getBTCLSTIcon(holding.asset.LST_SYMBOL)}
+                          <span className="text-[#1A1F24]">
+                            {formatNumberWithCommas(holding.lstAmount, 6)}{" "}
+                            {holding.asset.LST_SYMBOL}
+                          </span>
+                        </div>
+                        <span className="ml-[22px] text-[#6B7780]">
+                          ${formatNumberWithCommas(holding.usdValue, 2)}
+                        </span>
+                      </div>
+                      <span className="text-right text-[#6B7780]">
+                        {formatNumberWithCommas(holding.underlyingBTC, 6)}{" "}
+                        {holding.asset.SYMBOL}
                       </span>
                     </div>
-                    <span className="ml-[22px] text-[#6B7780]">
-                      ${formatNumberWithCommas(holding.usdValue, 2)}
-                    </span>
+                    <div className="ml-[22px] space-y-1.5 border-l border-[#E5E8EB] pl-2">
+                      {renderPrivacyBalanceRow(
+                        holding.asset.SYMBOL,
+                        holding.asset.LST_SYMBOL,
+                        "shielded",
+                      )}
+                      {renderPrivacyBalanceRow(
+                        holding.asset.SYMBOL,
+                        holding.asset.LST_SYMBOL,
+                        "unshielded",
+                        {
+                          amount: holding.lstAmount,
+                          usdValue: holding.usdValue,
+                          decimals: 6,
+                        },
+                      )}
+                    </div>
                   </div>
-                  <span className="text-right text-[#6B7780]">
-                    {formatNumberWithCommas(holding.underlyingBTC, 6)}{" "}
-                    {holding.asset.SYMBOL}
-                  </span>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            </CollapsibleContent>
           )}
-        </div>
+        </Collapsible>
 
         {/* Info Message */}
         <div className="rounded-lg border border-[#FFC46680] bg-[#FFC4661A] p-2 text-xs text-[#D69733]">

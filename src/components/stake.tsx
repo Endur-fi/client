@@ -20,7 +20,8 @@ import { useSearchParams } from "next/navigation";
 import React from "react";
 import { useForm } from "react-hook-form";
 import { TwitterShareButton } from "react-share";
-import { Call, Contract } from "starknet";
+import { useStrk20PrepareInvoke } from "@starknetfoundation/starknet-start-react";
+import { Call, Contract, uint256 } from "starknet";
 import * as z from "zod";
 
 import erc4626Abi from "@/abi/erc4626.abi.json";
@@ -51,6 +52,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import {
+  ENDUR_DEPOSIT_ANONYMIZER_ADDRESS,
   IS_PAUSED,
   LSTAssetConfig,
   NOSTRA_iXSTRK_ADDRESS,
@@ -63,7 +65,7 @@ import { useTransactionHandler } from "@/hooks/use-transactions";
 import { MyAnalytics } from "@/lib/analytics";
 import { AnalyticsEvents } from "@/lib/analytics-events";
 import MyNumber from "@/lib/MyNumber";
-import { cn, formatNumberWithCommas } from "@/lib/utils";
+import { cn, formatNumberWithCommas, standariseAddress } from "@/lib/utils";
 import LSTService from "@/services/lst";
 import { lstConfigAtom, assetPriceAtom } from "@/store/common.store";
 import { balanceModeAtom, BalanceMode } from "@/store/balance-mode.store";
@@ -291,7 +293,8 @@ const Stake: React.FC = () => {
     ? lstService.getLSTContract(lstConfig.LST_ADDRESS)
     : null;
 
-  const { sendAsync, data, isPending, error } = useSendTransaction();
+  const { sendAsync, invokeAsync, data, isPending, error } = useSendTransaction();
+  const { prepareAsync } = useStrk20PrepareInvoke();
 
   const { handleTransaction } = useTransactionHandler();
 
@@ -449,12 +452,147 @@ const Stake: React.FC = () => {
     MyAnalytics.track(AnalyticsEvents.STAKE_CLICK, {
       address,
       amount: Number(values.stakeAmount),
+      mode: balanceMode,
     });
 
     const underlyingTokenAmount = MyNumber.fromEther(
       values.stakeAmount,
       lstConfig.DECIMALS,
     );
+
+    // Privacy stake (shielded balance, or unshielded + Shield & Stake):
+    // optional public→private deposit, OPEN transfer for LST, invoke anonymizer.
+    const usePrivacyStake =
+      balanceMode === BalanceMode.SHIELDED || isShieldAndStakeSelected;
+
+    if (usePrivacyStake) {
+      if (selectedPlatform !== "none") {
+        return toast({
+          description: (
+            <div className="flex items-center gap-2">
+              <Info className="size-5" />
+              Platform routing is not available in shielded mode
+            </div>
+          ),
+        });
+      }
+
+      // Wallet STRK20 FELT/ADDRESS schema rejects zero-padded hex (e.g. 0x047…).
+      // Strip leading zeros so the wallet request passes address validation.
+      const inToken = standariseAddress(lstConfig.ASSET_ADDRESS) as `0x${string}`;
+      const outToken = standariseAddress(lstConfig.LST_ADDRESS) as `0x${string}`;
+      const anonymizer = standariseAddress(
+        ENDUR_DEPOSIT_ANONYMIZER_ADDRESS,
+      ) as `0x${string}`;
+      const recipient = standariseAddress(address) as `0x${string}`;
+
+      const amountU256 = uint256.bnToUint256(underlyingTokenAmount.toString());
+      const amountLow = standariseAddress(amountU256.low.toString());
+      const amountHigh = standariseAddress(amountU256.high.toString());
+      const amountHex = standariseAddress(
+        underlyingTokenAmount.toString(),
+      ) as `0x${string}`;
+
+      const actions = [
+        // From public wallet: shield underlying into the pool first.
+        ...(isShieldAndStakeSelected
+          ? [
+              {
+                type: "deposit" as const,
+                token: inToken,
+                amount: amountHex,
+              },
+            ]
+          : []),
+        {
+          type: "transfer" as const,
+          token: outToken,
+          amount: "OPEN" as const,
+          recipient,
+        },
+        {
+          type: "invoke" as const,
+          contract: anonymizer,
+          calldata: [
+            inToken,
+            outToken,
+            amountLow,
+            amountHigh,
+            "${openNoteIds[0]}",
+          ],
+        },
+      ];
+
+      const privacyStakeParams = {
+        balanceMode,
+        isShieldAndStakeSelected,
+        stakeAmount: values.stakeAmount,
+        inToken,
+        outToken,
+        anonymizer,
+        recipient,
+        amountLow,
+        amountHigh,
+        amountHex,
+        underlyingAmount: underlyingTokenAmount.toString(),
+        lstSymbol: lstConfig.LST_SYMBOL,
+        assetSymbol: lstConfig.SYMBOL,
+        chainId: process.env.NEXT_PUBLIC_CHAIN_ID,
+      };
+
+      console.log("[privacy-stake] params:", privacyStakeParams);
+      console.log("[privacy-stake] actions:", JSON.stringify(actions, null, 2));
+
+      try {
+        const simulated = await prepareAsync({ actions, simulate: true });
+        console.log("[privacy-stake] simulate:success", {
+          call: simulated.call,
+          proof: simulated.proof,
+        });
+      } catch (simulateError) {
+        console.error("[privacy-stake] simulate:failed", simulateError);
+        if (simulateError && typeof simulateError === "object") {
+          const err = simulateError as {
+            message?: string;
+            baseError?: unknown;
+            cause?: unknown;
+          };
+          console.error("[privacy-stake] simulate:failed:message", err.message);
+          console.error("[privacy-stake] simulate:failed:baseError", err.baseError);
+          console.error("[privacy-stake] simulate:failed:cause", err.cause);
+        }
+
+        return toast({
+          description: (
+            <div className="flex items-center gap-2">
+              <Info className="size-5" />
+              Privacy stake simulation failed — check console for details
+            </div>
+          ),
+        });
+      }
+
+      try {
+        console.log("[privacy-stake] invoke:start", { actions });
+        await invokeAsync(actions);
+        console.log("[privacy-stake] invoke:success");
+      } catch (invokeError) {
+        console.error("[privacy-stake] invoke:failed", invokeError);
+        if (invokeError && typeof invokeError === "object") {
+          const err = invokeError as {
+            message?: string;
+            baseError?: unknown;
+            cause?: unknown;
+          };
+          console.error("[privacy-stake] invoke:failed:message", err.message);
+          console.error("[privacy-stake] invoke:failed:baseError", err.baseError);
+          console.error("[privacy-stake] invoke:failed:cause", err.cause);
+        }
+        throw invokeError;
+      }
+      return;
+    }
+
     const previewCall = await contract?.preview_deposit(
       underlyingTokenAmount.toString(),
     );

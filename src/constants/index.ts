@@ -302,6 +302,11 @@ export const BTC_ORACLE_CONTRACT =
 
 export const IS_PAUSED = process.env.NEXT_PUBLIC_IS_PAUSED === "true";
 
+/** Endur deposit anonymizer used by the privacy pool for shielded stakes. */
+export const ENDUR_DEPOSIT_ANONYMIZER_ADDRESS = (process.env
+  .NEXT_PUBLIC_ENDUR_DEPOSIT_ANONYMIZER_ADDRESS ??
+  "0x030dee638065962eb3642ca54aa48e9e2cd98536bc90b64b99bb306c1db30698") as `0x${string}`;
+
 export const SN_STAKING_ADRESS =
   NETWORK === "SN_MAIN"
     ? "0x00ca1702e64c81d9a07b86bd2c540188d92a2c73cf5cc0e508d949015e7e84a7"
