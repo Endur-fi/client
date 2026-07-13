@@ -135,17 +135,6 @@ const PortfolioSection: React.FC = () => {
     { decimals: solvbtcAsset?.DECIMALS ?? 18 },
   );
 
-  React.useEffect(() => {
-    if (!address) return;
-    xstrkShieldedBalance.reset();
-    strkBtcShieldedBalance.reset();
-    wbtcShieldedBalance.reset();
-    tbtcShieldedBalance.reset();
-    lbtcShieldedBalance.reset();
-    solvbtcShieldedBalance.reset();
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- reset on wallet change only
-  }, [address]);
-
   const getShieldedBalanceState = (
     hook: ReturnType<typeof useStrk20Balance>,
     decimals: number,

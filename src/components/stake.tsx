@@ -197,7 +197,6 @@ const Stake: React.FC = () => {
     data: shieldedBalance,
     getBalance: getShieldedBalance,
     isPending: isShieldedBalancePending,
-    reset: resetShieldedBalance,
   } = useStrk20Balance(
     standariseAddress(lstConfig.ASSET_ADDRESS) as `0x${string}`,
     {
@@ -207,20 +206,13 @@ const Stake: React.FC = () => {
 
   const isShieldedBalanceVisible = Boolean(shieldedBalance?.formatted);
 
-  // Reset cached shielded balance whenever the wallet or asset changes so stale
-  // data from the previous account or token is never shown.
-  React.useEffect(() => {
-    if (!address) return;
-    resetShieldedBalance();
-  }, [address, lstConfig.ASSET_ADDRESS]);
-
   const { data: assetPrice } = useAtomValue(assetPriceAtom);
 
   const exchangeRate = useAtomValue(apiExchangeRateAtom);
   const apy = useAtomValue(snAPYAtom);
   const yields = useAtomValue(protocolYieldsAtom);
   const activeTab = useAtomValue(tabsAtom);
-  console.log("yields", yields);
+  // console.log("yields", yields);
 
   const referrer = searchParams.get("referrer");
 
@@ -533,34 +525,34 @@ const Stake: React.FC = () => {
       console.log("[privacy-stake] params:", privacyStakeParams);
       console.log("[privacy-stake] actions:", JSON.stringify(actions, null, 2));
 
-      try {
-        const simulated = await prepareAsync({ actions, simulate: true });
-        console.log("[privacy-stake] simulate:success", {
-          call: simulated.call,
-          proof: simulated.proof,
-        });
-      } catch (simulateError) {
-        console.error("[privacy-stake] simulate:failed", simulateError);
-        if (simulateError && typeof simulateError === "object") {
-          const err = simulateError as {
-            message?: string;
-            baseError?: unknown;
-            cause?: unknown;
-          };
-          console.error("[privacy-stake] simulate:failed:message", err.message);
-          console.error("[privacy-stake] simulate:failed:baseError", err.baseError);
-          console.error("[privacy-stake] simulate:failed:cause", err.cause);
-        }
-
-        return toast({
-          description: (
-            <div className="flex items-center gap-2">
-              <Info className="size-5" />
-              Privacy stake simulation failed — check console for details
-            </div>
-          ),
-        });
-      }
+      // try {
+      //   const simulated = await prepareAsync({ actions, simulate: true });
+      //   console.log("[privacy-stake] simulate:success", {
+      //     call: simulated.call,
+      //     proof: simulated.proof,
+      //   });
+      // } catch (simulateError) {
+      //   console.error("[privacy-stake] simulate:failed", simulateError);
+      //   if (simulateError && typeof simulateError === "object") {
+      //     const err = simulateError as {
+      //       message?: string;
+      //       baseError?: unknown;
+      //       cause?: unknown;
+      //     };
+      //     console.error("[privacy-stake] simulate:failed:message", err.message);
+      //     console.error("[privacy-stake] simulate:failed:baseError", err.baseError);
+      //     console.error("[privacy-stake] simulate:failed:cause", err.cause);
+      //   }
+      //
+      //   return toast({
+      //     description: (
+      //       <div className="flex items-center gap-2">
+      //         <Info className="size-5" />
+      //         Privacy stake simulation failed — check console for details
+      //       </div>
+      //     ),
+      //   });
+      // }
 
       try {
         console.log("[privacy-stake] invoke:start", { actions });

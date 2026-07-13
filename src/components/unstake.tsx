@@ -346,7 +346,6 @@ const Unstake = () => {
     data: shieldedBalance,
     getBalance: getShieldedBalance,
     isPending: isShieldedBalancePending,
-    reset: resetShieldedBalance,
   } = useStrk20Balance(
     standariseAddress(lstConfig.LST_ADDRESS) as `0x${string}`,
     {
@@ -355,12 +354,6 @@ const Unstake = () => {
   );
 
   const isShieldedBalanceVisible = Boolean(shieldedBalance?.formatted);
-
-  // Reset cached shielded balance when the wallet or asset changes so stale
-  // data from a previous account or token is never shown.
-  React.useEffect(() => {
-    resetShieldedBalance();
-  }, [address, lstConfig.LST_ADDRESS]);
 
   const displayBalanceAmount =
     balanceMode === BalanceMode.UNSHIELDED

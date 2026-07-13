@@ -66,7 +66,7 @@ const Tabs = () => {
   const strkTVL = useAtomValue(strkTVLAtom);
   const btcTVL = useAtomValue(btcTVLAtom);
 
-  console.log("Apy", apy.value);
+  // console.log("Apy", apy.value);
 
   // Format TVL for display
   const formatTVL = (value: number): string => {
