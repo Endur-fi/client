@@ -30,7 +30,7 @@ export async function getPrisma() {
     if (process.env.NODE_ENV !== "production") globalThis.prisma = prisma;
 
     return prisma;
-  } catch (err: any) {
+  } catch {
     throw new Error(
       "Prisma client is not generated. Run `pnpm approve-builds` then `pnpm prisma generate` (or reinstall), and restart the dev server.",
     );
