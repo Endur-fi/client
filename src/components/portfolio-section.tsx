@@ -29,6 +29,7 @@ import {
   getLSTAssetsByCategory,
   getSTRKAsset,
 } from "@/constants";
+import { BalanceWithLargeSubscript } from "@/components/balance-with-large-subscript";
 import { cn, formatNumberWithCommas, standariseAddress } from "@/lib/utils";
 import { lstStatsQueryAtom } from "@/store/lst.store";
 import { btcPriceAtom, strkPriceAtom } from "@/store/staking.store";
@@ -407,7 +408,8 @@ const PortfolioSection: React.FC = () => {
     };
 
     fetchSeason1Points();
-  }, [address, pointsApolloClient]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- pointsApolloClient is stable
+  }, [address]);
 
   // Season 2 is 0 for now
   React.useEffect(() => {
@@ -625,11 +627,15 @@ const PortfolioSection: React.FC = () => {
               <div className="flex w-full flex-col gap-0.5">
                 <div className="flex w-full items-center justify-between">
                   <span className="text-left text-sm text-[#1A1F24]">
-                    {formatNumberWithCommas(strkHoldings.lstAmount, 2)} xSTRK
+                    <BalanceWithLargeSubscript value={strkHoldings.lstAmount} decimals={2} />{" "}
+                    xSTRK
                   </span>
                   <div className="flex items-center gap-1">
                     <span className="text-sm font-semibold text-[#1A1F24]">
-                      {formatNumberWithCommas(strkHoldings.underlyingSTRK, 2)}{" "}
+                      <BalanceWithLargeSubscript
+                        value={strkHoldings.underlyingSTRK}
+                        decimals={2}
+                      />{" "}
                       STRK
                     </span>
                     <ChevronDown className="h-4 w-4 shrink-0 text-[#6B7780] transition-transform duration-200 group-data-[state=open]:rotate-180" />
@@ -672,15 +678,18 @@ const PortfolioSection: React.FC = () => {
               <div className="flex w-full flex-col gap-0.5">
                 <div className="flex w-full items-center justify-between">
                   <span className="text-left text-sm text-[#1A1F24]">
-                    {formatNumberWithCommas(btcHoldings.totalLSTAmount, 6)}{" "}
+                    <BalanceWithLargeSubscript
+                      value={btcHoldings.totalLSTAmount}
+                      decimals={6}
+                    />{" "}
                     xyBTC
                   </span>
                   <div className="flex items-center gap-1">
                     <span className="text-sm font-semibold text-[#1A1F24]">
-                      {formatNumberWithCommas(
-                        btcHoldings.totalUnderlyingBTC,
-                        6,
-                      )}{" "}
+                      <BalanceWithLargeSubscript
+                        value={btcHoldings.totalUnderlyingBTC}
+                        decimals={6}
+                      />{" "}
                       BTC
                     </span>
                     <ChevronDown className="h-4 w-4 shrink-0 text-[#6B7780] transition-transform duration-200 group-data-[state=open]:rotate-180" />
@@ -702,7 +711,10 @@ const PortfolioSection: React.FC = () => {
                         <div className="flex items-center gap-1">
                           {getBTCLSTIcon(holding.asset.LST_SYMBOL)}
                           <span className="text-[#1A1F24]">
-                            {formatNumberWithCommas(holding.lstAmount, 6)}{" "}
+                            <BalanceWithLargeSubscript
+                              value={holding.lstAmount}
+                              decimals={6}
+                            />{" "}
                             {holding.asset.LST_SYMBOL}
                           </span>
                         </div>
@@ -711,7 +723,10 @@ const PortfolioSection: React.FC = () => {
                         </span>
                       </div>
                       <span className="text-right text-[#6B7780]">
-                        {formatNumberWithCommas(holding.underlyingBTC, 6)}{" "}
+                        <BalanceWithLargeSubscript
+                          value={holding.underlyingBTC}
+                          decimals={6}
+                        />{" "}
                         {holding.asset.SYMBOL}
                       </span>
                     </div>

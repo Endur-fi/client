@@ -65,7 +65,8 @@ import { useTransactionHandler } from "@/hooks/use-transactions";
 import { MyAnalytics } from "@/lib/analytics";
 import { AnalyticsEvents } from "@/lib/analytics-events";
 import MyNumber from "@/lib/MyNumber";
-import { cn, formatNumberWithCommas, standariseAddress } from "@/lib/utils";
+import { BalanceWithLargeSubscript } from "@/components/balance-with-large-subscript";
+import { cn, standariseAddress } from "@/lib/utils";
 import LSTService from "@/services/lst";
 import { lstConfigAtom, assetPriceAtom } from "@/store/common.store";
 import { balanceModeAtom, BalanceMode } from "@/store/balance-mode.store";
@@ -116,7 +117,10 @@ const PLATFORMS = {
   HYPER_HYPER: "trovesHyper",
 } as const;
 
-const platformConfig = (lstConfig: LSTAssetConfig, isTrovesMaxedOut: boolean) => {
+const platformConfig = (
+  lstConfig: LSTAssetConfig,
+  isTrovesMaxedOut: boolean,
+) => {
   // Determine the correct yield key based on the LST symbol
   let yieldKey: string;
   switch (lstConfig.LST_SYMBOL) {
@@ -178,9 +182,7 @@ const Stake: React.FC = () => {
   // Wallet connection is handled by Easyleap ConnectButton.
   const lstConfig = useAtomValue(lstConfigAtom)!;
   const mode = useMode();
-  const [isLendingOpen, setIsLendingOpen] = React.useState(
-    true,
-  );
+  const [isLendingOpen, setIsLendingOpen] = React.useState(true);
   const [isShieldAndStakeOpen, setIsShieldAndStakeOpen] = React.useState(true);
   const [isShieldAndStakeSelected, setIsShieldAndStakeSelected] =
     React.useState(false);
@@ -665,7 +667,10 @@ const Stake: React.FC = () => {
     const allPlatforms = Object.values(PLATFORMS).filter((platform) => {
       // TODO: remove this filter later on
       // Don't show Troves Hyper vault for xstrkBTC as it doesn't exist yet
-      if (lstConfig.LST_SYMBOL === "xstrkBTC" && platform === PLATFORMS.HYPER_HYPER) {
+      if (
+        lstConfig.LST_SYMBOL === "xstrkBTC" &&
+        platform === PLATFORMS.HYPER_HYPER
+      ) {
         return false;
       }
       const config = getPlatformConfig(platform);
@@ -678,7 +683,7 @@ const Stake: React.FC = () => {
     return sortPlatforms(allPlatforms, yields);
   }, [yields, lstConfig.LST_SYMBOL]);
 
-  const hasPositiveYields = React.useMemo(() => {
+  const _hasPositiveYields = React.useMemo(() => {
     return sortedPlatforms.some((platform) => {
       const config = getPlatformConfig(platform);
       if (!config) return false;
@@ -767,6 +772,30 @@ const Stake: React.FC = () => {
       },
     });
   }, [data, form, isPending]);
+
+  // if (lstConfig.SYMBOL === "LBTC") {
+  //   return (
+  //     <div className="relative flex h-full w-full flex-col gap-6">
+  //       <Stats
+  //         selectedPlatform={selectedPlatform}
+  //         getPlatformYield={getPlatformYield}
+  //         mode="stake"
+  //       />
+  //       <div className="rounded-[14px] border border-amber-600 bg-amber-50 px-4 py-3 text-sm text-[#6B7780]">
+  //         <span className="font-semibold text-[#1A1F24]">Note: </span>
+  //         LBTC is discontinued, we encourage users to withdraw their staked
+  //         assets. Learn more:{" "}
+  //         <Link
+  //           href="https://docs.endur.fi/docs/guides/how-to-stake-and-unstake-btc"
+  //           target="_blank"
+  //           className="text-blue-600 underline"
+  //         >
+  //           here
+  //         </Link>
+  //       </div>
+  //     </div>
+  //   );
+  // }
 
   return (
     <div className="relative flex h-full w-full flex-col gap-6">
@@ -892,7 +921,7 @@ const Stake: React.FC = () => {
       <div className="flex w-full max-w-full flex-col items-start gap-2 lg:max-w-none">
         <div className="flex w-full max-w-full flex-1 flex-col items-start lg:max-w-none">
           <Form {...form}>
-            <div className="flex w-full items-center justify-between">
+            <div className="mb-2 flex w-full items-center justify-between">
               <div>
                 <p className="text-xs text-[#6B7780]">Enter Amount</p>
               </div>
@@ -929,7 +958,10 @@ const Stake: React.FC = () => {
                 ) : (
                   <>
                     <span className="text-xs text-[#1A1F24]">
-                      {displayBalanceAmount.toFixed(isBTC ? 8 : 2)}{" "}
+                      <BalanceWithLargeSubscript
+                        value={displayBalanceAmount}
+                        decimals={isBTC ? 8 : 2}
+                      />{" "}
                       {lstConfig.SYMBOL}
                     </span>
                     {assetPrice &&
@@ -1175,7 +1207,10 @@ const Stake: React.FC = () => {
           </p>
           <div className="flex flex-col">
             <span className="text-xs">
-              {formatNumberWithCommas(getCalculatedLSTAmount(), isBTC ? 8 : 2)}{" "}
+              <BalanceWithLargeSubscript
+                value={getCalculatedLSTAmount()}
+                decimals={isBTC ? 8 : 2}
+              />{" "}
               {lstConfig.LST_SYMBOL}
             </span>
             {assetPrice && exchangeRate.rate && (
@@ -1259,7 +1294,7 @@ const Stake: React.FC = () => {
 
       <div className="">
         {!address && (
-          <ConnectButton className="w-full rounded-2xl bg-[#17876D] py-6 text-sm font-semibold text-white hover:bg-[#17876D] disabled:bg-[#03624C4D] disabled:text-[#17876D] disabled:opacity-90" />
+            <ConnectButton className="!w-full rounded-xl bg-[#17876D] py-6 text-sm font-semibold text-white hover:bg-[#17876D] disabled:bg-[#03624C4D] disabled:text-[#17876D] disabled:opacity-90" />
         )}
 
         {address && (

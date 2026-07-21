@@ -32,8 +32,6 @@ import Stake from "./stake";
 import PortfolioSection from "./portfolio-section";
 import { useSidebar } from "./ui/sidebar";
 import FAQSection from "./faq-section";
-import SeasonPointsCard from "./season-points-card";
-import StakingRewardsInfo from "./staking-rewards-info";
 import {
   Tabs as ShadCNTabs,
   TabsContent,
@@ -55,13 +53,13 @@ const Tabs = () => {
   const router = useRouter();
   const pathname = usePathname();
 
-  const [lstConfig, setLSTConfig] = useAtom(lstConfigAtom);
+  const [_lstConfig, setLSTConfig] = useAtom(lstConfigAtom);
   const searchParams = useSearchParams();
 
   const [activeTab, setActiveTab] = useAtom(tabsAtom);
   const [activeSubTab, setActiveSubTab] = useAtom(activeSubTabAtom);
   const [waitlistEmail, setWaitlistEmail] = React.useState("");
-  const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [_isSubmitting, setIsSubmitting] = React.useState(false);
   const apy = useAtomValue(snAPYAtom);
   const strkTVL = useAtomValue(strkTVLAtom);
   const btcTVL = useAtomValue(btcTVLAtom);
@@ -83,13 +81,13 @@ const Tabs = () => {
     return `$${value.toFixed(2)}`;
   };
 
-  const isMerry = useAtomValue(isMerryChristmasAtom);
+  const _isMerry = useAtomValue(isMerryChristmasAtom);
   const { address } = useAccount();
 
-  const { isPinned } = useSidebar();
+  const { isPinned: _isPinned } = useSidebar();
   const { connectWallet: _connectWallet } = useWalletConnection();
 
-  const referrer = searchParams.get("referrer");
+  const _referrer = searchParams.get("referrer");
   const tabParam = searchParams.get("tab");
 
   React.useEffect(() => {
@@ -182,7 +180,7 @@ const Tabs = () => {
     }
   }, [activeTab, pathname, setLSTConfig]);
 
-  function getMessage() {
+  function _getMessage() {
     if (activeSubTab === "unstake") {
       return (
         <p>
@@ -243,7 +241,7 @@ const Tabs = () => {
     });
   };
 
-  const handleWaitlistSubmit = async (e: React.FormEvent) => {
+  const _handleWaitlistSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!address) {
@@ -408,8 +406,11 @@ const Tabs = () => {
           )}
         > */}
 
-        <div className="relative mb-2 w-full max-w-[calc(100vw-1rem)] overflow-hidden rounded-2xl shadow-[0px_5.55px_22.2px_0px_#11998E4D] lg:mb-6 lg:max-w-4xl bg-[#011a38]">
-          <a href="https://www.starknet.io/blog/strkbtc-starknets-shielded-bitcoin-with-private-transactions/" target="_blank">
+        <div className="relative mb-2 w-full max-w-[calc(100vw-1rem)] overflow-hidden rounded-2xl bg-[#011a38] shadow-[0px_5.55px_22.2px_0px_#11998E4D] lg:mb-6 lg:max-w-4xl">
+          <a
+            href="https://www.starknet.io/blog/strkbtc-starknets-shielded-bitcoin-with-private-transactions/"
+            target="_blank"
+          >
             <Image
               alt="strkBTC banner"
               src={strkBTCBanner}
@@ -653,9 +654,11 @@ const Tabs = () => {
             <div
               className={cn("flex w-full max-w-full flex-col gap-4 lg:hidden")}
             >
-              <SeasonPointsCard />
+              {/* POINTS SEASON 2 ENDED */}
+              {/* <SeasonPointsCard /> */}
               <VipCard />
-              <StakingRewardsInfo />
+              {/* POINTS SEASON 2 ENDED */}
+              {/* <StakingRewardsInfo /> */}
               <PortfolioSection />
               <FAQSection />
             </div>
@@ -673,10 +676,12 @@ const Tabs = () => {
               </p>
             </div>
 
-            <SeasonPointsCard />
+            {/* POINTS SEASON 2 ENDED */}
+            {/* <SeasonPointsCard /> */}
             <VipCard />
             <PortfolioSection />
-            <StakingRewardsInfo />
+            {/* POINTS SEASON 2 ENDED */}
+            {/* <StakingRewardsInfo /> */}
             {/* <FAQSection /> */}
           </div>
         </div>

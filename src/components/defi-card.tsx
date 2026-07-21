@@ -1,6 +1,6 @@
 import Link from "next/link";
 import React from "react";
-import { Star, HelpCircle, Sparkles } from "lucide-react";
+import { Star, HelpCircle } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -56,7 +56,7 @@ const DefiCard: React.FC<DefiCardProps> = ({
   maxLTV,
   capacity,
   rewardPoints,
-  pointsMultiplier,
+  pointsMultiplier: _pointsMultiplier,
   onActionClick,
 }) => {
   // Accent colors: green for supply, yellow/orange for borrow (only if positive APY)
@@ -147,14 +147,15 @@ const DefiCard: React.FC<DefiCardProps> = ({
             {protocolIcon}
           </div>
           {/* Points Multiplier */}
-          {pointsMultiplier && (
+          {/* POINTS SEASON 2 ENDED */}
+          {/* {pointsMultiplier && (
             <div className="flex w-fit items-center gap-1 rounded-lg border border-[#059669] bg-[#D1FAE5] px-2 py-1 text-sm font-semibold text-[#059669]">
               <Sparkles className="size-3.5" />
               {pointsMultiplier.min === pointsMultiplier.max
                 ? `${pointsMultiplier.min}x`
                 : `${pointsMultiplier.min}x - ${pointsMultiplier.max}x`}
             </div>
-          )}
+          )} */}
         </div>
       </div>
 

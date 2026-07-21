@@ -55,7 +55,7 @@ const Stats: React.FC<StatsProps> = ({
   const activeTab = useAtomValue(tabsAtom);
   const activeSubTab = useAtomValue(activeSubTabAtom);
   const lstConfig = useAtomValue(lstConfigAtom)!;
-  const isBTC = lstConfig.SYMBOL?.toLowerCase().includes("btc");
+  const _isBTC = lstConfig.SYMBOL?.toLowerCase().includes("btc");
   const searchParams = useSearchParams();
   const referrer = searchParams.get("referrer");
 
@@ -87,7 +87,7 @@ const Stats: React.FC<StatsProps> = ({
       const queryString = queryParams.toString();
       const finalPath = queryString ? `${newPath}?${queryString}` : newPath;
 
-      router.push(finalPath);
+      router.push(finalPath, { scroll: false });
     }
   };
 
@@ -109,7 +109,7 @@ const Stats: React.FC<StatsProps> = ({
     return apyValue.toFixed(2);
   }, [activeTab, apy.value.strkApy, apy.value.btcApy]);
 
-  const xSTRKInDefiOnly = useMemo(() => {
+  const _xSTRKInDefiOnly = useMemo(() => {
     return totalXSTRKAcrossDefi - Number(currentStaked.value.toEtherStr());
   }, [totalXSTRKAcrossDefi, currentStaked.value]);
 

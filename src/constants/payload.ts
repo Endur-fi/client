@@ -1,6 +1,6 @@
 // paymaster body payloads recorded to add guards for paymaster requests
 
-const deploy = {
+const _deploy = {
   id: 1,
   jsonrpc: "2.0",
   method: "paymaster_buildTransaction",
@@ -25,7 +25,7 @@ const deploy = {
   },
 };
 
-const executeAfterDeploy = {
+const _executeAfterDeploy = {
   id: 2,
   jsonrpc: "2.0",
   method: "paymaster_executeTransaction",
@@ -51,7 +51,7 @@ const executeAfterDeploy = {
   },
 };
 
-const stakeWithHyper = {
+const _stakeWithHyper = {
   id: 1,
   jsonrpc: "2.0",
   method: "paymaster_buildTransaction",
@@ -109,7 +109,7 @@ const stakeWithHyper = {
   },
 };
 
-const stake = {
+const _stake = {
   id: 1,
   jsonrpc: "2.0",
   method: "paymaster_buildTransaction",
@@ -147,7 +147,7 @@ const stake = {
   },
 };
 
-const executeAfterStake = {
+const _executeAfterStake = {
   id: 2,
   jsonrpc: "2.0",
   method: "paymaster_executeTransaction",
@@ -225,7 +225,7 @@ const executeAfterStake = {
   },
 };
 
-const unstakeEndur = {
+const _unstakeEndur = {
   id: 1,
   jsonrpc: "2.0",
   method: "paymaster_buildTransaction",
@@ -254,7 +254,7 @@ const unstakeEndur = {
   },
 };
 
-const executeAfterUnstake = {
+const _executeAfterUnstake = {
   id: 2,
   jsonrpc: "2.0",
   method: "paymaster_executeTransaction",
@@ -323,7 +323,7 @@ const executeAfterUnstake = {
   },
 };
 
-const unstakeAvnu = {
+const _unstakeAvnu = {
   id: 1,
   jsonrpc: "2.0",
   method: "paymaster_buildTransaction",
@@ -381,7 +381,7 @@ const unstakeAvnu = {
   },
 };
 
-const executeAfterUnstakeAvnu = {
+const _executeAfterUnstakeAvnu = {
   id: 2,
   jsonrpc: "2.0",
   method: "paymaster_executeTransaction",

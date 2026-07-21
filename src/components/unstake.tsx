@@ -38,7 +38,8 @@ import { useTransactionHandler } from "@/hooks/use-transactions";
 import { MyAnalytics } from "@/lib/analytics";
 import { AnalyticsEvents } from "@/lib/analytics-events";
 import MyNumber from "@/lib/MyNumber";
-import { cn, formatNumberWithCommas, standariseAddress } from "@/lib/utils";
+import { BalanceWithLargeSubscript } from "@/components/balance-with-large-subscript";
+import { cn, standariseAddress } from "@/lib/utils";
 import { getAvnuQuotes } from "@/services/avnu";
 import {
   avnuErrorAtom,
@@ -170,7 +171,8 @@ const YouWillGetSection = ({
       </p>
       <div className="flex flex-col">
         <span className="text-xs">
-          {formatNumberWithCommas(amount, isBTC ? 8 : 2)} {lstConfig.SYMBOL}
+          <BalanceWithLargeSubscript value={amount} decimals={isBTC ? 8 : 2} />{" "}
+          {lstConfig.SYMBOL}
         </span>
         {usdValue !== null && usdValue !== undefined && (
           <span className="text-right text-xs text-[#6B7780]">
@@ -457,7 +459,7 @@ const Unstake = () => {
       setAvnuLoading(true);
       try {
         const quotes = await getAvnuQuotes(
-          lstConfig.LST_SYMBOL == "xSTRK" ? "1000" : "0.001",
+          lstConfig.LST_SYMBOL === "xSTRK" ? "1000" : "0.001",
           "0x0",
           lstConfig.LST_ADDRESS,
           lstConfig.ASSET_ADDRESS,
@@ -671,7 +673,7 @@ const Unstake = () => {
     return ((rate1 - rate2) / rate2) * 100;
   };
 
-  const endurPercentDiff = React.useMemo(() => {
+  const _endurPercentDiff = React.useMemo(() => {
     const endurRate = exRate.rate;
     const dexRate = avnuQuote
       ? Number(avnuQuote.buyAmount) / Number(avnuQuote.sellAmount)
@@ -747,7 +749,7 @@ const Unstake = () => {
       <div className="flex w-full max-w-full flex-col items-start gap-2 lg:max-w-none">
         <div className="flex w-full max-w-full flex-1 flex-col items-start lg:max-w-none">
           <Form {...form}>
-            <div className="flex w-full items-center justify-between">
+            <div className="mb-2 flex w-full items-center justify-between">
               <div>
                 <p className="text-xs text-[#6B7780]">Enter Amount</p>
               </div>
@@ -784,7 +786,10 @@ const Unstake = () => {
                 ) : (
                   <>
                     <span className="text-xs text-[#1A1F24]">
-                      {displayBalanceAmount.toFixed(isBTC ? 8 : 2)}{" "}
+                      <BalanceWithLargeSubscript
+                        value={displayBalanceAmount}
+                        decimals={isBTC ? 8 : 2}
+                      />{" "}
                       {lstConfig.LST_SYMBOL}
                     </span>
                     {balanceMode === BalanceMode.SHIELDED && (
@@ -963,7 +968,7 @@ const Unstake = () => {
 
           <div className="">
             {!address ? (
-              <ConnectButton className="w-full" />
+              <ConnectButton className="!w-full rounded-xl bg-[#17876D] py-6 text-sm font-semibold text-white hover:bg-[#17876D] disabled:bg-[#03624C4D] disabled:text-[#17876D] disabled:opacity-90" />
             ) : (
               <StyledButton
                 onClick={form.handleSubmit(onSubmit)}
@@ -1025,7 +1030,7 @@ const Unstake = () => {
           </div>
           <div className="">
             {!address ? (
-              <ConnectButton className="w-full" />
+              <ConnectButton className="!w-full rounded-xl bg-[#17876D] py-6 text-sm font-semibold text-white hover:bg-[#17876D] disabled:bg-[#03624C4D] disabled:text-[#17876D] disabled:opacity-90" />
             ) : (
               <StyledButton
                 onClick={handleDexSwap}
