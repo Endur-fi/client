@@ -390,12 +390,12 @@ export const totalStakedUSDAtom = atom((get) => {
       isLoading,
     };
 
-  console.log("tvl price", price);
-  console.log("tvl total staked", totalStaked.value.toEtherToFixedDecimals(4));
-  console.log(
-    "tvl",
-    Number(totalStaked.value.toEtherToFixedDecimals(4)) * price,
-  );
+  // console.log("tvl price", price);
+  // console.log("tvl total staked", totalStaked.value.toEtherToFixedDecimals(4));
+  // console.log(
+  //   "tvl",
+  //   Number(totalStaked.value.toEtherToFixedDecimals(4)) * price,
+  // );
 
   return {
     value: Number(totalStaked.value.toEtherToFixedDecimals(4)) * price || 0,

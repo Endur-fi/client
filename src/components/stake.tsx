@@ -486,6 +486,18 @@ const Stake: React.FC = () => {
               },
             ]
           : []),
+        // Fund the anonymizer with the underlying before the invoke.
+        // `privacy_invoke` does NOT pull from its caller — it assumes it already
+        // holds `in_token`, then approves the vault and calls `deposit` (which
+        // does transferFrom(anonymizer -> vault)). Without this the deposit
+        // reverts with 'ERC20: insufficient balance', and the paymaster refuses
+        // to sponsor a reverting tx (surfaces as paymaster error 163).
+        {
+          type: "withdraw" as const,
+          token: inToken,
+          amount: amountHex,
+          recipient: anonymizer,
+        },
         {
           type: "transfer" as const,
           token: outToken,
@@ -522,37 +534,8 @@ const Stake: React.FC = () => {
         chainId: process.env.NEXT_PUBLIC_CHAIN_ID,
       };
 
-      console.log("[privacy-stake] params:", privacyStakeParams);
-      console.log("[privacy-stake] actions:", JSON.stringify(actions, null, 2));
-
-      // try {
-      //   const simulated = await prepareAsync({ actions, simulate: true });
-      //   console.log("[privacy-stake] simulate:success", {
-      //     call: simulated.call,
-      //     proof: simulated.proof,
-      //   });
-      // } catch (simulateError) {
-      //   console.error("[privacy-stake] simulate:failed", simulateError);
-      //   if (simulateError && typeof simulateError === "object") {
-      //     const err = simulateError as {
-      //       message?: string;
-      //       baseError?: unknown;
-      //       cause?: unknown;
-      //     };
-      //     console.error("[privacy-stake] simulate:failed:message", err.message);
-      //     console.error("[privacy-stake] simulate:failed:baseError", err.baseError);
-      //     console.error("[privacy-stake] simulate:failed:cause", err.cause);
-      //   }
-      //
-      //   return toast({
-      //     description: (
-      //       <div className="flex items-center gap-2">
-      //         <Info className="size-5" />
-      //         Privacy stake simulation failed — check console for details
-      //       </div>
-      //     ),
-      //   });
-      // }
+      // console.log("[privacy-stake] params:", privacyStakeParams);
+      // console.log("[privacy-stake] actions:", JSON.stringify(actions, null, 2));
 
       try {
         console.log("[privacy-stake] invoke:start", { actions });
