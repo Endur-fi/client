@@ -553,10 +553,10 @@ const PortfolioSection: React.FC = () => {
                     />
                   </span>
                   <span className="truncate">
-                    {formatNumberWithCommas(
-                      shieldedBalance.amount,
-                      displayDecimals,
-                    )}{" "}
+                    <BalanceWithLargeSubscript
+                      value={shieldedBalance.amount}
+                      decimals={displayDecimals}
+                    />{" "}
                     {lstSymbol}
                   </span>
                 </span>
@@ -578,10 +578,10 @@ const PortfolioSection: React.FC = () => {
         ) : (
           <div className="flex min-w-0 max-w-[65%] flex-col items-end gap-0.5">
             <span className="max-w-full truncate text-right text-[#1A1F24]">
-              {formatNumberWithCommas(
-                options?.unshieldedValue?.amount ?? 0,
-                displayDecimals,
-              )}{" "}
+              <BalanceWithLargeSubscript
+                value={options?.unshieldedValue?.amount ?? 0}
+                decimals={displayDecimals}
+              />{" "}
               {lstSymbol}
             </span>
             <span className="max-w-full truncate text-right text-[#6B7780]">
