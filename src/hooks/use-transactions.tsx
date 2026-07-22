@@ -69,12 +69,14 @@ export function flattenErrorText(error: unknown, seen = new Set<unknown>()): str
 
   const err = error as {
     message?: unknown;
+    name?: unknown;
     baseError?: unknown;
     cause?: unknown;
     data?: unknown;
   };
 
   return [
+    typeof err.name === "string" ? err.name : "",
     typeof err.message === "string" ? err.message : "",
     flattenErrorText(err.baseError, seen),
     flattenErrorText(err.cause, seen),
@@ -82,6 +84,21 @@ export function flattenErrorText(error: unknown, seen = new Set<unknown>()): str
   ]
     .filter(Boolean)
     .join(" | ");
+}
+
+/**
+ * True when the user cancelled/rejected the wallet confirmation prompt.
+ * Wallets surface this several ways — SNIP `USER_REFUSED_OP`, starknet.js
+ * `UserRejectedRequestError`, or a plain "User rejected Starknet invoke
+ * request" message — so we match any of them on the flattened error text.
+ */
+export function isUserRejectionError(error: unknown): boolean {
+  const text = flattenErrorText(error).toLowerCase();
+  return (
+    text.includes("user_refused_op") ||
+    text.includes("userrejectedrequesterror") ||
+    text.includes("user rejected")
+  );
 }
 
 /**
@@ -231,11 +248,8 @@ const useTransactionHandler = () => {
 
     // Standard SNIP wallet-api rejection code (code 113); some wallets/
     // connectors surface this instead of (or alongside) `UserRejectedRequestError`.
-    const isUserRejected =
-      !!error?.name?.includes("UserRejectedRequestError") ||
-      flattenErrorText(error).includes("USER_REFUSED_OP");
-
-    if (isUserRejected) {
+    // Others use a plain "User rejected Starknet invoke request" message.
+    if (isUserRejectionError(error)) {
       MyAnalytics.track(
         transactionType === "STAKE"
           ? AnalyticsEvents.STAKE_TX_REJECTED

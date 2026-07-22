@@ -63,6 +63,7 @@ import {
 import { toast } from "@/hooks/use-toast";
 import {
   flattenErrorText,
+  isUserRejectionError,
   showFailedToast,
   showRejectedToast,
   showSuccessToast,
@@ -604,7 +605,7 @@ const Stake: React.FC = () => {
 
         // Standard SNIP wallet-api rejection code (code 113) — user closed or
         // declined the wallet's confirmation prompt.
-        if (invokeErrorText.includes("USER_REFUSED_OP")) {
+        if (isUserRejectionError(invokeError)) {
           return showRejectedToast("stake");
         }
 

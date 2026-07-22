@@ -37,6 +37,7 @@ import { getProvider, IS_PAUSED, isMainnet, REWARD_FEES } from "@/constants";
 import { toast } from "@/hooks/use-toast";
 import {
   flattenErrorText,
+  isUserRejectionError,
   showFailedToast,
   showRejectedToast,
   showSuccessToast,
@@ -729,7 +730,7 @@ const Unstake = () => {
 
         // Standard SNIP wallet-api rejection code (code 113) — user closed or
         // declined the wallet's confirmation prompt.
-        if (invokeErrorText.includes("USER_REFUSED_OP")) {
+        if (isUserRejectionError(invokeError)) {
           return showRejectedToast("unstake");
         }
 
@@ -824,9 +825,7 @@ const Unstake = () => {
       );
       form.reset();
     } catch (e: any) {
-      const errorText = flattenErrorText(e);
-
-      if (errorText.includes("USER_REFUSED_OP")) {
+      if (isUserRejectionError(e)) {
         return showRejectedToast("unstake");
       }
 
