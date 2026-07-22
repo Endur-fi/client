@@ -66,6 +66,7 @@ type ShieldedBalanceState = {
   isPending: boolean;
   isVisible: boolean;
   amount: number;
+  formatted?: string;
   decimals: number;
 };
 
@@ -144,6 +145,7 @@ const PortfolioSection: React.FC = () => {
     isPending: hook.isPending,
     isVisible: Boolean(hook.data?.formatted),
     amount: hook.data?.formatted ? Number(hook.data.formatted) : 0,
+    formatted: hook.data?.formatted,
     decimals,
   });
 
@@ -475,8 +477,8 @@ const PortfolioSection: React.FC = () => {
     const key = `${assetSymbol}-${type}`;
     const isShielded = type === "shielded";
     const shieldedBalance = shieldedBalancesByAssetSymbol[assetSymbol];
-    const displayDecimals =
-      options?.displayDecimals ?? options?.unshieldedValue?.decimals ?? 2;
+    // Match stake/unstake balance display: 2 for STRK, 8 for BTC LSTs.
+    const balanceDisplayDecimals = assetSymbol === "STRK" ? 2 : 8;
 
     return (
       <div
@@ -554,8 +556,10 @@ const PortfolioSection: React.FC = () => {
                   </span>
                   <span className="truncate">
                     <BalanceWithLargeSubscript
-                      value={shieldedBalance.amount}
-                      decimals={displayDecimals}
+                      value={
+                        shieldedBalance.formatted ?? shieldedBalance.amount
+                      }
+                      decimals={balanceDisplayDecimals}
                     />{" "}
                     {lstSymbol}
                   </span>
@@ -580,7 +584,7 @@ const PortfolioSection: React.FC = () => {
             <span className="max-w-full truncate text-right text-[#1A1F24]">
               <BalanceWithLargeSubscript
                 value={options?.unshieldedValue?.amount ?? 0}
-                decimals={displayDecimals}
+                decimals={balanceDisplayDecimals}
               />{" "}
               {lstSymbol}
             </span>
