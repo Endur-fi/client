@@ -356,7 +356,19 @@ const Unstake = () => {
     },
   );
 
-  const isShieldedBalanceVisible = Boolean(shieldedBalance?.formatted);
+  // Forces the shielded balance back into its hidden ("****") state after a
+  // successful shielded unstake, even though the fetched balance data is
+  // still cached. Cleared whenever the user explicitly reveals/refreshes it.
+  const [isShieldedBalanceHidden, setIsShieldedBalanceHidden] =
+    React.useState(false);
+
+  const isShieldedBalanceVisible =
+    Boolean(shieldedBalance?.formatted) && !isShieldedBalanceHidden;
+
+  const revealShieldedBalance = () => {
+    setIsShieldedBalanceHidden(false);
+    getShieldedBalance();
+  };
 
   const displayBalanceAmount =
     balanceMode === BalanceMode.UNSHIELDED
@@ -664,6 +676,10 @@ const Unstake = () => {
 
       await invokeAsync(actions);
 
+      if (balanceMode === BalanceMode.SHIELDED) {
+        setIsShieldedBalanceHidden(true);
+      }
+
       toast({
         itemID: "unstake",
         variant: "complete",
@@ -902,7 +918,7 @@ const Unstake = () => {
                     </span>
                     <button
                       type="button"
-                      onClick={getShieldedBalance}
+                      onClick={revealShieldedBalance}
                       disabled={isShieldedBalancePending}
                       className="ml-0.5 text-[#6B7780] transition-colors hover:text-[#1A1F24] disabled:cursor-not-allowed disabled:opacity-50"
                       aria-label="Reveal shielded balance"
@@ -927,7 +943,7 @@ const Unstake = () => {
                     {balanceMode === BalanceMode.SHIELDED && (
                       <button
                         type="button"
-                        onClick={getShieldedBalance}
+                        onClick={revealShieldedBalance}
                         disabled={isShieldedBalancePending}
                         className="ml-0.5 text-[#6B7780] transition-colors hover:text-[#1A1F24] disabled:cursor-not-allowed disabled:opacity-50"
                         aria-label="Refresh shielded balance"

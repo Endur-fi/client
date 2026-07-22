@@ -206,7 +206,19 @@ const Stake: React.FC = () => {
     },
   );
 
-  const isShieldedBalanceVisible = Boolean(shieldedBalance?.formatted);
+  // Forces the shielded balance back into its hidden ("****") state after a
+  // successful shielded stake, even though the fetched balance data is still
+  // cached. Cleared whenever the user explicitly reveals/refreshes it again.
+  const [isShieldedBalanceHidden, setIsShieldedBalanceHidden] =
+    React.useState(false);
+
+  const isShieldedBalanceVisible =
+    Boolean(shieldedBalance?.formatted) && !isShieldedBalanceHidden;
+
+  const revealShieldedBalance = () => {
+    setIsShieldedBalanceHidden(false);
+    getShieldedBalance();
+  };
 
   const { data: assetPrice } = useAtomValue(assetPriceAtom);
 
@@ -519,7 +531,7 @@ const Stake: React.FC = () => {
         },
       ];
 
-      const privacyStakeParams = {
+      /* const privacyStakeParams = {
         balanceMode,
         isShieldAndStakeSelected,
         stakeAmount: values.stakeAmount,
@@ -535,7 +547,8 @@ const Stake: React.FC = () => {
         assetSymbol: lstConfig.SYMBOL,
         chainId: process.env.NEXT_PUBLIC_CHAIN_ID,
       };
-
+      */
+      
       // console.log("[privacy-stake] params:", privacyStakeParams);
       // console.log("[privacy-stake] actions:", JSON.stringify(actions, null, 2));
 
@@ -543,6 +556,9 @@ const Stake: React.FC = () => {
         console.log("[privacy-stake] invoke:start", { actions });
         await invokeAsync(actions);
         console.log("[privacy-stake] invoke:success");
+        if (balanceMode === BalanceMode.SHIELDED) {
+          setIsShieldedBalanceHidden(true);
+        }
       } catch (invokeError) {
         console.error("[privacy-stake] invoke:failed", invokeError);
         if (invokeError && typeof invokeError === "object") {
@@ -942,7 +958,7 @@ const Stake: React.FC = () => {
                     </span>
                     <button
                       type="button"
-                      onClick={getShieldedBalance}
+                      onClick={revealShieldedBalance}
                       disabled={isShieldedBalancePending}
                       className="ml-0.5 text-[#6B7780] transition-colors hover:text-[#1A1F24] disabled:cursor-not-allowed disabled:opacity-50"
                       aria-label="Reveal shielded balance"
@@ -975,7 +991,7 @@ const Stake: React.FC = () => {
                     {balanceMode === BalanceMode.SHIELDED && (
                       <button
                         type="button"
-                        onClick={getShieldedBalance}
+                        onClick={revealShieldedBalance}
                         disabled={isShieldedBalancePending}
                         className="ml-0.5 text-[#6B7780] transition-colors hover:text-[#1A1F24] disabled:cursor-not-allowed disabled:opacity-50"
                         aria-label="Refresh shielded balance"
