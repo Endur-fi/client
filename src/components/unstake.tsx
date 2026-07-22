@@ -35,7 +35,13 @@ import {
 } from "@/components/ui/tooltip";
 import { getProvider, IS_PAUSED, isMainnet, REWARD_FEES } from "@/constants";
 import { toast } from "@/hooks/use-toast";
-import { useTransactionHandler } from "@/hooks/use-transactions";
+import {
+  flattenErrorText,
+  showFailedToast,
+  showRejectedToast,
+  showSuccessToast,
+  useTransactionHandler,
+} from "@/hooks/use-transactions";
 import { MyAnalytics } from "@/lib/analytics";
 import { AnalyticsEvents } from "@/lib/analytics-events";
 import MyNumber from "@/lib/MyNumber";
@@ -526,6 +532,12 @@ const Unstake = () => {
   };
 
   const handleQuickUnstakePrice = (percentage: number) => {
+    // Balance is masked (never fetched/revealed) in shielded mode, so we have
+    // no known amount to base a percentage off of — let the user type instead.
+    if (balanceMode === BalanceMode.SHIELDED && !isShieldedBalanceVisible) {
+      return;
+    }
+
     MyAnalytics.track(AnalyticsEvents.QUICK_AMOUNT_SELECT, {
       context: "unstake",
       percentage,
@@ -674,44 +686,71 @@ const Unstake = () => {
 
       console.log("[private-swap] actions", JSON.stringify(actions, null, 2));
 
-      await invokeAsync(actions);
+      try {
+        await invokeAsync(actions);
 
-      if (balanceMode === BalanceMode.SHIELDED) {
-        setIsShieldedBalanceHidden(true);
+        if (balanceMode === BalanceMode.SHIELDED) {
+          setIsShieldedBalanceHidden(true);
+        }
+
+        MyAnalytics.track(AnalyticsEvents.UNSTAKE_TX_SUCCESSFUL, {
+          address,
+          amount: Number(form.getValues("unstakeAmount")),
+          mode: "InstantShielded",
+        });
+
+        showSuccessToast(
+          "unstake",
+          <>
+            Unstaked {form.getValues("unstakeAmount")} {lstConfig.LST_SYMBOL}
+          </>,
+        );
+        form.reset();
+      } catch (invokeError) {
+        console.error("[private-swap] invoke:failed", invokeError);
+        if (invokeError && typeof invokeError === "object") {
+          const err = invokeError as {
+            message?: string;
+            baseError?: unknown;
+            cause?: unknown;
+          };
+          console.error(
+            "[private-swap] invoke:failed:message",
+            err.message,
+          );
+          console.error(
+            "[private-swap] invoke:failed:baseError",
+            err.baseError,
+          );
+          console.error("[private-swap] invoke:failed:cause", err.cause);
+        }
+
+        const invokeErrorText = flattenErrorText(invokeError);
+
+        // Standard SNIP wallet-api rejection code (code 113) — user closed or
+        // declined the wallet's confirmation prompt.
+        if (invokeErrorText.includes("USER_REFUSED_OP")) {
+          return showRejectedToast("unstake");
+        }
+
+        // No unshielded equivalent for this error.
+        if (invokeErrorText.includes("INSUFFICIENT_PRIVATE_BALANCE")) {
+          return showFailedToast(
+            "unstake",
+            "Transaction failed",
+            "Insufficient shielded balance to cover this unstake",
+          );
+        }
+
+        throw invokeError;
       }
-
-      toast({
-        itemID: "unstake",
-        variant: "complete",
-        duration: 3000,
-        description: (
-          <div className="flex items-center gap-2 border-none">
-            <Icons.toastSuccess />
-            <div className="flex flex-col items-start gap-2 text-sm font-medium text-[#3F6870]">
-              <span className="text-[18px] font-semibold text-[#075A5A]">
-                Success 🎉
-              </span>
-              Privately unstaked {form.getValues("unstakeAmount")}{" "}
-              {lstConfig.LST_SYMBOL} via Avnu
-            </div>
-          </div>
-        ),
-      });
-      form.reset();
     } catch (e: any) {
       console.error("[private-swap] failed", e);
-      toast({
-        itemID: "unstake",
-        description: (
-          <div className="flex gap-2 text-red-500">
-            <Info className="mt-0.5 size-5 flex-shrink-0" />
-            <div className="max-h-32 flex-1 space-y-1 overflow-y-auto">
-              <div className="font-semibold">{e?.name ?? "Error"}</div>
-              <div className="text-sm">{e?.message ?? String(e)}</div>
-            </div>
-          </div>
-        ),
-      });
+      showFailedToast(
+        "unstake",
+        e?.name ?? "Error",
+        e?.message ?? String(e),
+      );
     } finally {
       setAvnuLoading(false);
     }
@@ -719,6 +758,30 @@ const Unstake = () => {
 
   const handleDexSwap = async () => {
     if (!address) return;
+
+    const unstakeAmount = form.getValues("unstakeAmount");
+    const activeBalance =
+      balanceMode === BalanceMode.SHIELDED
+        ? shieldedBalance?.formatted
+        : Web3Number.fromWei(
+            currentLSTBalance.value.toString(),
+            currentLSTBalance.value.decimals,
+          ).toFixed(18);
+
+    if (Number(unstakeAmount) > Number(activeBalance)) {
+      return toast({
+        description: (
+          <div className="flex items-center gap-2">
+            <Info className="size-5" />
+            Insufficient{" "}
+            {balanceMode === BalanceMode.SHIELDED ? "shielded " : ""}
+            {lstConfig.LST_SYMBOL} balance
+            <br />
+            {Number(unstakeAmount)} {">"} Available {Number(activeBalance)}
+          </div>
+        ),
+      });
+    }
 
     // Shielded balance -> route through AVNU private swap.
     if (balanceMode === BalanceMode.SHIELDED) {
@@ -729,7 +792,7 @@ const Unstake = () => {
 
     MyAnalytics.track(AnalyticsEvents.UNSTAKE_CLICK, {
       address,
-      amount: Number(form.getValues("unstakeAmount")),
+      amount: Number(unstakeAmount),
       mode: "Instant",
     });
 
@@ -752,37 +815,26 @@ const Unstake = () => {
 
       await sendAsync({ calls: normalizedCalls });
 
-      toast({
-        itemID: "unstake",
-        variant: "complete",
-        duration: 3000,
-        description: (
-          <div className="flex items-center gap-2 border-none">
-            <Icons.toastSuccess />
-            <div className="flex flex-col items-start gap-2 text-sm font-medium text-[#3F6870]">
-              <span className="text-[18px] font-semibold text-[#075A5A]">
-                Success 🎉
-              </span>
-              Unstaked {form.getValues("unstakeAmount")} {lstConfig.SYMBOL} via
-              Avnu
-            </div>
-          </div>
-        ),
-      });
+      showSuccessToast(
+        "unstake",
+        <>
+          Unstaked {form.getValues("unstakeAmount")} {lstConfig.SYMBOL} via
+          Avnu
+        </>,
+      );
       form.reset();
     } catch (e: any) {
-      toast({
-        itemID: "unstake",
-        description: (
-          <div className="flex gap-2 text-red-500">
-            <Info className="mt-0.5 size-5 flex-shrink-0" />
-            <div className="max-h-32 flex-1 space-y-1 overflow-y-auto">
-              <div className="font-semibold">{e?.name ?? "Error"}</div>
-              <div className="text-sm">{e?.message ?? String(e)}</div>
-            </div>
-          </div>
-        ),
-      });
+      const errorText = flattenErrorText(e);
+
+      if (errorText.includes("USER_REFUSED_OP")) {
+        return showRejectedToast("unstake");
+      }
+
+      showFailedToast(
+        "unstake",
+        e?.name ?? "Error",
+        e?.message ?? String(e),
+      );
     } finally {
       setAvnuLoading(false);
     }
@@ -1045,13 +1097,24 @@ const Unstake = () => {
               { label: "75%", value: 75 },
               { label: "Max", value: 100 },
             ];
+            // Balance is masked in shielded mode until revealed — without a
+            // known amount, percentage shortcuts have nothing to base off of.
+            const isQuickUnstakeDisabled =
+              balanceMode === BalanceMode.SHIELDED && !isShieldedBalanceVisible;
             return (
               <div className="flex w-full gap-2 text-[#8D9C9C]">
                 {quickUnstakeOptions.map(({ label, value }) => (
                   <button
                     key={label}
+                    type="button"
                     onClick={() => handleQuickUnstakePrice(value)}
-                    className={`w-full rounded-md bg-[#F5F7F8] px-2 py-2 text-xs text-[#6B7780] transition-all hover:bg-[#8D9C9C33]`}
+                    disabled={isQuickUnstakeDisabled}
+                    title={
+                      isQuickUnstakeDisabled
+                        ? "Reveal your shielded balance to use quick amounts"
+                        : undefined
+                    }
+                    className="w-full rounded-md bg-[#F5F7F8] px-2 py-2 text-xs text-[#6B7780] transition-all hover:bg-[#8D9C9C33] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-[#F5F7F8]"
                   >
                     {label}
                   </button>

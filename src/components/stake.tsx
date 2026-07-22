@@ -61,7 +61,13 @@ import {
   VESU_vXSTRK_ADDRESS,
 } from "@/constants";
 import { toast } from "@/hooks/use-toast";
-import { useTransactionHandler } from "@/hooks/use-transactions";
+import {
+  flattenErrorText,
+  showFailedToast,
+  showRejectedToast,
+  showSuccessToast,
+  useTransactionHandler,
+} from "@/hooks/use-transactions";
 import { MyAnalytics } from "@/lib/analytics";
 import { AnalyticsEvents } from "@/lib/analytics-events";
 import MyNumber from "@/lib/MyNumber";
@@ -295,6 +301,12 @@ const Stake: React.FC = () => {
   const { handleTransaction } = useTransactionHandler();
 
   const handleQuickStakePrice = (percentage: number) => {
+    // Balance is masked (never fetched/revealed) in shielded mode, so we have
+    // no known amount to base a percentage off of — let the user type instead.
+    if (balanceMode === BalanceMode.SHIELDED && !isShieldedBalanceVisible) {
+      return;
+    }
+
     MyAnalytics.track(AnalyticsEvents.QUICK_AMOUNT_SELECT, {
       context: "stake",
       percentage,
@@ -559,6 +571,22 @@ const Stake: React.FC = () => {
         if (balanceMode === BalanceMode.SHIELDED) {
           setIsShieldedBalanceHidden(true);
         }
+
+        MyAnalytics.track(AnalyticsEvents.STAKE_TX_SUCCESSFUL, {
+          address,
+          amount: Number(values.stakeAmount),
+          mode: balanceMode,
+          isShieldAndStakeSelected,
+        });
+
+        showSuccessToast(
+          "stake",
+          <>
+            Staked {values.stakeAmount} {lstConfig.SYMBOL}
+          </>,
+        );
+        setShowShareModal(true);
+        form.reset();
       } catch (invokeError) {
         console.error("[privacy-stake] invoke:failed", invokeError);
         if (invokeError && typeof invokeError === "object") {
@@ -571,6 +599,24 @@ const Stake: React.FC = () => {
           console.error("[privacy-stake] invoke:failed:baseError", err.baseError);
           console.error("[privacy-stake] invoke:failed:cause", err.cause);
         }
+
+        const invokeErrorText = flattenErrorText(invokeError);
+
+        // Standard SNIP wallet-api rejection code (code 113) — user closed or
+        // declined the wallet's confirmation prompt.
+        if (invokeErrorText.includes("USER_REFUSED_OP")) {
+          return showRejectedToast("stake");
+        }
+
+        // No unshielded equivalent for this error.
+        if (invokeErrorText.includes("INSUFFICIENT_PRIVATE_BALANCE")) {
+          return showFailedToast(
+            "stake",
+            "Transaction failed",
+            "Insufficient shielded balance to cover this stake",
+          );
+        }
+
         throw invokeError;
       }
       return;
@@ -1092,13 +1138,24 @@ const Stake: React.FC = () => {
               { label: "75%", value: 75 },
               { label: "Max", value: 100 },
             ];
+            // Balance is masked in shielded mode until revealed — without a
+            // known amount, percentage shortcuts have nothing to base off of.
+            const isQuickStakeDisabled =
+              balanceMode === BalanceMode.SHIELDED && !isShieldedBalanceVisible;
             return (
               <div className="flex w-full gap-2 text-[#8D9C9C]">
                 {quickStakeOptions.map(({ label, value }) => (
                   <button
                     key={label}
+                    type="button"
                     onClick={() => handleQuickStakePrice(value)}
-                    className={`w-full rounded-md bg-[#F5F7F8] px-2 py-2 text-xs text-[#6B7780] transition-all hover:bg-[#8D9C9C33]`}
+                    disabled={isQuickStakeDisabled}
+                    title={
+                      isQuickStakeDisabled
+                        ? "Reveal your shielded balance to use quick amounts"
+                        : undefined
+                    }
+                    className="w-full rounded-md bg-[#F5F7F8] px-2 py-2 text-xs text-[#6B7780] transition-all hover:bg-[#8D9C9C33] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-[#F5F7F8]"
                   >
                     {label}
                   </button>
