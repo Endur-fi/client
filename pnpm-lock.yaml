@@ -14,6 +14,9 @@ importers:
       '@avnu/avnu-sdk':
         specifier: 3.0.0
         version: 3.0.0(ethers@6.16.0(bufferutil@4.1.0)(utf-8-validate@6.0.6))(moment@2.30.1)(qs@6.15.1)(starknet@10.4.0(typescript@5.9.3)(zod@3.25.76))
+      '@avnu/avnu-sdk-v4':
+        specifier: npm:@avnu/avnu-sdk@4.2.0
+        version: '@avnu/avnu-sdk@4.2.0(ethers@6.16.0(bufferutil@4.1.0)(utf-8-validate@6.0.6))(starknet@10.4.0(typescript@5.9.3)(zod@3.25.76))'
       '@cartridge/controller':
         specifier: ^0.13.12
         version: 0.13.12(@react-native-async-storage/async-storage@1.24.0(react-native@0.85.1(@babel/core@7.29.0)(@types/react@19.2.14)(bufferutil@4.1.0)(react@19.2.5)(utf-8-validate@6.0.6)))(@types/react@19.2.14)(bufferutil@4.1.0)(react@19.2.5)(typescript@5.9.3)(use-sync-external-store@1.4.0(react@19.2.5))(utf-8-validate@6.0.6)(zod@3.25.76)
@@ -389,6 +392,13 @@ packages:
     peerDependencies:
       ethers: ^6.15.0
       starknet: ^8.9.1 || ^9.0.0
+
+  '@avnu/avnu-sdk@4.2.0':
+    resolution: {integrity: sha512-7oEf+BavAhesZgFlwkOBL8i2JBx92uhJcBm8SfzefkFkQoM3IwAUsrl6vsKxua9STL5Nzc8nDXpxRVFLkV3Jug==}
+    engines: {node: '>=22'}
+    peerDependencies:
+      ethers: ^6.15.0
+      starknet: ^10.0.0
 
   '@babel/code-frame@7.29.0':
     resolution: {integrity: sha512-9NhCeYjq9+3uxgdtp20LSiJXJvN0FeCtNGpJxuMFZ1Kv3cWUNb6DOhJwUvcVCzKGR66cw4njwM6hrJLqgOwbcw==}
@@ -9001,6 +9011,15 @@ snapshots:
       moment: 2.30.1
       qs: 6.15.1
       starknet: 9.4.2(typescript@5.9.3)(zod@3.25.76)
+      zod: 4.3.6
+
+  '@avnu/avnu-sdk@4.2.0(ethers@6.16.0(bufferutil@4.1.0)(utf-8-validate@6.0.6))(starknet@10.4.0(typescript@5.9.3)(zod@3.25.76))':
+    dependencies:
+      dayjs: 1.11.21
+      ethers: 6.16.0(bufferutil@4.1.0)(utf-8-validate@6.0.6)
+      moment: 2.30.1
+      qs: 6.15.1
+      starknet: 10.4.0(typescript@5.9.3)(zod@3.25.76)
       zod: 4.3.6
 
   '@babel/code-frame@7.29.0':

@@ -6,7 +6,7 @@ import { useAtom, useAtomValue } from "jotai";
 import { Eye, Info, RotateCw } from "lucide-react";
 import React from "react";
 import { useForm } from "react-hook-form";
-import { Contract } from "starknet";
+import { Contract, num, transaction } from "starknet";
 
 import * as z from "zod";
 
@@ -16,6 +16,7 @@ import {
   useSendTransaction,
   useStrk20Balance,
 } from "@easyleap/sdk";
+import { getQuotes, quoteToCalls } from "@avnu/avnu-sdk-v4";
 
 import erc4626Abi from "@/abi/erc4626.abi.json";
 import {
@@ -359,9 +360,7 @@ const Unstake = () => {
 
   const displayBalanceAmount =
     balanceMode === BalanceMode.UNSHIELDED
-      ? Number(
-          currentLSTBalance.value.toEtherToFixedDecimals(isBTC ? 8 : 2),
-        )
+      ? Number(currentLSTBalance.value.toEtherToFixedDecimals(isBTC ? 8 : 2))
       : shieldedBalance?.formatted
         ? Number(shieldedBalance.formatted)
         : 0;
@@ -383,7 +382,8 @@ const Unstake = () => {
     providerOrAccount: provider,
   });
 
-  const { sendAsync, data, isPending, error } = useSendTransaction();
+  const { sendAsync, invokeAsync, data, isPending, error } =
+    useSendTransaction();
 
   const { handleTransaction } = useTransactionHandler();
 
@@ -576,8 +576,140 @@ const Unstake = () => {
     }
   };
 
+  // Shielded mode: swap the shielded LST -> underlying via AVNU's private swap.
+  // We use the AVNU SDK only as a routing oracle (getQuotes + quoteToCalls, both
+  // public no-key REST calls), then submit the swap as STRK20 actions through the
+  // wallet's `invokeAsync` — exactly like the Endur staking anonymizer flow. No
+  // AVNU paymaster, no API key: the wallet proves and sponsors the tx, and AVNU's
+  // executor contract is invoked with the route it returned.
+  const handlePrivateSwap = async () => {
+    if (!address) return;
+
+    MyAnalytics.track(AnalyticsEvents.UNSTAKE_CLICK, {
+      address,
+      amount: Number(form.getValues("unstakeAmount")),
+      mode: "InstantShielded",
+    });
+
+    setAvnuLoading(true);
+    try {
+      // Wallet STRK20 FELT/ADDRESS schema rejects zero-padded hex — strip it.
+      const sellToken = standariseAddress(
+        lstConfig.LST_ADDRESS,
+      ) as `0x${string}`;
+      const buyToken = standariseAddress(
+        lstConfig.ASSET_ADDRESS,
+      ) as `0x${string}`;
+      const taker = standariseAddress(address) as `0x${string}`;
+
+      const sellAmount = BigInt(
+        MyNumber.fromEther(
+          form.getValues("unstakeAmount"),
+          lstConfig.DECIMALS,
+        ).toString(),
+      );
+
+      // 1. Quote — public AVNU routing API (no key). Mainnet defaults.
+      const [quote] = await getQuotes({
+        sellTokenAddress: lstConfig.LST_ADDRESS,
+        buyTokenAddress: lstConfig.ASSET_ADDRESS,
+        sellAmount,
+        takerAddress: address,
+        size: 1,
+      });
+      if (!quote) throw new Error("No swap quote available");
+
+      // 2. Build the private executor calls. With `private: true` the API sets the
+      // taker to its executor and returns `executorAddress` — do NOT pass takerAddress.
+      const { calls: executorCalls, executorAddress } = await quoteToCalls({
+        quoteId: quote.quoteId,
+        slippage: 0.05,
+        private: true,
+      });
+      if (!executorAddress) {
+        throw new Error("Private swap is not available for this pair");
+      }
+      const executor = standariseAddress(executorAddress) as `0x${string}`;
+
+      // 3. STRK20 actions (mirrors AVNU's buildStrk20Actions, minus the paymaster
+      // fee withdrawal we no longer use): withdraw the sell token to the executor,
+      // open a note for the bought token, then invoke the executor with the route.
+      // `num.toHex` normalizes every calldata felt to minimal hex (handles AVNU's
+      // zero-padded addresses).
+      const executorCalldata = transaction
+        .fromCallsToExecuteCalldata_cairo1(executorCalls)
+        .map((felt) => num.toHex(felt));
+
+      const actions = [
+        {
+          type: "withdraw" as const,
+          token: sellToken,
+          amount: num.toHex(sellAmount),
+          recipient: executor,
+        },
+        {
+          type: "transfer" as const,
+          token: buyToken,
+          amount: "OPEN" as const,
+          recipient: taker,
+        },
+        {
+          type: "invoke" as const,
+          contract: executor,
+          calldata: [buyToken, ...executorCalldata, "${openNoteIds[0]}"],
+        },
+      ];
+
+      console.log("[private-swap] actions", JSON.stringify(actions, null, 2));
+
+      await invokeAsync(actions);
+
+      toast({
+        itemID: "unstake",
+        variant: "complete",
+        duration: 3000,
+        description: (
+          <div className="flex items-center gap-2 border-none">
+            <Icons.toastSuccess />
+            <div className="flex flex-col items-start gap-2 text-sm font-medium text-[#3F6870]">
+              <span className="text-[18px] font-semibold text-[#075A5A]">
+                Success 🎉
+              </span>
+              Privately unstaked {form.getValues("unstakeAmount")}{" "}
+              {lstConfig.LST_SYMBOL} via Avnu
+            </div>
+          </div>
+        ),
+      });
+      form.reset();
+    } catch (e: any) {
+      console.error("[private-swap] failed", e);
+      toast({
+        itemID: "unstake",
+        description: (
+          <div className="flex gap-2 text-red-500">
+            <Info className="mt-0.5 size-5 flex-shrink-0" />
+            <div className="max-h-32 flex-1 space-y-1 overflow-y-auto">
+              <div className="font-semibold">{e?.name ?? "Error"}</div>
+              <div className="text-sm">{e?.message ?? String(e)}</div>
+            </div>
+          </div>
+        ),
+      });
+    } finally {
+      setAvnuLoading(false);
+    }
+  };
+
   const handleDexSwap = async () => {
-    if (!address || !avnuQuote) return;
+    if (!address) return;
+
+    // Shielded balance -> route through AVNU private swap.
+    if (balanceMode === BalanceMode.SHIELDED) {
+      return handlePrivateSwap();
+    }
+
+    if (!avnuQuote) return;
 
     MyAnalytics.track(AnalyticsEvents.UNSTAKE_CLICK, {
       address,
@@ -615,8 +747,8 @@ const Unstake = () => {
               <span className="text-[18px] font-semibold text-[#075A5A]">
                 Success 🎉
               </span>
-              Unstaked {form.getValues("unstakeAmount")} {lstConfig.SYMBOL}{" "}
-              via Avnu
+              Unstaked {form.getValues("unstakeAmount")} {lstConfig.SYMBOL} via
+              Avnu
             </div>
           </div>
         ),
