@@ -83,6 +83,8 @@ const Stats: React.FC<StatsProps> = ({
       if (referrer) queryParams.set("referrer", referrer);
       if (activeSubTab && activeSubTab !== "stake")
         queryParams.set("tab", activeSubTab);
+      if (searchParams.get("mode") === "shielded")
+        queryParams.set("mode", "shielded");
 
       const queryString = queryParams.toString();
       const finalPath = queryString ? `${newPath}?${queryString}` : newPath;

@@ -16,7 +16,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { IS_PAUSED, getLSTAssetsByCategory, getSTRKAsset } from "@/constants";
-import { cn, formatNumberWithCommas, getInternalUrl } from "@/lib/utils";
+import { cn, formatNumberWithCommas } from "@/lib/utils";
 import { MyAnalytics } from "@/lib/analytics";
 import { AnalyticsEvents } from "@/lib/analytics-events";
 import {
@@ -218,13 +218,15 @@ const Tabs = () => {
     });
 
     const referrer = searchParams.get("referrer");
+    const mode = searchParams.get("mode");
+    const basePath = tab === "btc" ? "/btc" : tab === "strk" ? "/strk" : null;
 
-    if (tab === "btc") {
-      router.push(getInternalUrl("/btc", referrer), {
-        scroll: false,
-      });
-    } else if (tab === "strk") {
-      router.push(getInternalUrl("/strk", referrer), {
+    if (basePath) {
+      const params = new URLSearchParams();
+      if (referrer) params.set("referrer", referrer);
+      if (mode === "shielded") params.set("mode", "shielded");
+      const query = params.toString();
+      router.push(query ? `${basePath}?${query}` : basePath, {
         scroll: false,
       });
     }

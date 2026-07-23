@@ -2,6 +2,8 @@
 
 import { useAtom } from "jotai";
 import { Eye, EyeOff } from "lucide-react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useEffect } from "react";
 
 import { cn } from "@/lib/utils";
 import {
@@ -10,6 +12,8 @@ import {
 } from "@/store/balance-mode.store";
 
 export { BalanceMode };
+
+const MODE_QUERY_KEY = "mode";
 
 type BalanceModeToggleProps = {
   onChange?: (mode: BalanceMode) => void;
@@ -23,11 +27,42 @@ const toggleButtonActive =
 
 const toggleButtonInactive = "text-[#6B7780]";
 
+function modeFromSearchParams(searchParams: URLSearchParams): BalanceMode {
+  return searchParams.get(MODE_QUERY_KEY) === BalanceMode.SHIELDED
+    ? BalanceMode.SHIELDED
+    : BalanceMode.UNSHIELDED;
+}
+
 export const BalanceModeToggle = ({ onChange }: BalanceModeToggleProps) => {
   const [balanceMode, setBalanceMode] = useAtom(balanceModeAtom);
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  // Keep atom in sync with URL (deep links, back/forward, asset switches)
+  useEffect(() => {
+    const nextMode = modeFromSearchParams(searchParams);
+    setBalanceMode(nextMode);
+  }, [searchParams, setBalanceMode]);
+
+  const updateUrl = (mode: BalanceMode) => {
+    const params = new URLSearchParams(searchParams.toString());
+
+    if (mode === BalanceMode.SHIELDED) {
+      params.set(MODE_QUERY_KEY, BalanceMode.SHIELDED);
+    } else {
+      params.delete(MODE_QUERY_KEY);
+    }
+
+    const query = params.toString();
+    router.replace(query ? `${pathname}?${query}` : pathname, {
+      scroll: false,
+    });
+  };
 
   const handleChange = (mode: BalanceMode) => {
     setBalanceMode(mode);
+    updateUrl(mode);
     onChange?.(mode);
   };
 
