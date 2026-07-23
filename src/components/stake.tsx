@@ -73,6 +73,7 @@ import { MyAnalytics } from "@/lib/analytics";
 import { AnalyticsEvents } from "@/lib/analytics-events";
 import MyNumber from "@/lib/MyNumber";
 import { BalanceWithLargeSubscript } from "@/components/balance-with-large-subscript";
+import { isShieldedModeSupported } from "@/lib/shielded-wallets";
 import { cn, standariseAddress } from "@/lib/utils";
 import LSTService from "@/services/lst";
 import { lstConfigAtom, assetPriceAtom } from "@/store/common.store";
@@ -185,7 +186,8 @@ const Stake: React.FC = () => {
 
   const searchParams = useSearchParams();
 
-  const { starknetAddress: address } = useAccount();
+  const { starknetAddress: address, connector } = useAccount();
+  const isShieldedModeWallet = isShieldedModeSupported(connector?.name);
   // Wallet connection is handled by Easyleap ConnectButton.
   const lstConfig = useAtomValue(lstConfigAtom)!;
   const mode = useMode();
@@ -244,6 +246,12 @@ const Stake: React.FC = () => {
       setIsShieldAndStakeSelected(false);
     }
   }, [balanceMode]);
+
+  React.useEffect(() => {
+    if (!isShieldedModeWallet) {
+      setIsShieldAndStakeSelected(false);
+    }
+  }, [isShieldedModeWallet]);
 
   const displayBalanceAmount =
     balanceMode === BalanceMode.UNSHIELDED
@@ -1172,6 +1180,8 @@ const Stake: React.FC = () => {
           isOpen={isShieldAndStakeOpen}
           onOpenChange={setIsShieldAndStakeOpen}
           isSelected={isShieldAndStakeSelected}
+          disabled={!isShieldedModeWallet}
+          isWalletConnected={Boolean(address)}
           onSelectedChange={(selected) => {
             setIsShieldAndStakeSelected(selected);
             if (selected) {

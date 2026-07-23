@@ -1,11 +1,19 @@
 "use client";
 
+import { useAccount } from "@easyleap/sdk";
 import { useAtom } from "jotai";
 import { Eye, EyeOff } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect } from "react";
 
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import { isShieldedModeSupported } from "@/lib/shielded-wallets";
 import {
   BalanceMode,
   balanceModeAtom,
@@ -38,6 +46,9 @@ export const BalanceModeToggle = ({ onChange }: BalanceModeToggleProps) => {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const { starknetAddress, connector } = useAccount();
+  const isWalletConnected = Boolean(starknetAddress);
+  const isShieldedSupported = isShieldedModeSupported(connector?.name);
 
   // Keep atom in sync with URL (deep links, back/forward, asset switches)
   useEffect(() => {
@@ -61,10 +72,29 @@ export const BalanceModeToggle = ({ onChange }: BalanceModeToggleProps) => {
   };
 
   const handleChange = (mode: BalanceMode) => {
+    if (mode === BalanceMode.SHIELDED && !isShieldedSupported) return;
     setBalanceMode(mode);
     updateUrl(mode);
     onChange?.(mode);
   };
+
+  const shieldedButton = (
+    <button
+      type="button"
+      onClick={() => handleChange(BalanceMode.SHIELDED)}
+      aria-disabled={!isShieldedSupported}
+      className={cn(
+        toggleButtonBase,
+        balanceMode === BalanceMode.SHIELDED
+          ? toggleButtonActive
+          : toggleButtonInactive,
+        !isShieldedSupported && "cursor-not-allowed opacity-50",
+      )}
+    >
+      <EyeOff className="size-4" />
+      Shielded
+    </button>
+  );
 
   return (
     <div className="flex h-[38px] w-full flex-none grow-0 flex-row items-start gap-1 self-stretch rounded-[10px] bg-[#F5F7FA] p-1">
@@ -81,19 +111,23 @@ export const BalanceModeToggle = ({ onChange }: BalanceModeToggleProps) => {
         <Eye className="size-4" />
         Unshielded
       </button>
-      <button
-        type="button"
-        onClick={() => handleChange(BalanceMode.SHIELDED)}
-        className={cn(
-          toggleButtonBase,
-          balanceMode === BalanceMode.SHIELDED
-            ? toggleButtonActive
-            : toggleButtonInactive,
-        )}
-      >
-        <EyeOff className="size-4" />
-        Shielded
-      </button>
+      {isShieldedSupported ? (
+        shieldedButton
+      ) : (
+        <TooltipProvider delayDuration={0}>
+          <Tooltip>
+            <TooltipTrigger asChild>{shieldedButton}</TooltipTrigger>
+            <TooltipContent
+              side="top"
+              className="max-w-60 rounded-md border border-[#03624C] bg-white text-center text-[#03624C]"
+            >
+              {isWalletConnected
+                ? "Your connected wallet doesn't support shielded mode"
+                : "Please connect wallet"}
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      )}
     </div>
   );
 };
