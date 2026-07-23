@@ -652,7 +652,7 @@ const PortfolioSection: React.FC = () => {
             </div>
           </CollapsibleTrigger>
           <CollapsibleContent>
-            <div className="mt-3 space-y-3 lg:ml-[52px]">
+            <div className="mt-3 space-y-3 ml-[46px] lg:ml-[52px] mr-[10px]">
               {renderPrivacyBalanceRow("STRK", "xSTRK", "shielded", {
                 lstAddress: strkLSTConfig.LST_ADDRESS,
                 fallbackExchangeRate: 0,
