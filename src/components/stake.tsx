@@ -13,7 +13,13 @@ import {
 } from "@easyleap/sdk";
 
 import { useAtomValue } from "jotai";
-import { AlertCircleIcon, ChevronDown, Eye, Info, RotateCw } from "lucide-react";
+import {
+  AlertCircleIcon,
+  ChevronDown,
+  Eye,
+  Info,
+  RotateCw,
+} from "lucide-react";
 import { Figtree } from "next/font/google";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -64,6 +70,7 @@ import { toast } from "@/hooks/use-toast";
 import {
   flattenErrorText,
   isUserRejectionError,
+  logInvokeError,
   showFailedToast,
   showRejectedToast,
   showSuccessToast,
@@ -92,9 +99,7 @@ import { tabsAtom } from "@/store/merry.store";
 import { snAPYAtom } from "@/store/staking.store";
 
 import { Icons } from "./Icons";
-import {
-  BalanceModeToggle,
-} from "./balance-mode-toggle";
+import { BalanceModeToggle } from "./balance-mode-toggle";
 import { PlatformCard } from "./platform-card";
 import { ShieldAndStakeBanner } from "./shield-and-stake-banner";
 import Stats from "./stats";
@@ -262,6 +267,11 @@ const Stake: React.FC = () => {
         ? Number(shieldedBalance.formatted)
         : 0;
 
+  const activeBalanceFormatted =
+    balanceMode === BalanceMode.SHIELDED
+      ? shieldedBalance?.formatted
+      : balance?.formatted;
+
   const trovesCapacityAtom = React.useMemo(() => {
     switch (lstConfig.LST_SYMBOL) {
       case "xSTRK":
@@ -304,7 +314,8 @@ const Stake: React.FC = () => {
     ? lstService.getLSTContract(lstConfig.LST_ADDRESS)
     : null;
 
-  const { sendAsync, invokeAsync, data, isPending, error } = useSendTransaction();
+  const { sendAsync, invokeAsync, data, isPending, error } =
+    useSendTransaction();
   const { prepareAsync } = useStrk20PrepareInvoke();
 
   const { handleTransaction } = useTransactionHandler();
@@ -331,19 +342,17 @@ const Stake: React.FC = () => {
       });
     }
 
-    const activeFormatted =
-      balanceMode === BalanceMode.SHIELDED
-        ? shieldedBalance?.formatted
-        : balance?.formatted;
-
-    if (activeFormatted && percentage === 100) {
+    if (activeBalanceFormatted && percentage === 100) {
       // For BTC tokens, use the full balance since they're often less than 1
       // For other tokens, reserve 1 unit for gas fees
       if (isBTC) {
         // Always use 18 decimal precision
-        form.setValue("stakeAmount", Number(activeFormatted).toFixed(18));
+        form.setValue(
+          "stakeAmount",
+          Number(activeBalanceFormatted).toFixed(18),
+        );
       } else {
-        if (Number(activeFormatted) < 1) {
+        if (Number(activeBalanceFormatted) < 1) {
           form.setValue("stakeAmount", "0");
           form.clearErrors("stakeAmount");
           return;
@@ -351,15 +360,16 @@ const Stake: React.FC = () => {
 
         form.setValue(
           "stakeAmount",
-          (Number(activeFormatted) - 1).toFixed(6),
+          (Number(activeBalanceFormatted) - 1).toFixed(6),
         );
       }
       form.clearErrors("stakeAmount");
       return;
     }
 
-    if (activeFormatted) {
-      const calculatedAmount = (Number(activeFormatted) * percentage) / 100;
+    if (activeBalanceFormatted) {
+      const calculatedAmount =
+        (Number(activeBalanceFormatted) * percentage) / 100;
       // Always use 18 decimal precision
       form.setValue("stakeAmount", calculatedAmount.toFixed(18));
       form.clearErrors("stakeAmount");
@@ -425,19 +435,15 @@ const Stake: React.FC = () => {
       });
     }
 
-    const activeBalance =
-      balanceMode === BalanceMode.SHIELDED
-        ? shieldedBalance?.formatted
-        : balance?.formatted;
-
-    if (stakeAmount > Number(activeBalance)) {
+    if (stakeAmount > Number(activeBalanceFormatted)) {
       return toast({
         description: (
           <div className="flex items-center gap-2">
             <Info className="size-5" />
-            Insufficient {balanceMode === BalanceMode.SHIELDED ? "shielded" : ""} balance
+            Insufficient{" "}
+            {balanceMode === BalanceMode.SHIELDED ? "shielded" : ""} balance
             <br />
-            {stakeAmount} {">"} Available {Number(activeBalance)}
+            {stakeAmount} {">"} Available {Number(activeBalanceFormatted)}
           </div>
         ),
       });
@@ -496,8 +502,12 @@ const Stake: React.FC = () => {
 
       // Wallet STRK20 FELT/ADDRESS schema rejects zero-padded hex (e.g. 0x047…).
       // Strip leading zeros so the wallet request passes address validation.
-      const inToken = standariseAddress(lstConfig.ASSET_ADDRESS) as `0x${string}`;
-      const outToken = standariseAddress(lstConfig.LST_ADDRESS) as `0x${string}`;
+      const inToken = standariseAddress(
+        lstConfig.ASSET_ADDRESS,
+      ) as `0x${string}`;
+      const outToken = standariseAddress(
+        lstConfig.LST_ADDRESS,
+      ) as `0x${string}`;
       const anonymizer = standariseAddress(
         ENDUR_DEPOSIT_ANONYMIZER_ADDRESS,
       ) as `0x${string}`;
@@ -552,31 +562,8 @@ const Stake: React.FC = () => {
         },
       ];
 
-      /* const privacyStakeParams = {
-        balanceMode,
-        isShieldAndStakeSelected,
-        stakeAmount: values.stakeAmount,
-        inToken,
-        outToken,
-        anonymizer,
-        recipient,
-        amountLow,
-        amountHigh,
-        amountHex,
-        underlyingAmount: underlyingTokenAmount.toString(),
-        lstSymbol: lstConfig.LST_SYMBOL,
-        assetSymbol: lstConfig.SYMBOL,
-        chainId: process.env.NEXT_PUBLIC_CHAIN_ID,
-      };
-      */
-      
-      // console.log("[privacy-stake] params:", privacyStakeParams);
-      // console.log("[privacy-stake] actions:", JSON.stringify(actions, null, 2));
-
       try {
-        console.log("[privacy-stake] invoke:start", { actions });
         await invokeAsync(actions);
-        console.log("[privacy-stake] invoke:success");
         if (balanceMode === BalanceMode.SHIELDED) {
           setIsShieldedBalanceHidden(true);
         }
@@ -597,17 +584,7 @@ const Stake: React.FC = () => {
         setShowShareModal(true);
         form.reset();
       } catch (invokeError) {
-        console.error("[privacy-stake] invoke:failed", invokeError);
-        if (invokeError && typeof invokeError === "object") {
-          const err = invokeError as {
-            message?: string;
-            baseError?: unknown;
-            cause?: unknown;
-          };
-          console.error("[privacy-stake] invoke:failed:message", err.message);
-          console.error("[privacy-stake] invoke:failed:baseError", err.baseError);
-          console.error("[privacy-stake] invoke:failed:cause", err.cause);
-        }
+        logInvokeError("[privacy-stake] invoke:failed", invokeError);
 
         const invokeErrorText = flattenErrorText(invokeError);
 
@@ -1194,64 +1171,69 @@ const Stake: React.FC = () => {
       {sortedPlatforms.length > 0 &&
         balanceMode !== BalanceMode.SHIELDED &&
         !isShieldAndStakeSelected && (
-        <div className="">
-          <Collapsible
-            open={isLendingOpen}
-            onOpenChange={(open) => {
-              setIsLendingOpen(open);
-              MyAnalytics.track(AnalyticsEvents.STAKE_EARN_COLLAPSIBLE_TOGGLE, {
-                isOpen: open,
-              });
-              if (!open) {
-                setSelectedPlatform("none");
-              }
-            }}
-          >
-            <div className="flex items-center gap-2">
-              <CollapsibleTrigger className="flex items-center gap-1 text-sm font-medium text-[#17876D] hover:opacity-80">
-                <h3 className="font-semibold">Stake & Earn</h3>
-                <span className="text-[#8D9C9C]">(optional)</span>
-                <ChevronDown className="size-3 text-[#8D9C9C] transition-transform duration-200 data-[state=open]:rotate-180" />
-              </CollapsibleTrigger>
-              <TooltipProvider delayDuration={0}>
-                <Tooltip>
-                  <TooltipTrigger>
-                    <Info className="size-3 text-[#3F6870] lg:text-[#8D9C9C]" />
-                  </TooltipTrigger>
-                  <TooltipContent
-                    side="right"
-                    className="max-w-72 rounded-md border border-[#03624C] bg-white p-3 text-[#03624C]"
-                  >
-                    <p className="mb-2">
-                      You can earn additional yield by lending your xSTRK on
-                      DeFi platforms. Your base staking rewards will continue to
-                      accumulate.
-                    </p>
-                    <p className="text-xs text-[#8D9C9C]">
-                      Note: These are third-party protocols not affiliated with
-                      Endur. Please DYOR and understand the risks before using
-                      any DeFi platform.
-                    </p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            </div>
-            <CollapsibleContent className="mt-2">
-              <div className="flex flex-wrap items-center gap-2">
-                <PlatformList
-                  sortedPlatforms={sortedPlatforms}
-                  yields={yields}
-                  apy={
-                    activeTab === "strk" ? apy.value.strkApy : apy.value.btcApy
-                  }
-                  selectedPlatform={selectedPlatform}
-                  setSelectedPlatform={setSelectedPlatform}
-                />
+          <div className="">
+            <Collapsible
+              open={isLendingOpen}
+              onOpenChange={(open) => {
+                setIsLendingOpen(open);
+                MyAnalytics.track(
+                  AnalyticsEvents.STAKE_EARN_COLLAPSIBLE_TOGGLE,
+                  {
+                    isOpen: open,
+                  },
+                );
+                if (!open) {
+                  setSelectedPlatform("none");
+                }
+              }}
+            >
+              <div className="flex items-center gap-2">
+                <CollapsibleTrigger className="flex items-center gap-1 text-sm font-medium text-[#17876D] hover:opacity-80">
+                  <h3 className="font-semibold">Stake & Earn</h3>
+                  <span className="text-[#8D9C9C]">(optional)</span>
+                  <ChevronDown className="size-3 text-[#8D9C9C] transition-transform duration-200 data-[state=open]:rotate-180" />
+                </CollapsibleTrigger>
+                <TooltipProvider delayDuration={0}>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <Info className="size-3 text-[#3F6870] lg:text-[#8D9C9C]" />
+                    </TooltipTrigger>
+                    <TooltipContent
+                      side="right"
+                      className="max-w-72 rounded-md border border-[#03624C] bg-white p-3 text-[#03624C]"
+                    >
+                      <p className="mb-2">
+                        You can earn additional yield by lending your xSTRK on
+                        DeFi platforms. Your base staking rewards will continue
+                        to accumulate.
+                      </p>
+                      <p className="text-xs text-[#8D9C9C]">
+                        Note: These are third-party protocols not affiliated
+                        with Endur. Please DYOR and understand the risks before
+                        using any DeFi platform.
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </div>
-            </CollapsibleContent>
-          </Collapsible>
-        </div>
-      )}
+              <CollapsibleContent className="mt-2">
+                <div className="flex flex-wrap items-center gap-2">
+                  <PlatformList
+                    sortedPlatforms={sortedPlatforms}
+                    yields={yields}
+                    apy={
+                      activeTab === "strk"
+                        ? apy.value.strkApy
+                        : apy.value.btcApy
+                    }
+                    selectedPlatform={selectedPlatform}
+                    setSelectedPlatform={setSelectedPlatform}
+                  />
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
+          </div>
+        )}
 
       <div className="space-y-3">
         <h2 className="text-md text-[#6B7780]">TRANSACTION SUMMARY</h2>
@@ -1378,7 +1360,7 @@ const Stake: React.FC = () => {
 
       <div className="">
         {!address && (
-            <ConnectButton className="!w-full rounded-xl bg-[#17876D] py-6 text-sm font-semibold text-white hover:bg-[#17876D] disabled:bg-[#03624C4D] disabled:text-[#17876D] disabled:opacity-90" />
+          <ConnectButton className="!w-full rounded-xl bg-[#17876D] py-6 text-sm font-semibold text-white hover:bg-[#17876D] disabled:bg-[#03624C4D] disabled:text-[#17876D] disabled:opacity-90" />
         )}
 
         {address && (

@@ -38,6 +38,7 @@ import { toast } from "@/hooks/use-toast";
 import {
   flattenErrorText,
   isUserRejectionError,
+  logInvokeError,
   showFailedToast,
   showRejectedToast,
   showSuccessToast,
@@ -384,6 +385,14 @@ const Unstake = () => {
         ? Number(shieldedBalance.formatted)
         : 0;
 
+  const activeBalanceFormatted =
+    balanceMode === BalanceMode.SHIELDED
+      ? shieldedBalance?.formatted
+      : Web3Number.fromWei(
+          currentLSTBalance.value.toString(),
+          currentLSTBalance.value.decimals,
+        ).toFixed(18);
+
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     values: {
@@ -554,15 +563,7 @@ const Unstake = () => {
       });
     }
 
-    const activeFormatted =
-      balanceMode === BalanceMode.SHIELDED
-        ? shieldedBalance?.formatted
-        : Web3Number.fromWei(
-            currentLSTBalance.value.toString(),
-            currentLSTBalance.value.decimals,
-          ).toFixed(18);
-
-    if (!activeFormatted || Number(activeFormatted) === 0) {
+    if (!activeBalanceFormatted || Number(activeBalanceFormatted) === 0) {
       return;
     }
 
@@ -570,14 +571,14 @@ const Unstake = () => {
     let unstakeAmount = "";
     // to reduce some dust
     const ONE_WEI = Web3Number.fromWei(9999999, 18);
-    const balance = new Web3Number(activeFormatted, 18);
+    const balance = new Web3Number(activeBalanceFormatted, 18);
     const available = balance.minus(ONE_WEI);
 
     // exact balance will be used for unstake amount only when percentage is 100
     // for other percentages, we are still rounding up to 8/2 decimals precision
     if (percentage === 100) {
       // Round down to prevent exceeding balance
-      displayAmount = Number(activeFormatted).toFixed(isBTC ? 8 : 6);
+      displayAmount = Number(activeBalanceFormatted).toFixed(isBTC ? 8 : 6);
       // always 18 ok
       unstakeAmount = available.toFixed(18);
     } else {
@@ -685,8 +686,6 @@ const Unstake = () => {
         },
       ];
 
-      console.log("[private-swap] actions", JSON.stringify(actions, null, 2));
-
       try {
         await invokeAsync(actions);
 
@@ -708,23 +707,7 @@ const Unstake = () => {
         );
         form.reset();
       } catch (invokeError) {
-        console.error("[private-swap] invoke:failed", invokeError);
-        if (invokeError && typeof invokeError === "object") {
-          const err = invokeError as {
-            message?: string;
-            baseError?: unknown;
-            cause?: unknown;
-          };
-          console.error(
-            "[private-swap] invoke:failed:message",
-            err.message,
-          );
-          console.error(
-            "[private-swap] invoke:failed:baseError",
-            err.baseError,
-          );
-          console.error("[private-swap] invoke:failed:cause", err.cause);
-        }
+        logInvokeError("[private-swap] invoke:failed", invokeError);
 
         const invokeErrorText = flattenErrorText(invokeError);
 
@@ -747,11 +730,7 @@ const Unstake = () => {
       }
     } catch (e: any) {
       console.error("[private-swap] failed", e);
-      showFailedToast(
-        "unstake",
-        e?.name ?? "Error",
-        e?.message ?? String(e),
-      );
+      showFailedToast("unstake", e?.name ?? "Error", e?.message ?? String(e));
     } finally {
       setAvnuLoading(false);
     }
@@ -761,15 +740,8 @@ const Unstake = () => {
     if (!address) return;
 
     const unstakeAmount = form.getValues("unstakeAmount");
-    const activeBalance =
-      balanceMode === BalanceMode.SHIELDED
-        ? shieldedBalance?.formatted
-        : Web3Number.fromWei(
-            currentLSTBalance.value.toString(),
-            currentLSTBalance.value.decimals,
-          ).toFixed(18);
 
-    if (Number(unstakeAmount) > Number(activeBalance)) {
+    if (Number(unstakeAmount) > Number(activeBalanceFormatted)) {
       return toast({
         description: (
           <div className="flex items-center gap-2">
@@ -778,7 +750,8 @@ const Unstake = () => {
             {balanceMode === BalanceMode.SHIELDED ? "shielded " : ""}
             {lstConfig.LST_SYMBOL} balance
             <br />
-            {Number(unstakeAmount)} {">"} Available {Number(activeBalance)}
+            {Number(unstakeAmount)} {">"} Available{" "}
+            {Number(activeBalanceFormatted)}
           </div>
         ),
       });
@@ -819,8 +792,7 @@ const Unstake = () => {
       showSuccessToast(
         "unstake",
         <>
-          Unstaked {form.getValues("unstakeAmount")} {lstConfig.SYMBOL} via
-          Avnu
+          Unstaked {form.getValues("unstakeAmount")} {lstConfig.SYMBOL} via Avnu
         </>,
       );
       form.reset();
@@ -829,27 +801,10 @@ const Unstake = () => {
         return showRejectedToast("unstake");
       }
 
-      showFailedToast(
-        "unstake",
-        e?.name ?? "Error",
-        e?.message ?? String(e),
-      );
+      showFailedToast("unstake", e?.name ?? "Error", e?.message ?? String(e));
     } finally {
       setAvnuLoading(false);
     }
-
-    /*
-    // Extension-wallet Avnu path (requires AccountInterface from useAccount).
-    if (!account) {
-      ...
-    }
-
-    await executeAvnuSwap(
-      account as AccountInterface,
-      avnuQuote,
-      ...
-    );
-    */
   };
 
   const getBetterRate = () => {
@@ -899,15 +854,7 @@ const Unstake = () => {
         ),
       });
     }
-    const activeBalance =
-      balanceMode === BalanceMode.SHIELDED
-        ? shieldedBalance?.formatted
-        : Web3Number.fromWei(
-            currentLSTBalance.value.toString(),
-            currentLSTBalance.value.decimals,
-          ).toFixed(18);
-
-    if (Number(values.unstakeAmount) > Number(activeBalance)) {
+    if (Number(values.unstakeAmount) > Number(activeBalanceFormatted)) {
       return toast({
         description: (
           <div className="flex items-center gap-2">
@@ -917,7 +864,7 @@ const Unstake = () => {
             {lstConfig.LST_SYMBOL} balance
             <br />
             {Number(values.unstakeAmount)} {">"} Available{" "}
-            {Number(activeBalance)}
+            {Number(activeBalanceFormatted)}
           </div>
         ),
       });

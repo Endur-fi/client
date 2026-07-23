@@ -60,7 +60,10 @@ function getEndurPaymasterMessage(error: unknown): string | null {
  * the wallet/connector nests them, since `error.name` alone doesn't always
  * carry them.
  */
-export function flattenErrorText(error: unknown, seen = new Set<unknown>()): string {
+export function flattenErrorText(
+  error: unknown,
+  seen = new Set<unknown>(),
+): string {
   if (!error || seen.has(error)) return "";
   seen.add(error);
 
@@ -99,6 +102,25 @@ export function isUserRejectionError(error: unknown): boolean {
     text.includes("userrejectedrequesterror") ||
     text.includes("user rejected")
   );
+}
+
+/**
+ * Console-log an invoke failure (and its nested `message`/`baseError`/`cause`)
+ * under a consistent tag. Shared by the privacy stake/unstake `invokeAsync`
+ * catch blocks so they don't each hand-roll the same dump.
+ */
+export function logInvokeError(tag: string, error: unknown): void {
+  console.error(tag, error);
+  if (error && typeof error === "object") {
+    const err = error as {
+      message?: unknown;
+      baseError?: unknown;
+      cause?: unknown;
+    };
+    console.error(`${tag}:message`, err.message);
+    console.error(`${tag}:baseError`, err.baseError);
+    console.error(`${tag}:cause`, err.cause);
+  }
 }
 
 /**

@@ -31,6 +31,7 @@ import {
 } from "@/constants";
 import { BalanceWithLargeSubscript } from "@/components/balance-with-large-subscript";
 import { cn, formatNumberWithCommas, standariseAddress } from "@/lib/utils";
+import { isShieldedModeSupported } from "@/lib/shielded-wallets";
 import { lstStatsQueryAtom } from "@/store/lst.store";
 import { btcPriceAtom, strkPriceAtom } from "@/store/staking.store";
 import MyNumber from "@/lib/MyNumber";
@@ -71,7 +72,8 @@ type ShieldedBalanceState = {
 };
 
 const PortfolioSection: React.FC = () => {
-  const { starknetAddress: address } = useAccount();
+  const { starknetAddress: address, connector } = useAccount();
+  const isShieldedSupported = isShieldedModeSupported(connector?.name);
   const mode = useMode();
   const strkLSTConfig = getSTRKAsset();
   const btcAssets = getLSTAssetsByCategory("BTC");
@@ -311,8 +313,7 @@ const PortfolioSection: React.FC = () => {
     const holdings = btcLSTBalances
       .filter(({ balance, asset }) => {
         const shielded = shieldedBalancesByAssetSymbol[asset.SYMBOL];
-        const hasShielded =
-          shielded?.isVisible && (shielded.amount ?? 0) > 0;
+        const hasShielded = shielded?.isVisible && (shielded.amount ?? 0) > 0;
         return balance > 0 || hasShielded;
       })
       .map(({ balance, asset }) => {
@@ -339,9 +340,7 @@ const PortfolioSection: React.FC = () => {
           usdValue,
           unshieldedLstAmount,
           unshieldedUsdValue: btcPrice
-            ? unshieldedLstAmount *
-              (lstStat?.exchangeRate || 1) *
-              btcPrice
+            ? unshieldedLstAmount * (lstStat?.exchangeRate || 1) * btcPrice
             : 0,
         };
       });
@@ -481,10 +480,7 @@ const PortfolioSection: React.FC = () => {
     const balanceDisplayDecimals = assetSymbol === "STRK" ? 2 : 8;
 
     return (
-      <div
-        key={key}
-        className="flex items-start justify-between gap-3 text-xs"
-      >
+      <div key={key} className="flex items-start justify-between gap-3 text-xs">
         <div className="flex shrink-0 gap-1.5">
           {isShielded ? (
             <EyeOff className="h-4 w-4 shrink-0 text-[#0D5F4E]" />
@@ -499,61 +495,109 @@ const PortfolioSection: React.FC = () => {
           <div className="flex min-w-0 max-w-[65%] flex-col items-end gap-0.5">
             {!shieldedBalance?.isVisible ? (
               <span className="flex items-center gap-1 text-[#1A1F24]">
-                <span
-                  role="button"
-                  tabIndex={0}
-                  onClick={shieldedBalance?.getBalance}
-                  onKeyDown={(event) => {
-                    if (event.key === "Enter" || event.key === " ") {
-                      event.preventDefault();
-                      shieldedBalance?.getBalance();
-                    }
-                  }}
-                  aria-label={`Reveal shielded balance for ${lstSymbol}`}
-                  aria-disabled={shieldedBalance?.isPending}
-                  className={cn(
-                    "shrink-0 text-[#6B7780] transition-colors hover:text-[#1A1F24]",
-                    shieldedBalance?.isPending &&
-                      "cursor-not-allowed opacity-50",
-                  )}
-                >
-                  <Eye
+                {isShieldedSupported ? (
+                  <span
+                    role="button"
+                    tabIndex={0}
+                    onClick={shieldedBalance?.getBalance}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        shieldedBalance?.getBalance();
+                      }
+                    }}
+                    aria-label={`Reveal shielded balance for ${lstSymbol}`}
+                    aria-disabled={shieldedBalance?.isPending}
                     className={cn(
-                      "h-3 w-3",
-                      shieldedBalance?.isPending && "animate-pulse",
+                      "shrink-0 text-[#6B7780] transition-colors hover:text-[#1A1F24]",
+                      shieldedBalance?.isPending &&
+                        "cursor-not-allowed opacity-50",
                     )}
-                  />
-                </span>
+                  >
+                    <Eye
+                      className={cn(
+                        "h-3 w-3",
+                        shieldedBalance?.isPending && "animate-pulse",
+                      )}
+                    />
+                  </span>
+                ) : (
+                  <TooltipProvider delayDuration={0}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <span
+                          aria-disabled
+                          aria-label={`Reveal shielded balance for ${lstSymbol} (unsupported wallet)`}
+                          className="shrink-0 cursor-not-allowed text-[#6B7780] opacity-50"
+                        >
+                          <Eye className="h-3 w-3" />
+                        </span>
+                      </TooltipTrigger>
+                      <TooltipContent
+                        side="top"
+                        className="max-w-60 rounded-md border border-[#03624C] bg-white text-center text-[#03624C]"
+                      >
+                        {address
+                          ? "Your connected wallet doesn't support shielded mode"
+                          : "Please connect wallet"}
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                )}
                 **** {lstSymbol}
               </span>
             ) : (
               <>
                 <span className="flex max-w-full items-center justify-end gap-1 text-[#1A1F24]">
-                  <span
-                    role="button"
-                    tabIndex={0}
-                    onClick={shieldedBalance.getBalance}
-                    onKeyDown={(event) => {
-                      if (event.key === "Enter" || event.key === " ") {
-                        event.preventDefault();
-                        shieldedBalance.getBalance();
-                      }
-                    }}
-                    aria-label={`Refresh shielded balance for ${lstSymbol}`}
-                    aria-disabled={shieldedBalance.isPending}
-                    className={cn(
-                      "shrink-0 text-[#6B7780] transition-colors hover:text-[#1A1F24]",
-                      shieldedBalance.isPending &&
-                        "cursor-not-allowed opacity-50",
-                    )}
-                  >
-                    <RotateCw
+                  {isShieldedSupported ? (
+                    <span
+                      role="button"
+                      tabIndex={0}
+                      onClick={shieldedBalance.getBalance}
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter" || event.key === " ") {
+                          event.preventDefault();
+                          shieldedBalance.getBalance();
+                        }
+                      }}
+                      aria-label={`Refresh shielded balance for ${lstSymbol}`}
+                      aria-disabled={shieldedBalance.isPending}
                       className={cn(
-                        "h-3 w-3",
-                        shieldedBalance.isPending && "animate-spin",
+                        "shrink-0 text-[#6B7780] transition-colors hover:text-[#1A1F24]",
+                        shieldedBalance.isPending &&
+                          "cursor-not-allowed opacity-50",
                       )}
-                    />
-                  </span>
+                    >
+                      <RotateCw
+                        className={cn(
+                          "h-3 w-3",
+                          shieldedBalance.isPending && "animate-spin",
+                        )}
+                      />
+                    </span>
+                  ) : (
+                    <TooltipProvider delayDuration={0}>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <span
+                            aria-disabled
+                            aria-label={`Refresh shielded balance for ${lstSymbol} (unsupported wallet)`}
+                            className="shrink-0 cursor-not-allowed text-[#6B7780] opacity-50"
+                          >
+                            <RotateCw className="h-3 w-3" />
+                          </span>
+                        </TooltipTrigger>
+                        <TooltipContent
+                          side="top"
+                          className="max-w-60 rounded-md border border-[#03624C] bg-white text-center text-[#03624C]"
+                        >
+                          {address
+                            ? "Your connected wallet doesn't support shielded mode"
+                            : "Please connect wallet"}
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  )}
                   <span className="truncate">
                     <BalanceWithLargeSubscript
                       value={
@@ -589,7 +633,11 @@ const PortfolioSection: React.FC = () => {
               {lstSymbol}
             </span>
             <span className="max-w-full truncate text-right text-[#6B7780]">
-              ${formatNumberWithCommas(options?.unshieldedValue?.usdValue ?? 0, 2)}
+              $
+              {formatNumberWithCommas(
+                options?.unshieldedValue?.usdValue ?? 0,
+                2,
+              )}
             </span>
           </div>
         )}
@@ -631,7 +679,10 @@ const PortfolioSection: React.FC = () => {
               <div className="flex w-full flex-col gap-0.5">
                 <div className="flex w-full items-center justify-between">
                   <span className="text-left text-sm text-[#1A1F24]">
-                    <BalanceWithLargeSubscript value={strkHoldings.lstAmount} decimals={2} />{" "}
+                    <BalanceWithLargeSubscript
+                      value={strkHoldings.lstAmount}
+                      decimals={2}
+                    />{" "}
                     xSTRK
                   </span>
                   <div className="flex items-center gap-1">
@@ -652,7 +703,7 @@ const PortfolioSection: React.FC = () => {
             </div>
           </CollapsibleTrigger>
           <CollapsibleContent>
-            <div className="mt-3 space-y-3 ml-[46px] lg:ml-[52px] mr-[10px]">
+            <div className="ml-[46px] mr-[10px] mt-3 space-y-3 lg:ml-[52px]">
               {renderPrivacyBalanceRow("STRK", "xSTRK", "shielded", {
                 lstAddress: strkLSTConfig.LST_ADDRESS,
                 fallbackExchangeRate: 0,
@@ -710,7 +761,7 @@ const PortfolioSection: React.FC = () => {
               <div className="mt-3 space-y-4 rounded-lg bg-[#F5F7F8] p-3 lg:ml-[20px]">
                 {btcHoldings.holdings.map((holding) => (
                   <div key={holding.asset.SYMBOL} className="space-y-2">
-                    <div className="flex items-start justify-between gap-3 text-xs mb-2">
+                    <div className="mb-2 flex items-start justify-between gap-3 text-xs">
                       <div className="flex flex-col gap-0.5">
                         <div className="flex items-center gap-1">
                           {getBTCLSTIcon(holding.asset.LST_SYMBOL)}
