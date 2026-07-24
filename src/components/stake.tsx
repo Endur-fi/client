@@ -9,17 +9,25 @@ import {
   useBalance,
   useMode,
   useSendTransaction,
+  useStrk20Balance,
 } from "@easyleap/sdk";
 
 import { useAtomValue } from "jotai";
-import { AlertCircleIcon, ChevronDown, Info } from "lucide-react";
+import {
+  AlertCircleIcon,
+  ChevronDown,
+  Eye,
+  Info,
+  RotateCw,
+} from "lucide-react";
 import { Figtree } from "next/font/google";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import React from "react";
 import { useForm } from "react-hook-form";
 import { TwitterShareButton } from "react-share";
-import { Call, Contract } from "starknet";
+import { useStrk20PrepareInvoke } from "@starknetfoundation/starknet-start-react";
+import { Call, Contract, uint256 } from "starknet";
 import * as z from "zod";
 
 import erc4626Abi from "@/abi/erc4626.abi.json";
@@ -50,6 +58,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import {
+  ENDUR_DEPOSIT_ANONYMIZER_ADDRESS,
   IS_PAUSED,
   LSTAssetConfig,
   NOSTRA_iXSTRK_ADDRESS,
@@ -58,14 +67,24 @@ import {
   VESU_vXSTRK_ADDRESS,
 } from "@/constants";
 import { toast } from "@/hooks/use-toast";
-import { useTransactionHandler } from "@/hooks/use-transactions";
+import {
+  flattenErrorText,
+  isUserRejectionError,
+  logInvokeError,
+  showFailedToast,
+  showRejectedToast,
+  showSuccessToast,
+  useTransactionHandler,
+} from "@/hooks/use-transactions";
 import { MyAnalytics } from "@/lib/analytics";
 import { AnalyticsEvents } from "@/lib/analytics-events";
 import MyNumber from "@/lib/MyNumber";
 import { BalanceWithLargeSubscript } from "@/components/balance-with-large-subscript";
-import { cn } from "@/lib/utils";
+import { isShieldedModeSupported } from "@/lib/shielded-wallets";
+import { cn, standariseAddress } from "@/lib/utils";
 import LSTService from "@/services/lst";
 import { lstConfigAtom, assetPriceAtom } from "@/store/common.store";
+import { balanceModeAtom, BalanceMode } from "@/store/balance-mode.store";
 import {
   hyperxLBTCVaultCapacityAtom,
   hyperxSTRKVaultCapacityAtom,
@@ -80,7 +99,9 @@ import { tabsAtom } from "@/store/merry.store";
 import { snAPYAtom } from "@/store/staking.store";
 
 import { Icons } from "./Icons";
+import { BalanceModeToggle } from "./balance-mode-toggle";
 import { PlatformCard } from "./platform-card";
+import { ShieldAndStakeBanner } from "./shield-and-stake-banner";
 import Stats from "./stats";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -166,14 +187,19 @@ const Stake: React.FC = () => {
   const [showMaxedOutModal, setShowMaxedOutModal] = React.useState(false);
   const [selectedPlatform, setSelectedPlatform] =
     React.useState<Platform>("none");
+  const balanceMode = useAtomValue(balanceModeAtom);
 
   const searchParams = useSearchParams();
 
-  const { starknetAddress: address } = useAccount();
+  const { starknetAddress: address, connector } = useAccount();
+  const isShieldedModeWallet = isShieldedModeSupported(connector?.name);
   // Wallet connection is handled by Easyleap ConnectButton.
   const lstConfig = useAtomValue(lstConfigAtom)!;
   const mode = useMode();
   const [isLendingOpen, setIsLendingOpen] = React.useState(true);
+  const [isShieldAndStakeOpen, setIsShieldAndStakeOpen] = React.useState(true);
+  const [isShieldAndStakeSelected, setIsShieldAndStakeSelected] =
+    React.useState(false);
   // In EVM mode, the SDK treats the passed token address as the EVM token.
   // For now only WBTC has a mapped EVM token address.
   const balanceTokenAddress =
@@ -182,17 +208,69 @@ const Stake: React.FC = () => {
       : lstConfig.ASSET_ADDRESS;
 
   const { data: balance } = useBalance(balanceTokenAddress as `0x${string}`);
+
+  const {
+    data: shieldedBalance,
+    getBalance: getShieldedBalance,
+    isPending: isShieldedBalancePending,
+  } = useStrk20Balance(
+    standariseAddress(lstConfig.ASSET_ADDRESS) as `0x${string}`,
+    {
+      decimals: lstConfig.DECIMALS,
+    },
+  );
+
+  // Forces the shielded balance back into its hidden ("****") state after a
+  // successful shielded stake, even though the fetched balance data is still
+  // cached. Cleared whenever the user explicitly reveals/refreshes it again.
+  const [isShieldedBalanceHidden, setIsShieldedBalanceHidden] =
+    React.useState(false);
+
+  const isShieldedBalanceVisible =
+    Boolean(shieldedBalance?.formatted) && !isShieldedBalanceHidden;
+
+  const revealShieldedBalance = () => {
+    setIsShieldedBalanceHidden(false);
+    getShieldedBalance();
+  };
+
   const { data: assetPrice } = useAtomValue(assetPriceAtom);
 
   const exchangeRate = useAtomValue(apiExchangeRateAtom);
   const apy = useAtomValue(snAPYAtom);
   const yields = useAtomValue(protocolYieldsAtom);
   const activeTab = useAtomValue(tabsAtom);
-  console.log("yields", yields);
+  // console.log("yields", yields);
 
   const referrer = searchParams.get("referrer");
 
   const isBTC = lstConfig.SYMBOL?.toLowerCase().includes("btc");
+
+  React.useEffect(() => {
+    if (balanceMode !== BalanceMode.UNSHIELDED) {
+      setIsShieldAndStakeSelected(false);
+    }
+  }, [balanceMode]);
+
+  React.useEffect(() => {
+    if (!isShieldedModeWallet) {
+      setIsShieldAndStakeSelected(false);
+    }
+  }, [isShieldedModeWallet]);
+
+  const displayBalanceAmount =
+    balanceMode === BalanceMode.UNSHIELDED
+      ? balance?.formatted
+        ? Number(balance.formatted)
+        : 0
+      : shieldedBalance?.formatted
+        ? Number(shieldedBalance.formatted)
+        : 0;
+
+  const activeBalanceFormatted =
+    balanceMode === BalanceMode.SHIELDED
+      ? shieldedBalance?.formatted
+      : balance?.formatted;
 
   const trovesCapacityAtom = React.useMemo(() => {
     switch (lstConfig.LST_SYMBOL) {
@@ -236,11 +314,19 @@ const Stake: React.FC = () => {
     ? lstService.getLSTContract(lstConfig.LST_ADDRESS)
     : null;
 
-  const { sendAsync, data, isPending, error } = useSendTransaction();
+  const { sendAsync, invokeAsync, data, isPending, error } =
+    useSendTransaction();
+  const { prepareAsync } = useStrk20PrepareInvoke();
 
   const { handleTransaction } = useTransactionHandler();
 
   const handleQuickStakePrice = (percentage: number) => {
+    // Balance is masked (never fetched/revealed) in shielded mode, so we have
+    // no known amount to base a percentage off of — let the user type instead.
+    if (balanceMode === BalanceMode.SHIELDED && !isShieldedBalanceVisible) {
+      return;
+    }
+
     MyAnalytics.track(AnalyticsEvents.QUICK_AMOUNT_SELECT, {
       context: "stake",
       percentage,
@@ -256,14 +342,17 @@ const Stake: React.FC = () => {
       });
     }
 
-    if (balance && percentage === 100) {
+    if (activeBalanceFormatted && percentage === 100) {
       // For BTC tokens, use the full balance since they're often less than 1
       // For other tokens, reserve 1 unit for gas fees
       if (isBTC) {
         // Always use 18 decimal precision
-        form.setValue("stakeAmount", Number(balance?.formatted).toFixed(18));
+        form.setValue(
+          "stakeAmount",
+          Number(activeBalanceFormatted).toFixed(18),
+        );
       } else {
-        if (Number(balance?.formatted) < 1) {
+        if (Number(activeBalanceFormatted) < 1) {
           form.setValue("stakeAmount", "0");
           form.clearErrors("stakeAmount");
           return;
@@ -271,15 +360,16 @@ const Stake: React.FC = () => {
 
         form.setValue(
           "stakeAmount",
-          (Number(balance?.formatted) - 1).toFixed(6),
+          (Number(activeBalanceFormatted) - 1).toFixed(6),
         );
       }
       form.clearErrors("stakeAmount");
       return;
     }
 
-    if (balance) {
-      const calculatedAmount = (Number(balance?.formatted) * percentage) / 100;
+    if (activeBalanceFormatted) {
+      const calculatedAmount =
+        (Number(activeBalanceFormatted) * percentage) / 100;
       // Always use 18 decimal precision
       form.setValue("stakeAmount", calculatedAmount.toFixed(18));
       form.clearErrors("stakeAmount");
@@ -345,14 +435,15 @@ const Stake: React.FC = () => {
       });
     }
 
-    if (stakeAmount > Number(balance?.formatted)) {
+    if (stakeAmount > Number(activeBalanceFormatted)) {
       return toast({
         description: (
           <div className="flex items-center gap-2">
             <Info className="size-5" />
-            Insufficient balance
+            Insufficient{" "}
+            {balanceMode === BalanceMode.SHIELDED ? "shielded" : ""} balance
             <br />
-            {stakeAmount} {">"} Available {Number(balance?.formatted)}
+            {stakeAmount} {">"} Available {Number(activeBalanceFormatted)}
           </div>
         ),
       });
@@ -384,12 +475,139 @@ const Stake: React.FC = () => {
     MyAnalytics.track(AnalyticsEvents.STAKE_CLICK, {
       address,
       amount: Number(values.stakeAmount),
+      mode: balanceMode,
     });
 
     const underlyingTokenAmount = MyNumber.fromEther(
       values.stakeAmount,
       lstConfig.DECIMALS,
     );
+
+    // Privacy stake (shielded balance, or unshielded + Shield & Stake):
+    // optional public→private deposit, OPEN transfer for LST, invoke anonymizer.
+    const usePrivacyStake =
+      balanceMode === BalanceMode.SHIELDED || isShieldAndStakeSelected;
+
+    if (usePrivacyStake) {
+      if (selectedPlatform !== "none") {
+        return toast({
+          description: (
+            <div className="flex items-center gap-2">
+              <Info className="size-5" />
+              Platform routing is not available in shielded mode
+            </div>
+          ),
+        });
+      }
+
+      // Wallet STRK20 FELT/ADDRESS schema rejects zero-padded hex (e.g. 0x047…).
+      // Strip leading zeros so the wallet request passes address validation.
+      const inToken = standariseAddress(
+        lstConfig.ASSET_ADDRESS,
+      ) as `0x${string}`;
+      const outToken = standariseAddress(
+        lstConfig.LST_ADDRESS,
+      ) as `0x${string}`;
+      const anonymizer = standariseAddress(
+        ENDUR_DEPOSIT_ANONYMIZER_ADDRESS,
+      ) as `0x${string}`;
+      const recipient = standariseAddress(address) as `0x${string}`;
+
+      const amountU256 = uint256.bnToUint256(underlyingTokenAmount.toString());
+      const amountLow = standariseAddress(amountU256.low.toString());
+      const amountHigh = standariseAddress(amountU256.high.toString());
+      const amountHex = standariseAddress(
+        underlyingTokenAmount.toString(),
+      ) as `0x${string}`;
+
+      const actions = [
+        // From public wallet: shield underlying into the pool first.
+        ...(isShieldAndStakeSelected
+          ? [
+              {
+                type: "deposit" as const,
+                token: inToken,
+                amount: amountHex,
+              },
+            ]
+          : []),
+        // Fund the anonymizer with the underlying before the invoke.
+        // `privacy_invoke` does NOT pull from its caller — it assumes it already
+        // holds `in_token`, then approves the vault and calls `deposit` (which
+        // does transferFrom(anonymizer -> vault)). Without this the deposit
+        // reverts with 'ERC20: insufficient balance', and the paymaster refuses
+        // to sponsor a reverting tx (surfaces as paymaster error 163).
+        {
+          type: "withdraw" as const,
+          token: inToken,
+          amount: amountHex,
+          recipient: anonymizer,
+        },
+        {
+          type: "transfer" as const,
+          token: outToken,
+          amount: "OPEN" as const,
+          recipient,
+        },
+        {
+          type: "invoke" as const,
+          contract: anonymizer,
+          calldata: [
+            inToken,
+            outToken,
+            amountLow,
+            amountHigh,
+            "${openNoteIds[0]}",
+          ],
+        },
+      ];
+
+      try {
+        await invokeAsync(actions);
+        if (balanceMode === BalanceMode.SHIELDED) {
+          setIsShieldedBalanceHidden(true);
+        }
+
+        MyAnalytics.track(AnalyticsEvents.STAKE_TX_SUCCESSFUL, {
+          address,
+          amount: Number(values.stakeAmount),
+          mode: balanceMode,
+          isShieldAndStakeSelected,
+        });
+
+        showSuccessToast(
+          "stake",
+          <>
+            Staked {values.stakeAmount} {lstConfig.SYMBOL}
+          </>,
+        );
+        setShowShareModal(true);
+        form.reset();
+      } catch (invokeError) {
+        logInvokeError("[privacy-stake] invoke:failed", invokeError);
+
+        const invokeErrorText = flattenErrorText(invokeError);
+
+        // Standard SNIP wallet-api rejection code (code 113) — user closed or
+        // declined the wallet's confirmation prompt.
+        if (isUserRejectionError(invokeError)) {
+          return showRejectedToast("stake");
+        }
+
+        // No unshielded equivalent for this error.
+        if (invokeErrorText.includes("INSUFFICIENT_PRIVATE_BALANCE")) {
+          return showFailedToast(
+            "stake",
+            "Transaction failed",
+            "Insufficient shielded balance to cover this stake",
+          );
+        }
+
+        throw invokeError;
+      }
+      return;
+    }
+
     const previewCall = await contract?.preview_deposit(
       underlyingTokenAmount.toString(),
     );
@@ -740,6 +958,14 @@ const Stake: React.FC = () => {
         mode="stake"
       />
 
+      <BalanceModeToggle
+        onChange={(mode) => {
+          if (mode === BalanceMode.SHIELDED) {
+            setSelectedPlatform("none");
+          }
+        }}
+      />
+
       <div className="flex w-full max-w-full flex-col items-start gap-2 lg:max-w-none">
         <div className="flex w-full max-w-full flex-1 flex-col items-start lg:max-w-none">
           <Form {...form}>
@@ -751,23 +977,66 @@ const Stake: React.FC = () => {
               <div className="flex items-center gap-1">
                 <Icons.wallet className="size-3" />
                 <span className="hidden text-xs text-[#6B7780] md:block">
-                  Balance:
+                  {balanceMode === BalanceMode.UNSHIELDED
+                    ? "Unshielded Bal"
+                    : "Shielded Bal"}
+                  :
                 </span>
-                <span className="text-xs text-[#1A1F24]">
-                  {balance?.formatted ? (
-                    <BalanceWithLargeSubscript
-                      value={Number(balance.formatted)}
-                      decimals={isBTC ? 8 : 2}
-                    />
-                  ) : (
-                    "0"
-                  )}{" "}
-                  {lstConfig.SYMBOL}
-                </span>
-                {balance?.formatted && assetPrice && (
-                  <span className="text-xs text-[#6B7780]">
-                    | ${(Number(balance.formatted) * assetPrice).toFixed(2)}
-                  </span>
+                {balanceMode === BalanceMode.SHIELDED &&
+                !isShieldedBalanceVisible ? (
+                  <>
+                    <span className="text-xs text-[#1A1F24]">
+                      **** {lstConfig.SYMBOL}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={revealShieldedBalance}
+                      disabled={isShieldedBalancePending}
+                      className="ml-0.5 text-[#6B7780] transition-colors hover:text-[#1A1F24] disabled:cursor-not-allowed disabled:opacity-50"
+                      aria-label="Reveal shielded balance"
+                    >
+                      <Eye
+                        className={cn(
+                          "size-3",
+                          isShieldedBalancePending && "animate-pulse",
+                        )}
+                      />
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <span className="text-xs text-[#1A1F24]">
+                      <BalanceWithLargeSubscript
+                        value={displayBalanceAmount}
+                        decimals={isBTC ? 8 : 2}
+                      />{" "}
+                      {lstConfig.SYMBOL}
+                    </span>
+                    {assetPrice &&
+                      (balanceMode === BalanceMode.SHIELDED
+                        ? isShieldedBalanceVisible
+                        : balance?.formatted) && (
+                        <span className="text-xs text-[#6B7780]">
+                          | ${(displayBalanceAmount * assetPrice).toFixed(2)}
+                        </span>
+                      )}
+                    {balanceMode === BalanceMode.SHIELDED && (
+                      <button
+                        type="button"
+                        onClick={revealShieldedBalance}
+                        disabled={isShieldedBalancePending}
+                        className="ml-0.5 text-[#6B7780] transition-colors hover:text-[#1A1F24] disabled:cursor-not-allowed disabled:opacity-50"
+                        aria-label="Refresh shielded balance"
+                      >
+                        <RotateCw
+                          className={cn(
+                            "size-3",
+                            isShieldedBalancePending && "animate-spin",
+                          )}
+                        />
+                      </button>
+                    )}
+                  </>
                 )}
               </div>
             </div>
@@ -855,13 +1124,24 @@ const Stake: React.FC = () => {
               { label: "75%", value: 75 },
               { label: "Max", value: 100 },
             ];
+            // Balance is masked in shielded mode until revealed — without a
+            // known amount, percentage shortcuts have nothing to base off of.
+            const isQuickStakeDisabled =
+              balanceMode === BalanceMode.SHIELDED && !isShieldedBalanceVisible;
             return (
               <div className="flex w-full gap-2 text-[#8D9C9C]">
                 {quickStakeOptions.map(({ label, value }) => (
                   <button
                     key={label}
+                    type="button"
                     onClick={() => handleQuickStakePrice(value)}
-                    className={`w-full rounded-md bg-[#F5F7F8] px-2 py-2 text-xs text-[#6B7780] transition-all hover:bg-[#8D9C9C33]`}
+                    disabled={isQuickStakeDisabled}
+                    title={
+                      isQuickStakeDisabled
+                        ? "Reveal your shielded balance to use quick amounts"
+                        : undefined
+                    }
+                    className="w-full rounded-md bg-[#F5F7F8] px-2 py-2 text-xs text-[#6B7780] transition-all hover:bg-[#8D9C9C33] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-[#F5F7F8]"
                   >
                     {label}
                   </button>
@@ -872,65 +1152,88 @@ const Stake: React.FC = () => {
         </div>
       </div>
 
-      {sortedPlatforms.length > 0 && (
-        <div className="">
-          <Collapsible
-            open={isLendingOpen}
-            onOpenChange={(open) => {
-              setIsLendingOpen(open);
-              MyAnalytics.track(AnalyticsEvents.STAKE_EARN_COLLAPSIBLE_TOGGLE, {
-                isOpen: open,
-              });
-              if (!open) {
-                setSelectedPlatform("none");
-              }
-            }}
-          >
-            <div className="flex items-center gap-2">
-              <CollapsibleTrigger className="flex items-center gap-1 text-sm font-medium text-[#17876D] hover:opacity-80">
-                <h3 className="font-semibold">Stake & Earn</h3>
-                <span className="text-[#8D9C9C]">(optional)</span>
-                <ChevronDown className="size-3 text-[#8D9C9C] transition-transform duration-200 data-[state=open]:rotate-180" />
-              </CollapsibleTrigger>
-              <TooltipProvider delayDuration={0}>
-                <Tooltip>
-                  <TooltipTrigger>
-                    <Info className="size-3 text-[#3F6870] lg:text-[#8D9C9C]" />
-                  </TooltipTrigger>
-                  <TooltipContent
-                    side="right"
-                    className="max-w-72 rounded-md border border-[#03624C] bg-white p-3 text-[#03624C]"
-                  >
-                    <p className="mb-2">
-                      You can earn additional yield by lending your xSTRK on
-                      DeFi platforms. Your base staking rewards will continue to
-                      accumulate.
-                    </p>
-                    <p className="text-xs text-[#8D9C9C]">
-                      Note: These are third-party protocols not affiliated with
-                      Endur. Please DYOR and understand the risks before using
-                      any DeFi platform.
-                    </p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            </div>
-            <CollapsibleContent className="mt-2">
-              <div className="flex flex-wrap items-center gap-2">
-                <PlatformList
-                  sortedPlatforms={sortedPlatforms}
-                  yields={yields}
-                  apy={
-                    activeTab === "strk" ? apy.value.strkApy : apy.value.btcApy
-                  }
-                  selectedPlatform={selectedPlatform}
-                  setSelectedPlatform={setSelectedPlatform}
-                />
-              </div>
-            </CollapsibleContent>
-          </Collapsible>
-        </div>
+      {balanceMode === BalanceMode.UNSHIELDED && (
+        <ShieldAndStakeBanner
+          isOpen={isShieldAndStakeOpen}
+          onOpenChange={setIsShieldAndStakeOpen}
+          isSelected={isShieldAndStakeSelected}
+          disabled={!isShieldedModeWallet}
+          isWalletConnected={Boolean(address)}
+          onSelectedChange={(selected) => {
+            setIsShieldAndStakeSelected(selected);
+            if (selected) {
+              setSelectedPlatform("none");
+            }
+          }}
+        />
       )}
+
+      {sortedPlatforms.length > 0 &&
+        balanceMode !== BalanceMode.SHIELDED &&
+        !isShieldAndStakeSelected && (
+          <div className="">
+            <Collapsible
+              open={isLendingOpen}
+              onOpenChange={(open) => {
+                setIsLendingOpen(open);
+                MyAnalytics.track(
+                  AnalyticsEvents.STAKE_EARN_COLLAPSIBLE_TOGGLE,
+                  {
+                    isOpen: open,
+                  },
+                );
+                if (!open) {
+                  setSelectedPlatform("none");
+                }
+              }}
+            >
+              <div className="flex items-center gap-2">
+                <CollapsibleTrigger className="flex items-center gap-1 text-sm font-medium text-[#17876D] hover:opacity-80">
+                  <h3 className="font-semibold">Stake & Earn</h3>
+                  <span className="text-[#8D9C9C]">(optional)</span>
+                  <ChevronDown className="size-3 text-[#8D9C9C] transition-transform duration-200 data-[state=open]:rotate-180" />
+                </CollapsibleTrigger>
+                <TooltipProvider delayDuration={0}>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <Info className="size-3 text-[#3F6870] lg:text-[#8D9C9C]" />
+                    </TooltipTrigger>
+                    <TooltipContent
+                      side="right"
+                      className="max-w-72 rounded-md border border-[#03624C] bg-white p-3 text-[#03624C]"
+                    >
+                      <p className="mb-2">
+                        You can earn additional yield by lending your xSTRK on
+                        DeFi platforms. Your base staking rewards will continue
+                        to accumulate.
+                      </p>
+                      <p className="text-xs text-[#8D9C9C]">
+                        Note: These are third-party protocols not affiliated
+                        with Endur. Please DYOR and understand the risks before
+                        using any DeFi platform.
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+              <CollapsibleContent className="mt-2">
+                <div className="flex flex-wrap items-center gap-2">
+                  <PlatformList
+                    sortedPlatforms={sortedPlatforms}
+                    yields={yields}
+                    apy={
+                      activeTab === "strk"
+                        ? apy.value.strkApy
+                        : apy.value.btcApy
+                    }
+                    selectedPlatform={selectedPlatform}
+                    setSelectedPlatform={setSelectedPlatform}
+                  />
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
+          </div>
+        )}
 
       <div className="space-y-3">
         <h2 className="text-md text-[#6B7780]">TRANSACTION SUMMARY</h2>
@@ -1057,7 +1360,7 @@ const Stake: React.FC = () => {
 
       <div className="">
         {!address && (
-            <ConnectButton className="!w-full rounded-xl bg-[#17876D] py-6 text-sm font-semibold text-white hover:bg-[#17876D] disabled:bg-[#03624C4D] disabled:text-[#17876D] disabled:opacity-90" />
+          <ConnectButton className="!w-full rounded-xl bg-[#17876D] py-6 text-sm font-semibold text-white hover:bg-[#17876D] disabled:bg-[#03624C4D] disabled:text-[#17876D] disabled:opacity-90" />
         )}
 
         {address && (

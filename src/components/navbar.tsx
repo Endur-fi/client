@@ -4,7 +4,7 @@
 import {
   useAccount as useAccountStarknet,
   useProvider,
-} from "@starknet-react/core";
+} from "@starknetfoundation/starknet-start-react";
 import { BridgeButton, ConnectButton, useAccount } from "@easyleap/sdk";
 import { useAtom, useSetAtom } from "jotai";
 import React from "react";

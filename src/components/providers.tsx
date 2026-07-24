@@ -1,7 +1,7 @@
 "use client";
 
-import { mainnet, sepolia } from "@starknet-react/chains";
-import { Connector, jsonRpcProvider } from "@starknet-react/core";
+import { mainnet, sepolia } from "@starknetfoundation/starknet-start-chains";
+import { jsonRpcProvider } from "@starknetfoundation/starknet-start-providers";
 import { EasyleapProvider } from "@easyleap/sdk";
 import { Figtree } from "next/font/google";
 import React from "react";
@@ -10,9 +10,8 @@ import { BlockTag, constants, RpcProviderOptions } from "starknet";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { endurEasyleapTheme } from "@/constants/easyleap-theme";
 import { NETWORK } from "@/constants";
-import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
-import { WalletConnector } from "@/services/wallet";
+import { cartridgeStandardWallet } from "@/services/wallet";
 
 import "@easyleap/sdk/styles.css";
 
@@ -52,9 +51,6 @@ const provider = jsonRpcProvider({
 });
 
 const Providers: React.FC<ProvidersProps> = ({ children }) => {
-  const isMobile = useIsMobile();
-  const walletConnector = new WalletConnector(isMobile);
-  // TODO: export a starkzapConfig type from sdk later on
   const starkzapConfig = {
     rpcUrl: process.env.NEXT_PUBLIC_RPC_URL,
     network: NETWORK === constants.NetworkName.SN_MAIN ? "mainnet" : "sepolia",
@@ -73,7 +69,8 @@ const Providers: React.FC<ProvidersProps> = ({ children }) => {
       starknetConfig={{
         chains,
         provider,
-        connectors: walletConnector.getConnectors() as Connector[],
+        defaultChainId: chains[0].id,
+        extraWallets: [cartridgeStandardWallet as any],
       }}
     >
       <SidebarProvider className={cn(font.className, "w-full")}>

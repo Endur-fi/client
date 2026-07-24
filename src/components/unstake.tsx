@@ -2,16 +2,21 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useAccount as useAccountSn } from "@starknet-react/core";
 import { useAtom, useAtomValue } from "jotai";
-import { Info } from "lucide-react";
+import { Eye, Info, RotateCw } from "lucide-react";
 import React from "react";
 import { useForm } from "react-hook-form";
-import { AccountInterface, Contract } from "starknet";
+import { Contract, num, transaction } from "starknet";
 
 import * as z from "zod";
 
-import { ConnectButton, useAccount, useSendTransaction } from "@easyleap/sdk";
+import {
+  ConnectButton,
+  useAccount,
+  useSendTransaction,
+  useStrk20Balance,
+} from "@easyleap/sdk";
+import { getQuotes, quoteToCalls } from "@avnu/avnu-sdk-v4";
 
 import erc4626Abi from "@/abi/erc4626.abi.json";
 import {
@@ -30,13 +35,21 @@ import {
 } from "@/components/ui/tooltip";
 import { getProvider, IS_PAUSED, isMainnet, REWARD_FEES } from "@/constants";
 import { toast } from "@/hooks/use-toast";
-import { useTransactionHandler } from "@/hooks/use-transactions";
+import {
+  flattenErrorText,
+  isUserRejectionError,
+  logInvokeError,
+  showFailedToast,
+  showRejectedToast,
+  showSuccessToast,
+  useTransactionHandler,
+} from "@/hooks/use-transactions";
 import { MyAnalytics } from "@/lib/analytics";
 import { AnalyticsEvents } from "@/lib/analytics-events";
 import MyNumber from "@/lib/MyNumber";
 import { BalanceWithLargeSubscript } from "@/components/balance-with-large-subscript";
-import { cn } from "@/lib/utils";
-import { executeAvnuSwap, getAvnuQuotes } from "@/services/avnu";
+import { cn, standariseAddress } from "@/lib/utils";
+import { getAvnuQuotes } from "@/services/avnu";
 import {
   avnuErrorAtom,
   avnuLoadingAtom,
@@ -49,10 +62,12 @@ import {
 } from "@/store/lst.store";
 
 import { Icons } from "./Icons";
+import { BalanceModeToggle } from "./balance-mode-toggle";
 import Stats from "./stats";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { assetPriceAtom, lstConfigAtom } from "@/store/common.store";
+import { balanceModeAtom, BalanceMode } from "@/store/balance-mode.store";
 import { Web3Number } from "@strkfarm/sdk";
 
 const formSchema = z.object({
@@ -318,11 +333,13 @@ const UnstakeOptionCard = ({
 
 const Unstake = () => {
   const [txnDapp, setTxnDapp] = React.useState<"endur" | "dex">("dex");
+  const balanceMode = useAtomValue(balanceModeAtom);
 
   // EasyLeap: address + Starknet tx sending (Starknet mode)
   const { starknetAddress: address } = useAccount();
-  // Starknet-react: provides the Starknet account object required by Avnu.
-  const { account } = useAccountSn();
+  // TODO: starknet-start-react no longer exposes `account` on useAccount.
+  // Re-enable extension-wallet Avnu swaps once an AccountInterface source exists.
+  // const { account } = useAccountSn();
   // Wallet connection is handled by Easyleap ConnectButton.
 
   const [avnuQuote, setAvnuQuote] = useAtom(avnuQuoteAtom);
@@ -335,6 +352,46 @@ const Unstake = () => {
   const lstConfig = useAtomValue(lstConfigAtom)!;
   const { data: assetPrice } = useAtomValue(assetPriceAtom);
   const isBTC = lstConfig.SYMBOL?.toLowerCase().includes("btc");
+
+  const {
+    data: shieldedBalance,
+    getBalance: getShieldedBalance,
+    isPending: isShieldedBalancePending,
+  } = useStrk20Balance(
+    standariseAddress(lstConfig.LST_ADDRESS) as `0x${string}`,
+    {
+      decimals: lstConfig.DECIMALS,
+    },
+  );
+
+  // Forces the shielded balance back into its hidden ("****") state after a
+  // successful shielded unstake, even though the fetched balance data is
+  // still cached. Cleared whenever the user explicitly reveals/refreshes it.
+  const [isShieldedBalanceHidden, setIsShieldedBalanceHidden] =
+    React.useState(false);
+
+  const isShieldedBalanceVisible =
+    Boolean(shieldedBalance?.formatted) && !isShieldedBalanceHidden;
+
+  const revealShieldedBalance = () => {
+    setIsShieldedBalanceHidden(false);
+    getShieldedBalance();
+  };
+
+  const displayBalanceAmount =
+    balanceMode === BalanceMode.UNSHIELDED
+      ? Number(currentLSTBalance.value.toEtherToFixedDecimals(isBTC ? 8 : 2))
+      : shieldedBalance?.formatted
+        ? Number(shieldedBalance.formatted)
+        : 0;
+
+  const activeBalanceFormatted =
+    balanceMode === BalanceMode.SHIELDED
+      ? shieldedBalance?.formatted
+      : Web3Number.fromWei(
+          currentLSTBalance.value.toString(),
+          currentLSTBalance.value.decimals,
+        ).toFixed(18);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -353,7 +410,8 @@ const Unstake = () => {
     providerOrAccount: provider,
   });
 
-  const { sendAsync, data, isPending, error } = useSendTransaction();
+  const { sendAsync, invokeAsync, data, isPending, error } =
+    useSendTransaction();
 
   const { handleTransaction } = useTransactionHandler();
 
@@ -402,6 +460,12 @@ const Unstake = () => {
   const waitingTime = React.useMemo(() => {
     return "~7 days";
   }, [queueState.value, form.watch("unstakeAmount")]);
+
+  React.useEffect(() => {
+    if (balanceMode === BalanceMode.SHIELDED && txnDapp === "endur") {
+      setTxnDapp("dex");
+    }
+  }, [balanceMode, txnDapp]);
 
   React.useEffect(() => {
     // DEX flow manages its own success/error toasts and does not produce a stable
@@ -478,6 +542,12 @@ const Unstake = () => {
   };
 
   const handleQuickUnstakePrice = (percentage: number) => {
+    // Balance is masked (never fetched/revealed) in shielded mode, so we have
+    // no known amount to base a percentage off of — let the user type instead.
+    if (balanceMode === BalanceMode.SHIELDED && !isShieldedBalanceVisible) {
+      return;
+    }
+
     MyAnalytics.track(AnalyticsEvents.QUICK_AMOUNT_SELECT, {
       context: "unstake",
       percentage,
@@ -493,27 +563,22 @@ const Unstake = () => {
       });
     }
 
+    if (!activeBalanceFormatted || Number(activeBalanceFormatted) === 0) {
+      return;
+    }
+
     let displayAmount = "";
     let unstakeAmount = "";
     // to reduce some dust
     const ONE_WEI = Web3Number.fromWei(9999999, 18);
-    const balance = new Web3Number(
-      Web3Number.fromWei(
-        currentLSTBalance.value.toString(),
-        currentLSTBalance.value.decimals,
-      ).toFixed(18),
-      18,
-    );
+    const balance = new Web3Number(activeBalanceFormatted, 18);
     const available = balance.minus(ONE_WEI);
 
     // exact balance will be used for unstake amount only when percentage is 100
     // for other percentages, we are still rounding up to 8/2 decimals precision
-    if (Number(currentLSTBalance.value.toEtherToFixedDecimals(8)) === 0) {
-      return;
-    }
     if (percentage === 100) {
       // Round down to prevent exceeding balance
-      displayAmount = currentLSTBalance.value.toEtherToFixedDecimals(8);
+      displayAmount = Number(activeBalanceFormatted).toFixed(isBTC ? 8 : 6);
       // always 18 ok
       unstakeAmount = available.toFixed(18);
     } else {
@@ -537,131 +602,206 @@ const Unstake = () => {
     }
   };
 
-  const handleDexSwap = async () => {
-    if (!address || !avnuQuote) return;
-
-    // Privy path: starknet-react account is not available for embedded wallets.
-    if (!account) {
-      setAvnuLoading(true);
-      try {
-        const quoteId = (avnuQuote as any)?.quoteId as string | undefined;
-        if (!quoteId) throw new Error("Missing Avnu quoteId");
-
-        const { fetchBuildExecuteTransaction } = await import("@avnu/avnu-sdk");
-        const built = await fetchBuildExecuteTransaction(quoteId, address);
-
-        const normalizedCalls = Array.isArray((built as any)?.calls)
-          ? (built as any).calls.map((c: any) => {
-              // AVNU may return calls in { to, selector, calldata } shape
-              const contractAddress = c?.contractAddress ?? c?.to;
-              const entrypoint = c?.entrypoint ?? c?.selector;
-              const calldata = c?.calldata ?? [];
-              return { contractAddress, entrypoint, calldata };
-            })
-          : [];
-
-        await sendAsync({ calls: normalizedCalls });
-
-        toast({
-          itemID: "unstake",
-          variant: "complete",
-          duration: 3000,
-          description: (
-            <div className="flex items-center gap-2 border-none">
-              <Icons.toastSuccess />
-              <div className="flex flex-col items-start gap-2 text-sm font-medium text-[#3F6870]">
-                <span className="text-[18px] font-semibold text-[#075A5A]">
-                  Success 🎉
-                </span>
-                Unstaked {form.getValues("unstakeAmount")} {lstConfig.SYMBOL}{" "}
-                via Avnu
-              </div>
-            </div>
-          ),
-        });
-        form.reset();
-        return;
-      } catch (e: any) {
-        toast({
-          itemID: "unstake",
-          description: (
-            <div className="flex gap-2 text-red-500">
-              <Info className="mt-0.5 size-5 flex-shrink-0" />
-              <div className="max-h-32 flex-1 space-y-1 overflow-y-auto">
-                <div className="font-semibold">{e?.name ?? "Error"}</div>
-                <div className="text-sm">{e?.message ?? String(e)}</div>
-              </div>
-            </div>
-          ),
-        });
-        return;
-      } finally {
-        setAvnuLoading(false);
-      }
-    }
+  // Shielded mode: swap the shielded LST -> underlying via AVNU's private swap.
+  // We use the AVNU SDK only as a routing oracle (getQuotes + quoteToCalls, both
+  // public no-key REST calls), then submit the swap as STRK20 actions through the
+  // wallet's `invokeAsync` — exactly like the Endur staking anonymizer flow. No
+  // AVNU paymaster, no API key: the wallet proves and sponsors the tx, and AVNU's
+  // executor contract is invoked with the route it returned.
+  const handlePrivateSwap = async () => {
+    if (!address) return;
 
     MyAnalytics.track(AnalyticsEvents.UNSTAKE_CLICK, {
       address,
       amount: Number(form.getValues("unstakeAmount")),
+      mode: "InstantShielded",
+    });
+
+    setAvnuLoading(true);
+    try {
+      // Wallet STRK20 FELT/ADDRESS schema rejects zero-padded hex — strip it.
+      const sellToken = standariseAddress(
+        lstConfig.LST_ADDRESS,
+      ) as `0x${string}`;
+      const buyToken = standariseAddress(
+        lstConfig.ASSET_ADDRESS,
+      ) as `0x${string}`;
+      const taker = standariseAddress(address) as `0x${string}`;
+
+      const sellAmount = BigInt(
+        MyNumber.fromEther(
+          form.getValues("unstakeAmount"),
+          lstConfig.DECIMALS,
+        ).toString(),
+      );
+
+      // 1. Quote — public AVNU routing API (no key). Mainnet defaults.
+      const [quote] = await getQuotes({
+        sellTokenAddress: lstConfig.LST_ADDRESS,
+        buyTokenAddress: lstConfig.ASSET_ADDRESS,
+        sellAmount,
+        takerAddress: address,
+        size: 1,
+      });
+      if (!quote) throw new Error("No swap quote available");
+
+      // 2. Build the private executor calls. With `private: true` the API sets the
+      // taker to its executor and returns `executorAddress` — do NOT pass takerAddress.
+      const { calls: executorCalls, executorAddress } = await quoteToCalls({
+        quoteId: quote.quoteId,
+        slippage: 0.05,
+        private: true,
+      });
+      if (!executorAddress) {
+        throw new Error("Private swap is not available for this pair");
+      }
+      const executor = standariseAddress(executorAddress) as `0x${string}`;
+
+      // 3. STRK20 actions (mirrors AVNU's buildStrk20Actions, minus the paymaster
+      // fee withdrawal we no longer use): withdraw the sell token to the executor,
+      // open a note for the bought token, then invoke the executor with the route.
+      // `num.toHex` normalizes every calldata felt to minimal hex (handles AVNU's
+      // zero-padded addresses).
+      const executorCalldata = transaction
+        .fromCallsToExecuteCalldata_cairo1(executorCalls)
+        .map((felt) => num.toHex(felt));
+
+      const actions = [
+        {
+          type: "withdraw" as const,
+          token: sellToken,
+          amount: num.toHex(sellAmount),
+          recipient: executor,
+        },
+        {
+          type: "transfer" as const,
+          token: buyToken,
+          amount: "OPEN" as const,
+          recipient: taker,
+        },
+        {
+          type: "invoke" as const,
+          contract: executor,
+          calldata: [buyToken, ...executorCalldata, "${openNoteIds[0]}"],
+        },
+      ];
+
+      try {
+        await invokeAsync(actions);
+
+        if (balanceMode === BalanceMode.SHIELDED) {
+          setIsShieldedBalanceHidden(true);
+        }
+
+        MyAnalytics.track(AnalyticsEvents.UNSTAKE_TX_SUCCESSFUL, {
+          address,
+          amount: Number(form.getValues("unstakeAmount")),
+          mode: "InstantShielded",
+        });
+
+        showSuccessToast(
+          "unstake",
+          <>
+            Unstaked {form.getValues("unstakeAmount")} {lstConfig.LST_SYMBOL}
+          </>,
+        );
+        form.reset();
+      } catch (invokeError) {
+        logInvokeError("[private-swap] invoke:failed", invokeError);
+
+        const invokeErrorText = flattenErrorText(invokeError);
+
+        // Standard SNIP wallet-api rejection code (code 113) — user closed or
+        // declined the wallet's confirmation prompt.
+        if (isUserRejectionError(invokeError)) {
+          return showRejectedToast("unstake");
+        }
+
+        // No unshielded equivalent for this error.
+        if (invokeErrorText.includes("INSUFFICIENT_PRIVATE_BALANCE")) {
+          return showFailedToast(
+            "unstake",
+            "Transaction failed",
+            "Insufficient shielded balance to cover this unstake",
+          );
+        }
+
+        throw invokeError;
+      }
+    } catch (e: any) {
+      console.error("[private-swap] failed", e);
+      showFailedToast("unstake", e?.name ?? "Error", e?.message ?? String(e));
+    } finally {
+      setAvnuLoading(false);
+    }
+  };
+
+  const handleDexSwap = async () => {
+    if (!address) return;
+
+    const unstakeAmount = form.getValues("unstakeAmount");
+
+    if (Number(unstakeAmount) > Number(activeBalanceFormatted)) {
+      return toast({
+        description: (
+          <div className="flex items-center gap-2">
+            <Info className="size-5" />
+            Insufficient{" "}
+            {balanceMode === BalanceMode.SHIELDED ? "shielded " : ""}
+            {lstConfig.LST_SYMBOL} balance
+            <br />
+            {Number(unstakeAmount)} {">"} Available{" "}
+            {Number(activeBalanceFormatted)}
+          </div>
+        ),
+      });
+    }
+
+    // Shielded balance -> route through AVNU private swap.
+    if (balanceMode === BalanceMode.SHIELDED) {
+      return handlePrivateSwap();
+    }
+
+    if (!avnuQuote) return;
+
+    MyAnalytics.track(AnalyticsEvents.UNSTAKE_CLICK, {
+      address,
+      amount: Number(unstakeAmount),
       mode: "Instant",
     });
 
     setAvnuLoading(true);
     try {
-      await executeAvnuSwap(
-        account as AccountInterface,
-        avnuQuote,
-        () => {
-          MyAnalytics.track(AnalyticsEvents.UNSTAKE_TX_SUCCESSFUL, {
-            address,
-            amount: Number(form.getValues("unstakeAmount")),
-            asset: lstConfig.SYMBOL,
-            method: "dex",
-          });
-          toast({
-            itemID: "unstake",
-            variant: "complete",
-            duration: 3000,
-            description: (
-              <div className="flex items-center gap-2 border-none">
-                <Icons.toastSuccess />
-                <div className="flex flex-col items-start gap-2 text-sm font-medium text-[#3F6870]">
-                  <span className="text-[18px] font-semibold text-[#075A5A]">
-                    Success 🎉
-                  </span>
-                  Unstaked {form.getValues("unstakeAmount")} {lstConfig.SYMBOL}{" "}
-                  via Avnu
-                </div>
-              </div>
-            ),
-          });
-          form.reset();
-        },
-        (error) => {
-          MyAnalytics.track(AnalyticsEvents.UNSTAKE_TX_REJECTED, {
-            address,
-            amount: Number(form.getValues("unstakeAmount")),
-            asset: lstConfig.SYMBOL,
-            method: "dex",
-            errorName: error.name,
-            errorMessage: error.message,
-          });
-          toast({
-            itemID: "unstake",
-            description: (
-              <div className="flex gap-2 text-red-500">
-                <Info className="mt-0.5 size-5 flex-shrink-0" />
-                <div className="max-h-32 flex-1 space-y-1 overflow-y-auto">
-                  <div className="font-semibold">{error.name}</div>
-                  <div className="text-sm">{error.message}</div>
-                </div>
-              </div>
-            ),
-          });
-        },
+      const quoteId = (avnuQuote as any)?.quoteId as string | undefined;
+      if (!quoteId) throw new Error("Missing Avnu quoteId");
+
+      const { fetchBuildExecuteTransaction } = await import("@avnu/avnu-sdk");
+      const built = await fetchBuildExecuteTransaction(quoteId, address);
+
+      const normalizedCalls = Array.isArray((built as any)?.calls)
+        ? (built as any).calls.map((c: any) => {
+            const contractAddress = c?.contractAddress ?? c?.to;
+            const entrypoint = c?.entrypoint ?? c?.selector;
+            const calldata = c?.calldata ?? [];
+            return { contractAddress, entrypoint, calldata };
+          })
+        : [];
+
+      await sendAsync({ calls: normalizedCalls });
+
+      showSuccessToast(
+        "unstake",
+        <>
+          Unstaked {form.getValues("unstakeAmount")} {lstConfig.SYMBOL} via Avnu
+        </>,
       );
-    } catch (error) {
-      console.error("AVNU DEX Swap error", error);
+      form.reset();
+    } catch (e: any) {
+      if (isUserRejectionError(e)) {
+        return showRejectedToast("unstake");
+      }
+
+      showFailedToast("unstake", e?.name ?? "Error", e?.message ?? String(e));
     } finally {
       setAvnuLoading(false);
     }
@@ -714,18 +854,17 @@ const Unstake = () => {
         ),
       });
     }
-    const balance = Web3Number.fromWei(
-      currentLSTBalance.value.toString(),
-      currentLSTBalance.value.decimals,
-    );
-    if (balance.lessThan(values.unstakeAmount)) {
+    if (Number(values.unstakeAmount) > Number(activeBalanceFormatted)) {
       return toast({
         description: (
           <div className="flex items-center gap-2">
             <Info className="size-5" />
-            Insufficient {lstConfig.LST_SYMBOL} balance
+            Insufficient{" "}
+            {balanceMode === BalanceMode.SHIELDED ? "shielded " : ""}
+            {lstConfig.LST_SYMBOL} balance
             <br />
-            {Number(values.unstakeAmount)} {">"} Available {balance.toString()}
+            {Number(values.unstakeAmount)} {">"} Available{" "}
+            {Number(activeBalanceFormatted)}
           </div>
         ),
       });
@@ -751,6 +890,8 @@ const Unstake = () => {
     <div className="relative flex h-full w-full flex-col gap-6">
       <Stats mode="unstake" />
 
+      <BalanceModeToggle />
+
       <div className="flex w-full max-w-full flex-col items-start gap-2 lg:max-w-none">
         <div className="flex w-full max-w-full flex-1 flex-col items-start lg:max-w-none">
           <Form {...form}>
@@ -762,17 +903,59 @@ const Unstake = () => {
               <div className="flex items-center gap-1">
                 <Icons.wallet className="size-3" />
                 <span className="hidden text-xs text-[#6B7780] md:block">
-                  Balance:
+                  {balanceMode === BalanceMode.UNSHIELDED
+                    ? "Unshielded Bal"
+                    : "Shielded Bal"}
+                  :
                 </span>
-                <span className="text-xs text-[#1A1F24]">
-                  <BalanceWithLargeSubscript
-                    value={currentLSTBalance.value.toEtherToFixedDecimals(
-                      isBTC ? 8 : 2,
+                {balanceMode === BalanceMode.SHIELDED &&
+                !isShieldedBalanceVisible ? (
+                  <>
+                    <span className="text-xs text-[#1A1F24]">
+                      **** {lstConfig.LST_SYMBOL}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={revealShieldedBalance}
+                      disabled={isShieldedBalancePending}
+                      className="ml-0.5 text-[#6B7780] transition-colors hover:text-[#1A1F24] disabled:cursor-not-allowed disabled:opacity-50"
+                      aria-label="Reveal shielded balance"
+                    >
+                      <Eye
+                        className={cn(
+                          "size-3",
+                          isShieldedBalancePending && "animate-pulse",
+                        )}
+                      />
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <span className="text-xs text-[#1A1F24]">
+                      <BalanceWithLargeSubscript
+                        value={displayBalanceAmount}
+                        decimals={isBTC ? 8 : 2}
+                      />{" "}
+                      {lstConfig.LST_SYMBOL}
+                    </span>
+                    {balanceMode === BalanceMode.SHIELDED && (
+                      <button
+                        type="button"
+                        onClick={revealShieldedBalance}
+                        disabled={isShieldedBalancePending}
+                        className="ml-0.5 text-[#6B7780] transition-colors hover:text-[#1A1F24] disabled:cursor-not-allowed disabled:opacity-50"
+                        aria-label="Refresh shielded balance"
+                      >
+                        <RotateCw
+                          className={cn(
+                            "size-3",
+                            isShieldedBalancePending && "animate-spin",
+                          )}
+                        />
+                      </button>
                     )}
-                    decimals={isBTC ? 8 : 2}
-                  />{" "}
-                  {lstConfig.LST_SYMBOL}
-                </span>
+                  </>
+                )}
               </div>
             </div>
             <form onSubmit={form.handleSubmit(onSubmit)} className="w-full">
@@ -860,13 +1043,24 @@ const Unstake = () => {
               { label: "75%", value: 75 },
               { label: "Max", value: 100 },
             ];
+            // Balance is masked in shielded mode until revealed — without a
+            // known amount, percentage shortcuts have nothing to base off of.
+            const isQuickUnstakeDisabled =
+              balanceMode === BalanceMode.SHIELDED && !isShieldedBalanceVisible;
             return (
               <div className="flex w-full gap-2 text-[#8D9C9C]">
                 {quickUnstakeOptions.map(({ label, value }) => (
                   <button
                     key={label}
+                    type="button"
                     onClick={() => handleQuickUnstakePrice(value)}
-                    className={`w-full rounded-md bg-[#F5F7F8] px-2 py-2 text-xs text-[#6B7780] transition-all hover:bg-[#8D9C9C33]`}
+                    disabled={isQuickUnstakeDisabled}
+                    title={
+                      isQuickUnstakeDisabled
+                        ? "Reveal your shielded balance to use quick amounts"
+                        : undefined
+                    }
+                    className="w-full rounded-md bg-[#F5F7F8] px-2 py-2 text-xs text-[#6B7780] transition-all hover:bg-[#8D9C9C33] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-[#F5F7F8]"
                   >
                     {label}
                   </button>
@@ -886,16 +1080,18 @@ const Unstake = () => {
         }
       >
         <TabsList className="flex h-full flex-col items-center justify-between gap-3 bg-transparent">
-          <UnstakeOptionCard
-            isActive={txnDapp === "endur"}
-            title="Use Endur"
-            logo={<Icons.endurLogo className="size-6" />}
-            rate={exRate.rate}
-            waitingTime={waitingTime}
-            isBestRate={getBetterRate() === "endur"}
-            isRecommended={getBetterRate() === "endur"}
-            percentDiff={null}
-          />
+          {balanceMode !== BalanceMode.SHIELDED && (
+            <UnstakeOptionCard
+              isActive={txnDapp === "endur"}
+              title="Use Endur"
+              logo={<Icons.endurLogo className="size-6" />}
+              rate={exRate.rate}
+              waitingTime={waitingTime}
+              isBestRate={getBetterRate() === "endur"}
+              isRecommended={getBetterRate() === "endur"}
+              percentDiff={null}
+            />
+          )}
 
           {isMainnet() && (
             <UnstakeOptionCard
