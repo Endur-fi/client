@@ -130,6 +130,28 @@ export function logInvokeError(tag: string, error: unknown): void {
  * the same outcomes but can't share a single call site, so they share these
  * renderers instead of duplicating the JSX.
  */
+export function showPendingToast(itemID: string, message: React.ReactNode) {
+  toast({
+    itemID,
+    variant: "pending",
+    description: (
+      <div className="flex items-center gap-5 border-none">
+        <div className="relative shrink-0">
+          <div className="absolute left-3 top-3 z-10 size-[52px] rounded-full bg-[#BBC2CC]" />
+          <Icons.toastPending className="animate-spin" />
+          <Icons.clock className="absolute left-[26.5px] top-[26.5px] z-20" />
+        </div>
+        <div className="flex flex-col items-start gap-2 text-sm font-medium text-[#3F6870]">
+          <span className="text-[18px] font-semibold text-[#075A5A]">
+            In Progress..
+          </span>
+          {message}
+        </div>
+      </div>
+    ),
+  });
+}
+
 export function showRejectedToast(itemID: string) {
   toast({
     itemID,
@@ -245,27 +267,14 @@ const useTransactionHandler = () => {
     }
 
     if (isPending) {
-      toast({
-        itemID: transactionType.toLowerCase(),
-        variant: "pending",
-        description: (
-          <div className="flex items-center gap-5 border-none">
-            <div className="relative shrink-0">
-              <div className="absolute left-3 top-3 z-10 size-[52px] rounded-full bg-[#BBC2CC]" />
-              <Icons.toastPending className="animate-spin" />
-              <Icons.clock className="absolute left-[26.5px] top-[26.5px] z-20" />
-            </div>
-            <div className="flex flex-col items-start gap-2 text-sm font-medium text-[#3F6870]">
-              <span className="text-[18px] font-semibold text-[#075A5A]">
-                In Progress..
-              </span>
-              {transactionType === "STAKE" ? "Staking" : "Unstaking"}{" "}
-              {form.getValues(`${transactionType.toLowerCase()}Amount`)}{" "}
-              {lstConfig.SYMBOL}
-            </div>
-          </div>
-        ),
-      });
+      showPendingToast(
+        transactionType.toLowerCase(),
+        <>
+          {transactionType === "STAKE" ? "Staking" : "Unstaking"}{" "}
+          {form.getValues(`${transactionType.toLowerCase()}Amount`)}{" "}
+          {lstConfig.SYMBOL}
+        </>,
+      );
     }
 
     // Standard SNIP wallet-api rejection code (code 113); some wallets/

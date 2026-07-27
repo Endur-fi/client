@@ -72,6 +72,7 @@ import {
   isUserRejectionError,
   logInvokeError,
   showFailedToast,
+  showPendingToast,
   showRejectedToast,
   showSuccessToast,
   useTransactionHandler,
@@ -200,6 +201,8 @@ const Stake: React.FC = () => {
   const [isShieldAndStakeOpen, setIsShieldAndStakeOpen] = React.useState(true);
   const [isShieldAndStakeSelected, setIsShieldAndStakeSelected] =
     React.useState(false);
+  const isPrivateStake =
+    balanceMode === BalanceMode.SHIELDED || isShieldAndStakeSelected;
   // In EVM mode, the SDK treats the passed token address as the EVM token.
   // For now only WBTC has a mapped EVM token address.
   const balanceTokenAddress =
@@ -485,10 +488,7 @@ const Stake: React.FC = () => {
 
     // Privacy stake (shielded balance, or unshielded + Shield & Stake):
     // optional public→private deposit, OPEN transfer for LST, invoke anonymizer.
-    const usePrivacyStake =
-      balanceMode === BalanceMode.SHIELDED || isShieldAndStakeSelected;
-
-    if (usePrivacyStake) {
+    if (isPrivateStake) {
       if (selectedPlatform !== "none") {
         return toast({
           description: (
@@ -563,6 +563,12 @@ const Stake: React.FC = () => {
       ];
 
       try {
+        showPendingToast(
+          "stake",
+          <>
+            Staking {values.stakeAmount} {lstConfig.SYMBOL}
+          </>,
+        );
         await invokeAsync(actions);
         if (balanceMode === BalanceMode.SHIELDED) {
           setIsShieldedBalanceHidden(true);
@@ -885,7 +891,7 @@ const Stake: React.FC = () => {
                   })
                 }
                 url={`https://endur.fi`}
-                title={`Just staked my ${lstConfig.SYMBOL} on @endurfi, earning ${((activeTab === "strk" ? apy.value.strkApy : apy.value.btcApy) * 100 + (selectedPlatform !== "none" ? getPlatformYield(selectedPlatform) : 0)).toFixed(2)}% APY! 🚀 \n\n${selectedPlatform !== "none" ? `My ${lstConfig.LST_SYMBOL} is now with an additional ${getPlatformYield(selectedPlatform).toFixed(2)}% yield on ${getPlatformConfig(selectedPlatform).platform}! 📈\n\n` : ""}${lstConfig.SYMBOL !== "STRK" ? `Building the future of Bitcoin staking on Starknet` : `Laying the foundation for decentralising Starknet`} with Endur!\n\n`}
+                title={`Just staked my ${lstConfig.SYMBOL}${isPrivateStake ? " Privately" : ""} on @endurfi, earning ${((activeTab === "strk" ? apy.value.strkApy : apy.value.btcApy) * 100 + (selectedPlatform !== "none" ? getPlatformYield(selectedPlatform) : 0)).toFixed(2)}% APY! 🚀 \n\n${selectedPlatform !== "none" ? `My ${lstConfig.LST_SYMBOL} is now with an additional ${getPlatformYield(selectedPlatform).toFixed(2)}% yield on ${getPlatformConfig(selectedPlatform).platform}! 📈\n\n` : ""}${lstConfig.SYMBOL !== "STRK" ? `Building the future of Bitcoin staking on Starknet` : `Laying the foundation for decentralising Starknet`} with Endur!\n\n`}
                 related={["endurfi", "troves", "karnotxyz"]}
                 style={{
                   display: "flex",
@@ -1379,7 +1385,7 @@ const Stake: React.FC = () => {
             {IS_PAUSED
               ? "Paused"
               : selectedPlatform === "none"
-                ? `Stake ${lstConfig.SYMBOL}`
+                ? `Stake ${lstConfig.SYMBOL}${isPrivateStake ? " Privately" : ""}`
                 : `Stake & Invest on ${selectedPlatform === "trovesHyper" ? "Troves" : selectedPlatform === "vesu" ? "Vesu" : "Platform"}`}
           </Button>
         )}

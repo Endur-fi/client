@@ -40,6 +40,7 @@ import {
   isUserRejectionError,
   logInvokeError,
   showFailedToast,
+  showPendingToast,
   showRejectedToast,
   showSuccessToast,
   useTransactionHandler,
@@ -687,6 +688,12 @@ const Unstake = () => {
       ];
 
       try {
+        showPendingToast(
+          "unstake",
+          <>
+            Unstaking {form.getValues("unstakeAmount")} {lstConfig.SYMBOL}
+          </>,
+        );
         await invokeAsync(actions);
 
         if (balanceMode === BalanceMode.SHIELDED) {
@@ -1209,7 +1216,9 @@ const Unstake = () => {
                       : "Processing..."}
                   </span>
                 ) : (
-                  "Unstake Instantly"
+                  balanceMode === BalanceMode.SHIELDED
+                    ? "Unstake Privately"
+                    : "Unstake Instantly"
                 )}
               </StyledButton>
             )}
