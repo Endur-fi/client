@@ -63,6 +63,8 @@ import {
   LSTAssetConfig,
   NOSTRA_iXSTRK_ADDRESS,
   REWARD_FEES,
+  SHIELD_AND_STAKE_FEE_STRK,
+  SHIELD_AND_STAKE_FEE_STRK_EQUIVALENT_FOR_BTC,
   WBTC_ETH_TOKEN,
   VESU_vXSTRK_ADDRESS,
 } from "@/constants";
@@ -97,7 +99,7 @@ import {
 } from "@/store/defi.store";
 import { apiExchangeRateAtom } from "@/store/lst.store";
 import { tabsAtom } from "@/store/merry.store";
-import { snAPYAtom } from "@/store/staking.store";
+import { snAPYAtom, strkPriceAtom } from "@/store/staking.store";
 
 import { Icons } from "./Icons";
 import { BalanceModeToggle } from "./balance-mode-toggle";
@@ -248,6 +250,29 @@ const Stake: React.FC = () => {
   const referrer = searchParams.get("referrer");
 
   const isBTC = lstConfig.SYMBOL?.toLowerCase().includes("btc");
+
+  const strkPrice = useAtomValue(strkPriceAtom);
+
+  // Fee held back on Shield & Stake, denominated in the staked asset. BTC
+  // assets pay the BTC equivalent of the STRK fee at current oracle prices,
+  // so it is null until both prices are available.
+  const shieldAndStakeFee = React.useMemo(() => {
+    if (!isBTC) {
+      return MyNumber.fromEther(
+        SHIELD_AND_STAKE_FEE_STRK.toString(),
+        lstConfig.DECIMALS,
+      );
+    }
+
+    if (!strkPrice || !assetPrice) return null;
+
+    const feeInAsset =
+      (SHIELD_AND_STAKE_FEE_STRK_EQUIVALENT_FOR_BTC * strkPrice) / assetPrice;
+    return MyNumber.fromEther(
+      feeInAsset.toFixed(lstConfig.DECIMALS),
+      lstConfig.DECIMALS,
+    );
+  }, [isBTC, strkPrice, assetPrice, lstConfig.DECIMALS]);
 
   React.useEffect(() => {
     if (balanceMode !== BalanceMode.UNSHIELDED) {
@@ -500,6 +525,41 @@ const Stake: React.FC = () => {
         });
       }
 
+      // Shield & Stake holds back a fee: the full amount is still shielded by
+      // the deposit, but only the remainder reaches the anonymizer and is staked.
+      if (isShieldAndStakeSelected) {
+        if (!shieldAndStakeFee) {
+          return toast({
+            description: (
+              <div className="flex items-center gap-2">
+                <Info className="size-5" />
+                Unable to fetch prices right now, please try again
+              </div>
+            ),
+          });
+        }
+
+        if (
+          !underlyingTokenAmount.compare(shieldAndStakeFee.toEtherStr(), "gt")
+        ) {
+          return toast({
+            description: (
+              <div className="flex items-center gap-2">
+                <Info className="size-5" />
+                Amount must be greater than the Shield &amp; Stake fee of{" "}
+                {shieldAndStakeFee.toEtherToFixedDecimals(isBTC ? 8 : 2)}{" "}
+                {lstConfig.SYMBOL}
+              </div>
+            ),
+          });
+        }
+      }
+
+      const stakedTokenAmount =
+        isShieldAndStakeSelected && shieldAndStakeFee
+          ? underlyingTokenAmount.subtract(shieldAndStakeFee)
+          : underlyingTokenAmount;
+
       // Wallet STRK20 FELT/ADDRESS schema rejects zero-padded hex (e.g. 0x047…).
       // Strip leading zeros so the wallet request passes address validation.
       const inToken = standariseAddress(
@@ -513,21 +573,31 @@ const Stake: React.FC = () => {
       ) as `0x${string}`;
       const recipient = standariseAddress(address) as `0x${string}`;
 
-      const amountU256 = uint256.bnToUint256(underlyingTokenAmount.toString());
-      const amountLow = standariseAddress(amountU256.low.toString());
-      const amountHigh = standariseAddress(amountU256.high.toString());
-      const amountHex = standariseAddress(
+      const stakedAmountU256 = uint256.bnToUint256(
+        stakedTokenAmount.toString(),
+      );
+      const stakedAmountLow = standariseAddress(
+        stakedAmountU256.low.toString(),
+      );
+      const stakedAmountHigh = standariseAddress(
+        stakedAmountU256.high.toString(),
+      );
+      const stakedAmountHex = standariseAddress(
+        stakedTokenAmount.toString(),
+      ) as `0x${string}`;
+      const depositAmountHex = standariseAddress(
         underlyingTokenAmount.toString(),
       ) as `0x${string}`;
 
       const actions = [
         // From public wallet: shield underlying into the pool first.
+        // Always the full amount entered — the fee is only deducted downstream.
         ...(isShieldAndStakeSelected
           ? [
               {
                 type: "deposit" as const,
                 token: inToken,
-                amount: amountHex,
+                amount: depositAmountHex,
               },
             ]
           : []),
@@ -540,7 +610,7 @@ const Stake: React.FC = () => {
         {
           type: "withdraw" as const,
           token: inToken,
-          amount: amountHex,
+          amount: stakedAmountHex,
           recipient: anonymizer,
         },
         {
@@ -555,8 +625,8 @@ const Stake: React.FC = () => {
           calldata: [
             inToken,
             outToken,
-            amountLow,
-            amountHigh,
+            stakedAmountLow,
+            stakedAmountHigh,
             "${openNoteIds[0]}",
           ],
         },
