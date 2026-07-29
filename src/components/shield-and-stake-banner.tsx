@@ -77,7 +77,7 @@ export const ShieldAndStakeBanner = ({
           )}
         >
           Enable privacy shielding for your deposit. Your assets will be
-          hidden using zero-knowledge proofs while earning yield.
+          hidden using zero-knowledge proofs while earning yield. A 4 STRK equivalent fee is charged by the privacy pool.
         </p>
       </div>
     </button>

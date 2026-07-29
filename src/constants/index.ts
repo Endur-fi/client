@@ -307,6 +307,16 @@ export const ENDUR_DEPOSIT_ANONYMIZER_ADDRESS = (process.env
   .NEXT_PUBLIC_ENDUR_DEPOSIT_ANONYMIZER_ADDRESS ??
   "0x030dee638065962eb3642ca54aa48e9e2cd98536bc90b64b99bb306c1db30698") as `0x${string}`;
 
+/**
+ * Fee held back on a Shield & Stake flow. The public -> private deposit still
+ * shields the full amount the user entered; the fee is deducted only from the
+ * amount that is sent to the anonymizer and staked.
+ * STRK pays a flat STRK amount, BTC assets pay the BTC equivalent of a STRK
+ * amount priced at the current oracle rates.
+ */
+export const SHIELD_AND_STAKE_FEE_STRK = 4;
+export const SHIELD_AND_STAKE_FEE_STRK_EQUIVALENT_FOR_BTC = 5;
+
 export const SN_STAKING_ADRESS =
   NETWORK === "SN_MAIN"
     ? "0x00ca1702e64c81d9a07b86bd2c540188d92a2c73cf5cc0e508d949015e7e84a7"
