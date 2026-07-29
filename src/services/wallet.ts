@@ -1,4 +1,3 @@
-import { InjectedConnector } from "@starknet-react/core";
 import {
   ArgentMobileConnector,
   isInArgentMobileAppBrowser,
@@ -9,19 +8,50 @@ import {
 } from "starknetkit/braavosMobile";
 
 import { WebWalletConnector } from "starknetkit/webwallet";
-import { ControllerConnector } from "starknetkit/controller";
-import { constants } from "starknet";
+import Controller from "@cartridge/controller";
+
 import { NETWORK } from "@/constants";
 
-// Cartridge Controller connector created at module level (outside React) so it
-// is not recreated on every render, which would cause connection issues per Cartridge/StarknetKit docs.
-const cartridgeConnector = new ControllerConnector({
-  defaultChainId:
-    NETWORK === constants.NetworkName.SN_MAIN
-      ? constants.StarknetChainId.SN_MAIN
-      : constants.StarknetChainId.SN_SEPOLIA,
-});
+const CARTRIDGE_WALLET_ID = "cartridge";
 
+const cartridgeController = new Controller();
+cartridgeController.name = "Cartridge";
+
+// Note -> we are custom building the wallet object just like WalletWithStarknetFeatures
+// BECAUSE -> The cartridge sdk controller generalizes CONTROLLER id, but we need cartridge controller id for management
+const rawCartridgeWallet = cartridgeController.asWalletStandard();
+export const cartridgeStandardWallet = {
+  get version() {
+    return rawCartridgeWallet.version;
+  },
+  get name() {
+    return rawCartridgeWallet.name;
+  },
+  get icon() {
+    return rawCartridgeWallet.icon;
+  },
+  get chains() {
+    return rawCartridgeWallet.chains;
+  },
+  get accounts() {
+    return rawCartridgeWallet.accounts;
+  },
+  get features() {
+    const features = rawCartridgeWallet.features as Record<string, any>;
+    return {
+      ...features,
+      "starknet:walletApi": {
+        ...features["starknet:walletApi"],
+        id: CARTRIDGE_WALLET_ID,
+      },
+    };
+  },
+};
+
+/**
+ * Legacy wallet connector helper. Extension wallets are now auto-discovered by
+ * get-starknet via `@starknetfoundation/starknet-start-react`.
+ */
 export class WalletConnector {
   private isMobile: boolean;
 
@@ -32,57 +62,6 @@ export class WalletConnector {
   public getConnectors() {
     const hostname = typeof window !== "undefined" ? window.location.href : "";
 
-    // Desktop/Extension wallets
-    const argentXConnector = new InjectedConnector({
-      options: {
-        id: "argentX",
-        name: "Ready X",
-      },
-    });
-
-    const braavosConnector = new InjectedConnector({
-      options: {
-        id: "braavos",
-        name: "Braavos",
-      },
-    });
-
-    const keplrConnector = new InjectedConnector({
-      options: {
-        id: "keplr",
-        name: "Keplr",
-      },
-    });
-
-    const fordefiConnector = new InjectedConnector({
-      options: {
-        id: "fordefi",
-        name: "Fordefi",
-      },
-    });
-
-    const metamaskConnector = new InjectedConnector({
-      options: {
-        id: "metamask",
-        name: "Metamask",
-      },
-    });
-
-    const okx = new InjectedConnector({
-      options: {
-        id: "okxwallet",
-        name: "OKX",
-      },
-    });
-
-    const xverseConnector = new InjectedConnector({
-      options: {
-        id: "xverse",
-        name: "Xverse",
-      },
-    });
-
-    // Mobile connectors
     const argentMobileConnector = ArgentMobileConnector.init({
       options: {
         dappName: "Endur.fi",
@@ -98,16 +77,13 @@ export class WalletConnector {
       inAppBrowserOptions: {},
     });
 
-    // Web wallet (email login)
     const webWalletConnector = new WebWalletConnector({
       url: "https://web.argent.xyz",
     });
 
-    // Check if we're in mobile app browsers
     const isInArgentMobile = isInArgentMobileAppBrowser();
     const isInBraavosMobile = isInBraavosMobileAppBrowser();
 
-    // If in actual mobile app browser, return only that specific connector
     if (isInArgentMobile) {
       return [argentMobileConnector];
     }
@@ -116,27 +92,10 @@ export class WalletConnector {
       return [braavosMobileConnector];
     }
 
-    // For mobile screen dimensions (but NOT in mobile app browser)
-    // Show web wallet, social login, and Braavos mobile
     if (this.isMobile) {
-      return [
-        braavosMobileConnector,
-        cartridgeConnector,
-        webWalletConnector,
-      ];
+      return [braavosMobileConnector, webWalletConnector];
     }
 
-    // For desktop, only show extension wallets and web wallet (no mobile connectors)
-    return [
-      argentXConnector,
-      braavosConnector,
-      cartridgeConnector,
-      keplrConnector,
-      xverseConnector,
-      metamaskConnector,
-      fordefiConnector,
-      okx,
-      webWalletConnector,
-    ];
+    return [webWalletConnector];
   }
 }

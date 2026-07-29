@@ -4,7 +4,7 @@ import Image from "next/image";
 import React from "react";
 
 import { MyAnalytics } from "@/lib/analytics";
-import { useAccount } from "@starknet-react/core";
+import { useAccount } from "@starknetfoundation/starknet-start-react";
 import { protocolConfigs } from "./defi";
 import DefiCard from "./defi-card";
 import { Icons } from "./Icons";

@@ -19,7 +19,7 @@ import {
   nstStrkWithdrawalFeeAtom,
   userNstSTRKBalanceAtom,
 } from "@/store/lst.store";
-import { useAccount, useSendTransaction } from "@starknet-react/core";
+import { useAccount, useSendTransaction } from "@starknetfoundation/starknet-start-react";
 import { useAtomValue } from "jotai";
 import { Info } from "lucide-react";
 import { Figtree, Inter } from "next/font/google";

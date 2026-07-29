@@ -17,7 +17,7 @@ import { Button } from "./ui/button";
 import { Dialog, DialogContent } from "./ui/dialog";
 import { isVIPAtom } from "@/store/portfolio.store";
 import React from "react";
-import { useAccount } from "@starknet-react/core";
+import { useAccount } from "@starknetfoundation/starknet-start-react";
 
 interface VipFeatureItemProps {
   icon: React.ComponentType<LucideProps>;

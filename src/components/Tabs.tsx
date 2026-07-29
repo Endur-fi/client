@@ -6,7 +6,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useRouter, usePathname } from "next/navigation";
 import React from "react";
-import { useAccount } from "@starknet-react/core";
+import { useAccount } from "@starknetfoundation/starknet-start-react";
 
 import { Icons } from "@/components/Icons";
 import {
@@ -16,7 +16,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { IS_PAUSED, getLSTAssetsByCategory, getSTRKAsset } from "@/constants";
-import { cn, formatNumberWithCommas, getInternalUrl } from "@/lib/utils";
+import { cn, formatNumberWithCommas } from "@/lib/utils";
 import { MyAnalytics } from "@/lib/analytics";
 import { AnalyticsEvents } from "@/lib/analytics-events";
 import {
@@ -63,8 +63,6 @@ const Tabs = () => {
   const apy = useAtomValue(snAPYAtom);
   const strkTVL = useAtomValue(strkTVLAtom);
   const btcTVL = useAtomValue(btcTVLAtom);
-
-  console.log("Apy", apy.value);
 
   // Format TVL for display
   const formatTVL = (value: number): string => {
@@ -218,13 +216,15 @@ const Tabs = () => {
     });
 
     const referrer = searchParams.get("referrer");
+    const mode = searchParams.get("mode");
+    const basePath = tab === "btc" ? "/btc" : tab === "strk" ? "/strk" : null;
 
-    if (tab === "btc") {
-      router.push(getInternalUrl("/btc", referrer), {
-        scroll: false,
-      });
-    } else if (tab === "strk") {
-      router.push(getInternalUrl("/strk", referrer), {
+    if (basePath) {
+      const params = new URLSearchParams();
+      if (referrer) params.set("referrer", referrer);
+      if (mode === "shielded") params.set("mode", "shielded");
+      const query = params.toString();
+      router.push(query ? `${basePath}?${query}` : basePath, {
         scroll: false,
       });
     }

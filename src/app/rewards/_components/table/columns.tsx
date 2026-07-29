@@ -1,6 +1,6 @@
 "use client";
 
-import { useAccount, useStarkProfile } from "@starknet-react/core";
+import { useAccount, useStarkProfile } from "@starknetfoundation/starknet-start-react";
 import { ColumnDef } from "@tanstack/react-table";
 import Link from "next/link";
 import React from "react";
