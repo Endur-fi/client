@@ -24,6 +24,8 @@ type ShieldAndStakeBannerProps = {
   disabled?: boolean;
   /** When false (no wallet connected), the tooltip prompts to connect a wallet instead. */
   isWalletConnected?: boolean;
+  /** Live fee charged by the privacy pool, in STRK terms. */
+  feeStrk: number;
 };
 
 export const ShieldAndStakeBanner = ({
@@ -33,6 +35,7 @@ export const ShieldAndStakeBanner = ({
   onSelectedChange,
   disabled = false,
   isWalletConnected = true,
+  feeStrk,
 }: ShieldAndStakeBannerProps) => {
   const option = (
     <button
@@ -76,8 +79,9 @@ export const ShieldAndStakeBanner = ({
             disabled && "text-[#ACB4B8]",
           )}
         >
-          Enable privacy shielding for your deposit. Your assets will be
-          hidden using zero-knowledge proofs while earning yield. A 4 STRK equivalent fee is charged by the privacy pool.
+          Enable privacy shielding for your deposit. Your assets will be hidden
+          using zero-knowledge proofs while earning yield. A {feeStrk} STRK
+          equivalent fee is charged by the privacy pool.
         </p>
       </div>
     </button>

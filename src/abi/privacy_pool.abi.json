@@ -1,0 +1,13 @@
+[
+  {
+    "type": "function",
+    "name": "get_fee_amount",
+    "inputs": [],
+    "outputs": [
+      {
+        "type": "core::integer::u128"
+      }
+    ],
+    "state_mutability": "view"
+  }
+]
