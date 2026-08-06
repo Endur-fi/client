@@ -63,8 +63,7 @@ import {
   LSTAssetConfig,
   NOSTRA_iXSTRK_ADDRESS,
   REWARD_FEES,
-  SHIELD_AND_STAKE_FEE_STRK,
-  SHIELD_AND_STAKE_FEE_STRK_EQUIVALENT_FOR_BTC,
+  SHIELD_AND_STAKE_FEE_BTC_BUFFER_STRK,
   WBTC_ETH_TOKEN,
   VESU_vXSTRK_ADDRESS,
 } from "@/constants";
@@ -99,6 +98,7 @@ import {
 } from "@/store/defi.store";
 import { apiExchangeRateAtom } from "@/store/lst.store";
 import { tabsAtom } from "@/store/merry.store";
+import { shieldAndStakeFeeStrkAtom } from "@/store/privacy-pool.store";
 import { snAPYAtom, strkPriceAtom } from "@/store/staking.store";
 
 import { Icons } from "./Icons";
@@ -253,26 +253,29 @@ const Stake: React.FC = () => {
 
   const strkPrice = useAtomValue(strkPriceAtom);
 
+  // Live fee charged by the privacy pool, always denominated in STRK.
+  const shieldAndStakeFeeStrk = useAtomValue(shieldAndStakeFeeStrkAtom);
+
   // Fee held back on Shield & Stake, denominated in the staked asset. BTC
   // assets pay the BTC equivalent of the STRK fee at current oracle prices,
   // so it is null until both prices are available.
   const shieldAndStakeFee = React.useMemo(() => {
+    const feeStrk = Number(shieldAndStakeFeeStrk.toEtherStr());
+
     if (!isBTC) {
-      return MyNumber.fromEther(
-        SHIELD_AND_STAKE_FEE_STRK.toString(),
-        lstConfig.DECIMALS,
-      );
+      return MyNumber.fromEther(feeStrk.toString(), lstConfig.DECIMALS);
     }
 
     if (!strkPrice || !assetPrice) return null;
 
     const feeInAsset =
-      (SHIELD_AND_STAKE_FEE_STRK_EQUIVALENT_FOR_BTC * strkPrice) / assetPrice;
+      ((feeStrk + SHIELD_AND_STAKE_FEE_BTC_BUFFER_STRK) * strkPrice) /
+      assetPrice;
     return MyNumber.fromEther(
       feeInAsset.toFixed(lstConfig.DECIMALS),
       lstConfig.DECIMALS,
     );
-  }, [isBTC, strkPrice, assetPrice, lstConfig.DECIMALS]);
+  }, [isBTC, shieldAndStakeFeeStrk, strkPrice, assetPrice, lstConfig.DECIMALS]);
 
   React.useEffect(() => {
     if (balanceMode !== BalanceMode.UNSHIELDED) {
@@ -1235,6 +1238,7 @@ const Stake: React.FC = () => {
           isSelected={isShieldAndStakeSelected}
           disabled={!isShieldedModeWallet}
           isWalletConnected={Boolean(address)}
+          feeStrk={Number(shieldAndStakeFeeStrk.toEtherStr())}
           onSelectedChange={(selected) => {
             setIsShieldAndStakeSelected(selected);
             if (selected) {

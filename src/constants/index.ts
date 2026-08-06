@@ -307,15 +307,26 @@ export const ENDUR_DEPOSIT_ANONYMIZER_ADDRESS = (process.env
   .NEXT_PUBLIC_ENDUR_DEPOSIT_ANONYMIZER_ADDRESS ??
   "0x030dee638065962eb3642ca54aa48e9e2cd98536bc90b64b99bb306c1db30698") as `0x${string}`;
 
+/** Privacy pool contract, the source of truth for the Shield & Stake fee. */
+export const PRIVACY_POOL_ADDRESS = (process.env
+  .NEXT_PUBLIC_PRIVACY_POOL_ADDRESS ??
+  "0x040337b1af3c663e86e333bab5a4b28da8d4652a15a69beee2b677776ffe812a") as `0x${string}`;
+
 /**
  * Fee held back on a Shield & Stake flow. The public -> private deposit still
  * shields the full amount the user entered; the fee is deducted only from the
  * amount that is sent to the anonymizer and staked.
- * STRK pays a flat STRK amount, BTC assets pay the BTC equivalent of a STRK
- * amount priced at the current oracle rates.
+ * The live fee is read from `get_fee_amount` on the privacy pool (always
+ * denominated in STRK); this is only the fallback used when that call fails.
+ * BTC assets pay the BTC equivalent of the STRK fee at current oracle rates.
  */
-export const SHIELD_AND_STAKE_FEE_STRK = 4;
-export const SHIELD_AND_STAKE_FEE_STRK_EQUIVALENT_FOR_BTC = 5;
+export const SHIELD_AND_STAKE_FEE_STRK_FALLBACK = 4;
+
+/**
+ * Extra STRK added on top of the pool fee for BTC assets, absorbing the
+ * STRK/BTC price drift between quoting the fee and the stake landing on-chain.
+ */
+export const SHIELD_AND_STAKE_FEE_BTC_BUFFER_STRK = 1;
 
 export const SN_STAKING_ADRESS =
   NETWORK === "SN_MAIN"
