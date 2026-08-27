@@ -61,8 +61,27 @@ const VIP_DEFAULT = {
   contacts: { call: null as string | null, telegram: null as string | null },
 };
 
+// TODO: remove — force the VIP card + navbar chip on for local testing
+const FORCE_VIP_FOR_UI = true;
+
 export const isVIPAtom = atom((get) => {
   const { data, error, isPending } = get(isVIPQueryAtom);
+
+  if (FORCE_VIP_FOR_UI) {
+    return {
+      isVIP: true,
+      totalValueUSD: data?.totalValueUSD ?? VIP_DEFAULT.totalValueUSD,
+      breakdown: data?.breakdown ?? VIP_DEFAULT.breakdown,
+      contacts: {
+        call:
+          data?.contacts.call ??
+          "https://cal.com/akira-unwrap-labs/elite-access-calendar",
+        telegram: data?.contacts.telegram ?? "https://t.me/akirabuilds",
+      },
+      isLoading: false,
+      error: null,
+    };
+  }
 
   if (isPending) {
     return { ...VIP_DEFAULT, isLoading: true, error: null };
