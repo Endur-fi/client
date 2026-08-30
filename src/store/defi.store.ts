@@ -341,11 +341,11 @@ const vesuBTCxtBTCYieldQueryAtom = createVesuBTCYieldQueryAtom(
   "vesuBTCxtBTCYield",
 );
 
-const vesuBTCxLBTCYieldQueryAtom = createVesuBTCYieldQueryAtom(
-  "PLACEHOLDER_POOL_ID_xLBTC", // Replace with actual pool ID
-  "xLBTC",
-  "vesuBTCxLBTCYield",
-);
+// const vesuBTCxLBTCYieldQueryAtom = createVesuBTCYieldQueryAtom(
+//   "PLACEHOLDER_POOL_ID_xLBTC", // Replace with actual pool ID
+//   "xLBTC",
+//   "vesuBTCxLBTCYield",
+// );
 
 const vesuBTCxsBTCYieldQueryAtom = createVesuBTCYieldQueryAtom(
   "PLACEHOLDER_POOL_ID_xsBTC", // Replace with actual pool ID
@@ -739,10 +739,10 @@ const trovesHyperxtBTCYieldQueryAtom = createTrovesYieldQueryAtom(
   "trovesHyperxtBTCYield",
 );
 
-const trovesHyperxLBTCYieldQueryAtom = createTrovesYieldQueryAtom(
-  "hyper_xlbtc",
-  "trovesHyperBTCxLBTCYield",
-);
+// const trovesHyperxLBTCYieldQueryAtom = createTrovesYieldQueryAtom(
+//   "hyper_xlbtc",
+//   "trovesHyperBTCxLBTCYield",
+// );
 
 const trovesHyperxsBTCYieldQueryAtom = createTrovesYieldQueryAtom(
   "hyper_xsbtc",
@@ -760,10 +760,10 @@ const trovesEkuboBTCxtBTCYieldQueryAtom = createTrovesYieldQueryAtom(
   "trovesEkuboBTCxtBTCYield",
 );
 
-const trovesEkuboBTCxLBTCYieldQueryAtom = createTrovesYieldQueryAtom(
-  "ekubo_cl_xlbtclbtc",
-  "trovesEkuboBTCxLBTCYield",
-);
+// const trovesEkuboBTCxLBTCYieldQueryAtom = createTrovesYieldQueryAtom(
+//   "ekubo_cl_xlbtclbtc",
+//   "trovesEkuboBTCxLBTCYield",
+// );
 
 const trovesEkuboBTCxsBTCYieldQueryAtom = createTrovesYieldQueryAtom(
   "ekubo_cl_xsbtcsolvbtc",
@@ -906,15 +906,15 @@ export const vesuBTCxtBTCYieldAtom = atom<ProtocolStats>((get) => {
   };
 });
 
-export const vesuBTCxLBTCYieldAtom = atom<ProtocolStats>((get) => {
-  const { data, error } = get(vesuBTCxLBTCYieldQueryAtom);
-  return {
-    value: error || !data ? null : data.value,
-    totalSupplied: error || !data ? null : data.totalSupplied || null,
-    error,
-    isLoading: !data && !error,
-  };
-});
+// export const vesuBTCxLBTCYieldAtom = atom<ProtocolStats>((get) => {
+//   const { data, error } = get(vesuBTCxLBTCYieldQueryAtom);
+//   return {
+//     value: error || !data ? null : data.value,
+//     totalSupplied: error || !data ? null : data.totalSupplied || null,
+//     error,
+//     isLoading: !data && !error,
+//   };
+// });
 
 export const vesuBTCxsBTCYieldAtom = atom<ProtocolStats>((get) => {
   const { data, error } = get(vesuBTCxsBTCYieldQueryAtom);
@@ -965,9 +965,9 @@ export const trovesHyperxtBTCYieldAtom = createTrovesYieldAtom(
   trovesHyperxtBTCYieldQueryAtom,
 );
 
-export const trovesHyperxLBTCYieldAtom = createTrovesYieldAtom(
-  trovesHyperxLBTCYieldQueryAtom,
-);
+// export const trovesHyperxLBTCYieldAtom = createTrovesYieldAtom(
+//   trovesHyperxLBTCYieldQueryAtom,
+// );
 
 export const trovesHyperxsBTCYieldAtom = createTrovesYieldAtom(
   trovesHyperxsBTCYieldQueryAtom,
@@ -982,9 +982,9 @@ export const trovesEkuboBTCxtBTCYieldAtom = createTrovesYieldAtom(
   trovesEkuboBTCxtBTCYieldQueryAtom,
 );
 
-export const trovesEkuboBTCxLBTCYieldAtom = createTrovesYieldAtom(
-  trovesEkuboBTCxLBTCYieldQueryAtom,
-);
+// export const trovesEkuboBTCxLBTCYieldAtom = createTrovesYieldAtom(
+//   trovesEkuboBTCxLBTCYieldQueryAtom,
+// );
 
 export const trovesEkuboBTCxsBTCYieldAtom = createTrovesYieldAtom(
   trovesEkuboBTCxsBTCYieldQueryAtom,
@@ -1085,6 +1085,12 @@ export const vesuPoolsFilteredAtom = atom((get) => {
 
         if (lstEntry) {
           const [collateralSymbol] = lstEntry;
+
+          // hidden xLBTC strategies
+          if (collateralSymbol === "xLBTC") {
+            continue;
+          }
+
           const debtNormalized = normalizeAddress(pair.debtAssetAddress);
           const collateralAsset = pool.assets.find(
             (a) => normalizeAddress(a.address) === collateralNormalized,
@@ -1254,7 +1260,7 @@ export const vesuContributorSupplyPoolsAtom = atom<VesuSupplyPool[]>((get) => {
     STRK: "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
     WBTC: "0x3fe2b97c1fd336e750087d68b9b867997fd64a2661ff3ca5a7c771641e8e7ac",
     tBTC: "0x4daa17763b286d1e59b97c283c0b8c949994c361e426a28f743c67bdfe9a32f",
-    LBTC: "0x036834a40984312f7f7de8d31e3f6305b325389eaeea5b1c0664b2fb936461a4",
+    // LBTC: "0x036834a40984312f7f7de8d31e3f6305b325389eaeea5b1c0664b2fb936461a4",
     solvBTC:
       "0x0593e034dda23eea82d2ba9a30960ed42cf4a01502cc2351dc9b9881f9931a68",
   };
@@ -1456,10 +1462,10 @@ export const hyperxtBTCVaultCapacityAtom = createVaultCapacityAtom(
   "xtBTC",
   "hyper_xtbtc",
 );
-export const hyperxLBTCVaultCapacityAtom = createVaultCapacityAtom(
-  "xLBTC",
-  "hyper_xlbtc",
-);
+// export const hyperxLBTCVaultCapacityAtom = createVaultCapacityAtom(
+//   "xLBTC",
+//   "hyper_xlbtc",
+// );
 export const hyperxsBTCVaultCapacityAtom = createVaultCapacityAtom(
   "xsBTC",
   "hyper_xsbtc",
@@ -1525,13 +1531,13 @@ export const protocolYieldsAtom = atom<
   hyperxSTRK: get(trovesHyperYieldAtom),
   hyperxWBTC: get(trovesHyperYieldAtom),
   hyperxtBTC: get(trovesHyperYieldAtom),
-  hyperxLBTC: get(trovesHyperYieldAtom),
+  // hyperxLBTC: get(trovesHyperYieldAtom),
   hyperxsBTC: get(trovesHyperYieldAtom),
   hyperxstrkBTC: get(trovesHyperYieldAtom),
   vesu: get(vesuYieldAtom),
   vesuBTCxWBTC: get(vesuBTCxWBTCYieldAtom),
   vesuBTCxtBTC: get(vesuBTCxtBTCYieldAtom),
-  vesuBTCxLBTC: get(vesuBTCxLBTCYieldAtom),
+  // vesuBTCxLBTC: get(vesuBTCxLBTCYieldAtom),
   vesuBTCxsBTC: get(vesuBTCxsBTCYieldAtom),
   ekubo: get(ekuboYieldAtom),
   nostraDex: get(nostraLPYieldAtom),
