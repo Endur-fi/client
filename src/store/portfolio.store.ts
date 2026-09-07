@@ -61,13 +61,31 @@ const VIP_DEFAULT = {
   contacts: { call: null as string | null, telegram: null as string | null },
 };
 
-// TODO: remove — force the VIP card + navbar chip on for local testing
-const FORCE_VIP_FOR_UI = true;
+/** Mirrors starknet-vip.store.ts's normalization for comparing raw felts. */
+function normalizeAddress(value: string): string | null {
+  try {
+    const big = BigInt(value);
+    return `0x${big.toString(16).padStart(64, "0").toLowerCase()}`;
+  } catch {
+    return null;
+  }
+}
+
+// TODO: remove — test wallet for QA while this address isn't yet flagged
+// VIP by the real /api/portfolio/isVIP response.
+const TEST_VIP_WALLET_ADDRESSES = [
+  "0x005B03F9aC3fEf9fAb8985C1a8060a78d257D1266815841D7c2ceE52283B8a2b",
+].map(normalizeAddress);
 
 export const isVIPAtom = atom((get) => {
+  const address = get(userAddressAtom);
   const { data, error, isPending } = get(isVIPQueryAtom);
 
-  if (FORCE_VIP_FOR_UI) {
+  const isTestVipWallet =
+    !!address &&
+    TEST_VIP_WALLET_ADDRESSES.includes(normalizeAddress(address));
+
+  if (isTestVipWallet) {
     return {
       isVIP: true,
       totalValueUSD: data?.totalValueUSD ?? VIP_DEFAULT.totalValueUSD,

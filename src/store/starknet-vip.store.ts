@@ -103,13 +103,7 @@ export const isStarknetVipAtom = atom((get) => {
 
 export const starknetVipCtaAtom = atom((get) => get(starknetVipAtom).cta);
 
-/**
- * The CTA link that points at the VIP signup, for surfaces that show a single
- * "join" action instead of the full link list. Falls back to the first link so
- * the action is never rendered without a destination. URLs are used exactly as
- * returned — the partner referral is already baked into them.
- */
-export const starknetVipJoinLinkAtom = atom((get) => {
+export const starknetVipPrimaryCtaLinkAtom = atom((get) => {
   const cta = get(starknetVipCtaAtom);
   if (!cta || cta.links.length === 0) return null;
 

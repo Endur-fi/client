@@ -19,7 +19,7 @@ import { Dialog, DialogContent } from "./ui/dialog";
 import { isVIPAtom } from "@/store/portfolio.store";
 import {
   isStarknetVipAtom,
-  starknetVipJoinLinkAtom,
+  starknetVipPrimaryCtaLinkAtom,
 } from "@/store/starknet-vip.store";
 import React from "react";
 import { useAccount } from "@starknetfoundation/starknet-start-react";
@@ -89,7 +89,7 @@ const VipModal = ({
   vipStatus: VIPStatus;
 }) => {
   const isStarknetVip = useAtomValue(isStarknetVipAtom);
-  const starknetVipJoinLink = useAtomValue(starknetVipJoinLinkAtom);
+  const starknetVipLink = useAtomValue(starknetVipPrimaryCtaLinkAtom);
 
   return (
     <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
@@ -146,22 +146,22 @@ const VipModal = ({
               Message on Telegram
             </Button>
           )}
-          {isStarknetVip && starknetVipJoinLink && (
+          {isStarknetVip && starknetVipLink && (
             <a
-              href={starknetVipJoinLink.url}
+              href={starknetVipLink.url}
               target="_blank"
               rel="noopener noreferrer"
               onClick={() => {
                 MyAnalytics.track(AnalyticsEvents.STARKNET_VIP_JOIN_CLICK, {
                   totalValueUSD: vipStatus.totalValueUSD,
                   source: "vip_card_modal",
-                  url: starknetVipJoinLink.url,
+                  url: starknetVipLink.url,
                 });
               }}
               className="flex h-auto w-full items-center justify-center gap-2 rounded-[10px] bg-[#03624C] py-[16px] text-[16px] font-bold leading-[19.5px] tracking-[-0.13px] text-white transition-opacity hover:opacity-90 lg:w-auto lg:px-6"
             >
               <Sparkles className="size-[16px] text-white" strokeWidth={2.5} />
-              Join Starknet VIP Program
+               Starknet VIP Program
             </a>
           )}
         </div>
