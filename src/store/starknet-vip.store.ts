@@ -27,7 +27,7 @@ interface StarknetVipResponse {
 const REFETCH_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes, matches the API route's revalidate window
 
 /** Mirrors the route's normalization so the client-side membership check is a plain `Set.has()`. */
-function normalizeAddress(value: string): string | null {
+export function normalizeAddress(value: string): string | null {
   try {
     const big = BigInt(value);
     return `0x${big.toString(16).padStart(64, "0").toLowerCase()}`;

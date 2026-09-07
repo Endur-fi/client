@@ -9,6 +9,7 @@ import { userAddressAtom } from "@/store/common.store";
 import { Dialog, DialogContent } from "./ui/dialog";
 import {
   isStarknetVipAtom,
+  normalizeAddress,
   starknetVipCtaAtom,
   starknetVipModalOpenAtom,
 } from "@/store/starknet-vip.store";
@@ -133,7 +134,10 @@ export const StarknetVipController = () => {
     if (!cta) return;
     if (typeof window === "undefined") return;
 
-    const shownKey = `${SHOWN_KEY_PREFIX}${address}`;
+    const normalized = normalizeAddress(address);
+    if (!normalized) return;
+
+    const shownKey = `${SHOWN_KEY_PREFIX}${normalized}`;
     if (sessionStorage.getItem(shownKey)) return;
 
     const open = () => {
