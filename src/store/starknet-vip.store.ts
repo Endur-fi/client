@@ -36,13 +36,6 @@ export function normalizeAddress(value: string): string | null {
   }
 }
 
-// TODO: remove — test wallet for QA while this address isn't yet on the
-// partner's real VIP list. Merged into whatever the live API returns; the
-// CTA body/links always come from the real /api/vip/starknet response.
-const TEST_WALLET_ADDRESSES = [
-  "0x005B03F9aC3fEf9fAb8985C1a8060a78d257D1266815841D7c2ceE52283B8a2b",
-];
-
 const starknetVipQueryAtom = atomWithQuery(() => ({
   queryKey: ["starknetVipWallets"],
   queryFn: async (): Promise<StarknetVipData> => {
@@ -68,13 +61,9 @@ const starknetVipQueryAtom = atomWithQuery(() => ({
 export const starknetVipAtom = atom((get) => {
   const { data, error, isPending } = get(starknetVipQueryAtom);
 
-  const testWallets = TEST_WALLET_ADDRESSES.map(normalizeAddress).filter(
-    (w): w is string => w !== null,
-  );
-
   if (!data) {
     return {
-      wallets: new Set(testWallets),
+      wallets: new Set<string>(),
       cta: null as StarknetVipCta | null,
       isLoading: isPending,
       error: error?.message || null,
@@ -82,7 +71,7 @@ export const starknetVipAtom = atom((get) => {
   }
 
   return {
-    wallets: new Set([...data.wallets, ...testWallets]),
+    wallets: new Set(data.wallets),
     cta: data.cta,
     isLoading: false,
     // Surfaced for visibility even when we still have (possibly stale) data.
