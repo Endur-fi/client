@@ -11,11 +11,16 @@ import {
   Crown,
   MessageCircle,
   Phone,
+  Sparkles,
   LucideProps,
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { Dialog, DialogContent } from "./ui/dialog";
 import { isVIPAtom } from "@/store/portfolio.store";
+import {
+  isStarknetVipAtom,
+  starknetVipPrimaryCtaLinkAtom,
+} from "@/store/starknet-vip.store";
 import React from "react";
 import { useAccount } from "@starknetfoundation/starknet-start-react";
 
@@ -82,69 +87,95 @@ const VipModal = ({
   isModalOpen: boolean;
   setIsModalOpen: (open: boolean) => void;
   vipStatus: VIPStatus;
-}) => (
-  <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-    <DialogContent className="flex flex-col items-center gap-8">
-      <div className="flex flex-col items-center gap-2">
-        <div className="flex flex-col items-center gap-1">
-          <EliteMemberChip />
-          <h3 className="text-[24px] font-bold leading-[36px] tracking-[-0.24px] text-[#1A1F24]">
-            You are an important user for us!
-          </h3>
+}) => {
+  const isStarknetVip = useAtomValue(isStarknetVipAtom);
+  const starknetVipLink = useAtomValue(starknetVipPrimaryCtaLinkAtom);
+
+  return (
+    <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+      <DialogContent className="flex flex-col items-center gap-8">
+        <div className="flex flex-col items-center gap-2">
+          <div className="flex flex-col items-center gap-1">
+            <EliteMemberChip />
+            <h3 className="text-[24px] font-bold leading-[36px] tracking-[-0.24px] text-[#1A1F24]">
+              You are an important user for us!
+            </h3>
+          </div>
+          <p className="text-[16px] leading-[24px] tracking-[0px] text-[#6B7780]">
+            Connect with our Founder over a call to know Endur better
+          </p>
         </div>
-        <p className="text-[16px] leading-[24px] tracking-[0px] text-[#6B7780]">
-          Connect with our Founder over a call to know Endur better
-        </p>
-      </div>
-      <div className="flex w-full flex-col gap-3">
-        {vipStatus.contacts.call && (
-          <Button
-            className="h-auto w-full gap-2 rounded-[10px] bg-[#03624C] py-[16px] text-[16px] font-bold leading-[19.5px] tracking-[-0.13px] text-white transition-opacity hover:opacity-90 lg:w-auto lg:px-6"
-            onClick={() => {
-              MyAnalytics.track(AnalyticsEvents.VIP_CARD_SCHEDULE_CALL_CLICK, {
-                totalValueUSD: vipStatus.totalValueUSD,
-                source: "modal",
-              });
-              window.open(vipStatus.contacts.call || "", "_blank");
-            }}
-          >
-            <Phone className="size-[16px] text-white" strokeWidth={2.5} />
-            Schedule a Call
-          </Button>
-        )}
-        {vipStatus.contacts.telegram && (
-          <Button
-            className="h-auto w-full gap-2 rounded-[10px] py-[16px] text-[16px] font-bold leading-[19.5px] tracking-[-0.13px] text-white transition-opacity hover:opacity-90 lg:w-auto lg:px-6"
-            style={{
-              background:
-                "linear-gradient(180deg, #38EF7D -59.65%, #11998E 100%)",
-            }}
-            onClick={() => {
-              MyAnalytics.track(AnalyticsEvents.VIP_CARD_TELEGRAM_CLICK, {
-                totalValueUSD: vipStatus.totalValueUSD,
-                source: "modal",
-              });
-              window.open(vipStatus.contacts.telegram || "", "_blank");
-            }}
-          >
-            <MessageCircle
-              className="size-[16px] text-white"
-              strokeWidth={2.5}
-            />
-            Message on Telegram
-          </Button>
-        )}
-      </div>
-      <div className="flex flex-col items-center gap-6">
-        <div className="h-[1px] w-full bg-[#E5E8EB]" />
-        <span className="text-center text-[12px] leading-[18px] tracking-[0px] text-[#6B7780]">
-          As a valued member, you get priority access to our founder for
-          personalized guidance and exclusive opportunities.
-        </span>
-      </div>
-    </DialogContent>
-  </Dialog>
-);
+        <div className="flex w-full flex-col gap-3">
+          {vipStatus.contacts.call && (
+            <Button
+              className="h-auto w-full gap-2 rounded-[10px] bg-[#03624C] py-[16px] text-[16px] font-bold leading-[19.5px] tracking-[-0.13px] text-white transition-opacity hover:opacity-90 lg:w-auto lg:px-6"
+              onClick={() => {
+                MyAnalytics.track(
+                  AnalyticsEvents.VIP_CARD_SCHEDULE_CALL_CLICK,
+                  {
+                    totalValueUSD: vipStatus.totalValueUSD,
+                    source: "modal",
+                  },
+                );
+                window.open(vipStatus.contacts.call || "", "_blank");
+              }}
+            >
+              <Phone className="size-[16px] text-white" strokeWidth={2.5} />
+              Schedule a Call
+            </Button>
+          )}
+          {vipStatus.contacts.telegram && (
+            <Button
+              className="h-auto w-full gap-2 rounded-[10px] py-[16px] text-[16px] font-bold leading-[19.5px] tracking-[-0.13px] text-white transition-opacity hover:opacity-90 lg:w-auto lg:px-6"
+              style={{
+                background:
+                  "linear-gradient(180deg, #38EF7D -59.65%, #11998E 100%)",
+              }}
+              onClick={() => {
+                MyAnalytics.track(AnalyticsEvents.VIP_CARD_TELEGRAM_CLICK, {
+                  totalValueUSD: vipStatus.totalValueUSD,
+                  source: "modal",
+                });
+                window.open(vipStatus.contacts.telegram || "", "_blank");
+              }}
+            >
+              <MessageCircle
+                className="size-[16px] text-white"
+                strokeWidth={2.5}
+              />
+              Message on Telegram
+            </Button>
+          )}
+          {isStarknetVip && starknetVipLink && (
+            <a
+              href={starknetVipLink.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => {
+                MyAnalytics.track(AnalyticsEvents.STARKNET_VIP_JOIN_CLICK, {
+                  totalValueUSD: vipStatus.totalValueUSD,
+                  source: "vip_card_modal",
+                  url: starknetVipLink.url,
+                });
+              }}
+              className="flex h-auto w-full items-center justify-center gap-2 rounded-[10px] bg-[#03624C] py-[16px] text-[16px] font-bold leading-[19.5px] tracking-[-0.13px] text-white transition-opacity hover:opacity-90 lg:w-auto lg:px-6"
+            >
+              <Sparkles className="size-[16px] text-white" strokeWidth={2.5} />
+               Starknet VIP Program
+            </a>
+          )}
+        </div>
+        <div className="flex flex-col items-center gap-6">
+          <div className="h-[1px] w-full bg-[#E5E8EB]" />
+          <span className="text-center text-[12px] leading-[18px] tracking-[0px] text-[#6B7780]">
+            As a valued member, you get priority access to our founder for
+            personalized guidance and exclusive opportunities.
+          </span>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+};
 
 const VipCard = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);

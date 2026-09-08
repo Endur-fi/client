@@ -114,6 +114,12 @@ export const AnalyticsEvents = {
 
   // Rewards claim success (on-chain TX confirmed)
   REWARDS_CLAIM_TX_SUCCESS: "rewards_claim_tx_success",
+
+  // Starknet Foundation VIP wallet program
+  STARKNET_VIP_MODAL_VIEW: "starknet_vip_modal_view",
+  STARKNET_VIP_MODAL_LINK_CLICK: "starknet_vip_modal_link_click",
+  STARKNET_VIP_MODAL_CLOSE: "starknet_vip_modal_close",
+  STARKNET_VIP_JOIN_CLICK: "starknet_vip_join_click", // from the Endur VIP card modal
 } as const;
 
 export type AnalyticsEventName =

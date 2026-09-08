@@ -20,6 +20,7 @@ import {
 } from "@/store/common.store";
 
 import MobileNav from "./mobile-nav";
+import { StarknetVipController } from "./starknet-vip-modal";
 import { useSidebar } from "./ui/sidebar";
 import { VipNavbarChip } from "./vip-card";
 
@@ -76,6 +77,7 @@ const Navbar = ({ className }: { className?: string }) => {
         )} */}
 
         <VipNavbarChip />
+        <StarknetVipController />
         <BridgeButton
           className={cn(
             "flex h-8 items-center justify-center gap-2 rounded-lg border border-[#ECECED80] bg-[#AACBC433] text-xs font-bold text-[#03624C] focus-visible:outline-[#03624C] md:h-10 md:text-sm",
